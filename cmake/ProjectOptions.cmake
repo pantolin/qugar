@@ -216,8 +216,16 @@ macro(qugar_local_options)
 endmacro()
 
 macro(qugar_setup_config_options)
-  option(qugar_DEVELOPER_MODE "Enable developer mode (sanitizers and many other checks are enabled)." ON)
-  option(BUILD_TESTING "Enables testing" OFF)
+  if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+    set (_IS_DEBUG_BUILD ON)
+  else()
+    set (_IS_DEBUG_BUILD OFF)
+  endif()
+
+  option(qugar_DEVELOPER_MODE "Enable developer mode (sanitizers and many other checks are enabled)." ${_IS_DEBUG_BUILD})
+  option(BUILD_TESTING "Enable testing" OFF)
   option(qugar_BUILD_DOC "Build documentation" OFF)
   option(qugar_WITH_DEMOS "Build demos" OFF)
+
+  unset(_IS_DEBUG_BUILD)
 endmacro()
