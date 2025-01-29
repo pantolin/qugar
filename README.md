@@ -1,7 +1,4 @@
-# qugar
-
-## About qugar
-Quadratures for Unfitted GeometRies
+# QUGaR: Quadratures for Unfitted GeometRies
 
 # Installation
 > [!NOTE]  
