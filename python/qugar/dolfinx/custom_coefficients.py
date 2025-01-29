@@ -30,7 +30,7 @@ from qugar.quad import CustomQuad, CustomQuadFacet, CustomQuadIntBoundary, QuadG
 
 """Type defining all the possible array types for the integrals
 coefficients."""
-type FloatingArray = npt.NDArray[np.float32 | np.float64 | np.complex64 | np.complex128]
+FloatingArray = npt.NDArray[np.float32 | np.float64 | np.complex64 | np.complex128]
 
 
 class _CustomCoeffsPackerIntegral:
@@ -95,7 +95,7 @@ class _CustomCoeffsPackerIntegral:
             array.
     """
 
-    type _custom_quads_types = CustomQuad | CustomQuadIntBoundary | tuple[CustomQuad, CustomQuad]
+    _custom_quads_types = CustomQuad | CustomQuadIntBoundary | tuple[CustomQuad, CustomQuad]
 
     def __init__(
         self,

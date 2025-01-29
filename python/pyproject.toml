@@ -16,6 +16,7 @@ name = "QUGaR"
 version = "0.0.1"
 description = "QUGaR Python interface"
 readme = "README.md"
+requires-python = ">=3.10.0"
 license = { file = "../LICENSE" }
 authors = [{ name = "Pablo Antolin", email = "pablo.antolin@epfl.ch" }]
 dependencies = ["numpy>=1.21"]
