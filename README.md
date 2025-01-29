@@ -4,6 +4,9 @@
 Quadratures for Unfitted GeometRies
 
 # Installation
+> [!NOTE]  
+> Right now, QUGaR installation has to be done "manually" from the sources. However, it is our intention to provide a [conda-forge](https://conda-forge.org) recipe in the near future. Stay tuned!
+
 First clone the repository and go inside
 ```bash
 git clone https://github.com/pantolin/qugar.git
