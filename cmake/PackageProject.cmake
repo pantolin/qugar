@@ -9,6 +9,16 @@ function(qugar_package_project)
     set(CMAKE_POLICY_DEFAULT_CMP0135 NEW)
   endif()
 
+  # See https://cmake.org/cmake/help/latest/policy/CMP0177.html
+  if (CMAKE_VERSION GREATER_EQUAL 3.31) 
+    cmake_policy(SET CMP0177 OLD)
+  endif()
+
+  # See https://cmake.org/cmake/help/latest/policy/CMP0169.html
+  if (CMAKE_VERSION GREATER_EQUAL 3.30) 
+    cmake_policy(SET CMP0169 OLD)
+  endif()
+
   set(_options ARCH_INDEPENDENT # default to false
   )
   set(_oneValueArgs
