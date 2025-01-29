@@ -98,6 +98,8 @@ endif()
 
 # # set the startup project for the "play" button in MSVC
 # set_property(DIRECTORY PROPERTY VS_STARTUP_PROJECT demo_reparam_gygroid)
-add_subdirectory(demo)
+if(qugar_WITH_DEMOS)
+  add_subdirectory(demo)
+endif()
 
 qugar_install_project()
