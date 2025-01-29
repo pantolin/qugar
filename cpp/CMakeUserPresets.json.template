@@ -1,0 +1,114 @@
+{
+    "version": 4,
+    "cmakeMinimumRequired": {
+        "major": 3,
+        "minor": 23,
+        "patch": 0
+    },
+    "include": [
+        "../CMakeUserPresets.json"
+    ],
+    "configurePresets": [
+        {
+            "name": "qugar_options",
+            "hidden": true,
+            "displayName": "Set of QUGaR build options.",
+            "description": "Set of QUGaR build options",
+            "cacheVariables": {
+                "qugar_BUILD_DOC": true,
+                "qugar_WITH_DEMOS": true,
+                "BUILD_TESTING": true
+            }
+        },
+        {
+            "name": "MacBookProM2-Debug-clang_apple",
+            "displayName": "Debug | Apple Clang | MacBook Pro M2",
+            "description": "Apple Clang Debug build type. All paths set for my MacBook Pro M2.",
+            "inherits": [
+                "MacBookProM2-clang_apple",
+                "debug_build",
+                "qugar_options"
+            ]
+        },
+        {
+            "name": "MacBookProM2-RelWithDebInfo-clang_apple",
+            "displayName": "RelWithDebInfo | Apple Clang | MacBook Pro M2",
+            "description": "Apple Clang RelWithDebInfo build type. All paths set for my MacBook Pro M2.",
+            "inherits": [
+                "MacBookProM2-clang_apple",
+                "relwithdebinfo_build",
+                "qugar_options"
+            ]
+        },
+        {
+            "name": "MacBookProM2-Release-clang_apple",
+            "displayName": "Release | Apple Clang | MacBook Pro M2",
+            "description": "Apple Clang Release build type. All paths set for my MacBook Pro M2.",
+            "inherits": [
+                "MacBookProM2-clang_apple",
+                "release_build",
+                "qugar_options"
+            ]
+        },
+        {
+            "name": "MacBookProM2-Debug-clang_17",
+            "displayName": "Debug | Clang 17 | MacBook Pro M2",
+            "description": "Clang 17 Debug build type. All paths set for my MacBook Pro M2.",
+            "inherits": [
+                "MacBookProM2-clang_17",
+                "debug_build",
+                "qugar_options"
+            ]
+        },
+        {
+            "name": "MacBookProM2-RelWithDebInfo-clang_17",
+            "displayName": "RelWithDebInfo | Clang 17 | MacBook Pro M2",
+            "description": "Clang 17 RelWithDebInfo build type. All paths set for my MacBook Pro M2.",
+            "inherits": [
+                "MacBookProM2-clang_17",
+                "relwithdebinfo_build",
+                "qugar_options"
+            ]
+        },
+        {
+            "name": "MacBookProM2-Release-clang_17",
+            "displayName": "Release | Clang 17 | MacBook Pro M2",
+            "description": "Clang 17 Release build type. All paths set for my MacBook Pro M2.",
+            "inherits": [
+                "MacBookProM2-clang_17",
+                "release_build",
+                "qugar_options"
+            ]
+        },
+        {
+            "name": "MacBookProM2-Debug-gcc_14",
+            "displayName": "Debug | GCC 14 | MacBook Pro M2",
+            "description": "GCC 14 Debug build type. All paths set for my MacBook Pro M2.",
+            "inherits": [
+                "MacBookProM2-gcc_14",
+                "debug_build",
+                "qugar_options"
+            ]
+        },
+        {
+            "name": "MacBookProM2-RelWithDebInfo-gcc_14",
+            "displayName": "RelWithDebInfo | GCC 14 | MacBook Pro M2",
+            "description": "GCC 14 RelWithDebInfo build type. All paths set for my MacBook Pro M2.",
+            "inherits": [
+                "MacBookProM2-gcc_14",
+                "relwithdebinfo_build",
+                "qugar_options"
+            ]
+        },
+        {
+            "name": "MacBookProM2-Release-gcc_14",
+            "displayName": "Release | GCC 14 | MacBook Pro M2",
+            "description": "GCC 14 Release build type. All paths set for my MacBook Pro M2.",
+            "inherits": [
+                "MacBookProM2-gcc_14",
+                "release_build",
+                "qugar_options"
+            ]
+        }
+    ]
+}

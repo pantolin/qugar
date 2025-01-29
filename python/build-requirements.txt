@@ -1,0 +1,3 @@
+nanobind>=2.0.0
+scikit-build-core[pyproject]>=0.5
+fenics-dolfinx>=0.9.0,<0.10.0

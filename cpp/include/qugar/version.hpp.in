@@ -1,0 +1,36 @@
+// --------------------------------------------------------------------------
+//
+// Copyright (C) 2025-present by Pablo Antolin
+//
+// This file is part of the QUGaR library.
+//
+// SPDX-License-Identifier:    MIT
+//
+// --------------------------------------------------------------------------
+
+#ifndef QUGAR_VERSION_HPP
+#define QUGAR_VERSION_HPP
+
+//! @file version.hpp
+//! @author Pablo Antolin (pablo.antolin@epfl.ch)
+//! @brief QUGaR's version definition.
+//! @version 0.0.1
+//! @date 2025-01-21
+//!
+//! @copyright Copyright (c) 2025-present
+
+#include <string_view>
+
+namespace qugar {
+// clang-format off
+constexpr int QUGAR_VERSION_MAJOR = { @qugar_VERSION_MAJOR@ };
+constexpr int QUGAR_VERSION_MINOR = { @qugar_VERSION_MINOR@ };
+constexpr int QUGAR_VERSION_PATCH = { @qugar_VERSION_PATCH@ };
+constexpr int QUGAR_VERSION_TWEAK = { @qugar_VERSION_TWEAK@ };
+// clang-format on
+constexpr std::string_view QUGAR_VERSION_STRING{ "@qugar_VERSION@" };
+constexpr std::string_view QUGAR_VERSION_GIT{ "@GIT_COMMIT_HASH@" };
+
+}// namespace qugar
+
+#endif// QUGAR_VERSION_HPP

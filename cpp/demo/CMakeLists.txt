@@ -1,0 +1,2 @@
+add_subdirectory(demo_reparam_gyroid)
+add_subdirectory(demo_quad_sphere)

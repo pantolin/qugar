@@ -1,0 +1,124 @@
+# --------------------------------------------------------------------------
+#
+# Copyright (C) 2025-present by Pablo Antolin
+#
+# This file is part of the QUGaR library.
+#
+# SPDX-License-Identifier:    MIT
+#
+# --------------------------------------------------------------------------
+
+"""Tests for custom Python integrals on interior boundaries."""
+
+import os
+
+import qugar.utils
+
+if not qugar.utils.has_FEniCSx:
+    raise ValueError("FEniCSx installation not found is required.")
+
+import dolfinx
+import dolfinx.fem
+import dolfinx.mesh
+import numpy as np
+import pytest
+import ufl
+from mock_quad_generator import MockQuadGenerator
+from utils import clean_cache, create_mesh, dtypes  # type: ignore
+
+from qugar.dolfinx import CustomForm, dx_bdry_int, form_custom, mapped_normal
+
+dir_path = os.path.dirname(os.path.realpath(__file__))
+
+
+@pytest.mark.parametrize("max_quad_sets", [3])
+@pytest.mark.parametrize("nnz", [0.0, 0.3, 1.0])
+@pytest.mark.parametrize("dtype", dtypes)
+@pytest.mark.parametrize("simplex_cell", [True, False])
+@pytest.mark.parametrize("p", [1, 3])
+@pytest.mark.parametrize("dim", [2, 3])
+@pytest.mark.parametrize("N", [1, 4])
+def test_interior_normal(N, dim, p, simplex_cell, dtype, nnz, max_quad_sets):
+    """Test for integral on interior custom boundaries.
+
+    This test actually does not check correctness. The only thing it
+    checks is that the code does not blow up when a assemblying a
+    quantity integrated along the normal that contains custom normals.
+
+    This is mainly because so far there is no easy way of checking if
+    the computations are correct until we get a way of defininig custom
+    quadrature points and normals.
+
+    Args:
+        N (int): Number of cells per direction in the mes.
+        dim (int): Domain's dimension (either 2D or 3D).
+        dx (ufl.Measure): Measure to be used (dx for cell integrals or
+            ds for boundary integrals).
+        p (int): Base degree to used in finite element spaces.
+        simplex_cell (bool): If ``True`` simplex cells (triangles or
+            tetrahedra) are used. Otherwise, quadrilaterals or
+            hexahedra.
+        dtype (type[np.float32 | np.float64]): `numpy` type to be used for
+            scalars
+        nnz (float): Ratio of entities with custom quadratures respect
+            to the total number of entities. It is a value in the range
+            [0.0, 1.0].
+        max_quad_sets (int): Maximum number of repetitions of the
+            standard quadrature to be used for each custom entity
+            quadrature. For each custom entity a random number is
+            generated between 1 and `max_quad_sets`.
+    """
+
+    mesh = create_mesh(dim, N, simplex_cell, dtype)
+
+    quad_gen = MockQuadGenerator(mesh=mesh, nnz=nnz, max_quad_sets=max_quad_sets)
+
+    bdry_tag = 0
+    int_bdry_cells = np.sort(quad_gen.get_int_bdry_cells())
+    cell_tags = dolfinx.mesh.meshtags(
+        mesh, dim, int_bdry_cells, np.full_like(int_bdry_cells, bdry_tag)
+    )
+
+    V0 = dolfinx.fem.functionspace(mesh, ("Lagrange", p))
+    V1 = dolfinx.fem.functionspace(mesh, ("Lagrange", p + 1))
+
+    n = mapped_normal(mesh)
+    c = dolfinx.fem.Constant(mesh, np.ones(dim, dtype=dtype))
+    c2 = dolfinx.fem.Constant(mesh, dtype(1.0))
+
+    v = ufl.TestFunction(V0)
+
+    e = dolfinx.fem.Function(V1, dtype=dtype)
+    e.interpolate(lambda x: 1 + x[0] ** 2 + 2 * x[1] ** 2)  # type: ignore
+
+    ufl_form_0 = (
+        ufl.dot(c, n)
+        * e  # type: ignore
+        * v
+        * dx_bdry_int(domain=mesh, subdomain_data=cell_tags, subdomain_id=bdry_tag)
+    )
+    ufl_form_1 = (
+        e
+        * v  # type: ignore
+        * dx_bdry_int(domain=mesh, subdomain_data=cell_tags, subdomain_id=bdry_tag)
+    )
+
+    ufl_form_2 = (
+        c2 * v * ufl.dx(domain=mesh, subdomain_data=cell_tags, subdomain_id=bdry_tag)  # type: ignore
+    )
+
+    ufl_form = ufl_form_0 + ufl_form_1 + ufl_form_2  # type: ignore
+
+    custom_form = form_custom(ufl_form, dtype=dtype)
+    assert isinstance(custom_form, CustomForm)
+
+    custom_coeffs = custom_form.pack_coefficients(quad_gen)
+
+    dolfinx.fem.assemble_vector(custom_form, coeffs=custom_coeffs)
+
+
+if __name__ == "__main__":
+    clean_cache()
+    test_interior_normal(
+        N=8, dim=2, p=1, simplex_cell=True, dtype=np.float32, nnz=0.0, max_quad_sets=3
+    )

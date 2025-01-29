@@ -1,0 +1,122 @@
+{
+    "version": 4,
+    "cmakeMinimumRequired": {
+        "major": 3,
+        "minor": 23,
+        "patch": 0
+    },
+    "include": [
+        "CMakeCommonPresets.json"
+    ],
+    "configurePresets": [
+        {
+            "name": "python",
+            "hidden": true,
+            "displayName": "Path to Python 3.13.",
+            "description": "Path to Python 3.13 in conda environment.",
+            "cacheVariables": {
+                "Python_EXECUTABLE": "/Users/antolin/anaconda3/envs/QUGaR/bin/python3.13"
+            }
+        },
+        {
+            "name": "ninja",
+            "hidden": true,
+            "displayName": "Path to ninja executable.",
+            "description": "Path to ninja installed with brew..",
+            "cacheVariables": {
+                "CMAKE_MAKE_PROGRAM": "/opt/homebrew/bin/ninja"
+            }
+        },
+        {
+            "name": "lapacke",
+            "hidden": true,
+            "displayName": "Path to lapacke.",
+            "description": "Path to lapacke installed with brew.",
+            "cacheVariables": {
+                "LAPACKE_DIR": "/opt/homebrew/Cellar/lapack/3.12.0"
+            }
+        },
+        {
+            "name": "conda_env",
+            "hidden": true,
+            "displayName": "Path to conda environment.",
+            "description": "Path to QUGaR conda environment.",
+            "cacheVariables": {
+                "CMAKE_PREFIX_PATH": "/Users/antolin/anaconda3/envs/QUGaR"
+            }
+        },
+        {
+            "name": "debug_build",
+            "hidden": true,
+            "displayName": "Configuration for Debug mode.",
+            "description": "Configuration for Debug mode.",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug",
+                "qugar_DEVELOPER_MODE": true
+            }
+        },
+        {
+            "name": "relwithdebinfo_build",
+            "hidden": true,
+            "displayName": "Configuration for RelWithDebInfo mode.",
+            "description": "Configuration for RelWithDebInfo mode.",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+                "qugar_DEVELOPER_MODE": false
+            }
+        },
+        {
+            "name": "release_build",
+            "hidden": true,
+            "displayName": "Configuration for Release mode.",
+            "description": "Configuration for Release mode.",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release",
+                "qugar_DEVELOPER_MODE": false
+            }
+        },
+        {
+            "name": "MacBookProM2",
+            "hidden": true,
+            "inherits": [
+                "conf-unixlike-common",
+                "python",
+                "lapacke",
+                "ninja",
+                "conda_env"
+            ],
+            "displayName": "Specific configuration for my paths for my M2 MacBook Pro",
+            "description": "Specific configuration for my paths for my M2 MacBook Pro (ninja, clang-tidy, ... paths)"
+        },
+        {
+            "name": "MacBookProM2-clang_apple",
+            "hidden": true,
+            "displayName": "Paths to Apple Clang in my M2 MacBook Pro.",
+            "description": "Paths to Apple Clang (version 15) in my M2 MacBook Pro.",
+            "inherits": "MacBookProM2",
+            "cacheVariables": {
+                "CMAKE_CXX_COMPILER": "/usr/bin/clang++"
+            }
+        },
+        {
+            "name": "MacBookProM2-clang_17",
+            "hidden": true,
+            "displayName": "Path to Clang in QUGaR conda environment.",
+            "description": "Path to Clang (version 17.0.6) in QUGaR conda environment.",
+            "inherits": "MacBookProM2",
+            "cacheVariables": {
+                "CMAKE_CXX_COMPILER": "/Users/antolin/anaconda3/envs/QUGaR/bin/clang++"
+            }
+        },
+        {
+            "name": "MacBookProM2-gcc_14",
+            "hidden": true,
+            "displayName": "Paths to GCC in my M2 MacBook Pro.",
+            "description": "Paths to GCC (version 14) in my M2 MacBook Pro.",
+            "inherits": "MacBookProM2",
+            "cacheVariables": {
+                "CMAKE_CXX_COMPILER": "/opt/homebrew/bin/aarch64-apple-darwin23-g++-14"
+            }
+        }
+    ]
+}
