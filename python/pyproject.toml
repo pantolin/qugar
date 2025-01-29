@@ -16,9 +16,7 @@ name = "QUGaR"
 version = "0.0.1"
 description = "QUGaR Python interface"
 readme = "README.md"
-requires-python = ">=3.9.0"
-license = { text = "MIT" }
-license-files = ["../LICENSE", "../ThirdPartyNotices.txt"]
+license = { file = "../LICENSE" }
 authors = [{ name = "Pablo Antolin", email = "pablo.antolin@epfl.ch" }]
 dependencies = ["numpy>=1.21"]
 
