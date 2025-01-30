@@ -15,6 +15,8 @@ from qugar.utils import has_FEniCSx
 if not has_FEniCSx:
     raise ValueError("FEniCSx installation not found is required.")
 
+from typing import Optional
+
 import dolfinx.fem
 import dolfinx.mesh
 import numpy as np
@@ -122,6 +124,7 @@ class dx_bdry_int(ufl.Measure):
         subdomain_id: str | int | tuple[int] = "everywhere",
         metadata: dict | None = None,
         subdomain_data: dolfinx.mesh.MeshTags | None = None,
+        degree: Optional[int] = None,
     ):
         """Initialize.
 
@@ -137,11 +140,15 @@ class dx_bdry_int(ufl.Measure):
             subdomain_data (dolfinx.mesh.MeshTags | None, optional):
                 Object representing data to interpret subdomain_id with.
                 Defaults to None.
+            degree (int, optional): The degree of the quadrature rule.
         """
 
         assert domain is not None
 
-        metadata = {} if metadata is None else metadata
+        metadata = {} if metadata is None else metadata.copy()
+        if degree is not None:
+            metadata["quadrature_degree"] = degree
+
         metadata.update(self._create_custom_metadata(domain))
 
         super().__init__(
