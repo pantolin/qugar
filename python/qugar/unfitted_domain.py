@@ -8,7 +8,7 @@
 #
 # --------------------------------------------------------------------------
 
-from typing import cast
+from typing import Optional, cast
 
 import qugar.utils
 from qugar import has_FEniCSx, has_VTK
@@ -311,70 +311,97 @@ class UnfittedDomain:
         lex_cells, lex_facets = self._cpp_object.empty_facets
         return self._get_facets(lex_cells, lex_facets, facet_ids, lexicg)
 
-    def create_cell_tags(self, cut_tag: int = 0, full_tag: int = 1, empty_tag: int = 2) -> MeshTags:
+    def create_cell_tags(
+        self,
+        cut_tag: Optional[int] = None,
+        full_tag: Optional[int] = None,
+        empty_tag: Optional[int] = None,
+    ) -> MeshTags:
         """Creates a `MeshTags` objects containing the cut, full, and
         empty cells.
 
+        If the tag for cut, full, or empty cells are not provided, those
+        cells will not be included in the generated `MeshTags`.
+
         Args:
-            cut_tag (int, optional): Tag to be used for the cut cells.
-                Defaults to 0.
-            full_tag (int, optional): Tag to be used for the full cells.
-                Defaults to 1.
-            empty_tag (int, optional): Tag to be used for the empty
-                cells. Defaults to 2.
+            cut_tag (Optional[int]): Tag to assign to cut cells. Defaults to None.
+            full_tag (Optional[int]): Tag to assign to full cells. Defaults to None.
+            empty_tag (Optional[int]): Tag to assign to empty cells. Defaults to None.
 
         Returns:
             MeshTags: Generated mesh tags.
         """
 
-        cut_cells = self.get_cut_cells(lexicg=False)
-        full_cells = self.get_full_cells(lexicg=False)
+        cells = np.empty(0, dtype=np.int32)
+        tags = np.empty(0, dtype=np.int32)
 
-        cells = np.arange(self._cart_mesh.num_local_cells, dtype=np.int32)
-        cells_values = np.full(cells.size, empty_tag, dtype=np.int32)
-        cells_values[cut_cells] = cut_tag
-        cells_values[full_cells] = full_tag
+        if cut_tag is not None:
+            cut_cells = self.get_cut_cells(lexicg=False)
+            cells = np.concatenate([cells, cut_cells])
+            tags = np.concatenate([tags, np.full(cut_cells.size, cut_tag, dtype=np.int32)])
+
+        if full_tag is not None:
+            full_cells = self.get_full_cells(lexicg=False)
+            cells = np.concatenate([cells, full_cells])
+            tags = np.concatenate([tags, np.full(full_cells.size, full_tag, dtype=np.int32)])
+
+        if empty_tag is not None:
+            empty_cells = self.get_empty_cells(lexicg=False)
+            cells = np.concatenate([cells, empty_cells])
+            tags = np.concatenate([tags, np.empty(empty_cells.size, empty_tag, dtype=np.int32)])
+
+        sort_ind = cells.argsort()
+        cells = cells[sort_ind]
+        tags = tags[sort_ind]
 
         tdim = self._cart_mesh.tdim
-        return dolfinx.mesh.meshtags(self._cart_mesh.dolfinx_mesh, tdim, cells, cells_values)
+        return dolfinx.mesh.meshtags(self._cart_mesh.dolfinx_mesh, tdim, cells, tags)
 
     def create_facet_tags(
         self,
-        cut_tag: int = 0,
-        full_tag: int = 1,
-        empty_tag: int = 2,
+        cut_tag: Optional[int] = None,
+        full_tag: Optional[int] = None,
+        empty_tag: Optional[int] = None,
     ) -> MeshTags:
         """Creates a `MeshTags` objects containing the cut, full, and
         empty facets.
 
+        If the tag for cut, full, or empty facets are not provided, those
+        facets will not be included in the generated `MeshTags`.
+
         Args:
-            cut_tag (int, optional): Tag to be used for the cut facets.
-                Defaults to 0.
-            full_tag (int, optional): Tag to be used for the full
-                facets. Defaults to 1.
-            empty_tag (int, optional): Tag to be used for the empty
-                facets. Defaults to 2.
+            cut_tag (Optional[int]): Tag to assign to cut facets. Defaults to None.
+            full_tag (Optional[int]): Tag to assign to full facets. Defaults to None.
+            empty_tag (Optional[int]): Tag to assign to empty facets. Defaults to None.
 
         Returns:
             MeshTags: Generated mesh tags.
         """
 
-        cut_facets = self.get_cut_facets(facet_ids=True)
-        full_facets = self.get_full_facets(facet_ids=True)
+        facets = np.empty(0, dtype=np.int32)
+        tags = np.empty(0, dtype=np.int32)
 
-        topology = self._cart_mesh.dolfinx_mesh.topology
-        tdim = topology.dim
-        topology.create_connectivity(tdim - 1, tdim)
-        conn = topology.connectivity(tdim - 1, tdim)
-        n_facets = conn.num_nodes
+        if cut_tag is not None:
+            cut_facets = self.get_cut_facets(facet_ids=True)
+            facets = np.concatenate([facets, cut_facets])
+            tags = np.concatenate([tags, np.full(cut_facets.size, cut_tag, dtype=np.int32)])
 
-        facets = np.arange(n_facets, dtype=np.int32)
-        facets_values = np.full_like(facets, empty_tag, dtype=np.int32)
+        if full_tag is not None:
+            full_facets = self.get_full_facets(facet_ids=True)
+            facets = np.concatenate([facets, full_facets])
+            tags = np.concatenate([tags, np.full(full_facets.size, full_tag, dtype=np.int32)])
 
-        facets_values[full_facets] = full_tag
-        facets_values[cut_facets] = cut_tag
+        if empty_tag is not None:
+            empty_facets = self.get_empty_facets(facet_ids=True)
+            facets = np.concatenate([facets, empty_facets])
+            tags = np.concatenate([tags, np.full(empty_facets.size, empty_tag, dtype=np.int32)])
 
-        return dolfinx.mesh.meshtags(self._cart_mesh.dolfinx_mesh, tdim - 1, facets, facets_values)
+        sort_ind = facets.argsort()
+        facets = facets[sort_ind]
+        tags = tags[sort_ind]
+        facet_dim = self._cart_mesh.tdim - 1
+
+        return dolfinx.mesh.meshtags(self._cart_mesh.dolfinx_mesh, facet_dim, facets, tags)
 
     if has_VTK:
         from vtkmodules.vtkCommonDataModel import vtkMultiBlockDataSet
