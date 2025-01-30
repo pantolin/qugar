@@ -520,18 +520,19 @@ def test(impl_func: ImplicitFunc, n_cells: list[int], name_prefix: str):
         dump_to_VTK(impl_func, n_cells, name_prefix)
 
 
-print("Disk - divergence theorem verification")
-radius = 0.6
-origin = np.array([-0.25, 0.15])
-func = qugar.cpp.create_disk(center=origin, radius=radius)
-n_cells = [16] * 2
-test(func, n_cells, "disk")
-print()
+if __name__ == "__main__":
+    print("Disk - divergence theorem verification")
+    radius = 0.6
+    origin = np.array([-0.25, 0.15])
+    func = qugar.cpp.create_disk(center=origin, radius=radius)
+    n_cells = [16] * 2
+    test(func, n_cells, "disk")
+    print()
 
-print("Sphere - divergence theorem verification")
-radius = 0.7
-origin = np.array([0.25, 0.35, 0.45])
-func = qugar.cpp.create_sphere(center=origin, radius=radius)
-n_cells = [16] * 3
-test(func, n_cells, "sphere")
-print()
+    print("Sphere - divergence theorem verification")
+    radius = 0.7
+    origin = np.array([0.25, 0.35, 0.45])
+    func = qugar.cpp.create_sphere(center=origin, radius=radius)
+    n_cells = [16] * 3
+    test(func, n_cells, "sphere")
+    print()
