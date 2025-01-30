@@ -618,7 +618,7 @@ if has_FEniCSx:
 
         cart_mesh = unf_domain.cart_mesh
         dim = cart_mesh.tdim
-        index_map = cart_mesh.mesh.topology.index_map(cart_mesh.tdim)
+        index_map = cart_mesh.dolfinx_mesh.topology.index_map(cart_mesh.tdim)
 
         def add_dolfinx_ids(block_id: int, add_facets: bool):
             cell_data = vtk_mb.GetBlock(block_id).GetCellData()
@@ -639,7 +639,7 @@ if has_FEniCSx:
                 dlf_to_lex_facets = DOLFINx_to_lexicg_faces(dim)
                 dlf_local_facets = dlf_to_lex_facets[lex_local_facets]
                 dlf_facets = map_cells_and_local_facets_to_facets(
-                    cart_mesh.mesh, dlf_cell_ids, dlf_local_facets
+                    cart_mesh.dolfinx_mesh, dlf_cell_ids, dlf_local_facets
                 )
 
                 cell_data.AddArray(
