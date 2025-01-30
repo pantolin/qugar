@@ -12,6 +12,11 @@
 and the subsequent generation of quadratures and reparamterization meshes that are
 exported to VTK files."""
 
+import qugar.utils
+
+if not qugar.has_FEniCSx:
+    raise ValueError("FEniCSx installation not found is required.")
+
 from mpi4py import MPI
 
 import numpy as np

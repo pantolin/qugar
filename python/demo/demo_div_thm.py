@@ -25,6 +25,12 @@ to VTK files for visualization, if the VTK library is found.
 These files can be visualized using a VTK-compatible viewer, such as ParaView.
 """
 
+import qugar.utils
+
+if not qugar.has_FEniCSx:
+    raise ValueError("FEniCSx installation not found is required.")
+
+
 from typing import Optional, Tuple, cast
 
 from mpi4py import MPI
