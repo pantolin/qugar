@@ -74,23 +74,25 @@ def create_div_thm_volume_ufl_form(domain: UnfittedImplDomain, n_quad_pts: int):
     """
     dlf_mesh = domain.cart_mesh.dolfinx_mesh
 
-    cut_tag = 0
     full_tag = 1
+    cut_tag = 0
     cell_tags = domain.create_cell_tags(cut_tag=cut_tag, full_tag=full_tag)
 
     quad_degree = get_Gauss_quad_degree(n_quad_pts)
-    dx_cut = ufl.dx(
+    dx_ = ufl.dx(
         domain=dlf_mesh,
         subdomain_data=cell_tags,
-        subdomain_id=cut_tag,
-        metadata={"quadrature_degree": quad_degree},
     )
-    dx = ufl.dx(domain=dlf_mesh, subdomain_data=cell_tags, subdomain_id=full_tag)
+    dx = dx_(subdomain_id=cut_tag, degree=quad_degree) + dx_(full_tag)
+
+    # Note: if no specific number of quadrature points is set for the cut cells,
+    # it would be enough to use a single tag for both cut and full cells.
+    # and invoke dx_ only once for that tag.
 
     func = create_vector_func(dlf_mesh)
     div_func = ufl.div(func)
 
-    ufl_form_vol = div_func * (dx + dx_cut)
+    ufl_form_vol = div_func * dx
     return ufl_form_vol
 
 
@@ -115,25 +117,23 @@ def create_div_thm_surface_ufl_form(domain: UnfittedImplDomain, n_quad_pts: int)
     facet_tags = domain.create_facet_tags(cut_tag=cut_tag, full_tag=full_tag)
 
     quad_degree = get_Gauss_quad_degree(n_quad_pts)
-    ds_int = dx_bdry_int(
-        domain=dlf_mesh,
-        subdomain_data=cell_tags,
-        subdomain_id=cut_tag,
-        metadata={"quadrature_degree": quad_degree},
-    )
-    ds_cut = ufl.ds(
-        domain=dlf_mesh,
-        subdomain_data=facet_tags,
-        subdomain_id=cut_tag,
-        metadata={"quadrature_degree": quad_degree},
-    )
-    ds = ufl.ds(domain=dlf_mesh, subdomain_data=facet_tags, subdomain_id=full_tag)
 
-    normal = mapped_normal(dlf_mesh)
+    ds_int = dx_bdry_int(
+        domain=dlf_mesh, subdomain_data=cell_tags, subdomain_id=cut_tag, degree=quad_degree
+    )
+
+    ds_ = ufl.ds(domain=dlf_mesh, subdomain_data=facet_tags)
+    ds = ds_(cut_tag, degree=quad_degree) + ds_(full_tag)
+
+    # Note: if no specific number of quadrature points is set for the cut facets,
+    # it would be enough to use a single tag for both cut and full facets.
+    # and invoke ds_ only once for that tag.
+
+    bound_normal = mapped_normal(dlf_mesh)
     facet_normal = ufl.FacetNormal(dlf_mesh)
     func = create_vector_func(dlf_mesh)
 
-    ufl_form_srf = ufl.inner(func, normal) * ds_int + ufl.inner(func, facet_normal) * (ds + ds_cut)
+    ufl_form_srf = ufl.inner(func, bound_normal) * ds_int + ufl.inner(func, facet_normal) * ds
     return ufl_form_srf
 
 

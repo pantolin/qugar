@@ -66,10 +66,7 @@ def compute_volume(
 
     quad_degree = get_Gauss_quad_degree(n_quad_pts)
     dx_cut = ufl.dx(
-        domain=dlf_mesh,
-        subdomain_data=cell_tags,
-        subdomain_id=cut_tag,
-        metadata={"quadrature_degree": quad_degree},
+        domain=dlf_mesh, subdomain_data=cell_tags, subdomain_id=cut_tag, degree=quad_degree
     )
     dx = ufl.dx(domain=dlf_mesh, subdomain_data=cell_tags, subdomain_id=full_tag)
     ufl_form = one * (dx + dx_cut)
@@ -101,17 +98,14 @@ def compute_boundary_area(
     cart_mesh = domain.cart_mesh
     dlf_mesh = cart_mesh.dolfinx_mesh
 
-    cell_tags = domain.create_cell_tags()
     bdry_tag = 0
+    cell_tags = domain.create_cell_tags(cut_tag=bdry_tag)
 
     one = dolfinx.fem.Constant(dlf_mesh, dtype(1.0))
 
     quad_degree = get_Gauss_quad_degree(n_quad_pts)
     ds = dx_bdry_int(
-        domain=dlf_mesh,
-        subdomain_data=cell_tags,
-        subdomain_id=bdry_tag,
-        metadata={"quadrature_degree": quad_degree},
+        domain=dlf_mesh, subdomain_data=cell_tags, subdomain_id=bdry_tag, degree=quad_degree
     )
     ufl_form = one * ds
 
@@ -569,10 +563,10 @@ def test_plane(
 
 
 if __name__ == "__main__":
-    # test_disk(6, 5, np.float32, True)
+    test_disk(8, 5, np.float32, True, False)
     # test_ellipse(8, 5, np.float32, True)
     # test_ellipsoid(8, 5, np.float32, True, False)
     # test_annulus(8, 6, np.float32, True, False)
-    test_torus(12, 8, np.float32, True, False)
+    # test_torus(12, 8, np.float32, True, False)
     # test_line(8, 2, np.float64, True, False)
     # test_plane(8, 2, np.float64, True, False)
