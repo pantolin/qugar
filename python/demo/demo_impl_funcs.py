@@ -1,3 +1,17 @@
+# --------------------------------------------------------------------------
+#
+# Copyright (C) 2025-present by Pablo Antolin
+#
+# This file is part of the QUGaR library.
+#
+# SPDX-License-Identifier:    MIT
+#
+# --------------------------------------------------------------------------
+
+"""This demo illustrates the creation of implicit functions and unfitted domains,
+and the subsequent generation of quadratures and reparamterization meshes that are
+exported to VTK files."""
+
 from mpi4py import MPI
 
 import numpy as np
