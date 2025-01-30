@@ -348,7 +348,7 @@ class UnfittedDomain:
         if empty_tag is not None:
             empty_cells = self.get_empty_cells(lexicg=False)
             cells = np.concatenate([cells, empty_cells])
-            tags = np.concatenate([tags, np.empty(empty_cells.size, empty_tag, dtype=np.int32)])
+            tags = np.concatenate([tags, np.full(empty_cells.size, empty_tag, dtype=np.int32)])
 
         sort_ind = cells.argsort()
         cells = cells[sort_ind]
@@ -382,17 +382,17 @@ class UnfittedDomain:
         tags = np.empty(0, dtype=np.int32)
 
         if cut_tag is not None:
-            cut_facets = self.get_cut_facets(facet_ids=True)
+            cut_facets = cast(npt.NDArray[np.int32], self.get_cut_facets(facet_ids=True))
             facets = np.concatenate([facets, cut_facets])
             tags = np.concatenate([tags, np.full(cut_facets.size, cut_tag, dtype=np.int32)])
 
         if full_tag is not None:
-            full_facets = self.get_full_facets(facet_ids=True)
+            full_facets = cast(npt.NDArray[np.int32], self.get_full_facets(facet_ids=True))
             facets = np.concatenate([facets, full_facets])
             tags = np.concatenate([tags, np.full(full_facets.size, full_tag, dtype=np.int32)])
 
         if empty_tag is not None:
-            empty_facets = self.get_empty_facets(facet_ids=True)
+            empty_facets = cast(npt.NDArray[np.int32], self.get_empty_facets(facet_ids=True))
             facets = np.concatenate([facets, empty_facets])
             tags = np.concatenate([tags, np.full(empty_facets.size, empty_tag, dtype=np.int32)])
 
