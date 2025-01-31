@@ -15,7 +15,7 @@ import numpy.typing as npt
 
 import qugar.utils
 
-if not qugar.has_FEniCSx:
+if not qugar.utils.has_FEniCSx:
     raise ValueError("FEniCSx installation not found is required.")
 
 
@@ -590,6 +590,8 @@ def create_affinely_transformed_functions(
 ) -> ImplicitFunc:
     """
     Creates a new implicit function that is an affine transformation of the given function.
+
+    Note that the polynomial nature of `func` (if it is the case) will not be preserved.
 
     Args:
         func (ImplicitFunc): The original implicit function to be transformed.

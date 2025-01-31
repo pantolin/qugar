@@ -14,7 +14,7 @@ from typing import Optional, cast
 
 import qugar.utils
 
-if not qugar.has_FEniCSx:
+if not qugar.utils.has_FEniCSx:
     raise ValueError("FEniCSx installation not found is required.")
 
 
