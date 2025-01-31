@@ -81,7 +81,7 @@ namespace {
     static const int reparam_dim = S ? range - 1 : range;
 
     //! Integral type.
-    enum IntegralType : std::uint8_t { Inner, OuterSingle, OuterAggregate };
+    enum IntegralType : std::uint8_t { inner, outer_single, outer_aggregate };
 
     //! Type of the parent, either a higher-dimension class instance or void (when dim==range).
     using Parent = std::conditional_t<dim == range, void, ImplicitPolyReparam<dim + 1, range, S>>;
@@ -125,7 +125,7 @@ namespace {
     //! Constructor sets to an uninitialised state.
     explicit ImplicitPolyReparam(const int order, Reparam reparam)
       : phi_(), order_(order), use_Chebyshev_(ImplReparamMesh<range, range>::use_Chebyshev(order)),
-        base_(order, nullptr), type_(IntegralType::OuterSingle), base_other_(), parent_(nullptr), ref_intervals_(),
+        base_(order, nullptr), type_(IntegralType::outer_single), base_other_(), parent_(nullptr), ref_intervals_(),
         reparam_(reparam)
     {
       assert(1 < order);
@@ -141,7 +141,7 @@ namespace {
     // NOLINTNEXTLINE (readability-function-cognitive-complexity)
     void build(const bool outer, const bool auto_apply_TS)
     {
-      this->type_ = outer ? OuterSingle : Inner;
+      this->type_ = outer ? outer_single : inner;
       this->auto_apply_TS_ = auto_apply_TS;
 
       // If phi is empty, apply a tensor-product Gaussian quadrature
@@ -180,7 +180,7 @@ namespace {
         // If this is the outer integral, and surface quadrature schemes are required, apply
         // the dimension-aggregated scheme when necessary
         if (outer && has_disc(this->dir_k_)) {
-          this->type_ = OuterAggregate;
+          this->type_ = outer_aggregate;
           for (int i = 0; i < dim; ++i) {
             if (i != this->dir_k_) {
               const auto ind = i < this->dir_k_ ? i : i - 1;
