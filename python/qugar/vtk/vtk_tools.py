@@ -13,7 +13,7 @@
 # import importlib.util
 from typing import TypeAlias, cast
 
-from qugar import has_FEniCSx, has_VTK
+from qugar.utils import has_FEniCSx, has_VTK
 
 if not has_VTK:
     raise ValueError("VTK installation not found is required.")
@@ -40,10 +40,18 @@ from vtkmodules.vtkIOXML import vtkXMLMultiBlockDataWriter
 
 import qugar.cpp
 from qugar.cpp import (
+    CartGridTP_2D,
+    CartGridTP_3D,
+    CutCellsQuad_2D,
+    CutCellsQuad_3D,
+    CutIsoBoundsQuad_1D,
+    CutIsoBoundsQuad_2D,
     ReparamMesh_1_2,
     ReparamMesh_2_2,
     ReparamMesh_2_3,
     ReparamMesh_3_3,
+    UnfittedDomain_2D,
+    UnfittedDomain_3D,
 )
 from qugar.mesh import (
     DOLFINx_to_lexicg_faces,
@@ -51,6 +59,7 @@ from qugar.mesh import (
     VTK_to_lexicg_nodes,
     map_cells_and_local_facets_to_facets,
 )
+from qugar.unfitted_domain import UnfittedDomain
 
 if has_FEniCSx:
     from qugar.mesh import map_cells_and_local_facets_to_facets
@@ -322,7 +331,7 @@ def _create_VTK_grid(
 
 
 def _create_Cartesian_cells_grid(
-    grid: qugar.cpp.CartGridTP_2D | qugar.cpp.CartGridTP_3D,
+    grid: CartGridTP_2D | CartGridTP_3D,
     lex_cell_ids: npt.NDArray[np.int64 | np.int32],
 ) -> vtkUnstructuredGrid:
     """
@@ -330,7 +339,7 @@ def _create_Cartesian_cells_grid(
     lexicographical cell IDs.
 
     Args:
-        grid (qugar.cpp.CartGridTP_2D | qugar.cpp.CartGridTP_3D): The input
+        grid (CartGridTP_2D | CartGridTP_3D): The input
             Cartesian grid, either 2D or 3D.
         lex_cell_ids (npt.NDArray[np.int64 | np.int32]): Array of lexicographical cell IDs
             to be included in the VTK grid.
@@ -364,7 +373,7 @@ def _create_Cartesian_cells_grid(
 
 
 def _create_Cartesian_facets_grid(
-    grid: qugar.cpp.CartGridTP_2D | qugar.cpp.CartGridTP_3D,
+    grid: CartGridTP_2D | CartGridTP_3D,
     lex_cells: npt.NDArray[np.int32],
     local_facets: npt.NDArray[np.int32],
 ) -> vtkUnstructuredGrid:
@@ -372,7 +381,7 @@ def _create_Cartesian_facets_grid(
     Create a VTK grid including some facets a Cartesian grid.
 
     Args:
-        grid (qugar.cpp.CartGridTP_2D | qugar.cpp.CartGridTP_3D): The input grid,
+        grid (CartGridTP_2D | CartGridTP_3D): The input grid,
             either 2D or 3D, from which facets are extracted.
         lex_cells (npt.NDArray[np.int32]): Array of lexicographical cell indices
             corresponding to the facets to be included in the VTK grid.
@@ -419,17 +428,17 @@ def _create_Cartesian_facets_grid(
 
 
 def _create_quad_points_grid(
-    grid: qugar.cpp.CartGridTP_2D | qugar.cpp.CartGridTP_3D,
-    quad: qugar.cpp.CutCellsQuad_2D | qugar.cpp.CutCellsQuad_3D,
+    grid: CartGridTP_2D | CartGridTP_3D,
+    quad: CutCellsQuad_2D | CutCellsQuad_3D,
     add_normals: bool = False,
 ) -> vtkUnstructuredGrid:
     """
     Create a VTK unstructured grid containing quadrature points.
 
     Args:
-        grid (qugar.cpp.CartGridTP_2D | qugar.cpp.CartGridTP_3D): The Cartesian grid
+        grid (CartGridTP_2D | CartGridTP_3D): The Cartesian grid
             associated to teh quadrature `quad`.
-        quad (qugar.cpp.CutCellsQuad_2D | qugar.cpp.CutCellsQuad_3D): The quadrature
+        quad (CutCellsQuad_2D | CutCellsQuad_3D): The quadrature
             containing the points to be included in the VTK grid.
         add_normals (bool, optional): Whether to add normals to the VTK grid. Defaults to False.
 
@@ -466,17 +475,17 @@ def _create_quad_points_grid(
 
 
 def _create_quad_facet_points_grid(
-    grid: qugar.cpp.CartGridTP_2D | qugar.cpp.CartGridTP_3D,
-    quad: qugar.cpp.CutIsoBoundsQuad_1D | qugar.cpp.CutIsoBoundsQuad_2D,
+    grid: CartGridTP_2D | CartGridTP_3D,
+    quad: CutIsoBoundsQuad_1D | CutIsoBoundsQuad_2D,
 ) -> vtkUnstructuredGrid:
     """
     Creates a VTK unstructured grid containing quadrature points contained
     in `quad` and associated to the facets of `grid`.
 
     Args:
-        grid (qugar.cpp.CartGridTP_2D | qugar.cpp.CartGridTP_3D): The Cartesian grid for
+        grid (CartGridTP_2D | CartGridTP_3D): The Cartesian grid for
             whose facets quadrature points are associated to.
-        quad (qugar.cpp.CutIsoBoundsQuad_2D | qugar.cpp.CutIsoBoundsQuad_3D): The
+        quad (CutIsoBoundsQuad_2D | CutIsoBoundsQuad_3D): The
             quadrature containing the facet quadrature points.
 
     Returns:
@@ -524,7 +533,7 @@ def _create_quad_facet_points_grid(
 
 
 def _quadrature_to_VTK(
-    unf_domain: qugar.cpp.UnfittedDomain_2D | qugar.cpp.UnfittedDomain_3D,
+    unf_domain: UnfittedDomain_2D | UnfittedDomain_3D,
     n_pts_dir: int,
 ) -> vtkMultiBlockDataSet:
     """
@@ -533,7 +542,7 @@ def _quadrature_to_VTK(
     for the interior of the cells, the interior boundaries, and the facets.
 
     Args:
-        unf_domain (qugar.cpp.UnfittedDomain_2D | qugar.cpp.UnfittedDomain_3D):
+        unf_domain (UnfittedDomain_2D | UnfittedDomain_3D):
             The unfitted domain for which the quadratures are generated.
         n_pts_dir (int): Number of points per direction for quadrature.
 
@@ -663,7 +672,7 @@ if has_FEniCSx:
 
 
 def quadrature_to_VTK(
-    unf_domain,
+    unf_domain: UnfittedDomain_2D | UnfittedDomain_3D | UnfittedDomain,
     n_pts_dir: int = 4,
 ) -> vtkMultiBlockDataSet:
     """
@@ -672,18 +681,15 @@ def quadrature_to_VTK(
     for the interior of the cells, the interior boundaries, and the facets.
 
     Args:
-        unf_domain (
-            qugar.cpp.UnfittedDomain_2D | qugar.cpp.UnfittedDomain_3D |
-            qugar.unfitted_domain.UnfittedDomain
-        ):
+        unf_domain (UnfittedDomain_2D | UnfittedDomain_3D | UnfittedDomain):
             The unfitted domain for which the quadratures are generated.
         n_pts_dir (int, optional): Number of points per direction for quadrature. Defaults to 4.
 
     Returns:
         vtkMultiBlockDataSet:
             A VTK multiblock dataset containing the quadrature data.
-    """
-    if isinstance(unf_domain, (qugar.cpp.UnfittedDomain_2D, qugar.cpp.UnfittedDomain_3D)):
+    """  # noqa: E501
+    if isinstance(unf_domain, (UnfittedDomain_2D, UnfittedDomain_3D)):
         return _quadrature_to_VTK(unf_domain, n_pts_dir)
     else:
         if not has_FEniCSx:
