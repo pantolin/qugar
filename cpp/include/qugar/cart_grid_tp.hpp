@@ -19,18 +19,17 @@
 //!
 //! @copyright Copyright (c) 2025-present
 
-
+#include <qugar/bbox.hpp>
+#include <qugar/point.hpp>
+#include <qugar/tensor_index_tp.hpp>
+#include <qugar/tolerance.hpp>
 #include <qugar/types.hpp>
 
 #include <array>
 #include <cstddef>
 #include <memory>
+#include <optional>
 #include <vector>
-
-#include <qugar/bbox.hpp>
-#include <qugar/point.hpp>
-#include <qugar/tensor_index_tp.hpp>
-#include <qugar/tolerance.hpp>
 
 namespace qugar {
 
