@@ -28,6 +28,7 @@
 #include <qugar/types.hpp>
 
 #include <cassert>
+#include <memory>
 #include <random>
 
 namespace qugar::rand {
@@ -200,6 +201,8 @@ TensorSizeTP<dim> create_random_tensor_size(const int lower, const int upper, co
       numbers.push_back(i);
     }
     std::shuffle(numbers.begin(), numbers.end(), rand_gen);
+    // gcc does not understand that numbers size is greater or equal than dim
+#pragma GCC diagnostic ignored "-Wnull-dereference"
     std::copy_n(numbers.cbegin(), dim, vals.data());
   } else {
     const auto generator = create_real_uniform_values_generator(lower, upper);

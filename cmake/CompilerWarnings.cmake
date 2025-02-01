@@ -71,6 +71,7 @@ function(
       -Wlogical-op # warn about logical operations being used where bitwise were probably wanted
       -Wuseless-cast # warn if you perform a cast to the same type
       -Wsuggest-override # warn if an overridden member function is not marked 'override' or 'final'
+      -Wno-sign-conversion # warn on sign conversions (too noisy, complaining about passing a static int to and std::array size ...)
     )
   endif()
 

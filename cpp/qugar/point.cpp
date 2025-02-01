@@ -84,8 +84,13 @@ void find_coincident_points(const std::vector<Point<dim>> &points,
   const Tolerance &tol,
   std::vector<std::size_t> &points_map)
 {
+  // Note: do not use n_pts as the size of points_map,
+  // for a reason misterious to me, GCC complains about it.
+  // Do not either declare n_pts before this line
+  points_map.resize(points.size());
+
   const auto n_pts = points.size();
-  points_map.resize(n_pts);
+
   for (std::size_t i = 0; i < n_pts; ++i) {
     points_map[i] = i;
   }

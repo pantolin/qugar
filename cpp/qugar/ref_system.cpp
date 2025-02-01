@@ -156,14 +156,15 @@ template<> RefSystem<1>::RefSystem(const Point<1> &origin) : RefSystem(origin, {
 
 template<>
 RefSystem<2>::RefSystem(const Point<2> &origin)
-  : RefSystem(origin, { Point<2>(numbers::one, numbers::zero), Point<2>(numbers::zero, numbers::one) })
+  : RefSystem(origin,
+      std::array<Point<2>, 2>{ Point<2>(numbers::one, numbers::zero), Point<2>(numbers::zero, numbers::one) })
 {}
 
 
 template<>
 RefSystem<3>::RefSystem(const Point<3> &origin)
   : RefSystem(origin,
-      { Point<3>(numbers::one, numbers::zero, numbers::zero),
+      std::array<Point<3>, 3>{ Point<3>(numbers::one, numbers::zero, numbers::zero),
         Point<3>(numbers::zero, numbers::one, numbers::zero),
         Point<3>(numbers::zero, numbers::zero, numbers::one) })
 {}

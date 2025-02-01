@@ -89,11 +89,14 @@ template<int dim> Vector<int, dim - 1> get_edge_sides(const int local_edge_id)
 
 template<int dim> RootsIntervals<dim>::RootsIntervals()
 {
-  const int estimate = 6;
+  constexpr int estimate{ 6 };
   this->roots.reserve(estimate);
   this->func_ids.reserve(estimate);
-  this->active_intervals.reserve(estimate);
   this->roots_ids.reserve(estimate);
+
+  // This "funny" number is related to https://stackoverflow.com/a/50519283
+  constexpr int estimate_bool{ 65 };
+  this->active_intervals.reserve(estimate_bool);
 }
 
 template<int dim> void RootsIntervals<dim>::clear()

@@ -3,7 +3,7 @@ include(../cmake/CPM.cmake)
 macro(qugar_setup_dependencies)
 
   if(NOT algoim::algoim)
-    cpmaddpackage("gh:pantolin/algoim@1.0.0")
+    cpmaddpackage("gh:pantolin/algoim@1.0.1")
   endif()
 
   # Algoim polynomial funcionalities require to solve

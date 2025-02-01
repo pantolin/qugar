@@ -42,7 +42,6 @@
 #include <cmath>
 #include <functional>
 #include <memory>
-#include <ranges>
 #include <vector>
 
 
@@ -55,7 +54,8 @@ namespace {
 
   template<int dim> struct CutCellsQuadWrapper
   {
-    explicit CutCellsQuadWrapper(CutCellsQuad<dim> &quad, const BoundBox<dim> &domain) : quad(quad), domain(domain) {}
+    explicit CutCellsQuadWrapper(CutCellsQuad<dim> &_quad, const BoundBox<dim> &_domain) : quad(_quad), domain(_domain)
+    {}
 
     // NOLINTNEXTLINE (cppcoreguidelines-avoid-const-or-ref-data-members)
     CutCellsQuad<dim> &quad;
@@ -71,10 +71,10 @@ namespace {
 
   template<int dim> struct CutIntBoundsQuadWrapper
   {
-    explicit CutIntBoundsQuadWrapper(CutIntBoundsQuad<dim> &quad,
-      const ImplicitFunc<dim> &phi,
-      const BoundBox<dim> &domain)
-      : quad(quad), phi(phi), domain(domain)
+    explicit CutIntBoundsQuadWrapper(CutIntBoundsQuad<dim> &_quad,
+      const ImplicitFunc<dim> &_phi,
+      const BoundBox<dim> &_domain)
+      : quad(_quad), phi(_phi), domain(_domain)
     {}
 
     // NOLINTBEGIN (cppcoreguidelines-avoid-const-or-ref-data-members)
@@ -113,8 +113,10 @@ namespace {
 
   template<int dim> struct CutIsoBoundsQuadWrapper
   {
-    explicit CutIsoBoundsQuadWrapper(CutIsoBoundsQuad<dim> &quad, const BoundBox<dim> &face_domain, const int const_dir)
-      : quad(quad), face_domain(face_domain), const_dir(const_dir)
+    explicit CutIsoBoundsQuadWrapper(CutIsoBoundsQuad<dim> &_quad,
+      const BoundBox<dim> &_face_domain,
+      const int _const_dir)
+      : quad(_quad), face_domain(_face_domain), const_dir(_const_dir)
     {}
 
     // NOLINTBEGIN (cppcoreguidelines-avoid-const-or-ref-data-members)
@@ -256,7 +258,7 @@ namespace {
       const auto &pt_01 = at(quad.points, pt_id);
 
       if constexpr (is_facet_quad) {
-        const Point<dim> sup_pt_01 = add_component(pt_01, const_dir, facet_coord_0_1);
+        const Point<dim> sup_pt_01 = add_component<real, dim - 1>(pt_01, const_dir, facet_coord_0_1);
         point = domain.scale_from_0_1(sup_pt_01);
       } else {
 
@@ -295,9 +297,9 @@ namespace {
     }
 
     if constexpr (is_facet_quad) {
-      quad.n_pts_per_facet.back() -= points_to_purge.size();
+      quad.n_pts_per_facet.back() -= static_cast<int>(points_to_purge.size());
     } else {
-      quad.n_pts_per_cell.back() -= points_to_purge.size();
+      quad.n_pts_per_cell.back() -= static_cast<int>(points_to_purge.size());
     }
   }
 

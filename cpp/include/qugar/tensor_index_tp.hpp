@@ -111,11 +111,11 @@ public:
   {}
 
   //! @brief Constructs a new @ref TensorIndexTP object from an index.
-  //! @param index All the indices are set to this values.
+  //! @param ind All the indices are set to this values.
   //! @note Not available for 0-dimensional case.
   template<int aux_dim = dim>
     requires(aux_dim == dim && dim > 0)
-  explicit TensorIndexTP(int index) : Vector<int, dim>(index)
+  explicit TensorIndexTP(int ind) : Vector<int, dim>(ind)
   {}
 
   //! @brief Constructs a new @ref TensorIndexTP object from its indices.
@@ -166,7 +166,8 @@ public:
   //! @param indices Input arguments for the indices.
   template<typename... T>
     requires(dim > 1 && sizeof...(T) == dim && std::conjunction_v<std::is_same<int, T>...>)
-  explicit TensorIndexTP(T... indices) : TensorIndexTP(Vector<int, dim>{ indices... }){};
+  explicit TensorIndexTP(T... indices) : TensorIndexTP(Vector<int, dim>{ indices... })
+  {}
 
   //@}
 

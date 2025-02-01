@@ -26,8 +26,6 @@
 
 #include <algoim/interval.hpp>
 
-#include <algoim/utility.hpp>
-
 namespace qugar::impl::tpms {
 
 namespace alg = ::algoim;
@@ -474,7 +472,7 @@ template<typename T>
 auto SchwarzPrimitive<dim>::hessian_(const Point<dim, T> &point) const -> Hessian<T>
 {
   const Vector<real, 3> pi_2_m = (numbers::two * numbers::pi) * this->mnq_;
-  const Vector<real, 3> pi2_4_m2 = alg::util::sqr(pi_2_m);
+  const Vector<real, 3> pi2_4_m2 = pi_2_m * pi_2_m;
   const Vector<T, 3> pi_2_m_point = pi_2_m * extend_to_3D(point);
 
   Hessian<T> hess;
