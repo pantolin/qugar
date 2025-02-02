@@ -42,7 +42,14 @@ RUN dpkgArch="$(dpkg --print-architecture)"; \
 COPY . qugar
 
 # Install in Release mode
-RUN  cmake -G Ninja -DCMAKE_INSTALL_PREFIX=/usr/local/qugar -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF -Dqugar_DEVELOPER_MODE=OFF -Dqugar_BUILD_DOC=OFF -Dqugar_WITH_DEMOS=OFF -B build-release qugar/cpp/ && \
+RUN  cmake -G Ninja \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_INSTALL_PREFIX=/usr/local/qugar \
+    -DBUILD_TESTING=OFF \
+    -Dqugar_DEVELOPER_MODE=OFF \
+    -Dqugar_BUILD_DOC=OFF \
+    -Dqugar_WITH_DEMOS=OFF \
+    -B build-release qugar/cpp/ && \
     ninja install -j4 -C build-release && \
     python3 -m pip install -v --no-build-isolation --check-build-dependencies --no-dependencies --no-cache-dir ./qugar/python
 
