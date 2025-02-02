@@ -35,6 +35,7 @@ RUN dpkgArch="$(dpkg --print-architecture)"; \
     case "$dpkgArch" in arm64) \
     pip install --no-cache-dir https://github.com/finsberg/vtk-aarch64/releases/download/vtk-9.3.0-cp312/vtk-9.3.0.dev0-cp312-cp312-linux_aarch64.whl ;; \
     esac; \
+    python3 -m pip install matplotlib; \
     python3 -m pip install --no-cache-dir pyvista[trame]==${PYVISTA_VERSION} && \
     python3 -m pip cache purge
 
