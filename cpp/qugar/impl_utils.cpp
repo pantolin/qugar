@@ -149,37 +149,60 @@ template<int dim> void RootsIntervals<dim>::adjust_roots(const Tolerance &tol, c
 
   this->sort_roots();
 
-  for (int i = 0; i < this->get_num_roots(); ++i) {
-    if (tol.equal(at(this->roots, i), x0)) {
-      at(this->roots, i) = x0;
-    } else if (tol.equal(at(this->roots, i), x1)) {
-      at(this->roots, i) = x1;
-    } else if (0 < i && tol.equal(at(this->roots, i), at(this->roots, i - 1))) {
-      at(this->roots, i) = at(this->roots, i - 1);
+  // Adjusting near roots and enforcing root=x0, func_id=-1, and root=x1, func_id=-1,
+  // if present, to be the first and last, respectively.
+
+  auto roots_old = this->roots;
+  auto funcs_old = this->func_ids;
+
+  this->roots.clear();
+  this->func_ids.clear();
+  this->roots_ids.clear();
+
+  this->roots.push_back(x0);
+  this->func_ids.push_back(-1);
+  this->roots_ids.emplace_back(x0, -1);
+
+  bool has_x0{ false };
+  bool has_x1{ false };
+  for (int i = 0; i < static_cast<int>(roots_old.size()); ++i) {
+    auto root = at(roots_old, i);
+    const auto func_id = at(funcs_old, i);
+
+    if (tol.equal(root, x0)) {
+      if (func_id == -1) {
+        has_x0 = true;
+        continue;
+      } else {
+        root = x0;
+      }
+    } else if (tol.equal(root, x1)) {
+      if (func_id == -1) {
+        has_x1 = true;
+        continue;
+      } else {
+        root = x1;
+      }
+    } else if (0 < i && tol.equal(root, at(roots_old, i - 1))) {
+      root = at(roots_old, i - 1);
     }
+
+    this->roots.push_back(root);
+    this->func_ids.push_back(func_id);
+    this->roots_ids.emplace_back(root, func_id);
   }// i
 
-  // Enforcing root=x0, func_id=-1, and root=x1, func_id=-1, to be the first
-  // and last, respectively.
+  if (!has_x0) {
+    this->roots.erase(this->roots.begin());
+    this->func_ids.erase(this->func_ids.begin());
+    this->roots_ids.erase(this->roots_ids.begin());
+  }
 
-  for (int i = 1; i < this->get_num_roots(); ++i) {
-    if (at(this->func_ids, i) == -1 && tol.equal(at(this->roots, i), -x0)) {
-      this->roots.erase(std::next(this->roots.begin(), i));
-      this->func_ids.erase(std::next(this->func_ids.begin(), i));
-      this->roots.insert(this->roots.begin(), x0);
-      this->func_ids.insert(this->func_ids.begin(), -1);
-      break;
-    }
-  }// i
-
-  for (int i = 0; i < this->get_num_roots() - 1; ++i) {
-    if (at(this->func_ids, i) == -1 && tol.equal(at(this->roots, i), -x1)) {
-      this->roots.erase(std::next(this->roots.begin(), i));
-      this->func_ids.erase(std::next(this->func_ids.begin(), i));
-      this->roots.push_back(x1);
-      this->func_ids.push_back(-1);
-    }
-  }// i
+  if (has_x1) {
+    this->roots.push_back(x1);
+    this->func_ids.push_back(-1);
+    this->roots_ids.emplace_back(x1, -1);
+  }
 }
 
 
