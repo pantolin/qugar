@@ -111,6 +111,7 @@ template<int dim> void RootsIntervals<dim>::clear()
 // NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
 template<int dim> void RootsIntervals<dim>::add_root(const real root, const int func_id)
 {
+  assert(-1 <= func_id);
   this->roots.push_back(root);
   this->func_ids.push_back(func_id);
   this->roots_ids.emplace_back(root, func_id);
