@@ -58,7 +58,10 @@ set_target_properties(
   qugar
   PROPERTIES VERSION ${PROJECT_VERSION}
   CXX_VISIBILITY_PRESET hidden
-  VISIBILITY_INLINES_HIDDEN YES)
+  VISIBILITY_INLINES_HIDDEN YES
+  POSITION_INDEPENDENT_CODE ON # Needed for linking with nanobind generated shared library
+  )
+
 
 
 generate_export_header(qugar EXPORT_FILE_NAME ${qugar_INCLUDE_DIR}/qugar/qugar_export.hpp)
