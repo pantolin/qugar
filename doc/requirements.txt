@@ -1,0 +1,6 @@
+sphinx
+sphinx-rtd-dark-mode
+breathe
+jupytext
+markdown
+myst_parser
