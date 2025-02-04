@@ -60,23 +60,29 @@ namespace {
                                               + std::to_string(range) };
     nb::class_<ReparamMesh>(module, pyclass_name_cut_cells.c_str(), "ReparamMesh object")
       .def_prop_ro(
-        "order", [](ReparamMesh &mesh) { return mesh.get_order(); }, nb::rv_policy::reference_internal)
+        "order", [](ReparamMesh &mesh) { return mesh.get_order(); }, nb::rv_policy::reference_internal, "Mesh order.")
       .def_prop_ro(
-        "chebyshev", [](ReparamMesh &mesh) { return mesh.use_Chebyshev(); }, nb::rv_policy::reference_internal)
+        "chebyshev",
+        [](ReparamMesh &mesh) { return mesh.use_Chebyshev(); },
+        nb::rv_policy::reference_internal,
+        "Whether Chebyshev nodes are used.")
       .def_prop_ro(
         "points",
         [](ReparamMesh &mesh) { return get_points_array<range>(mesh.get_points()); },
-        nb::rv_policy::reference_internal)
+        nb::rv_policy::reference_internal,
+        "Mesh points.")
       .def_prop_ro(
         "cells_conn",
         [](ReparamMesh &mesh) { return get_conn_array(mesh.get_connectivity(), mesh.get_num_points_per_cell()); },
-        nb::rv_policy::reference_internal)
+        nb::rv_policy::reference_internal,
+        "Mesh cells connectivity.")
       .def_prop_ro(
         "wirebasket_conn",
         [](ReparamMesh &mesh) {
           return get_conn_array(mesh.get_wires_connectivity(), static_cast<std::size_t>(mesh.get_order()));
         },
-        nb::rv_policy::reference_internal);
+        nb::rv_policy::reference_internal,
+        "Wirebasket connectivity.");
   }
 
   template<int dim> void create_reparam(nb::module_ &module)

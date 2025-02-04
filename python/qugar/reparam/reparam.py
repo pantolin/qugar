@@ -18,17 +18,7 @@ from qugar.unfitted_domain import UnfittedDomain
 
 
 class UnfDomainReparamMesh:
-    """
-    A class to represent the UnfDomainReparamMesh which wraps around a C++ object.
-
-    Args:
-        cpp_object (qugar.cpp.ReparamMesh_2D | qugar.cpp.ReparamMesh_3D):
-            An instance of either ReparamMesh_2D or ReparamMesh_3D from the qugar.cpp module.
-
-    Attributes:
-        cpp_object (qugar.cpp.ReparamMesh_2D | qugar.cpp.ReparamMesh_3D):
-            The C++ object that this class wraps around.
-    """
+    """A class to represent the unfitted domain raparameterization mesh wraps around a C++ object."""
 
     ReparamMesh: TypeAlias = (
         cpp.ReparamMesh_1_2 | cpp.ReparamMesh_2_2 | cpp.ReparamMesh_2_3 | cpp.ReparamMesh_3_3
@@ -39,8 +29,7 @@ class UnfDomainReparamMesh:
         Initializes the Reparam object with a given C++ ReparamMesh object.
 
         Args:
-            cpp_object (ReparamMesh):
-                An instance of a C++ ReparamMesh object, either 2D or 3D.
+            cpp_object (ReparamMesh): An instance of a C++ ReparamMesh object, either 2D or 3D.
         """
         self._cpp_object = cpp_object
 
@@ -55,9 +44,9 @@ class UnfDomainReparamMesh:
         return self._cpp_object
 
     if has_VTK:
-        from vtkmodules.vtkCommonDataModel import vtkCompositeDataSet
+        import vtkmodules.vtkCommonDataModel
 
-        def to_VTK(self) -> vtkCompositeDataSet:
+        def to_VTK(self) -> vtkmodules.vtkCommonDataModel.vtkCompositeDataSet:
             """
             Converts the reparameterized mesh to a VTK multi-block object.
 
