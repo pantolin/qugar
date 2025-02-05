@@ -50,10 +50,9 @@ def build_doc(version, tag, main_branch):
 
 
 os.environ["build_all_docs"] = str(True)
-# TODO: to be changed
-# os.environ["pages_root"] = "https://those1990.github.io/SphinxExample"
+os.environ["pages_root"] = "https://pantolin.github.io/qugar"
 
-main_branch = "doc"
+main_branch = "main"
 
 shutil.rmtree("./pages", ignore_errors=True)
 

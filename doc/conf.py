@@ -181,8 +181,7 @@ def setup(app):
 
 
 build_all_docs = os.environ.get("build_all_docs")
-# pages_root = os.environ.get("pages_root", "")
-pages_root = "./pages"
+pages_root = os.environ.get("pages_root", "")
 
 if build_all_docs is not None:
     current_version = os.environ.get("current_version", "latest")
