@@ -25,7 +25,7 @@ def _invert_map(map_ind: npt.NDArray[np.int32]) -> npt.NDArray[np.int32]:
 
     Returns:
         npt.NDArray[np.int32]: Inverted map such that
-        `inv_map_ind[map_ind[i]] = i` and `map_ind[inv_map_ind[i]] = i`.
+            `inv_map_ind[map_ind[i]] = i` and `map_ind[inv_map_ind[i]] = i`.
     """
     return np.array([np.where(map_ind == i)[0][0] for i in range(map_ind.size)], dtype=np.int32)
 
@@ -40,13 +40,12 @@ def VTK_to_lexicg_nodes(dim: int, degree: int) -> npt.NDArray[np.int32]:
 
     Returns:
         npt.NDArray[np.int32]: Permutation array from VTK to
-        lexicographical such that `a_vtk[i] = a_lex[perm_array[i]]`.
+            lexicographical such that `a_vtk[i] = a_lex[perm_array[i]]`.
 
     Note:
         The VTK numbering is referred to the Arbitrary-order Lagrange
         Finite Elements as defined in
-        ("https://www.kitware.com//modeling-arbitrary-order-lagrange-finite-elements-in-the-"
-         "visualization-toolkit")  # noqa: E501
+        https://www.kitware.com//modeling-arbitrary-order-lagrange-finite-elements-in-the-visualization-toolkit
         These are the cells with cell ids 68 (1D), 70 (2D), or 72 (3D),
         and not the linear ones (3, 9, 12, respec.) or quadratic (21,
         28, 29, respec.).
@@ -72,13 +71,12 @@ def _VTK_to_lexicg_1D_nodes(degree: int) -> npt.NDArray[np.int32]:
 
     Returns:
         npt.NDArray[np.int32]: Permutation array from VTK to
-        lexicographical such that `a_vtk[i] = a_lex[perm_array[i]]` or
-        `a_lex[i] = perm_array[a_vtk[i]]`.
+            lexicographical such that `a_vtk[i] = a_lex[perm_array[i]]` or
+            `a_lex[i] = perm_array[a_vtk[i]]`.
 
     Note:
         The VTK numbering is referred to the Arbitrary-order Lagrange
-        ("https://www.kitware.com//modeling-arbitrary-order-lagrange-finite-elements-in-the-"
-         "visualization-toolkit")  # noqa: E501
+        https://www.kitware.com//modeling-arbitrary-order-lagrange-finite-elements-in-the-visualization-toolkit
         These are the cells with cell id 68 (1D) and not the linear
         (with id 3) or quadratic (21) ones.
     """
@@ -104,14 +102,13 @@ def _VTK_to_lexicg_2D_nodes(degree: int) -> npt.NDArray[np.int32]:
 
     Returns:
         npt.NDArray[np.int32]: Permutation array from VTK to
-        lexicographical such that `a_vtk[i] = a_lex[perm_array[i]]` or
-        `a_lex[i] = perm_array[a_vtk[i]]`.
+            lexicographical such that `a_vtk[i] = a_lex[perm_array[i]]` or
+            `a_lex[i] = perm_array[a_vtk[i]]`.
 
     Note:
         The VTK numbering is referred to the Arbitrary-order Lagrange
         Finite Elements as defined in
-        ("https://www.kitware.com//modeling-arbitrary-order-lagrange-finite-elements-in-the-"
-         "visualization-toolkit")  # noqa: E501
+        https://www.kitware.com//modeling-arbitrary-order-lagrange-finite-elements-in-the-visualization-toolkit
         These are the cells with cell id 70 (2D) and not the linear
         (with id 9) or quadratic (28) ones.
     """
@@ -158,14 +155,13 @@ def _VTK_to_lexicg_3D_nodes(degree: int) -> npt.NDArray[np.int32]:
 
     Returns:
         npt.NDArray[np.int32]: Permutation array from VTK to
-        lexicographical such that `a_vtk[i] = a_lex[perm_array[i]]` or
-        `a_lex[i] = perm_array[a_vtk[i]]`.
+            lexicographical such that `a_vtk[i] = a_lex[perm_array[i]]` or
+            `a_lex[i] = perm_array[a_vtk[i]]`.
 
     Note:
         The VTK numbering is referred to the Arbitrary-order Lagrange
         Finite Elements as defined in
-        ("https://www.kitware.com//modeling-arbitrary-order-lagrange-finite-elements-in-the-"
-         "visualization-toolkit")  # noqa: E501
+        https://www.kitware.com//modeling-arbitrary-order-lagrange-finite-elements-in-the-visualization-toolkit
         These are the cells with cell id 72 (3D) and not the linear
         (with id 12) or quadratic (29) ones.
     """
@@ -254,14 +250,13 @@ def lexicg_to_VTK_nodes(dim: int, degree: int) -> npt.NDArray[np.int32]:
 
     Returns:
         npt.NDArray[np.int32]: Permutation array from lexicographical to
-        VTK such that `a_lex[i] = a_vtk[perm_array[i]]` or
-        `a_vtk[i] = perm_array[a_lex[i]]`.
+            VTK such that `a_lex[i] = a_vtk[perm_array[i]]` or
+            `a_vtk[i] = perm_array[a_lex[i]]`.
 
     Note:
         The VTK numbering is referred to the Arbitrary-order Lagrange
         Finite Elements as defined in
-        ("https://www.kitware.com//modeling-arbitrary-order-lagrange-finite-elements-in-the-"
-         "visualization-toolkit")  # noqa: E501
+        https://www.kitware.com//modeling-arbitrary-order-lagrange-finite-elements-in-the-visualization-toolkit
         These are the cells with cell ids 68 (1D), 70 (2D), or 72 (3D),
         and not the linear ones (3, 9, 12, respec.) or quadratic (21,
         28, 29, respec.).
@@ -281,9 +276,8 @@ def DOLFINx_to_lexicg_nodes(dim: int, degree: int) -> npt.NDArray[np.int32]:
 
     Returns:
         npt.NDArray[np.int32]: Permutation array from DOLFINx to
-        lexicographical, i.e., such that
-        `a_dlf[i] = a_lex[perm_array[i]]` or
-        `a_lex[i] = perm_array[a_dlf[i]]`.
+            lexicographical, i.e., such that `a_dlf[i] = a_lex[perm_array[i]]` or
+            `a_lex[i] = perm_array[a_dlf[i]]`.
     """
 
     assert 1 <= dim <= 3, "Invalid dimension."
@@ -307,9 +301,8 @@ def _DOLFINx_to_lexicg_1D_nodes(degree: int) -> npt.NDArray[np.int32]:
 
     Returns:
         npt.NDArray[np.int32]: Permutation array from DOLFINx to
-        lexicographical, i.e., such that
-        `a_dlf[i] = a_lex[perm_array[i]]` or
-        `a_lex[i] = perm_array[a_dlf[i]]`.
+            lexicographical, i.e., such that `a_dlf[i] = a_lex[perm_array[i]]` or
+            `a_lex[i] = perm_array[a_dlf[i]]`.
     """
 
     assert 1 <= degree, "Invalid degree."
@@ -334,9 +327,8 @@ def _DOLFINx_to_lexicg_2D_nodes(degree: int) -> npt.NDArray[np.int32]:
 
     Returns:
         npt.NDArray[np.int32]: Permutation array from DOLFINx to
-        lexicographical, i.e., such that
-        `a_dlf[i] = a_lex[perm_array[i]]` or
-        `a_lex[i] = perm_array[a_dlf[i]]`.
+            lexicographical, i.e., such that `a_dlf[i] = a_lex[perm_array[i]]` or
+            `a_lex[i] = perm_array[a_dlf[i]]`.
     """
 
     assert 1 <= degree, "Invalid degree."
@@ -382,9 +374,9 @@ def _DOLFINx_to_lexicg_3D_nodes(degree: int) -> npt.NDArray[np.int32]:
 
     Returns:
         npt.NDArray[np.int32]: Permutation array from DOLFINx to
-        lexicographical, i.e., such that
-        `a_dlf[i] = a_lex[perm_array[i]]` or
-        `a_lex[i] = perm_array[a_dlf[i]]`.
+            lexicographical, i.e., such that
+            `a_dlf[i] = a_lex[perm_array[i]]` or
+            `a_lex[i] = perm_array[a_dlf[i]]`.
     """
 
     assert 1 <= degree, "Invalid degree."
@@ -474,8 +466,8 @@ def lexicg_to_DOLFINx_nodes(dim: int, degree: int) -> npt.NDArray[np.int32]:
 
     Returns:
         npt.NDArray[np.int32]: Permutation array from lexicographical to
-        DOLFINx, i.e., such that `a_lex[i] = a_dlf[perm_array[i]]` or
-        `a_dlf[i] = perm_array[a_lex[i]]`.
+            DOLFINx, i.e., such that `a_lex[i] = a_dlf[perm_array[i]]` or
+            `a_dlf[i] = perm_array[a_lex[i]]`.
     """
 
     dlf_to_lex = DOLFINx_to_lexicg_nodes(dim, degree)
@@ -492,18 +484,16 @@ def DOLFINx_to_VTK_nodes(dim: int, degree: int) -> npt.NDArray[np.int32]:
 
     Returns:
         npt.NDArray[np.int32]: Permutation array from DOLFINx to VTK
-        such that `a_dlf[i] = a_vtk[perm_array[i]]` or
-        `a_vtk[i] = perm_array[a_dlf[i]]`.
+            such that `a_dlf[i] = a_vtk[perm_array[i]]` or
+            `a_vtk[i] = perm_array[a_dlf[i]]`.
 
     Note:
         The VTK numbering is referred to the Arbitrary-order Lagrange
         Finite Elements as defined in
-        ("https://www.kitware.com//modeling-arbitrary-order-lagrange-finite-elements-in-the-"
-         "visualization-toolkit")  # noqa: E501
+        https://www.kitware.com//modeling-arbitrary-order-lagrange-finite-elements-in-the-visualization-toolkit
         These are the cells with cell ids 68 (1D), 70 (2D), or 72 (3D),
         and not the linear ones (3, 9, 12, respec.) or quadratic (21,
-        28, 29, respec.).
-    """
+        28, 29, respec.)."""
 
     dlf_to_lex = DOLFINx_to_lexicg_nodes(dim, degree)
     lex_to_vtk = lexicg_to_VTK_nodes(dim, degree)
@@ -521,14 +511,13 @@ def VTK_to_DOLFINx_nodes(dim: int, degree: int) -> npt.NDArray[np.int32]:
 
     Returns:
         npt.NDArray[np.int32]: Permutation array from VTK to DOLFINx
-        such that `a_vtk[i] = a_dlf[perm_array[i]]` or
-        `a_dlf[i] = perm_array[a_vtk[i]]`.
+            such that `a_vtk[i] = a_dlf[perm_array[i]]` or
+            `a_dlf[i] = perm_array[a_vtk[i]]`.
 
     Note:
         The VTK numbering is referred to the Arbitrary-order Lagrange
         Finite Elements as defined in
-        ("https://www.kitware.com//modeling-arbitrary-order-lagrange-finite-elements-in-the-"
-         "visualization-toolkit")  # noqa: E501
+        https://www.kitware.com//modeling-arbitrary-order-lagrange-finite-elements-in-the-visualization-toolkit
         These are the cells with cell ids 68 (1D), 70 (2D), or 72 (3D),
         and not the linear ones (3, 9, 12, respec.) or quadratic (21,
         28, 29, respec.).
@@ -554,8 +543,8 @@ def lexicg_to_DOLFINx_faces(dim: int) -> npt.NDArray[np.int32]:
 
     Returns:
         npt.NDArray[np.int32]:  Permutation array from lexicographical
-        to DOLFINx such that `faces_dlf[i] = faces_lex[perm_array[i]]`
-        or `faces_lex[i] = perm_array[faces_dlf[i]]`.
+            to DOLFINx such that `faces_dlf[i] = faces_lex[perm_array[i]]`
+            or `faces_lex[i] = perm_array[faces_dlf[i]]`.
     """
 
     assert 1 <= dim <= 3
@@ -579,9 +568,8 @@ def DOLFINx_to_lexicg_faces(dim: int) -> npt.NDArray[np.int32]:
 
     Returns:
         npt.NDArray[np.int32]:  Permutation array from DOLFINx to
-        lexicographical such that
-        `faces_lex[i] = faces_dlf[perm_array[i]]` or
-        `faces_dlf[i] = perm_array[faces_lex[i]]`.
+            lexicographical such that `faces_lex[i] = faces_dlf[perm_array[i]]` or
+            `faces_dlf[i] = perm_array[faces_lex[i]]`.
     """
 
     assert 1 <= dim <= 3
@@ -605,8 +593,8 @@ def lexicg_to_DOLFINx_edges(dim: int) -> npt.NDArray[np.int32]:
 
     Returns:
         npt.NDArray[np.int32]:  Permutation array from lexicographical
-        to DOLFINx such that `edges_dlf[i] = edges_lex[perm_array[i]]`
-        or `edges_lex[i] = perm_array[edges_dlf[i]]`.
+            to DOLFINx such that `edges_dlf[i] = edges_lex[perm_array[i]]`
+            or `edges_lex[i] = perm_array[edges_dlf[i]]`.
     """
 
     assert 1 <= dim <= 3
@@ -628,9 +616,8 @@ def DOLFINx_to_lexicg_edges(dim: int) -> npt.NDArray[np.int32]:
 
     Returns:
         npt.NDArray[np.int32]:  Permutation array from DOLFINx to
-        lexicographical such that
-        `edges_lex[i] = edges_dlf[perm_array[i]]` or
-        `edges_dlf[i] = perm_array[edges_lex[i]]`.
+            lexicographical such that `edges_lex[i] = edges_dlf[perm_array[i]]` or
+            `edges_dlf[i] = perm_array[edges_lex[i]]`.
     """
 
     assert 1 <= dim <= 3
@@ -666,9 +653,9 @@ if qugar.has_FEniCSx:
 
         Returns:
             dolfinx.cpp.graph.AdjacencyList_int32: Adjaceny list
-            assigning to every cell in the list cells, the MPI rank of
-            destination. In this case, the destination rank will be the
-            current one.
+                assigning to every cell in the list cells, the MPI rank of
+                destination. In this case, the destination rank will be the
+                current one.
         """
 
         try:
@@ -698,14 +685,14 @@ if qugar.has_FEniCSx:
 
         Returns:
             npt.NDArray[np.int32]: Map from the cells and local facet
-            ids to the facet ids. It is a 2D array where the first
-            column corresponds to the cells and the second one to the
-            local facet ids.
+                ids to the facet ids. It is a 2D array where the first
+                column corresponds to the cells and the second one to the
+                local facet ids.
 
-            Thus, given the cell and local facet ids of a particular
-            facet, the facet id can be accessed as
-            `facet_id = facets_map[cell_id, local_facet_id]`, where
-            `facets_map` is the generated 2D array.
+                Thus, given the cell and local facet ids of a particular
+                facet, the facet id can be accessed as
+                `facet_id = facets_map[cell_id, local_facet_id]`, where
+                `facets_map` is the generated 2D array.
         """
 
         topology = mesh.topology
@@ -762,12 +749,12 @@ if qugar.has_FEniCSx:
 
         Returns:
             tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]: Cells
-            and local facet ids the associated to the facets. The first
-            entry of the tuple corresponds to the cells and the second
-            to the the local facets.
+                and local facet ids the associated to the facets. The first
+                entry of the tuple corresponds to the cells and the second
+                to the the local facets.
 
-            The local facets indices follow the FEniCSx convention. See
-            https://github.com/FEniCS/basix/#supported-elements
+                The local facets indices follow the FEniCSx convention. See
+                https://github.com/FEniCS/basix/#supported-elements
         """
 
         # TODO: this implementation can be likely improved.

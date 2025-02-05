@@ -146,8 +146,7 @@ def form_custom(
     Args:
         form: A UFL form or list(s) of UFL forms.
         dtype: Scalar type to use for the compiled form.
-        form_compiler_options: See
-        :func:`ffcx_jit <dolfinx.jit.ffcx_jit>`
+        form_compiler_options: See :func:`ffcx_jit <dolfinx.jit.ffcx_jit>`
         jit_options: See :func:`ffcx_jit <dolfinx.jit.ffcx_jit>`.
         entity_maps: If any trial functions, test functions, or
             coefficients in the form are not defined over the same mesh
@@ -160,8 +159,7 @@ def form_custom(
             integration domain mesh.
 
     Returns:
-        CustomForm | list[CustomForm]: Compiled finite element
-        CustomForm.
+        CustomForm | list[CustomForm]: Compiled finite element `CustomForm`.
 
     Note:
         This function is responsible for the compilation of a UFL form
@@ -170,6 +168,7 @@ def form_custom(
         :class:`Form` instance with an appropriate base class for the
         scalar type, e.g. :func:`_cpp.fem.Form_float64`.
     """
+
     if form_compiler_options is None:
         form_compiler_options = dict()
 

@@ -104,7 +104,6 @@ public:
   TensorIndexTP() : TensorIndexTP(0)
   {}
 
-  //! @brief Default constructor for 0-dimensional case.
   template<int aux_dim = dim>
     requires(aux_dim == dim && dim == 0)
   TensorIndexTP()

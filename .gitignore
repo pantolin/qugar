@@ -214,3 +214,7 @@ form_editor_config.json
 # Automatically generated documentation files
 python/doc/source/demos
 python/doc/source/generated
+doc/_build
+doc/demos
+doc/generated
+doc/pages

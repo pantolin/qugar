@@ -54,25 +54,29 @@ namespace {
           using Array = nb::ndarray<const int, nb::numpy, nb::shape<-1>, nb::c_contig>;
           return Array(quad.cells.data(), { quad.cells.size() }, nb::handle());
         },
-        nb::rv_policy::reference_internal)
+        nb::rv_policy::reference_internal,
+        "Cell ids.")
       .def_prop_ro(
         "n_pts_per_entity",
         [](CutCellsQuad &quad) {
           using Array = nb::ndarray<const int, nb::numpy, nb::shape<-1>, nb::c_contig>;
           return Array(quad.n_pts_per_cell.data(), { quad.n_pts_per_cell.size() }, nb::handle());
         },
-        nb::rv_policy::reference_internal)
+        nb::rv_policy::reference_internal,
+        "Number of quadratures points per cell.")
       .def_prop_ro(
         "points",
         [](CutCellsQuad &quad) { return get_points_array<dim>(quad.points); },
-        nb::rv_policy::reference_internal)
+        nb::rv_policy::reference_internal,
+        "Quadrature point coordinates.")
       .def_prop_ro(
         "weights",
         [](CutCellsQuad &quad) {
           using Array = nb::ndarray<const real, nb::numpy, nb::shape<-1>, nb::c_contig>;
           return Array(quad.weights.data(), { quad.weights.size() }, nb::handle());
         },
-        nb::rv_policy::reference_internal);
+        nb::rv_policy::reference_internal,
+        "Quadrature weights.");
 
     using CutIsoBoundsQuad = CutIsoBoundsQuad<dim - 1>;
 
@@ -85,32 +89,37 @@ namespace {
           using Array = nb::ndarray<const int, nb::numpy, nb::shape<-1>, nb::c_contig>;
           return Array(quad.cells.data(), { quad.cells.size() }, nb::handle());
         },
-        nb::rv_policy::reference_internal)
+        nb::rv_policy::reference_internal,
+        "Cell ids.")
       .def_prop_ro(
         "facets",
         [](CutIsoBoundsQuad &quad) {
           using Array = nb::ndarray<const int, nb::numpy, nb::shape<-1>, nb::c_contig>;
           return Array(quad.local_facet_ids.data(), { quad.local_facet_ids.size() }, nb::handle());
         },
-        nb::rv_policy::reference_internal)
+        nb::rv_policy::reference_internal,
+        "Local facet ids (referred to the cells).")
       .def_prop_ro(
         "n_pts_per_entity",
         [](CutIsoBoundsQuad &quad) {
           using Array = nb::ndarray<const int, nb::numpy, nb::shape<-1>, nb::c_contig>;
           return Array(quad.n_pts_per_facet.data(), { quad.n_pts_per_facet.size() }, nb::handle());
         },
-        nb::rv_policy::reference_internal)
+        nb::rv_policy::reference_internal,
+        "Number of quadratures points per facet.")
       .def_prop_ro(
         "points",
         [](CutIsoBoundsQuad &quad) { return get_points_array<dim - 1>(quad.points); },
-        nb::rv_policy::reference_internal)
+        nb::rv_policy::reference_internal,
+        "Quadrature point coordinates.")
       .def_prop_ro(
         "weights",
         [](CutIsoBoundsQuad &quad) {
           using Array = nb::ndarray<const real, nb::numpy, nb::shape<-1>, nb::c_contig>;
           return Array(quad.weights.data(), { quad.weights.size() }, nb::handle());
         },
-        nb::rv_policy::reference_internal);
+        nb::rv_policy::reference_internal,
+        "Quadrature weights.");
 
 
     using CutIntBoundsQuad = CutIntBoundsQuad<dim>;
@@ -123,29 +132,34 @@ namespace {
           using Array = nb::ndarray<const int, nb::numpy, nb::shape<-1>, nb::c_contig>;
           return Array(quad.cells.data(), { quad.cells.size() }, nb::handle());
         },
-        nb::rv_policy::reference_internal)
+        nb::rv_policy::reference_internal,
+        "Cell ids.")
       .def_prop_ro(
         "n_pts_per_entity",
         [](CutIntBoundsQuad &quad) {
           using Array = nb::ndarray<const int, nb::numpy, nb::shape<-1>, nb::c_contig>;
           return Array(quad.n_pts_per_cell.data(), { quad.n_pts_per_cell.size() }, nb::handle());
         },
-        nb::rv_policy::reference_internal)
+        nb::rv_policy::reference_internal,
+        "Number of quadratures points per cell.")
       .def_prop_ro(
         "points",
         [](CutIntBoundsQuad &quad) { return get_points_array<dim>(quad.points); },
-        nb::rv_policy::reference_internal)
+        nb::rv_policy::reference_internal,
+        "Quadrature point coordinates.")
       .def_prop_ro(
         "weights",
         [](CutIntBoundsQuad &quad) {
           using Array = nb::ndarray<const real, nb::numpy, nb::shape<-1>, nb::c_contig>;
           return Array(quad.weights.data(), { quad.weights.size() }, nb::handle());
         },
-        nb::rv_policy::reference_internal)
+        nb::rv_policy::reference_internal,
+        "Quadrature weights.")
       .def_prop_ro(
         "normals",
         [](CutIntBoundsQuad &quad) { return get_points_array<dim>(quad.normals); },
-        nb::rv_policy::reference_internal);
+        nb::rv_policy::reference_internal,
+        "Unit normal vectors at the quadrature points.");
   }
 
 

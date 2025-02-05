@@ -436,14 +436,11 @@ class TensorProductMesh:
     inner-most, and the direction dim-1 iterates the slowest, i.e., the
     outer-most. The nodes and cells numbering for a  2D case would be:
 
-        ^ y                              ^ y
-        |                                |
-     1  8 --- 9 ---10 ---11           1  * --- * --- * --- *
-        |     |     |     |              |  3  |  4  |  5  |
-        4 --- 5 --- 6 --- 7              * --- * --- * --- *
-        |     |     |     |              |  0  |  1  |  2  |
-     0  0 --- 1 --- 2 --- 3 --> x     0  * --- * --- * --- * --> x
-        0                 1              0                 1
+       8 --- 9 ---10 ---11              . --- . --- . --- .
+       |     |     |     |              |  3  |  4  |  5  |
+       4 --- 5 --- 6 --- 7              . --- . --- . --- .
+       |     |     |     |              |  0  |  1  |  2  |
+       0 --- 1 --- 2 --- 3              . --- . --- . --- .
 
     Note that after the mesh creation, DOLFINx renumbers and partitions
     the mesh, so, this numeration will be different. It is always
@@ -1192,14 +1189,14 @@ class CartesianMesh(TensorProductMesh):
             cell_id (np.int32): Cell whose bounding box is created.
             lexicg (bool, optional): If `True`, the given `cell_id` is
                 assumed to be referred to the lexicographical mesh
-                numbering convention. Otherwise, if `False`, `cell_id
+                numbering convention. Otherwise, if `False`, `cell_id`
                 follows the numbering of the underlying DOLFINx mesh.
 
         Returns:
             npt.NDArray[np.float32 | np.float64]: Computed bounding box
-            of the cell. It is a 2D with two rows and as many columns
-            as coordinates. Both rows represent the minimum and maximum
-            coordintes of the bounding box, respectively.
+                of the cell. It is a 2D with two rows and as many columns
+                as coordinates. Both rows represent the minimum and maximum
+                coordintes of the bounding box, respectively.
         """
 
         bbox = np.empty((2, self.gdim), dtype=self.dtype)

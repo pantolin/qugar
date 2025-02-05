@@ -41,7 +41,10 @@ namespace {
     const std::string pyclass_name_cut_cells{ std::string("Quad_") + std::to_string(dim) + "D" };
     nb::class_<Quad>(module, pyclass_name_cut_cells.c_str(), "Quadrature object")
       .def_prop_ro(
-        "points", [](Quad &quad) { return get_points_array<dim>(quad.points()); }, nb::rv_policy::reference_internal)
+        "points",
+        [](Quad &quad) -> qugar::wrappers::npPointConstArray<dim> { return get_points_array<dim>(quad.points()); },
+        nb::rv_policy::reference_internal,
+        "Quadrature point coordinates.")
       .def_prop_ro(
         "weights",
         [](Quad &quad) {
@@ -49,7 +52,8 @@ namespace {
           const auto &weights = quad.weights();
           return Array(weights.data(), { weights.size() }, nb::handle());
         },
-        nb::rv_policy::reference_internal);
+        nb::rv_policy::reference_internal,
+        "Quadrature weights.");
 
     module.def(
       "create_Gauss_quad_01",
