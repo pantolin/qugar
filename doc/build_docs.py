@@ -55,16 +55,6 @@ os.environ["build_all_docs"] = str(True)
 
 main_branch = "doc"
 
-try:
-    subprocess.run(
-        "python3 -m pip install -q -r requirements.txt",
-        shell=True,
-        check=True,
-    )
-except subprocess.CalledProcessError:
-    raise Exception("Requirements installation failed.")
-
-
 shutil.rmtree("./pages", ignore_errors=True)
 
 build_doc("latest", main_branch, main_branch)

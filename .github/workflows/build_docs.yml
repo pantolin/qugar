@@ -36,6 +36,7 @@ jobs:
           # which you find below to build all documents
           # git fetch --tags
           cd doc
+          python3 -m pip install -r requirements.txt
           python3 build_docs.py
 
       - name: Setup Pages
