@@ -1,0 +1,54 @@
+name: Build docs
+
+on:
+  push:
+    branches:
+      - docs
+
+jobs:
+
+  build:
+    runs-on: ubuntu-24.04
+    container: ghcr.io/fenics/dolfinx/dolfinx:v0.9.0
+
+    permissions:
+      id-token: write
+      pages: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install QUGaR (C++)
+        run: |
+          cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -B build -S cpp/
+          cmake --build build --parallel 3
+          cmake --install build
+
+      - name: Install QUGaR (Python)
+        run: |
+          python3 -m pip -v install -r ./python/build-requirements.txt
+          python3 -m pip -v install --no-build-isolation ./python -U
+
+      - name: Build docs
+        run: |
+          # ... installation of all tools ...
+          # get all tags, and run a Python script
+          # which you find below to build all documents
+          git fetch --tags
+          cd doc
+          python3 build_docs.py
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload documentation as artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          # Upload entire repository
+          path: './pages'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
