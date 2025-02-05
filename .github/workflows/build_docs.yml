@@ -34,7 +34,7 @@ jobs:
           # ... installation of all tools ...
           # get all tags, and run a Python script
           # which you find below to build all documents
-          git fetch --tags
+          # git fetch --tags
           cd doc
           python3 build_docs.py
 
