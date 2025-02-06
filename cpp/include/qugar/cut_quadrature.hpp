@@ -24,14 +24,14 @@
 #include <qugar/types.hpp>
 #include <qugar/unfitted_domain.hpp>
 
-#include <vector>
-
 #include <cstddef>
+#include <memory>
+#include <vector>
 
 
 namespace qugar {
 
-enum ImmersedStatus { cut, full, empty };
+enum ImmersedStatus : std::uint8_t { cut, full, empty };
 
 template<int dim> struct CutCellsQuad
 {
@@ -65,7 +65,7 @@ template<int dim> struct CutIsoBoundsQuad
   void reserve(const int n_cells, const int n_tot_pts);
 };
 
-template<int dim> struct CutIntBoundsQuad
+template<int dim> struct CutUnfBoundsQuad
 {
   //! @brief List of cut cells.
   std::vector<int> cells;
@@ -87,8 +87,8 @@ std::shared_ptr<const CutCellsQuad<dim>>
   create_quadrature(const UnfittedDomain<dim> &unf_domain, const std::vector<int> &cells, int n_pts_dir);
 
 template<int dim>
-std::shared_ptr<const CutIntBoundsQuad<dim>>
-  create_interior_bound_quadrature(const UnfittedDomain<dim> &unf_domain, const std::vector<int> &cells, int n_pts_dir);
+std::shared_ptr<const CutUnfBoundsQuad<dim>>
+  create_unfitted_bound_quadrature(const UnfittedDomain<dim> &unf_domain, const std::vector<int> &cells, int n_pts_dir);
 
 template<int dim>
 std::shared_ptr<const CutIsoBoundsQuad<dim - 1>> create_facets_quadrature(const UnfittedDomain<dim> &unf_domain,

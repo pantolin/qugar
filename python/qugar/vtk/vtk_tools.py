@@ -466,7 +466,7 @@ def _create_quad_points_grid(
     cell_data.AddArray(dsa.numpyTovtkDataArray(quad.weights, "Weights"))
 
     if add_normals:
-        # assert isinstance(quad, CustomQuadIntBoundary)
+        # assert isinstance(quad, CustomQuadUnfBoundary)
         normals = np.zeros((n_pts, 3), quad.points.dtype)
         normals[:, :dim] = quad.normals
         cell_data.AddArray(dsa.numpyTovtkDataArray(normals, "Normals"))
@@ -539,7 +539,7 @@ def _quadrature_to_VTK(
     """
     Generates quadrature data for an unfitted domain and exports it to a
     VTK data structure. It generates, and export, quadrature points
-    for the interior of the cells, the interior boundaries, and the facets.
+    for the interior of the cells, the unfitted boundaries, and the facets.
 
     Args:
         unf_domain (UnfittedDomain_2D | UnfittedDomain_3D):
@@ -579,13 +579,13 @@ def _quadrature_to_VTK(
     multiblock.SetBlock(6, _create_quad_points_grid(unf_domain.grid, cells_quad))
     set_name(6, "Points cells")
 
-    int_bdry_quad = qugar.cpp.create_interior_bound_quadrature(
+    unf_bdry_quad = qugar.cpp.create_unfitted_bound_quadrature(
         unf_domain, unf_domain.cut_cells, n_pts_dir
     )
     multiblock.SetBlock(
-        7, _create_quad_points_grid(unf_domain.grid, int_bdry_quad, add_normals=True)
+        7, _create_quad_points_grid(unf_domain.grid, unf_bdry_quad, add_normals=True)
     )
-    set_name(7, "Points interior boundaries")
+    set_name(7, "Points unfitted boundaries")
 
     cut_facets_cells, cut_facets_local_facets = unf_domain.cut_facets
     facets_quad = qugar.cpp.create_facets_quadrature(
@@ -607,7 +607,7 @@ if has_FEniCSx:
         """
         Generates quadrature data for an unfitted domain and exports it to a
         VTK data structure. It generates, and export, quadrature points
-        for the interior of the cells, the interior boundaries, and the facets.
+        for the interior of the cells, the unfitted boundaries, and the facets.
 
         In addition to the lexicographical indices of cells and facets,
         this function also appends the DOLFINx associated indices.
@@ -678,7 +678,7 @@ def quadrature_to_VTK(
     """
     Generates quadrature data for an unfitted domain and exports it to a
     VTK data structure. It generates, and export, quadrature points
-    for the interior of the cells, the interior boundaries, and the facets.
+    for the interior of the cells, the unfitted boundaries, and the facets.
 
     Args:
         unf_domain (UnfittedDomain_2D | UnfittedDomain_3D | UnfittedDomain):

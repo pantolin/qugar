@@ -168,7 +168,7 @@ namespace {
     };
   }
 
-  enum ImmersedStatusTmp : std::uint8_t { cut, full, empty, full_int_bdry };
+  enum ImmersedStatusTmp : std::uint8_t { cut, full, empty, full_unf_bdry };
 
   template<int dim> using QuadRule = typename ::algoim::QuadratureRule<dim>;
 
@@ -178,14 +178,14 @@ namespace {
 
     const Tolerance default_tol;
     if (default_tol.equal(cell_vol, numbers::zero)) {
-      // It is an empty cell but with an interior boundary (on the cell's boundary).
-      // We consider that the interior boundary belongs to a neighbor cell.
+      // It is an empty cell but with an unfitted boundary (on the cell's boundary).
+      // We consider that the unfitted boundary belongs to a neighbor cell.
       return ImmersedStatusTmp::empty;
     } else if (default_tol.equal(cell_vol, domain.volume())) {
-      // Full cell but with an interior boundary (on a cell's boundary).
-      return ImmersedStatusTmp::full_int_bdry;
+      // Full cell but with an unfitted boundary (on a cell's boundary).
+      return ImmersedStatusTmp::full_unf_bdry;
     } else {
-      // Cut cell with an interior boundary
+      // Cut cell with an unfitted boundary
       return ImmersedStatusTmp::cut;
     }
   }
@@ -230,16 +230,16 @@ namespace {
 
     alg::ImplicitPolyQuadrature<dim> ipquad(bzr_domain.get_xarray());
 
-    // Detecting if the cell presents an interior boundary.
-    bool has_int_bdry{ false };
+    // Detecting if the cell presents an unfitted boundary.
+    bool has_unf_bdry{ false };
     ipquad.integrate_surf(quad_strategy,
       n_pts_dir,
-      [&has_int_bdry](const Vector<real, dim> & /*point*/,
+      [&has_unf_bdry](const Vector<real, dim> & /*point*/,
         const real /*weight*/,
-        const Vector<real, dim> & /*normal*/) { has_int_bdry = true; });
+        const Vector<real, dim> & /*normal*/) { has_unf_bdry = true; });
 
-    if (!has_int_bdry) {
-      // Does not have interior boundary: determines again the sign by evaluating
+    if (!has_unf_bdry) {
+      // Does not have unfitted boundary: determines again the sign by evaluating
       // the Bezier at the domain's mid-point.
       if (bzr_domain(domain_0_1.mid_point()) < numbers::zero) {
         return ImmersedStatusTmp::full;
@@ -274,7 +274,7 @@ namespace {
 
   // NOLINTBEGIN (bugprone-easily-swappable-parameters)
   template<int dim>
-  ImmersedFacetStatus classify_facet_full_interior_boundary(const ImmersedFacetStatus facet_status,
+  ImmersedFacetStatus classify_facet_full_unfitted_boundary(const ImmersedFacetStatus facet_status,
     const alg::HyperRectangle<real, dim> &domain,
     const int local_facet_id,
     const real cell_facet_vol,
@@ -282,9 +282,9 @@ namespace {
   // NOLINTEND (bugprone-easily-swappable-parameters)
   {
 
-    // Classifying full interior boundaries.
+    // Classifying full unfitted boundaries.
     if (n_pts == 1
-        && (facet_status == ImmersedFacetStatus::int_bdry || facet_status == ImmersedFacetStatus::ext_bdry)) {
+        && (facet_status == ImmersedFacetStatus::unf_bdry || facet_status == ImmersedFacetStatus::ext_bdry)) {
       const int const_dir = get_facet_constant_dir<dim>(local_facet_id);
       const real domain_facet_vol = prod(remove_component(domain.extent(), const_dir));
 
@@ -293,8 +293,8 @@ namespace {
       const bool is_full_facet = tol.equal_rel(cell_facet_vol, domain_facet_vol, rel_tol);
 
       if (is_full_facet) {
-        if (facet_status == ImmersedFacetStatus::int_bdry) {
-          return ImmersedFacetStatus::full_int_bdry;
+        if (facet_status == ImmersedFacetStatus::unf_bdry) {
+          return ImmersedFacetStatus::full_unf_bdry;
         } else {// if (facet_status == ImmersedFacetStatus::ext_bdry) {
           return ImmersedFacetStatus::full_ext_bdry;
         }
@@ -316,7 +316,7 @@ namespace {
     const int side = get_facet_side<dim>(local_facet_id);
 
     int ext_bdry{ false };
-    int int_bdry{ false };
+    int unf_bdry{ false };
     int cut_facet{ false };
     for (const auto &node : facet_quad.nodes) {
       if (on_levelset(phi, node.x, default_tol)) {
@@ -329,7 +329,7 @@ namespace {
         }
 
         if (side == 0 ? default_tol.is_negative(normal_comp) : default_tol.is_positive(normal_comp)) {
-          int_bdry = 1;
+          unf_bdry = 1;
         } else {
           ext_bdry = 1;
         }
@@ -339,21 +339,21 @@ namespace {
     }
     constexpr std::array<ImmersedFacetStatus, 8> values{ ImmersedFacetStatus::empty,
       ImmersedFacetStatus::ext_bdry,
-      ImmersedFacetStatus::int_bdry,
-      ImmersedFacetStatus::int_bdry_ext_bdry,
+      ImmersedFacetStatus::unf_bdry,
+      ImmersedFacetStatus::unf_bdry_ext_bdry,
       ImmersedFacetStatus::cut,
       ImmersedFacetStatus::cut_ext_bdry,
-      ImmersedFacetStatus::cut_int_bdry,
-      ImmersedFacetStatus::cut_int_bdry_ext_bdry };
+      ImmersedFacetStatus::cut_unf_bdry,
+      ImmersedFacetStatus::cut_unf_bdry_ext_bdry };
 
-    const int index = ext_bdry + (int_bdry * 2) + (cut_facet * 4);
+    const int index = ext_bdry + (unf_bdry * 2) + (cut_facet * 4);
     const auto facet_status = at(values, index);
 
 
     const real cell_facet_vol = facet_quad.sumWeights();
     const int n_pts = static_cast<int>(facet_quad.nodes.size());
 
-    return classify_facet_full_interior_boundary(facet_status, domain, local_facet_id, cell_facet_vol, n_pts);
+    return classify_facet_full_unfitted_boundary(facet_status, domain, local_facet_id, cell_facet_vol, n_pts);
   }
 
 
@@ -451,17 +451,17 @@ namespace {
       return std::make_pair(ImmersedStatus::cut, facets);
     }
 
-    // Looking for cells whose facets are either full, or full interior
+    // Looking for cells whose facets are either full, or full unfitted
     // boundaries if the facet is on a boundary. In that case, we
     // consider the cell as full.
 
-    assert(cell_status == ImmersedStatusTmp::full_int_bdry);
+    assert(cell_status == ImmersedStatusTmp::full_unf_bdry);
 
     for (int local_facet_id = 0; local_facet_id < dim * 2; ++local_facet_id) {
 
       const auto facet = at(facets, local_facet_id);
 
-      if (facet == ImmersedFacetStatus::full_int_bdry) {
+      if (facet == ImmersedFacetStatus::full_unf_bdry) {
         const auto cell_id = subgrid.get_single_cell();
         const auto &grid = subgrid.get_grid();
         if (!grid.on_boundary(cell_id, local_facet_id)) {

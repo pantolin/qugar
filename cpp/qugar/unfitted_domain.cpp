@@ -184,7 +184,7 @@ template<int dim> bool UnfittedDomain<dim>::is_full_facet(const int cell_id, con
     return true;
   }
 
-  else if (facet == ImmersedFacetStatus::full_int_bdry) {
+  else if (facet == ImmersedFacetStatus::full_unf_bdry) {
     if (this->grid_->on_boundary(cell_id, local_facet_id)) {
       return true;
     }
@@ -202,8 +202,8 @@ template<int dim> bool UnfittedDomain<dim>::is_empty_facet(const int cell_id, co
     return true;
   }
 
-  else if (facet == ImmersedFacetStatus::int_bdry || facet == ImmersedFacetStatus::full_int_bdry
-           || facet == ImmersedFacetStatus::int_bdry_ext_bdry) {
+  else if (facet == ImmersedFacetStatus::unf_bdry || facet == ImmersedFacetStatus::full_unf_bdry
+           || facet == ImmersedFacetStatus::unf_bdry_ext_bdry) {
     if (!this->grid_->on_boundary(cell_id, local_facet_id)) {
       return true;
     }
@@ -216,12 +216,12 @@ template<int dim> bool UnfittedDomain<dim>::is_cut_facet(const int cell_id, cons
   const auto facet = at(this->facets_status_.at(cell_id), local_facet_id);
 
 
-  if (facet == ImmersedFacetStatus::cut || facet == ImmersedFacetStatus::cut_int_bdry
-      || facet == ImmersedFacetStatus::cut_ext_bdry || facet == ImmersedFacetStatus::cut_int_bdry_ext_bdry) {
+  if (facet == ImmersedFacetStatus::cut || facet == ImmersedFacetStatus::cut_unf_bdry
+      || facet == ImmersedFacetStatus::cut_ext_bdry || facet == ImmersedFacetStatus::cut_unf_bdry_ext_bdry) {
     return true;
   }
 
-  else if (facet == ImmersedFacetStatus::int_bdry || facet == ImmersedFacetStatus::int_bdry_ext_bdry) {
+  else if (facet == ImmersedFacetStatus::unf_bdry || facet == ImmersedFacetStatus::unf_bdry_ext_bdry) {
     if (this->grid_->on_boundary(cell_id, local_facet_id)) {
       return true;
     }
@@ -230,7 +230,7 @@ template<int dim> bool UnfittedDomain<dim>::is_cut_facet(const int cell_id, cons
   return false;
 }
 
-template<int dim> bool UnfittedDomain<dim>::has_internal_boundary(const int cell_id, const int local_facet_id) const
+template<int dim> bool UnfittedDomain<dim>::has_unfitted_boundary(const int cell_id, const int local_facet_id) const
 {
   if (this->grid_->on_boundary(cell_id, local_facet_id)) {
     // All the internal interfaces that are on the boundary are
@@ -240,20 +240,20 @@ template<int dim> bool UnfittedDomain<dim>::has_internal_boundary(const int cell
 
   const auto facet = at(this->facets_status_.at(cell_id), local_facet_id);
 
-  return facet == ImmersedFacetStatus::cut_int_bdry || facet == ImmersedFacetStatus::cut_int_bdry_ext_bdry
-         || facet == ImmersedFacetStatus::full_int_bdry || facet == ImmersedFacetStatus::int_bdry
-         || facet == ImmersedFacetStatus::int_bdry_ext_bdry;
+  return facet == ImmersedFacetStatus::cut_unf_bdry || facet == ImmersedFacetStatus::cut_unf_bdry_ext_bdry
+         || facet == ImmersedFacetStatus::full_unf_bdry || facet == ImmersedFacetStatus::unf_bdry
+         || facet == ImmersedFacetStatus::unf_bdry_ext_bdry;
 }
 
 template<int dim>
-bool UnfittedDomain<dim>::has_internal_boundary_on_domain_boundary(const int cell_id, const int local_facet_id) const
+bool UnfittedDomain<dim>::has_unfitted_boundary_on_domain_boundary(const int cell_id, const int local_facet_id) const
 {
   if (this->grid_->on_boundary(cell_id, local_facet_id)) {
     const auto facet = at(this->facets_status_.at(cell_id), local_facet_id);
 
-    return facet == ImmersedFacetStatus::cut_int_bdry || facet == ImmersedFacetStatus::cut_int_bdry_ext_bdry
-           || facet == ImmersedFacetStatus::full_int_bdry || facet == ImmersedFacetStatus::int_bdry
-           || facet == ImmersedFacetStatus::int_bdry_ext_bdry;
+    return facet == ImmersedFacetStatus::cut_unf_bdry || facet == ImmersedFacetStatus::cut_unf_bdry_ext_bdry
+           || facet == ImmersedFacetStatus::full_unf_bdry || facet == ImmersedFacetStatus::unf_bdry
+           || facet == ImmersedFacetStatus::unf_bdry_ext_bdry;
   } else {
     return false;
   }
@@ -263,9 +263,9 @@ template<int dim> bool UnfittedDomain<dim>::has_external_boundary(const int cell
 {
   const auto facet = at(this->facets_status_.at(cell_id), local_facet_id);
 
-  return facet == ImmersedFacetStatus::cut_ext_bdry || facet == ImmersedFacetStatus::cut_int_bdry_ext_bdry
+  return facet == ImmersedFacetStatus::cut_ext_bdry || facet == ImmersedFacetStatus::cut_unf_bdry_ext_bdry
          || facet == ImmersedFacetStatus::full_ext_bdry || facet == ImmersedFacetStatus::ext_bdry
-         || facet == ImmersedFacetStatus::int_bdry_ext_bdry;
+         || facet == ImmersedFacetStatus::unf_bdry_ext_bdry;
 }
 
 // Instantiations

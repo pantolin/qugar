@@ -48,7 +48,7 @@ template<int dim> void CutIsoBoundsQuad<dim>::reserve(const int n_cells, const i
 }
 
 // NOLINTNEXTLINE (bugprone-easily-swappable-parameters)
-template<int dim> void CutIntBoundsQuad<dim>::reserve(const int n_cells, const int n_tot_pts)
+template<int dim> void CutUnfBoundsQuad<dim>::reserve(const int n_cells, const int n_tot_pts)
 {
   cells.reserve(cells.size() + static_cast<std::size_t>(n_cells));
   n_pts_per_cell.reserve(n_pts_per_cell.size() + static_cast<std::size_t>(n_cells));
@@ -67,13 +67,13 @@ std::shared_ptr<const CutCellsQuad<dim>>
 }
 
 template<int dim>
-std::shared_ptr<const CutIntBoundsQuad<dim>> create_interior_bound_quadrature(const UnfittedDomain<dim> &unf_domain,
+std::shared_ptr<const CutUnfBoundsQuad<dim>> create_unfitted_bound_quadrature(const UnfittedDomain<dim> &unf_domain,
   const std::vector<int> &cells,
   const int n_pts_dir)
 {
   const auto *unf_impl_domain = dynamic_cast<const impl::UnfittedImplDomain<dim> *>(&unf_domain);
   assert(unf_impl_domain != nullptr);
-  return impl::create_interior_bound_quadrature<dim>(*unf_impl_domain, cells, n_pts_dir);
+  return impl::create_unfitted_bound_quadrature<dim>(*unf_impl_domain, cells, n_pts_dir);
 }
 
 template<int dim>
@@ -98,9 +98,9 @@ template struct CutIsoBoundsQuad<1>;
 template struct CutIsoBoundsQuad<2>;
 template struct CutIsoBoundsQuad<3>;
 
-template struct CutIntBoundsQuad<1>;
-template struct CutIntBoundsQuad<2>;
-template struct CutIntBoundsQuad<3>;
+template struct CutUnfBoundsQuad<1>;
+template struct CutUnfBoundsQuad<2>;
+template struct CutUnfBoundsQuad<3>;
 
 
 template std::shared_ptr<const CutCellsQuad<2>>
@@ -108,10 +108,10 @@ template std::shared_ptr<const CutCellsQuad<2>>
 template std::shared_ptr<const CutCellsQuad<3>>
   create_quadrature<3>(const UnfittedDomain<3> &, const std::vector<int> &, const int);
 
-template std::shared_ptr<const CutIntBoundsQuad<2>>
-  create_interior_bound_quadrature<2>(const UnfittedDomain<2> &, const std::vector<int> &, const int);
-template std::shared_ptr<const CutIntBoundsQuad<3>>
-  create_interior_bound_quadrature<3>(const UnfittedDomain<3> &, const std::vector<int> &, const int);
+template std::shared_ptr<const CutUnfBoundsQuad<2>>
+  create_unfitted_bound_quadrature<2>(const UnfittedDomain<2> &, const std::vector<int> &, const int);
+template std::shared_ptr<const CutUnfBoundsQuad<3>>
+  create_unfitted_bound_quadrature<3>(const UnfittedDomain<3> &, const std::vector<int> &, const int);
 
 
 template std::shared_ptr<const CutIsoBoundsQuad<1>>

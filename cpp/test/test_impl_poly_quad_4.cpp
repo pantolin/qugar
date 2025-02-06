@@ -50,10 +50,10 @@ TEST_CASE("Quadrature for Bezier function for cylinder 3D", "[impl]")
 
     const real target_volume{ numbers::pi * radius * radius };
     const auto target_centroid = origin;
-    const real target_int_bound_volume = numbers::two * numbers::pi * radius;
+    const real target_unf_bound_volume = numbers::two * numbers::pi * radius;
 
     const Tolerance tol{ 1.0e-6 };
     test_volume_and_centroid<3>(
-      cylinder, grid, n_quad_pts_dir, target_volume, target_centroid, target_int_bound_volume, tol);
+      cylinder, grid, n_quad_pts_dir, target_volume, target_centroid, target_unf_bound_volume, tol);
   }
 }

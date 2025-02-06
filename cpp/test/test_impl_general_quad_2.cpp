@@ -47,9 +47,9 @@ TEST_CASE("General function quadrature for plane 2D", "[impl]")
 
   const qugar::real target_volume{ 0.5 };
   const qugar::Point<2> target_centroid{ 13.0 / 48.0, 5.0 / 12.0 };
-  const qugar::real target_int_bound_volume = std::sqrt(1.25);
+  const qugar::real target_unf_bound_volume = std::sqrt(1.25);
 
-  test_volume_and_centroid<2>(plane, grid, n_quad_pts_dir, target_volume, target_centroid, target_int_bound_volume);
+  test_volume_and_centroid<2>(plane, grid, n_quad_pts_dir, target_volume, target_centroid, target_unf_bound_volume);
 }
 
 // NOLINTNEXTLINE(misc-use-anonymous-namespace,readability-function-cognitive-complexity)
@@ -70,7 +70,7 @@ TEST_CASE("General function quadrature for plane 3D", "[impl]")
     Point<3>{ 5.0 / 12.0, 0.5, 13.0 / 48.0 } };
 
   const qugar::real target_volume{ 0.5 };
-  const qugar::real target_int_bound_volume = std::sqrt(1.25);
+  const qugar::real target_unf_bound_volume = std::sqrt(1.25);
 
   auto target_centroid = target_centroids.cbegin();
   for (const auto normal : normals) {
@@ -80,6 +80,6 @@ TEST_CASE("General function quadrature for plane 3D", "[impl]")
     const int n_quad_pts_dir{ 2 };
 
     test_volume_and_centroid<3>(
-      plane, grid, n_quad_pts_dir, target_volume, *target_centroid++, target_int_bound_volume);
+      plane, grid, n_quad_pts_dir, target_volume, *target_centroid++, target_unf_bound_volume);
   }
 }

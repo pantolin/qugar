@@ -66,18 +66,18 @@ qugar::real compute_volume(const qugar::impl::UnfittedImplDomain<dim> &unf_domai
   return vol;
 }
 
-//! @brief Computes the area of the interior boundary for a given unfitted implicit domain and quadrature.
+//! @brief Computes the area of the unfitted boundary for a given unfitted implicit domain and quadrature.
 //!
-//! This function calculates the area of the interior boundary by iterating through the cut cells
+//! This function calculates the area of the unfitted boundary by iterating through the cut cells
 //! in the provided quadrature and summing up the weighted areas of these cells.
 //!
 //! @tparam dim The dimension of the unfitted implicit domain.
 //! @param unf_domain The unfitted implicit domain object containing the grid information.
 //! @param quad The quadrature object containing the cut cells and their corresponding weights.
-//! @return The computed area of the interior boundary.
+//! @return The computed area of the unfitted boundary.
 template<int dim>
 qugar::real compute_boundary_area(const qugar::impl::UnfittedImplDomain<dim> &unf_domain,
-  const qugar::CutIntBoundsQuad<dim> &quad)
+  const qugar::CutUnfBoundsQuad<dim> &quad)
 {
   using qugar::at;
   qugar::real vol{ qugar::numbers::zero };
@@ -135,13 +135,13 @@ int main(/* int argc, const char **argv */)
 
   const auto quad = qugar::impl::create_quadrature<3>(unf_domain, unf_domain.get_cut_cells(), n_quad_pts_dir);
 
-  const auto int_bound_quad =
-    qugar::impl::create_interior_bound_quadrature<3>(unf_domain, unf_domain.get_cut_cells(), n_quad_pts_dir);
+  const auto unf_bound_quad =
+    qugar::impl::create_unfitted_bound_quadrature<3>(unf_domain, unf_domain.get_cut_cells(), n_quad_pts_dir);
 
   std::cerr << "Volume: " << compute_volume<3>(unf_domain, *quad) << "\n";
   std::cerr << "Exact volume: " << exact_volume << "\n\n";
 
-  std::cerr << "Boundary area: " << compute_boundary_area<3>(unf_domain, *int_bound_quad) << "\n";
+  std::cerr << "Boundary area: " << compute_boundary_area<3>(unf_domain, *unf_bound_quad) << "\n";
   std::cerr << "Exact boundary area: " << exact_area << "\n\n";
 
   return 0;

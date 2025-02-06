@@ -10,14 +10,14 @@
 
 """Quadrature module for QUGaR"""
 
-from qugar.quad.quad_data import CellState, CustomQuad, CustomQuadFacet, CustomQuadIntBoundary
+from qugar.quad.quad_data import CellState, CustomQuad, CustomQuadFacet, CustomQuadUnfBoundary
 from qugar.utils import has_FEniCSx
 
 __all__ = [
     "CellState",
     "CustomQuad",
     "CustomQuadFacet",
-    "CustomQuadIntBoundary",
+    "CustomQuadUnfBoundary",
 ]
 
 

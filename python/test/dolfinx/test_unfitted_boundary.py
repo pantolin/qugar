@@ -8,7 +8,7 @@
 #
 # --------------------------------------------------------------------------
 
-"""Tests for custom Python integrals on interior boundaries."""
+"""Tests for custom Python integrals on unfitted boundaries."""
 
 import os
 
@@ -26,7 +26,7 @@ import ufl
 from mock_quad_generator import MockQuadGenerator
 from utils import clean_cache, create_mesh, dtypes  # type: ignore
 
-from qugar.dolfinx import CustomForm, dx_bdry_int, form_custom, mapped_normal
+from qugar.dolfinx import CustomForm, dx_bdry_unf, form_custom, mapped_normal
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
@@ -38,8 +38,8 @@ dir_path = os.path.dirname(os.path.realpath(__file__))
 @pytest.mark.parametrize("p", [1, 3])
 @pytest.mark.parametrize("dim", [2, 3])
 @pytest.mark.parametrize("N", [1, 4])
-def test_interior_normal(N, dim, p, simplex_cell, dtype, nnz, max_quad_sets):
-    """Test for integral on interior custom boundaries.
+def test_unfitted_normal(N, dim, p, simplex_cell, dtype, nnz, max_quad_sets):
+    """Test for integral on unfitted custom boundaries.
 
     This test actually does not check correctness. The only thing it
     checks is that the code does not blow up when a assemblying a
@@ -74,9 +74,9 @@ def test_interior_normal(N, dim, p, simplex_cell, dtype, nnz, max_quad_sets):
     quad_gen = MockQuadGenerator(mesh=mesh, nnz=nnz, max_quad_sets=max_quad_sets)
 
     bdry_tag = 0
-    int_bdry_cells = np.sort(quad_gen.get_int_bdry_cells())
+    unf_bdry_cells = np.sort(quad_gen.get_unf_bdry_cells())
     cell_tags = dolfinx.mesh.meshtags(
-        mesh, dim, int_bdry_cells, np.full_like(int_bdry_cells, bdry_tag)
+        mesh, dim, unf_bdry_cells, np.full_like(unf_bdry_cells, bdry_tag)
     )
 
     V0 = dolfinx.fem.functionspace(mesh, ("Lagrange", p))
@@ -95,12 +95,12 @@ def test_interior_normal(N, dim, p, simplex_cell, dtype, nnz, max_quad_sets):
         ufl.dot(c, n)
         * e  # type: ignore
         * v
-        * dx_bdry_int(domain=mesh, subdomain_data=cell_tags, subdomain_id=bdry_tag)
+        * dx_bdry_unf(domain=mesh, subdomain_data=cell_tags, subdomain_id=bdry_tag)
     )
     ufl_form_1 = (
         e
         * v  # type: ignore
-        * dx_bdry_int(domain=mesh, subdomain_data=cell_tags, subdomain_id=bdry_tag)
+        * dx_bdry_unf(domain=mesh, subdomain_data=cell_tags, subdomain_id=bdry_tag)
     )
 
     ufl_form_2 = (
@@ -119,6 +119,6 @@ def test_interior_normal(N, dim, p, simplex_cell, dtype, nnz, max_quad_sets):
 
 if __name__ == "__main__":
     clean_cache()
-    test_interior_normal(
+    test_unfitted_normal(
         N=8, dim=2, p=1, simplex_cell=True, dtype=np.float32, nnz=0.0, max_quad_sets=3
     )

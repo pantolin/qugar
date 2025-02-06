@@ -24,7 +24,9 @@
 #include <qugar/bezier_tp.hpp>
 #include <qugar/cart_grid_tp.hpp>
 #include <qugar/numbers.hpp>
+#include <qugar/point.hpp>
 #include <qugar/tensor_index_tp.hpp>
+#include <qugar/types.hpp>
 
 #include <array>
 #include <memory>
@@ -46,7 +48,7 @@ TEST_CASE("Bezier polynomial unfitted implicit domain", "[impl]")
 
     const qugar::real target_volume{ 1.0 / (2.0 + offset) };
     const qugar::Point<2> target_centroid{ 0.5, 1.0 - (0.5 / (2.0 + offset)) };
-    const qugar::real target_int_bound_area{ 1.0 };
-    test_volume_and_centroid<2>(bezier, grid, n_quad_pts_dir, target_volume, target_centroid, target_int_bound_area);
+    const qugar::real target_unf_bound_area{ 1.0 };
+    test_volume_and_centroid<2>(bezier, grid, n_quad_pts_dir, target_volume, target_centroid, target_unf_bound_area);
   }
 }

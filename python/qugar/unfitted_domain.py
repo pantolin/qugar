@@ -410,7 +410,7 @@ class UnfittedDomain:
             """
             Generates quadrature data for an unfitted domain and exports it to a
             VTK data structure. It generates, and export, quadrature points
-            for the interior of the cells, the interior boundaries, and the facets.
+            for the interior of the cells, the unfitted boundaries, and the facets.
 
             Args:
                 n_pts_dir (int, optional): Number of points per direction for quadrature.

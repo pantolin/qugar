@@ -86,14 +86,14 @@ TEST_CASE("General function quadrature", "[impl]")
   // NOLINTNEXTLINE (cppcoreguidelines-avoid-do-while)
   REQUIRE(tol.coincident(centroid, target_centroid));
 
-  const auto int_bound_quad = create_interior_bound_quadrature<3>(unf_domain, unf_domain.get_cut_cells(), n_pts_dir);
+  const auto unf_bound_quad = create_unfitted_bound_quadrature<3>(unf_domain, unf_domain.get_cut_cells(), n_pts_dir);
   // NOLINTNEXTLINE (bugprone-chained-comparison)
-  REQUIRE(int_bound_quad->points.size() == 177421);
+  REQUIRE(unf_bound_quad->points.size() == 177421);
 
-  const auto int_bound_centroid = compute_points_centroid<3>(int_bound_quad->points, int_bound_quad->weights);
-  const Point<3> target_int_bound_centroid(0.4999957334273454, 0.4999960466067558, 0.4999963189195731);
+  const auto unf_bound_centroid = compute_points_centroid<3>(unf_bound_quad->points, unf_bound_quad->weights);
+  const Point<3> target_unf_bound_centroid(0.4999957334273454, 0.4999960466067558, 0.4999963189195731);
   // NOLINTNEXTLINE (cppcoreguidelines-avoid-do-while)
-  REQUIRE(tol.coincident(int_bound_centroid, target_int_bound_centroid));
+  REQUIRE(tol.coincident(unf_bound_centroid, target_unf_bound_centroid));
 
   const auto facet_quad =
     create_facets_quadrature<3>(unf_domain, cut_facets_cells, cut_facets_local_facets_ids, n_pts_dir);

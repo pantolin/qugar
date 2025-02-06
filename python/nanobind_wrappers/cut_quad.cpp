@@ -122,13 +122,13 @@ namespace {
         "Quadrature weights.");
 
 
-    using CutIntBoundsQuad = CutIntBoundsQuad<dim>;
+    using CutUnfBoundsQuad = CutUnfBoundsQuad<dim>;
 
-    const std::string pyclass_name_cut_int_bounds{ std::string("CutIntBoundsQuad_") + std::to_string(dim) + "D" };
-    nb::class_<CutIntBoundsQuad>(module, pyclass_name_cut_int_bounds.c_str(), "CutIntBoundsQuad object")
+    const std::string pyclass_name_cut_unf_bounds{ std::string("CutUnfBoundsQuad_") + std::to_string(dim) + "D" };
+    nb::class_<CutUnfBoundsQuad>(module, pyclass_name_cut_unf_bounds.c_str(), "CutUnfBoundsQuad object")
       .def_prop_ro(
         "cells",
-        [](CutIntBoundsQuad &quad) {
+        [](CutUnfBoundsQuad &quad) {
           using Array = nb::ndarray<const int, nb::numpy, nb::shape<-1>, nb::c_contig>;
           return Array(quad.cells.data(), { quad.cells.size() }, nb::handle());
         },
@@ -136,7 +136,7 @@ namespace {
         "Cell ids.")
       .def_prop_ro(
         "n_pts_per_entity",
-        [](CutIntBoundsQuad &quad) {
+        [](CutUnfBoundsQuad &quad) {
           using Array = nb::ndarray<const int, nb::numpy, nb::shape<-1>, nb::c_contig>;
           return Array(quad.n_pts_per_cell.data(), { quad.n_pts_per_cell.size() }, nb::handle());
         },
@@ -144,12 +144,12 @@ namespace {
         "Number of quadratures points per cell.")
       .def_prop_ro(
         "points",
-        [](CutIntBoundsQuad &quad) { return get_points_array<dim>(quad.points); },
+        [](CutUnfBoundsQuad &quad) { return get_points_array<dim>(quad.points); },
         nb::rv_policy::reference_internal,
         "Quadrature point coordinates.")
       .def_prop_ro(
         "weights",
-        [](CutIntBoundsQuad &quad) {
+        [](CutUnfBoundsQuad &quad) {
           using Array = nb::ndarray<const real, nb::numpy, nb::shape<-1>, nb::c_contig>;
           return Array(quad.weights.data(), { quad.weights.size() }, nb::handle());
         },
@@ -157,7 +157,7 @@ namespace {
         "Quadrature weights.")
       .def_prop_ro(
         "normals",
-        [](CutIntBoundsQuad &quad) { return get_points_array<dim>(quad.normals); },
+        [](CutUnfBoundsQuad &quad) { return get_points_array<dim>(quad.normals); },
         nb::rv_policy::reference_internal,
         "Unit normal vectors at the quadrature points.");
   }
@@ -189,17 +189,17 @@ namespace {
       nb::arg("n_pts_dir"));
   }
 
-  template<int dim> void create_interior_bound_quadrature(nb::module_ &module)
+  template<int dim> void create_unfitted_bound_quadrature(nb::module_ &module)
   {
     using CellsArray = nb::ndarray<const int, nb::numpy, nb::shape<-1>>;
 
     module.def(
-      "create_interior_bound_quadrature",
+      "create_unfitted_bound_quadrature",
       [](const UnfittedDomain<dim> &unf_domain, const CellsArray &cells_py, const int n_pts_dir) {
         const std::span<const int> cells_span(cells_py.data(), cells_py.size());
         const std::vector<int> cells(cells_span.begin(), cells_span.end());
 
-        return create_interior_bound_quadrature<dim>(unf_domain, cells, n_pts_dir);
+        return create_unfitted_bound_quadrature<dim>(unf_domain, cells, n_pts_dir);
       },
       nb::arg("unf_domain"),
       nb::arg("cells"),
@@ -244,8 +244,8 @@ void cut_quad(nanobind::module_ &module)
   create_quadrature<2>(module);
   create_quadrature<3>(module);
 
-  create_interior_bound_quadrature<2>(module);
-  create_interior_bound_quadrature<3>(module);
+  create_unfitted_bound_quadrature<2>(module);
+  create_unfitted_bound_quadrature<3>(module);
 
   create_facets_quadrature<2>(module);
   create_facets_quadrature<3>(module);

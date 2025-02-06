@@ -26,7 +26,7 @@ from qugar.dolfinx.fe_table import FETable
 from qugar.dolfinx.fe_table_eval import evaluate_FE_tables
 from qugar.dolfinx.integral_data import IntegralData
 from qugar.dolfinx.quadrature_data import QuadratureData
-from qugar.quad import CustomQuad, CustomQuadFacet, CustomQuadIntBoundary, QuadGenerator
+from qugar.quad import CustomQuad, CustomQuadFacet, CustomQuadUnfBoundary, QuadGenerator
 
 """Type defining all the possible array types for the integrals
 coefficients."""
@@ -38,7 +38,7 @@ class _CustomCoeffsPackerIntegral:
 
     Parameters:
         _custom_quads_types: All possible types for the custom
-            quadratures. Namely ``CustomQuad``, ``CustomQuadFacet``, ``CustomQuadIntBoundary``
+            quadratures. Namely ``CustomQuad``, ``CustomQuadFacet``, ``CustomQuadUnfBoundary``
         _itg_data (IntegralData): Data for the integral whose custom
             coefficients are computed.
         _subdomain_id (int): Id of the subdomain
@@ -73,7 +73,7 @@ class _CustomCoeffsPackerIntegral:
         _custom_quads (dict[IntegralData, _custom_quads_types]):
             Dictionary mapping each integral data (integrand in the
             integral) to a custom quadrature (for cells, facets, or
-            interior boundaries) for all the custom entities in the
+            unfitted boundaries) for all the custom entities in the
             domain.
         _custom_quads_facets
             (Optional[dict[IntegralData, CustomQuadFacet]]):
@@ -95,7 +95,7 @@ class _CustomCoeffsPackerIntegral:
             array.
     """
 
-    _custom_quads_types = CustomQuad | CustomQuadIntBoundary | tuple[CustomQuad, CustomQuad]
+    _custom_quads_types = CustomQuad | CustomQuadUnfBoundary | tuple[CustomQuad, CustomQuad]
 
     def __init__(
         self,
@@ -319,8 +319,8 @@ class _CustomCoeffsPackerIntegral:
 
             n_vals_per_pt += 1  # One value per weight.
 
-            if quad_data.interior_boundary:
-                # Adding values for interior boundary normals
+            if quad_data.unfitted_boundary:
+                # Adding values for unfitted boundary normals
                 n_vals_per_pt += custom_quad.points.shape[1]
 
             n_pts_per_entity = custom_quad.n_pts_per_entity
@@ -504,12 +504,12 @@ class _CustomCoeffsPackerIntegral:
         else:
             self._copy_vals_real(vals_all_quads)
 
-    def _create_quadrature(self, quad_data: QuadratureData) -> CustomQuad | CustomQuadIntBoundary:
+    def _create_quadrature(self, quad_data: QuadratureData) -> CustomQuad | CustomQuadUnfBoundary:
         """Creates the custom quadratures for a certain integrand in the
         integral.
 
         This method manages the case in which the integral is performed
-        either in a cell or in an interior boundary.
+        either in a cell or in an unfitted boundary.
 
         Args:
             quad_data (QuadratureData): Quadrature data of the integrand
@@ -526,8 +526,8 @@ class _CustomCoeffsPackerIntegral:
         subdom_tag = self._get_subdomain_tag()
         cells = self._domain
 
-        if quad_data.interior_boundary:
-            return quad_gen.create_quad_int_boundaries(degree, cells, subdom_tag)
+        if quad_data.unfitted_boundary:
+            return quad_gen.create_quad_unf_boundaries(degree, cells, subdom_tag)
         else:
             return quad_gen.create_quad_custom_cells(degree, cells, subdom_tag)
 
@@ -785,7 +785,7 @@ class _CustomCoeffsPackerIntegral:
             vals_for_quad = [custom_quad.n_pts_per_entity[nnz]]
             vals_for_quad.append(custom_quad.weights)  # type: ignore
 
-            if quad_data.interior_boundary:
+            if quad_data.unfitted_boundary:
                 vals_for_quad.append(custom_quad.normals.ravel())  # type: ignore
 
             vals_for_quad += self._compute_new_vals_tables(quad_data, FE_tables)
