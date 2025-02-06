@@ -11,7 +11,7 @@
 //! @file lagrange_tp_utils.cpp
 //! @author Pablo Antolin (pablo.antolin@epfl.ch)
 //! @brief Implementation of tensor-product Lagrange utils.
-//! @version 0.0.1
+//! @version 0.0.2
 //! @date 2025-01-10
 //!
 //! @copyright Copyright (c) 2025-present

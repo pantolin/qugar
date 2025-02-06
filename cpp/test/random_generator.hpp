@@ -14,7 +14,7 @@
 //! @file random_generator.hpp
 //! @author Pablo Antolin (pablo.antolin@epfl.ch)
 //! @brief Definition of random number generators for test purposes.
-//! @version 0.0.1
+//! @version 0.0.2
 //! @date 2025-01-21
 //!
 //! @copyright Copyright (c) 2025-present

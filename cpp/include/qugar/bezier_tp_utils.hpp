@@ -14,7 +14,7 @@
 //! @file bezier_tp_utils.hpp
 //! @author Pablo Antolin (pablo.antolin@epfl.ch)
 //! @brief Declaration of tensor-product Bezier utils.
-//! @version 0.0.1
+//! @version 0.0.2
 //! @date 2025-01-21
 //!
 //! @copyright Copyright (c) 2025-present

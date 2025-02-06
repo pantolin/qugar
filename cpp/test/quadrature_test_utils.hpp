@@ -11,7 +11,7 @@
 //! @file quadrature_test_utils.hpp
 //! @author Pablo Antolin (pablo.antolin@epfl.ch)
 //! @brief Utils for quadrature testing.
-//! @version 0.0.1
+//! @version 0.0.2
 //! @date 2025-01-21
 //!
 //! @copyright Copyright (c) 2025-present
