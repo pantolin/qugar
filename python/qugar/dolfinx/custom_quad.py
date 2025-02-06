@@ -101,8 +101,8 @@ class CustomQuadFacetProtocol(Protocol):
     weights: npt.NDArray[np.float64]
 
 
-class CustomQuadIntBoundaryProtocol(Protocol):
-    """Data class for storing custom quadratures for interior custom
+class CustomQuadUnfBoundaryProtocol(Protocol):
+    """Data class for storing custom quadratures for unfitted custom
     boundaries. I.e., boundaries that are not on the exterior boundary
     of a domain, but inside, as those derived from trimming operations.
 
@@ -228,8 +228,8 @@ class CustomQuadFacet(NamedTuple):
     weights: npt.NDArray[np.float64]
 
 
-class CustomQuadIntBoundary(NamedTuple):
-    """Data class for storing custom quadratures for interior custom
+class CustomQuadUnfBoundary(NamedTuple):
+    """Data class for storing custom quadratures for unfitted custom
     boundaries. I.e., boundaries that are not on the exterior boundary
     of a domain, but inside, as those derived from trimming operations.
 
@@ -241,7 +241,7 @@ class CustomQuadIntBoundary(NamedTuple):
     have 2 coordinates, while for tetrahedra or hexahedra they will have
     3.
 
-    This class follows the `CustomQuadIntBoundaryProtocol` protocol.
+    This class follows the `CustomQuadUnfBoundaryProtocol` protocol.
 
     Parameters:
         cells (npt.NDArray[np.int32]): Array of cell ids to which the

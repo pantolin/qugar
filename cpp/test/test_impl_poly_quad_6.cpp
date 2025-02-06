@@ -42,12 +42,12 @@ TEST_CASE("Testing polynomial quadrature for case with aggregate quadratures in 
 
   const real target_volume{ numbers::pi * radius * radius };
   const auto target_centroid = origin;
-  const real target_int_bound_volume = numbers::two * numbers::pi * radius;
+  const real target_unf_bound_volume = numbers::two * numbers::pi * radius;
 
 
   const Tolerance tol{ 1.0e-2 };
   test_volume_and_centroid<2>(
-    sphere, grid, n_quad_pts_dir, target_volume, target_centroid, target_int_bound_volume, tol);
+    sphere, grid, n_quad_pts_dir, target_volume, target_centroid, target_unf_bound_volume, tol);
 }
 
 // NOLINTNEXTLINE(misc-use-anonymous-namespace,readability-function-cognitive-complexity)
@@ -64,10 +64,10 @@ TEST_CASE("Testing polynomial quadrature for case with aggregate quadratures in 
 
   const real target_volume = numbers::four_thirds * numbers::pi * radius * radius * radius;
   const auto target_centroid = origin;
-  const real target_int_bound_volume = numbers::four * numbers::pi * radius * radius;
+  const real target_unf_bound_volume = numbers::four * numbers::pi * radius * radius;
 
 
   const Tolerance tol{ 1.0e-2 };
   test_volume_and_centroid<3>(
-    sphere, grid, n_quad_pts_dir, target_volume, target_centroid, target_int_bound_volume, tol);
+    sphere, grid, n_quad_pts_dir, target_volume, target_centroid, target_unf_bound_volume, tol);
 }

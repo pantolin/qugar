@@ -36,14 +36,14 @@ enum class ImmersedFacetStatus : std::uint8_t {
   cut,
   full,
   empty,
-  cut_int_bdry,
+  cut_unf_bdry,
   cut_ext_bdry,
-  cut_int_bdry_ext_bdry,
-  full_int_bdry,
+  cut_unf_bdry_ext_bdry,
+  full_unf_bdry,
   full_ext_bdry,
-  int_bdry,
+  unf_bdry,
   ext_bdry,
-  int_bdry_ext_bdry
+  unf_bdry_ext_bdry
 };
 
 template<int dim> class UnfittedDomain
@@ -76,8 +76,8 @@ public:
   [[nodiscard]] bool is_empty_facet(int cell_id, int local_facet_id) const;
   [[nodiscard]] bool is_cut_facet(int cell_id, int local_facet_id) const;
 
-  [[nodiscard]] bool has_internal_boundary(int cell_id, int local_facet_id) const;
-  [[nodiscard]] bool has_internal_boundary_on_domain_boundary(int cell_id, int local_facet_id) const;
+  [[nodiscard]] bool has_unfitted_boundary(int cell_id, int local_facet_id) const;
+  [[nodiscard]] bool has_unfitted_boundary_on_domain_boundary(int cell_id, int local_facet_id) const;
   [[nodiscard]] bool has_external_boundary(int cell_id, int local_facet_id) const;
 
 protected:

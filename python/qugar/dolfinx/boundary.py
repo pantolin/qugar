@@ -28,7 +28,7 @@ from ufl.protocols import id_or_none
 
 
 class ParamNormal(dolfinx.fem.Constant):
-    """Constant type for defining the normal of a custom interior
+    """Constant type for defining the normal of a custom unfitted
     boundary in the parametric domain of the cell.
 
     It is a constant vector set to zero, with the same number of
@@ -68,7 +68,7 @@ def _compute_vector_norm(vec):
 
 def mapped_normal(domain: ufl.AbstractDomain | dolfinx.mesh.Mesh, normalize: bool = True):
     """
-    Returns a normal vector of a custom interior boundary mapped with
+    Returns a normal vector of a custom unfitted boundary mapped with
     the domain's geometry. I.e., the normal in the physical space.
 
     Args:
@@ -99,8 +99,8 @@ def mapped_normal(domain: ufl.AbstractDomain | dolfinx.mesh.Mesh, normalize: boo
         return n
 
 
-class dx_bdry_int(ufl.Measure):
-    """This is a new ufl Measure class for an interior custom boundary.
+class dx_bdry_unf(ufl.Measure):
+    """This is a new ufl Measure class for an unfitted custom boundary.
 
     It has the same functionalities as ufl.dx with the only difference
     that when multiplied by an integrand, it introduces the necessary
@@ -108,7 +108,7 @@ class dx_bdry_int(ufl.Measure):
     its normal.
 
     In order to differentiate the generated measure from others,
-    sets the option `interior_custom_boundary` equal to ``True`` in
+    sets the option `unfitted_custom_boundary` equal to ``True`` in
     the quadrature's metadata, and uses a custom quadrature with two
     (fake) points.
     """
@@ -164,13 +164,13 @@ class dx_bdry_int(ufl.Measure):
         # determinant should by already included in dx).
         self._measure_complement = _compute_vector_norm(n)
 
-        self._integral_type_mod = "interior_custom_boundary"
-        self._measure_name = "dx_bdry_int"
+        self._integral_type_mod = "unfitted_custom_boundary"
+        self._measure_name = "dx_bdry_unf"
 
     def _create_custom_metadata(self, domain: ufl.AbstractDomain) -> dict:
         """Creates the custom measure metadata. It has an associated
         fake quadrature with only two points in the reference domain,
-        and includes the flag ``custom_interior_boundary`` set to
+        and includes the flag ``custom_unfitted_boundary`` set to
         ``True``.
 
         Args:
@@ -190,7 +190,7 @@ class dx_bdry_int(ufl.Measure):
         metadata["quadrature_points"] = points
         metadata["quadrature_weights"] = self._weights
         metadata["quadrature_rule"] = "custom"
-        metadata["custom_interior_boundary"] = True
+        metadata["custom_unfitted_boundary"] = True
 
         return metadata
 
@@ -247,10 +247,10 @@ class dx_bdry_int(ufl.Measure):
         return hash(hashdata)
 
     def __eq__(self, other) -> bool:
-        """Checks if two `dx_bdry_int` measures are equal.
+        """Checks if two `dx_bdry_unf` measures are equal.
 
         Returns:
             bool: ``True`` if both measures are equal, ``False``
             otherwise.
         """
-        return isinstance(other, dx_bdry_int) and super().__eq__(other)
+        return isinstance(other, dx_bdry_unf) and super().__eq__(other)

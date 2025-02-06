@@ -22,7 +22,7 @@ import numpy as np
 import numpy.typing as npt
 from ffcx.ir.representationutils import create_quadrature_points_and_weights
 
-from qugar.quad import CustomQuad, CustomQuadFacet, CustomQuadIntBoundary
+from qugar.quad import CustomQuad, CustomQuadFacet, CustomQuadUnfBoundary
 
 
 class MockQuadGenerator:
@@ -358,14 +358,14 @@ class MockQuadGenerator:
         n_pts_per_cell, weights, points = self._create_quadrature(degree, n_quad_sets, False)
         return CustomQuad(cells, n_pts_per_cell, points, weights)
 
-    def create_quad_int_boundaries(
+    def create_quad_unf_boundaries(
         self, degree: int, cells: npt.NDArray[np.int32], tag: Optional[int] = None
-    ) -> CustomQuadIntBoundary:
-        """Returns the custom quadrature for interior boundaries for the
+    ) -> CustomQuadUnfBoundary:
+        """Returns the custom quadrature for unfitted boundaries for the
         given `cells`.
 
         Warning:
-            All the given cells associated should contain interior
+            All the given cells associated should contain unfitted
             boundaries. If not, the custom coefficients generator will
             raise an exception.
 
@@ -380,14 +380,14 @@ class MockQuadGenerator:
             cells (npt.NDArray[np.int32]): Array of DOLFINx cell ids
                 (local to current MPI process) for which quadratures
                 will be generated. It must only contain cells with
-                interior boundaries.
+                unfitted boundaries.
 
             tag (Optional[int]): Mesh tag of the subdomain associated
                 to the given cells. Defaults to None.
 
         Returns:
-            CustomQuadIntBoundaryProtocol: Generated custom quadrature
-            for interior boundaries.
+            CustomQuadUnfBoundaryProtocol: Generated custom quadrature
+            for unfitted boundaries.
         """
 
         quad = self.create_quad_custom_cells(degree, cells, tag)
@@ -398,7 +398,7 @@ class MockQuadGenerator:
         normals_norm = np.repeat(normals_norm, s[1]).reshape(s)
         normals /= normals_norm
 
-        quad_bdry = CustomQuadIntBoundary(
+        quad_bdry = CustomQuadUnfBoundary(
             quad.cells, quad.n_pts_per_entity, quad.points, quad.weights, normals
         )
         return quad_bdry
@@ -436,7 +436,7 @@ class MockQuadGenerator:
             cells (npt.NDArray[np.int32]): Array of DOLFINx cell ids
                 (local to current MPI process) for which quadratures
                 will be generated. It must only contain cells with
-                interior boundaries. Beyond a cell id, for indentifying
+                unfitted boundaries. Beyond a cell id, for indentifying
                 a facet, a local facet id (from the array
                 `local_facets`) is also needed.
 
@@ -469,11 +469,11 @@ class MockQuadGenerator:
         n_pts_per_cell, weights, points = self._create_quadrature(degree, n_quad_sets, True)
         return CustomQuadFacet(cells, local_facets, n_pts_per_cell, points, weights)
 
-    def get_int_bdry_cells(self) -> npt.NDArray[np.int32]:
-        """Gets the cells that contain interior boundaries.
+    def get_unf_bdry_cells(self) -> npt.NDArray[np.int32]:
+        """Gets the cells that contain unfitted boundaries.
 
         Returns:
             npt.NDArray[np.int32]: Array of DOLFINx cell ids (local to
-            current MPI process) that contain interior boundaries.
+            current MPI process) that contain unfitted boundaries.
         """
         return np.where(self._n_quad_sets != 0)[0].astype(np.int32)

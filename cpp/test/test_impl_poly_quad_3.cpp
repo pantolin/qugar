@@ -51,11 +51,11 @@ TEST_CASE("Quadrature for Bezier function for ellipse 2D", "[impl]")
 
   const real target_volume{ numbers::pi * semi_axes(0) * semi_axes(1) };
   const auto target_centroid = origin;
-  const real target_int_bound_volume = 1.2763499392751274;// Computed numerically.
+  const real target_unf_bound_volume = 1.2763499392751274;// Computed numerically.
 
   const Tolerance tol{ 1.0e-6 };
   test_volume_and_centroid<2>(
-    ellipse, grid, n_quad_pts_dir, target_volume, target_centroid, target_int_bound_volume, tol);
+    ellipse, grid, n_quad_pts_dir, target_volume, target_centroid, target_unf_bound_volume, tol);
 }
 
 // // NOLINTNEXTLINE(misc-use-anonymous-namespace,readability-function-cognitive-complexity)
@@ -70,7 +70,6 @@ TEST_CASE("Quadrature for Bezier function for ellipsoid 3D", "[impl]")
   const Point<3> x_axis{ 1.0, 0.5, 1.0 };
   const Point<3> y_axis{ 0.0, 1.0, 0.0 };
   const RefSystem<3> system(origin, x_axis, y_axis);
-
   const auto ellipsoid = std::make_shared<funcs::EllipsoidBzr<3>>(semi_axes, system);
 
   const auto grid = std::make_shared<CartGridTP<3>>(std::array<std::size_t, 3>({ { 9, 10, 11 } }));
@@ -78,9 +77,9 @@ TEST_CASE("Quadrature for Bezier function for ellipsoid 3D", "[impl]")
 
   const real target_volume{ numbers::four_thirds * numbers::pi * semi_axes(0) * semi_axes(1) * semi_axes(2) };
   const auto target_centroid = origin;
-  const real target_int_bound_volume = 1.535246912774376;// Computed numerically.
+  const real target_unf_bound_volume = 1.535246912774376;// Computed numerically.
 
   const Tolerance tol{ 1.0e-6 };
   test_volume_and_centroid<3>(
-    ellipsoid, grid, n_quad_pts_dir, target_volume, target_centroid, target_int_bound_volume, tol);
+    ellipsoid, grid, n_quad_pts_dir, target_volume, target_centroid, target_unf_bound_volume, tol);
 }

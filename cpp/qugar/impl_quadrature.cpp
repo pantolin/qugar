@@ -69,16 +69,16 @@ namespace {
     }
   };
 
-  template<int dim> struct CutIntBoundsQuadWrapper
+  template<int dim> struct CutUnfBoundsQuadWrapper
   {
-    explicit CutIntBoundsQuadWrapper(CutIntBoundsQuad<dim> &_quad,
+    explicit CutUnfBoundsQuadWrapper(CutUnfBoundsQuad<dim> &_quad,
       const ImplicitFunc<dim> &_phi,
       const BoundBox<dim> &_domain)
       : quad(_quad), phi(_phi), domain(_domain)
     {}
 
     // NOLINTBEGIN (cppcoreguidelines-avoid-const-or-ref-data-members)
-    CutIntBoundsQuad<dim> &quad;
+    CutUnfBoundsQuad<dim> &quad;
     const ImplicitFunc<dim> &phi;
     const BoundBox<dim> &domain;
     // NOLINTEND (cppcoreguidelines-avoid-const-or-ref-data-members)
@@ -220,14 +220,14 @@ namespace {
     const UnfittedImplDomain<dim> &unf_domain,
     const int cell_id,
     const int local_facet_id,
-    const bool purge_internal_bdry,
+    const bool purge_unfitted_bdry,
     const bool purge_external_bdry,
     T &quad)
   // NOLINTEND (bugprone-easily-swappable-parameters)
   {
-    const bool int_bound = purge_internal_bdry && unf_domain.has_internal_boundary(cell_id, local_facet_id);
+    const bool unf_bound = purge_unfitted_bdry && unf_domain.has_unfitted_boundary(cell_id, local_facet_id);
     const bool ext_bound = purge_external_bdry && unf_domain.has_external_boundary(cell_id, local_facet_id);
-    if (!int_bound && !ext_bound) {
+    if (!unf_bound && !ext_bound) {
       return;
     }
 
@@ -279,7 +279,7 @@ namespace {
       }
 
       if (on_levelset(func, point, tol)) {
-        if ((pointing_outside && int_bound) || (!pointing_outside && ext_bound)) {
+        if ((pointing_outside && unf_bound) || (!pointing_outside && ext_bound)) {
           points_to_purge.push_back(pt_id);
         }
       }
@@ -456,7 +456,7 @@ std::shared_ptr<const CutCellsQuad<dim>>
 }
 
 template<int dim>
-std::shared_ptr<const CutIntBoundsQuad<dim>> create_interior_bound_quadrature(const UnfittedImplDomain<dim> &unf_domain,
+std::shared_ptr<const CutUnfBoundsQuad<dim>> create_unfitted_bound_quadrature(const UnfittedImplDomain<dim> &unf_domain,
   const std::vector<int> &cells,
   const int n_pts_dir)
 {
@@ -471,7 +471,7 @@ std::shared_ptr<const CutIntBoundsQuad<dim>> create_interior_bound_quadrature(co
   const int n_pts_per_cell_estimate = n_quad_set_per_cell_estimate * n_pts_per_quad_set;
   const int n_pts_estimate = n_cells * n_pts_per_cell_estimate;
 
-  const auto quad = std::make_shared<CutIntBoundsQuad<dim>>();
+  const auto quad = std::make_shared<CutUnfBoundsQuad<dim>>();
   quad->reserve(n_cells, n_pts_estimate);
 
   quad->cells = cells;
@@ -489,15 +489,15 @@ std::shared_ptr<const CutIntBoundsQuad<dim>> create_interior_bound_quadrature(co
 
     const auto domain = grid->get_cell_domain(cell_id);
 
-    CutIntBoundsQuadWrapper<dim> quad_wrapper(*quad, *phi, domain);
+    CutUnfBoundsQuadWrapper<dim> quad_wrapper(*quad, *phi, domain);
     compute_quadrature_with_algoim<dim, true>(*phi, domain, n_pts_dir, quad_wrapper);
 
     // Purging points in external boundaries that must be classified as facet points.
     constexpr int n_local_facets = dim * 2;
     for (int local_facet_id = 0; local_facet_id < n_local_facets; ++local_facet_id) {
-      const bool has_int_bdry = unf_domain.has_internal_boundary_on_domain_boundary(cell_id, local_facet_id);
+      const bool has_unf_bdry = unf_domain.has_unfitted_boundary_on_domain_boundary(cell_id, local_facet_id);
       const bool has_ext_bdry = unf_domain.has_external_boundary(cell_id, local_facet_id);
-      purge_facet_points(*phi, unf_domain, cell_id, local_facet_id, has_int_bdry, has_ext_bdry, *quad);
+      purge_facet_points(*phi, unf_domain, cell_id, local_facet_id, has_unf_bdry, has_ext_bdry, *quad);
     }
   }
 
@@ -543,9 +543,9 @@ std::shared_ptr<const CutIsoBoundsQuad<dim - 1>> create_facets_quadrature(const 
     if (unf_domain.is_cut_facet(cell_id, local_facet_id)) {
       compute_facet_quadrature_with_algoim<dim>(*phi, unf_domain, cell_id, local_facet_id, n_pts_dir, *quad);
 
-      constexpr bool purge_int_bdry{ true };
-      constexpr bool purge_ext_bdry{ true };
-      purge_facet_points(*phi, unf_domain, cell_id, local_facet_id, purge_int_bdry, purge_ext_bdry, *quad);
+      constexpr bool purge_unf_bdry{ true };
+      constexpr bool purge_iso_bdry{ true };
+      purge_facet_points(*phi, unf_domain, cell_id, local_facet_id, purge_unf_bdry, purge_iso_bdry, *quad);
     }
 
     else if (unf_domain.is_empty_facet(cell_id, local_facet_id)) {
@@ -574,10 +574,10 @@ template std::shared_ptr<const CutCellsQuad<2>>
 template std::shared_ptr<const CutCellsQuad<3>>
   create_quadrature<3>(const UnfittedImplDomain<3> &, const std::vector<int> &, const int);
 
-template std::shared_ptr<const CutIntBoundsQuad<2>>
-  create_interior_bound_quadrature<2>(const UnfittedImplDomain<2> &, const std::vector<int> &, const int);
-template std::shared_ptr<const CutIntBoundsQuad<3>>
-  create_interior_bound_quadrature<3>(const UnfittedImplDomain<3> &, const std::vector<int> &, const int);
+template std::shared_ptr<const CutUnfBoundsQuad<2>>
+  create_unfitted_bound_quadrature<2>(const UnfittedImplDomain<2> &, const std::vector<int> &, const int);
+template std::shared_ptr<const CutUnfBoundsQuad<3>>
+  create_unfitted_bound_quadrature<3>(const UnfittedImplDomain<3> &, const std::vector<int> &, const int);
 
 template std::shared_ptr<const CutIsoBoundsQuad<1>> create_facets_quadrature<2>(const UnfittedImplDomain<2> &,
   const std::vector<int> &,

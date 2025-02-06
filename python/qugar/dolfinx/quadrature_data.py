@@ -36,15 +36,15 @@ class QuadratureData(NamedTuple):
         name (str): Name of the quadrature. Three alphanumeric
             characters derived from QuadratureRule.
         degree (int): Degree of exactness of the quadrature.
-        interior_boundary (bool): Flag indicating if the quadrature
-            corresponds to an interior custom boundary.
+        unfitted_boundary (bool): Flag indicating if the quadrature
+            corresponds to an unfitted custom boundary.
         rule (QuadratureRule): Quadrature rule of the class containing
             points coordinates and weights.
     """
 
     name: str
     degree: int
-    interior_boundary: bool
+    unfitted_boundary: bool
     rule: QuadratureRule
 
 
@@ -79,8 +79,8 @@ def _extract_single_quadrature_data(
     degree = int(metadata["quadrature_degree"])
     assert degree >= 0
 
-    is_interior_bdry = (
-        "custom_interior_boundary" in metadata and metadata["custom_interior_boundary"]
+    is_unfitted_bdry = (
+        "custom_unfitted_boundary" in metadata and metadata["custom_unfitted_boundary"]
     )
 
     # Creating quadrature rule.
@@ -104,7 +104,7 @@ def _extract_single_quadrature_data(
     hash(rule)  # needed for calling rule.id()
     quad_name = rule.id()
 
-    return QuadratureData(quad_name, degree, is_interior_bdry, rule)
+    return QuadratureData(quad_name, degree, is_unfitted_bdry, rule)
 
 
 def extract_quadrature_data(

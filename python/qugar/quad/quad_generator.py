@@ -26,7 +26,7 @@ from qugar.mesh import (
 from qugar.quad.quad_data import (
     CustomQuad,
     CustomQuadFacet,
-    CustomQuadIntBoundary,
+    CustomQuadUnfBoundary,
 )
 from qugar.unfitted_domain import UnfittedDomain
 
@@ -135,17 +135,17 @@ class QuadGenerator:
 
         return CustomQuad(dlf_cells, quad.n_pts_per_entity, quad.points, quad.weights)
 
-    def create_quad_int_boundaries(
+    def create_quad_unf_boundaries(
         self,
         degree: int,
         dlf_cells: npt.NDArray[np.int32],
         tag: Optional[int] = None,
-    ) -> CustomQuadIntBoundary:
-        """Returns the custom quadrature for interior boundaries for the
+    ) -> CustomQuadUnfBoundary:
+        """Returns the custom quadrature for unfitted boundaries for the
         given `cells`.
 
         Warning:
-            All the given cells associated should contain interior
+            All the given cells associated should contain unfitted
             boundaries. I.e., they must be cut cells. If not, the
             custom coefficients generator will raise an
             exception.
@@ -161,30 +161,30 @@ class QuadGenerator:
             dlf_cells (npt.NDArray[np.int32]): Array of DOLFINx cell ids
                 (local to current MPI process) for which quadratures
                 will be generated. It must only contain cells with
-                interior boundaries.
+                unfitted boundaries.
 
             tag (int): Mesh tag of the subdomain associated to the given
                 cells.
 
         Returns:
-            CustomQuadIntBoundaryInterface: Generated custom quadrature
-            for interior boundaries.
+            CustomQuadUnfBoundaryInterface: Generated custom quadrature
+            for unfitted boundaries.
         """
         n_pts_dir = QuadGenerator.get_num_points(degree)
 
         if not np.all(np.isin(dlf_cells, self._unf_domain.get_cut_cells(lexicg=False))):
             raise ValueError(
-                "Interior boundary quadratures can only be generated for cells "
-                "containing interior boundaries"
+                "Unfitted boundary quadratures can only be generated for cells "
+                "containing unfitted boundaries"
             )
 
         lex_cells = self.cart_mesh.get_lexicg_cell_ids(dlf_cells, lexicg=False)
 
-        quad = qugar.cpp.create_interior_bound_quadrature(
+        quad = qugar.cpp.create_unfitted_bound_quadrature(
             self._unf_domain._cpp_object, lex_cells, n_pts_dir
         )
 
-        return CustomQuadIntBoundary(
+        return CustomQuadUnfBoundary(
             dlf_cells, quad.n_pts_per_entity, quad.points, quad.weights, quad.normals
         )
 
@@ -221,7 +221,7 @@ class QuadGenerator:
             dlf_cells (npt.NDArray[np.int32]): Array of DOLFINx cell ids
                 (local to current MPI process) for which quadratures
                 will be generated. It must only contain cells with
-                interior boundaries. Beyond a cell id, for indentifying
+                unfitted boundaries. Beyond a cell id, for indentifying
                 a facet, a local facet id (from the array
                 `local_facets`) is also needed.
 
