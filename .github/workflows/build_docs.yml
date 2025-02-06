@@ -55,6 +55,9 @@ jobs:
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
+    permissions:
+      contents: 'read'
+      id-token: 'write'
     needs: build
     runs-on: ubuntu-24.04
     name: Deploy
@@ -62,5 +65,3 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
