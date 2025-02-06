@@ -11,7 +11,7 @@
 //! @file bezier_test_utils.hpp
 //! @author Pablo Antolin (pablo.antolin@epfl.ch)
 //! @brief Utilities for testing BezierTP class.
-//! @version 0.0.1
+//! @version 0.0.2
 //! @date 2025-01-21
 //!
 //! @copyright Copyright (c) 2025-present

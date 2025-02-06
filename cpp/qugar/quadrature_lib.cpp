@@ -11,7 +11,7 @@
 //! @file quadrature_lib.cpp
 //! @author Pablo Antolin (pablo.antolin@epfl.ch)
 //! @brief Precomputed abscissae and weights for Gauss-Legendre and tanh-sinh quadrature rules.
-//! @version 0.0.1
+//! @version 0.0.2
 //! @date 2025-01-21
 //!
 //! @copyright Copyright (c) 2025-present

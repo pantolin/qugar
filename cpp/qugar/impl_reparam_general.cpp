@@ -12,7 +12,7 @@
 //! @author Pablo Antolin (pablo.antolin@epfl.ch)
 //! @brief Implementation of tools for creating reparameterizations of general functions.
 //!
-//! @version 0.0.1
+//! @version 0.0.2
 //! @date 2025-01-04
 //!
 //! @copyright Copyright (c) 2025-present

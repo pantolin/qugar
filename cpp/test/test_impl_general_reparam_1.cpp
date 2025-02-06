@@ -11,7 +11,7 @@
 //! @file test_impl_impl_general_reparam_1.cpp
 //! @author Pablo Antolin (pablo.antolin@epfl.ch)
 //! @brief Test 0 for Implicit general (non-polynomial) functions reparameterization for grids.
-//! @version 0.0.1
+//! @version 0.0.2
 //! @date 2025-01-15
 //!
 //! @copyright Copyright (c) 2025-present

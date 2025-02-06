@@ -11,7 +11,7 @@
 //! @file test_impl_impl_poly_reparam_0.cpp
 //! @author Pablo Antolin (pablo.antolin@epfl.ch)
 //! @brief Test 0 for Implicit Bezier polynomial reparameterization.
-//! @version 0.0.1
+//! @version 0.0.2
 //! @date 2025-01-21
 //!
 //! @copyright Copyright (c) 2025-present
