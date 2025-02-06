@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - release
+      - doc
 
 jobs:
 
@@ -44,13 +45,20 @@ jobs:
         uses: actions/configure-pages@v5
 
       - name: Upload documentation as artifact
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v4
         with:
           # Upload entire repository
+          name: documentation
           path: './doc/pages'
 
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    needs: build
+    runs-on: ubuntu-24.04
+    name: Deploy
+    steps:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
