@@ -1,7 +1,6 @@
 # Enable doxygen doc builds of source
 
 set(DOXYGEN_THEME "awesome-sidebar")
-set(DOXYGEN_USE_MDFILE_AS_MAINPAGE "${qugar_DOC_DIR}/README_doc.md")
 
 # set better defaults for doxygen
 is_verbose(_is_verbose)
@@ -62,20 +61,3 @@ list(APPEND DOC_FOLDERS "${qugar_DOC_DIR}")
 
 doxygen_add_docs(docs ALL ${DOC_FOLDERS}
   COMMENT "Generating documentation - entry file: ${CMAKE_CURRENT_BINARY_DIR}/html/index.html")
-
-if((qugar_WITH_DEMOS) AND (Python_Interpreter_FOUND))
-  # FIXME this executes in every single build. It should be replaced by add_custom_command
-  # depending on the demo's main.cpp files and outputting markdown files.
-  # Because docs depends on this, it also gets triggered at every build, what can
-  # be more problematic.
-  add_custom_target(
-    jupytext_demos_process
-    ALL
-    COMMAND ${Python_EXECUTABLE} "${qugar_DOC_DIR}/jupytext_process.py" "${qugar_SOURCE_DIR}/demo" "${CMAKE_CURRENT_BINARY_DIR}/doc/demos"
-  )
-
-  # jupytext script must be executed before Doxygen
-  add_dependencies(docs jupytext_demos_process)
-else()
-  message(FATAL_ERROR "Python 3 interpreter not found.")
-endif()
