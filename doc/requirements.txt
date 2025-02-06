@@ -4,4 +4,3 @@ breathe
 jupytext
 markdown
 myst_parser
-pyyaml

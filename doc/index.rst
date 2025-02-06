@@ -1,5 +1,7 @@
 QUGaR documentation
 =====================
+(Release: |release|, Git branch: |version|)
+
 
 QUGaR is a library for generating quadrature points for unfitted domain methods.
 It can be used together with the `FEniCS Project <https://fenicsproject.org/>`_
