@@ -7,7 +7,7 @@ While it is intended to be used with any library, QUGaR provides out-of-the-box 
 
 # Documentation
 
-Documentation can be viewed at https://pantolin.github.io/qugar/latest/index.html.
+Documentation can be viewed at https://pantolin.github.io/qugar/main/index.html.
 
 # Installation
 > [!NOTE]  

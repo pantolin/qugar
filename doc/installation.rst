@@ -149,7 +149,7 @@ The documentation will be generated in the ``pages/`` directory.
 
 Note that Doxygen must be installed in your system to build the documentation.
 
-An updated version of the documentation can be found `here <https://pantolin.github.io/qugar/latest/index.html>`_.
+Documentation for the `main` branch can be found `here <https://pantolin.github.io/qugar/main/index.html>`_.
 
 Docker
 ------
