@@ -66,10 +66,6 @@ set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 # Adding sources
 add_subdirectory(qugar)
 
-# if (qugar_BUILD_PYTHON)
-# add_subdirectory(${cpp_SOURCE_DIR})
-# endif()
-
 # Don't even look at tests if we're not top level
 if(NOT PROJECT_IS_TOP_LEVEL)
   return()
