@@ -10,7 +10,7 @@
 
 "Tools for configuring pytests."
 
-from utils import clean_cache
+from doc.utils import clean_cache
 
 
 def pytest_configure(config):

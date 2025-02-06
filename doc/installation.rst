@@ -55,7 +55,7 @@ during the Python package installation process.
 .. rubric:: Optional
 
 - `FEniCSx <https://fenicsproject.org>`_ (check the file ``python/pyproject.toml`` for required version compatibility)
-- `VTK <https://pypi.org/project/vtk/>`_
+- `VTK <https://pypi.org/project/vtk/>`__
 
 .. rubric:: Optional for testing
 
@@ -72,6 +72,7 @@ Except for Doxygen, all the below dependencies can be automatically installed
 during the Python interface installation process, or using the ``doc/requirements.txt`` file.
 
 .. rubric:: Required
+
 - `Doxygen <https://www.doxygen.nl>`_
 - `sphinx <https://pypi.org/project/Sphinx/>`_
 - `sphinx-rtd-dark-mode <https://pypi.org/project/sphinx-rtd-dark-mode/>`_
@@ -79,7 +80,6 @@ during the Python interface installation process, or using the ``doc/requirement
 - `jupytext <https://pypi.org/project/jupytext/>`_
 - `markdown <https://pypi.org/project/Markdown/>`_
 - `myst_parser <https://pypi.org/project/myst-parser/>`_
-- `pyyaml <https://pypi.org/project/PyYAML/>`_
 
 Building and installing
 ^^^^^^^^^^^^^^^^^^^^^^^
@@ -133,7 +133,7 @@ So, if you want to solve your PDEs using unfitted domains through FEniCSx, make 
 
 However, it is also possible to use QUGaR's Python interface without DOLFINx (check the demos page for examples).
 
-QUGaR's Python interface provides some extra visualization features through the `VTK <https://vtk.org>`_ library. To enable such features, install `vtk` (for instance, from `PyPI <https://pypi.org/project/vtk/>`_ or `conda-forge <https://anaconda.org/conda-forge/vtk>`_). However, be aware that in the mid-future, VTK  dependency will be replaced by `pyvista <https://pyvista.org>`_.
+QUGaR's Python interface provides some extra visualization features through the `VTK <https://vtk.org>`__ library. To enable such features, install `vtk` (for instance, from `PyPI <https://pypi.org/project/vtk/>`__ or `conda-forge <https://anaconda.org/conda-forge/vtk>`__). However, be aware that in the mid-future, VTK  dependency will be replaced by `pyvista <https://pyvista.org>`_.
 
 
 Documentation
