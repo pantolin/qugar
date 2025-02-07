@@ -21,7 +21,6 @@
 #include "quadrature_test_utils.hpp"
 
 #include <qugar/cart_grid_tp.hpp>
-#include <qugar/domain_function.hpp>
 #include <qugar/impl_quadrature.hpp>
 #include <qugar/impl_unfitted_domain.hpp>
 #include <qugar/point.hpp>

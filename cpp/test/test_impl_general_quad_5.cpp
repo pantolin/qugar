@@ -24,6 +24,7 @@
 #include <qugar/numbers.hpp>
 #include <qugar/point.hpp>
 #include <qugar/primitive_funcs_lib.hpp>
+#include <qugar/ref_system.hpp>
 #include <qugar/types.hpp>
 
 #include <array>
