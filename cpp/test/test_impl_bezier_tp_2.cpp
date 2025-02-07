@@ -11,7 +11,6 @@
 //! @file test_impl_bezier_tp_2.cpp
 //! @author Pablo Antolin (pablo.antolin@epfl.ch)
 //! @brief Test 2 for BezierTP class (test Bezier composition).
-//! @version 0.0.2
 //! @date 2025-01-21
 //!
 //! @copyright Copyright (c) 2025-present

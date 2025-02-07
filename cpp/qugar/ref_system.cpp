@@ -11,7 +11,6 @@
 //! @file ref_system.cpp
 //! @author Pablo Antolin (pablo.antolin@epfl.ch)
 //! @brief Implementation of reference system class.
-//! @version 0.0.2
 //! @date 2025-01-21
 //!
 //! @copyright Copyright (c) 2025-present

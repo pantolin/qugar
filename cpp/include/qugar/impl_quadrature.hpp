@@ -14,7 +14,6 @@
 //! @file impl_quadrature.hpp
 //! @author Pablo Antolin (pablo.antolin@epfl.ch)
 //! @brief Declaration of quadratures for general implicit functions on grids.
-//! @version 0.0.2
 //! @date 2025-01-21
 //!
 //! @copyright Copyright (c) 2025-present

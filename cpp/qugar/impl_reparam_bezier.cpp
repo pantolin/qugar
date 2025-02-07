@@ -15,7 +15,6 @@
 //! The implementation in this file partially derives from the Algoim library.
 //! Its license is included in the Algoim_LICENSE file in the root directory of this project.
 //!
-//! @version 0.0.2
 //! @date 2025-01-21
 //!
 //! @copyright Copyright (c) 2025-present

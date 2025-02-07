@@ -11,7 +11,6 @@
 //! @file monomials_tp.cpp
 //! @author Pablo Antolin (pablo.antolin@epfl.ch)
 //! @brief Implementation of tensor-product monomials class.
-//! @version 0.0.2
 //! @date 2025-01-21
 //!
 //! @copyright Copyright (c) 2025-present

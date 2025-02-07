@@ -11,7 +11,6 @@
 //! @file test_impl_impl_general_quad_5.cpp
 //! @author Pablo Antolin (pablo.antolin@epfl.ch)
 //! @brief Test 5 for Implicit general quadrature.
-//! @version 0.0.2
 //! @date 2025-01-21
 //!
 //! @copyright Copyright (c) 2025-present

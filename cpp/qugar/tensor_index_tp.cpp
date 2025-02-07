@@ -11,7 +11,6 @@
 //! @file tensor_index_tp.cpp
 //! @author Pablo Antolin (pablo.antolin@epfl.ch)
 //! @brief Implementation of tensor-product index related classes.
-//! @version 0.0.2
 //! @date 2025-01-21
 //!
 //! @copyright Copyright (c) 2025-present
