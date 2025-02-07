@@ -66,6 +66,7 @@ public:
 
   void get_empty_facets(std::vector<int> &cell_ids, std::vector<int> &local_facets_ids) const;
   void get_full_facets(std::vector<int> &cell_ids, std::vector<int> &local_facets_ids) const;
+  void get_full_unfitted_facets(std::vector<int> &cell_ids, std::vector<int> &local_facets_ids) const;
   void get_cut_facets(std::vector<int> &cell_ids, std::vector<int> &local_facets_ids) const;
 
   [[nodiscard]] bool is_full_cell(int cell_id) const;
@@ -75,6 +76,7 @@ public:
   [[nodiscard]] bool is_full_facet(int cell_id, int local_facet_id) const;
   [[nodiscard]] bool is_empty_facet(int cell_id, int local_facet_id) const;
   [[nodiscard]] bool is_cut_facet(int cell_id, int local_facet_id) const;
+  [[nodiscard]] bool is_full_unfitted_facet(int cell_id, int local_facet_id) const;
 
   [[nodiscard]] bool has_unfitted_boundary(int cell_id, int local_facet_id) const;
   [[nodiscard]] bool has_unfitted_boundary_on_domain_boundary(int cell_id, int local_facet_id) const;

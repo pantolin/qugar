@@ -581,7 +581,7 @@ def test_tpms(
         qugar.impl.create_Schoen_IWP,
         qugar.impl.create_Schoen_FRD,
         qugar.impl.create_Fischer_Koch_S,
-        # qugar.impl.create_Schwarz_Diamond, # Something is wrong with this one. To be explored
+        qugar.impl.create_Schwarz_Diamond,
         qugar.impl.create_Schwarz_Primitive,
     ]:
         func = functor(periods)
