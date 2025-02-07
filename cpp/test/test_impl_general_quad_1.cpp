@@ -21,14 +21,11 @@
 #include "quadrature_test_utils.hpp"
 
 #include <qugar/cart_grid_tp.hpp>
-#include <qugar/domain_function.hpp>
 #include <qugar/numbers.hpp>
 #include <qugar/point.hpp>
 #include <qugar/primitive_funcs_lib.hpp>
 #include <qugar/tolerance.hpp>
 #include <qugar/types.hpp>
-
-#include <algoim/interval.hpp>
 
 #include <array>
 #include <cstddef>

@@ -194,18 +194,22 @@ namespace {
   template<int dim> ImmersedStatusTmp classify_cell_general(const ImplicitFunc<dim> &phi, const BoundBox<dim> &domain)
   {
     constexpr int n_pts_dir{ 1 };
-    const auto alg_domain = domain.to_hyperrectangle();
 
-    const auto srf_quad = ::algoim::quadGen(phi, alg_domain, dim, 0, n_pts_dir);
+    // We extend the domain to deal with edge cases.
+    const auto ext_domain = domain.extend(numbers::eps * 1000);
+    const auto alg_ext_domain = ext_domain.to_hyperrectangle();
+
+    const auto srf_quad = ::algoim::quadGen(phi, alg_ext_domain, dim, 0, n_pts_dir);
 
     if (srf_quad.nodes.empty()) {
-      if (phi(alg_domain.midpoint()) < numbers::zero) {
+      if (phi(alg_ext_domain.midpoint()) < numbers::zero) {
         return ImmersedStatusTmp::full;
       } else {
         return ImmersedStatusTmp::empty;
       }
     }
 
+    const auto alg_domain = domain.to_hyperrectangle();
     const auto quad = ::algoim::quadGen(phi, alg_domain, -1, 0, n_pts_dir);
     return classify_cell_from_quad(quad, domain);
   }
@@ -281,18 +285,20 @@ namespace {
     const int n_pts)
   // NOLINTEND (bugprone-easily-swappable-parameters)
   {
-
-    // Classifying full unfitted boundaries.
-    if (n_pts == 1
-        && (facet_status == ImmersedFacetStatus::unf_bdry || facet_status == ImmersedFacetStatus::ext_bdry)) {
+    const auto is_full_facet = [local_facet_id, &domain, &cell_facet_vol]() {
       const int const_dir = get_facet_constant_dir<dim>(local_facet_id);
       const real domain_facet_vol = prod(remove_component(domain.extent(), const_dir));
 
       const Tolerance tol;
       const Tolerance rel_tol{ tol.value() * 1.0e3 };
-      const bool is_full_facet = tol.equal_rel(cell_facet_vol, domain_facet_vol, rel_tol);
+      return tol.equal_rel(cell_facet_vol, domain_facet_vol, rel_tol);
+    };
 
-      if (is_full_facet) {
+    // Classifying full unfitted boundaries.
+    if (n_pts == 1
+        && (facet_status == ImmersedFacetStatus::unf_bdry || facet_status == ImmersedFacetStatus::ext_bdry)) {
+
+      if (is_full_facet()) {
         if (facet_status == ImmersedFacetStatus::unf_bdry) {
           return ImmersedFacetStatus::full_unf_bdry;
         } else {// if (facet_status == ImmersedFacetStatus::ext_bdry) {
@@ -301,23 +307,30 @@ namespace {
       }
     }
 
-    return facet_status;
+    if (facet_status == ImmersedFacetStatus::cut && is_full_facet()) {
+      return ImmersedFacetStatus::full;
+    } else {
+      return facet_status;
+    }
   }
 
   template<int dim>
   ImmersedFacetStatus classify_facet_from_quad(const ImplicitFunc<dim> &phi,
     const alg::HyperRectangle<real, dim> &domain,
     const int local_facet_id,
+    const ImmersedStatusTmp cell_status,
     const QuadRule<dim> &facet_quad)
   {
+    assert(cell_status == ImmersedStatusTmp::cut || cell_status == ImmersedStatusTmp::full_unf_bdry);
+
     const Tolerance default_tol;
 
     const int const_dir = get_facet_constant_dir<dim>(local_facet_id);
     const int side = get_facet_side<dim>(local_facet_id);
 
-    int ext_bdry{ false };
-    int unf_bdry{ false };
-    int cut_facet{ false };
+    bool ext_bdry{ false };
+    bool unf_bdry{ false };
+    bool cut_facet{ false };
     for (const auto &node : facet_quad.nodes) {
       if (on_levelset(phi, node.x, default_tol)) {
 
@@ -329,14 +342,24 @@ namespace {
         }
 
         if (side == 0 ? default_tol.is_negative(normal_comp) : default_tol.is_positive(normal_comp)) {
-          unf_bdry = 1;
+          unf_bdry = true;
         } else {
-          ext_bdry = 1;
+          ext_bdry = true;
         }
       } else {
-        cut_facet = 1;
+        cut_facet = true;
       }
     }
+
+    if (cell_status == ImmersedStatusTmp::full_unf_bdry) {
+      if (facet_quad.nodes.empty() || unf_bdry || ext_bdry) {
+        // Patological cases with external boundaries are overriden.
+        return ImmersedFacetStatus::full_unf_bdry;
+      } else {
+        return ImmersedFacetStatus::full;
+      }
+    }
+
     constexpr std::array<ImmersedFacetStatus, 8> values{ ImmersedFacetStatus::empty,
       ImmersedFacetStatus::ext_bdry,
       ImmersedFacetStatus::unf_bdry,
@@ -347,8 +370,7 @@ namespace {
       ImmersedFacetStatus::cut_unf_bdry_ext_bdry };
 
     const int index = ext_bdry + (unf_bdry * 2) + (cut_facet * 4);
-    const auto facet_status = at(values, index);
-
+    auto facet_status = at(values, index);
 
     const real cell_facet_vol = facet_quad.sumWeights();
     const int n_pts = static_cast<int>(facet_quad.nodes.size());
@@ -358,8 +380,10 @@ namespace {
 
 
   template<int dim>
-  ImmersedFacetStatus
-    classify_facet_general(const ImplicitFunc<dim> &phi, const SubCartGridTP<dim> &subgrid, const int local_facet_id)
+  ImmersedFacetStatus classify_facet_general(const ImplicitFunc<dim> &phi,
+    const SubCartGridTP<dim> &subgrid,
+    const int local_facet_id,
+    const ImmersedStatusTmp cell_status)
   {
     const int const_dir = get_facet_constant_dir<dim>(local_facet_id);
     const int side = get_facet_side<dim>(local_facet_id);
@@ -367,12 +391,14 @@ namespace {
     constexpr int n_pts_dir{ 1 };
     const auto facet_quad = ::algoim::quadGen(phi, domain, const_dir, side, n_pts_dir);
 
-    return classify_facet_from_quad(phi, domain, local_facet_id, facet_quad);
+    return classify_facet_from_quad(phi, domain, local_facet_id, cell_status, facet_quad);
   }
 
   template<int dim>
-  ImmersedFacetStatus
-    classify_facet_Bezier(const BezierTP<dim> &bezier, const BoundBox<dim> &domain, const int local_facet_id)
+  ImmersedFacetStatus classify_facet_Bezier(const BezierTP<dim> &bezier,
+    const BoundBox<dim> &domain,
+    const int local_facet_id,
+    const ImmersedStatusTmp cell_status)
   {
     BezierTP<dim> bzr_domain(bezier);
     bzr_domain.rescale_domain(domain);
@@ -398,7 +424,7 @@ namespace {
       });
 
     const BoundBox<dim> domain_01;
-    return classify_facet_from_quad(bzr_domain, domain_01.to_hyperrectangle(), local_facet_id, facet_quad);
+    return classify_facet_from_quad(bzr_domain, domain_01.to_hyperrectangle(), local_facet_id, cell_status, facet_quad);
   }
 
   template<int dim>
@@ -422,9 +448,9 @@ namespace {
 
     if (is_bezier(phi)) {
       const auto &bzr = dynamic_cast<const BezierTP<dim> &>(phi);
-      return classify_facet_Bezier(bzr, subgrid.get_domain(), local_facet_id);
+      return classify_facet_Bezier(bzr, subgrid.get_domain(), local_facet_id, cell_status);
     } else {
-      return classify_facet_general(phi, subgrid, local_facet_id);
+      return classify_facet_general(phi, subgrid, local_facet_id, cell_status);
     }
   }
 
@@ -438,8 +464,10 @@ namespace {
 
     typename UnfittedImplDomain<dim>::FacetsStatus facets{};
     if (cell_status == ImmersedStatusTmp::full) {
+      facets.fill(ImmersedFacetStatus::full);
       return std::make_pair(ImmersedStatus::full, facets);
     } else if (cell_status == ImmersedStatusTmp::empty) {
+      facets.fill(ImmersedFacetStatus::empty);
       return std::make_pair(ImmersedStatus::empty, facets);
     }
 
@@ -451,12 +479,12 @@ namespace {
       return std::make_pair(ImmersedStatus::cut, facets);
     }
 
-    // Looking for cells whose facets are either full, or full unfitted
-    // boundaries if the facet is on a boundary. In that case, we
-    // consider the cell as full.
+    // Looking for full_unf_bdry cells whose facets are either full, or full unfitted
+    // boundaries but on a boundary. In that case, we consider the cell as full.
 
     assert(cell_status == ImmersedStatusTmp::full_unf_bdry);
 
+    bool is_full{ true };
     for (int local_facet_id = 0; local_facet_id < dim * 2; ++local_facet_id) {
 
       const auto facet = at(facets, local_facet_id);
@@ -465,14 +493,20 @@ namespace {
         const auto cell_id = subgrid.get_single_cell();
         const auto &grid = subgrid.get_grid();
         if (!grid.on_boundary(cell_id, local_facet_id)) {
-          return std::make_pair(ImmersedStatus::cut, facets);
+          is_full = false;
+          break;
         }
       } else if (facet != ImmersedFacetStatus::full) {
-        return std::make_pair(ImmersedStatus::cut, facets);
+        is_full = false;
+        break;
       }
     }
 
-    return std::make_pair(ImmersedStatus::full, facets);
+    if (is_full) {
+      return std::make_pair(ImmersedStatus::full, facets);
+    } else {
+      return std::make_pair(ImmersedStatus::cut, facets);
+    }
   }
 
 
@@ -524,8 +558,8 @@ void UnfittedImplDomain<dim>::create_decomposition(const SubCartGridTP<dim> &sub
   } else {
     switch (sign) {
     case FuncSign::undetermined: {
-      const auto [status, facets] = classify_cut_cell_and_facets(*this->phi_, subgrid);
       const auto cell_id = subgrid.get_single_cell();
+      const auto [status, facets] = classify_cut_cell_and_facets(*this->phi_, subgrid);
       switch (status) {
       case ImmersedStatus::cut:
         this->cut_cells_.push_back(cell_id);

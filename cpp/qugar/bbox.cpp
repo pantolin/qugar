@@ -134,6 +134,19 @@ template<int dim>::algoim::HyperRectangle<real, dim> BoundBox<dim>::to_hyperrect
   return rectangle;
 }
 
+template<int dim> BoundBox<dim> BoundBox<dim>::extend(const real delta) const
+{
+  Point<dim> min_pt = this->min_corner();
+  Point<dim> max_pt = this->max_corner();
+
+  for (int dir = 0; dir < dim; ++dir) {
+    min_pt(dir) -= delta;
+    max_pt(dir) += delta;
+  }
+
+  return BoundBox<dim>(min_pt, max_pt);
+}
+
 
 template<int dim> real BoundBox<dim>::length(const int dir) const
 {
