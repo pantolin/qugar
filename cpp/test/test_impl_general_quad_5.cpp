@@ -11,7 +11,6 @@
 //! @file test_impl_impl_general_quad_5.cpp
 //! @author Pablo Antolin (pablo.antolin@epfl.ch)
 //! @brief Test 5 for Implicit general quadrature.
-//! @version 0.0.2
 //! @date 2025-01-21
 //!
 //! @copyright Copyright (c) 2025-present
@@ -24,6 +23,7 @@
 #include <qugar/numbers.hpp>
 #include <qugar/point.hpp>
 #include <qugar/primitive_funcs_lib.hpp>
+#include <qugar/ref_system.hpp>
 #include <qugar/types.hpp>
 
 #include <array>
@@ -51,11 +51,11 @@ TEST_CASE("General function quadrature for ellipse (2D)", "[impl]")
 
   const real target_volume{ numbers::pi * semi_axes(0) * semi_axes(1) };
   const auto target_centroid = origin;
-  const real target_int_bound_volume = 1.2763499392751274;// Computed numerically.
+  const real target_unf_bound_volume = 1.2763499392751274;// Computed numerically.
 
   const Tolerance tol{ 1.0e-6 };
   test_volume_and_centroid<2>(
-    ellipse, grid, n_quad_pts_dir, target_volume, target_centroid, target_int_bound_volume, tol);
+    ellipse, grid, n_quad_pts_dir, target_volume, target_centroid, target_unf_bound_volume, tol);
 }
 
 
@@ -79,9 +79,9 @@ TEST_CASE("General function quadrature for ellipsoid (3D)", "[impl]")
 
   const real target_volume{ numbers::four_thirds * numbers::pi * semi_axes(0) * semi_axes(1) * semi_axes(2) };
   const auto target_centroid = origin;
-  const real target_int_bound_volume = 1.535246912774376;// Computed numerically.
+  const real target_unf_bound_volume = 1.535246912774376;// Computed numerically.
 
   const Tolerance tol{ 1.0e-6 };
   test_volume_and_centroid<3>(
-    ellipsoid, grid, n_quad_pts_dir, target_volume, target_centroid, target_int_bound_volume, tol);
+    ellipsoid, grid, n_quad_pts_dir, target_volume, target_centroid, target_unf_bound_volume, tol);
 }

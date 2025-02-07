@@ -15,7 +15,6 @@
 //! @file bbox.hpp
 //! @author Pablo Antolin (pablo.antolin@epfl.ch)
 //! @brief Definition of Cartesian bounding box class.
-//! @version 0.0.2
 //! @date 2025-01-21
 //!
 //! @copyright Copyright (c) 2025-present
@@ -122,6 +121,11 @@ public:
   //! @brief Gets the maximum bounds along all the directions.
   //! @return Maximum bounds along all <tt>dim</tt> directions.
   [[nodiscard]] const Point<dim> &max_corner() const;
+
+  //! @brief Extends the current bounding box by a given +/- delta on each side.
+  //! @param delta Amount by which the box is extended.
+  //! @return Extended bounding box.
+  [[nodiscard]] BoundBox<dim> extend(real delta) const;
 
   //! @brief Converts the current object to an Algoim's hyperrectangle.
   //!

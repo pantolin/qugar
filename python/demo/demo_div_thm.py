@@ -158,7 +158,7 @@ import ufl
 import qugar
 import qugar.cpp
 import qugar.impl
-from qugar.dolfinx import CustomForm, dx_bdry_int, form_custom, mapped_normal
+from qugar.dolfinx import CustomForm, dx_bdry_unf, form_custom, mapped_normal
 from qugar.mesh import create_Cartesian_mesh
 from qugar.quad import create_quadrature_generator
 
@@ -247,10 +247,10 @@ ufl_form_vol = div_F * dx
 
 # While in the case of the surface integrals, the procedure is twofold:
 # for $\Gamma_{\text{int}}$ we use the
-# {py:class}`dx_bdry_int<qugar.dolfinx.dx_bdry_int>` measure introduced in QUGaR
+# {py:class}`dx_bdry_unf<qugar.dolfinx.dx_bdry_unf>` measure introduced in QUGaR
 # (note that we integrate over the cut cells only)
 
-ds_int = dx_bdry_int(subdomain_id=0, domain=dlf_mesh, subdomain_data=cell_tags_int_srf)
+ds_int = dx_bdry_unf(subdomain_id=0, domain=dlf_mesh, subdomain_data=cell_tags_int_srf)
 
 # and the standard UFL external facet measure for (both parts of) $\Gamma_{\text{ext}}$.
 

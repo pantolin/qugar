@@ -11,7 +11,6 @@
 //! @file test_impl_impl_general_quad_1.cpp
 //! @author Pablo Antolin (pablo.antolin@epfl.ch)
 //! @brief Test 1 for Implicit general quadrature.
-//! @version 0.0.2
 //! @date 2025-01-21
 //!
 //! @copyright Copyright (c) 2025-present
@@ -21,14 +20,11 @@
 #include "quadrature_test_utils.hpp"
 
 #include <qugar/cart_grid_tp.hpp>
-#include <qugar/domain_function.hpp>
 #include <qugar/numbers.hpp>
 #include <qugar/point.hpp>
 #include <qugar/primitive_funcs_lib.hpp>
 #include <qugar/tolerance.hpp>
 #include <qugar/types.hpp>
-
-#include <algoim/interval.hpp>
 
 #include <array>
 #include <cstddef>
@@ -49,11 +45,11 @@ TEST_CASE("Quadrature for general function for sphere 2D", "[impl]")
 
   const qugar::real target_volume{ qugar::numbers::pi * radius * radius };
   const auto target_centroid = origin;
-  const qugar::real target_int_bound_volume = qugar::numbers::two * qugar::numbers::pi * radius;
+  const qugar::real target_unf_bound_volume = qugar::numbers::two * qugar::numbers::pi * radius;
 
   const qugar::Tolerance tol{ 1.0e-8 };
   test_volume_and_centroid<2>(
-    sphere, grid, n_quad_pts_dir, target_volume, target_centroid, target_int_bound_volume, tol);
+    sphere, grid, n_quad_pts_dir, target_volume, target_centroid, target_unf_bound_volume, tol);
 }
 
 // NOLINTNEXTLINE(misc-use-anonymous-namespace,readability-function-cognitive-complexity)
@@ -71,9 +67,9 @@ TEST_CASE("Quadrature for general function for sphere 3D", "[impl]")
 
   const qugar::real target_volume{ numbers::four_thirds * numbers::pi * radius * radius * radius };
   const auto target_centroid = origin;
-  const qugar::real target_int_bound_volume = numbers::four * numbers::pi * radius * radius;
+  const qugar::real target_unf_bound_volume = numbers::four * numbers::pi * radius * radius;
 
   const qugar::Tolerance tol{ 1.0e-6 };
   test_volume_and_centroid<3>(
-    sphere, grid, n_quad_pts_dir, target_volume, target_centroid, target_int_bound_volume, tol);
+    sphere, grid, n_quad_pts_dir, target_volume, target_centroid, target_unf_bound_volume, tol);
 }

@@ -102,8 +102,8 @@ class CustomQuadFacet(NamedTuple):
     weights: npt.NDArray[np.float64]
 
 
-class CustomQuadIntBoundary(NamedTuple):
-    """Data class for storing custom quadratures for interior custom
+class CustomQuadUnfBoundary(NamedTuple):
+    """Data class for storing custom quadratures for unfitted custom
     boundaries. I.e., boundaries that are not on the exterior boundary
     of a domain, but inside, as those derived from trimming operations.
 

@@ -435,7 +435,7 @@ for facet_id in range(dim * 2):
 
 # We compute the needed custom quadrature.
 
-int_bnd_quad = qugar.cpp.create_interior_bound_quadrature(
+int_bnd_quad = qugar.cpp.create_unfitted_bound_quadrature(
     unf_domain,
     unf_domain.cut_cells,
     n_quad_pts,

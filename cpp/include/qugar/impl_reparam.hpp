@@ -14,7 +14,6 @@
 //! @file impl_reparam.hpp
 //! @author Pablo Antolin (pablo.antolin@epfl.ch)
 //! @brief Declaration of reparameterization generization tools implicit functions on grids.
-//! @version 0.0.2
 //! @date 2025-01-13
 //!
 //! @copyright Copyright (c) 2025-present

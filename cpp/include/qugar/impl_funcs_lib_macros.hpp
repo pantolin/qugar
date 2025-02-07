@@ -14,7 +14,6 @@
 //! @file impl_funcs_lib_macros.hpp
 //! @author Pablo Antolin (pablo.antolin@epfl.ch)
 //! @brief Declaration of macros to ease the definition/implementation of implicit functions.
-//! @version 0.0.2
 //! @date 2025-01-21
 //!
 //! @copyright Copyright (c) 2025-present

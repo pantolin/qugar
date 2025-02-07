@@ -11,7 +11,6 @@
 //! @file reparam_test_utils.hpp
 //! @author Pablo Antolin (pablo.antolin@epfl.ch)
 //! @brief Utils for reparameterization testing.
-//! @version 0.0.2
 //! @date 2025-01-08
 //!
 //! @copyright Copyright (c) 2025-present

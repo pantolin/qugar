@@ -30,7 +30,7 @@ from utils import (
 
 import qugar.cpp
 import qugar.impl
-from qugar.dolfinx import CustomForm, dx_bdry_int, form_custom, mapped_normal
+from qugar.dolfinx import CustomForm, dx_bdry_unf, form_custom, mapped_normal
 from qugar.impl import ImplicitFunc, UnfittedImplDomain
 from qugar.mesh import create_Cartesian_mesh
 from qugar.quad import create_quadrature_generator
@@ -118,7 +118,7 @@ def create_div_thm_surface_ufl_form(domain: UnfittedImplDomain, n_quad_pts: int)
 
     quad_degree = get_Gauss_quad_degree(n_quad_pts)
 
-    ds_int = dx_bdry_int(
+    ds_int = dx_bdry_unf(
         domain=dlf_mesh, subdomain_data=cell_tags, subdomain_id=cut_tag, degree=quad_degree
     )
 
@@ -581,7 +581,7 @@ def test_tpms(
         qugar.impl.create_Schoen_IWP,
         qugar.impl.create_Schoen_FRD,
         qugar.impl.create_Fischer_Koch_S,
-        # qugar.impl.create_Schwarz_Diamond, # Something is wrong with this one. To be explored
+        qugar.impl.create_Schwarz_Diamond,
         qugar.impl.create_Schwarz_Primitive,
     ]:
         func = functor(periods)

@@ -11,7 +11,6 @@
 //! @file test_impl_impl_poly_quad_4.cpp
 //! @author Pablo Antolin (pablo.antolin@epfl.ch)
 //! @brief Test 4 for Implicit general Bezier polynomial unfitted implicit domain.
-//! @version 0.0.2
 //! @date 2025-01-21
 //!
 //! @copyright Copyright (c) 2025-present
@@ -50,10 +49,10 @@ TEST_CASE("Quadrature for Bezier function for cylinder 3D", "[impl]")
 
     const real target_volume{ numbers::pi * radius * radius };
     const auto target_centroid = origin;
-    const real target_int_bound_volume = numbers::two * numbers::pi * radius;
+    const real target_unf_bound_volume = numbers::two * numbers::pi * radius;
 
     const Tolerance tol{ 1.0e-6 };
     test_volume_and_centroid<3>(
-      cylinder, grid, n_quad_pts_dir, target_volume, target_centroid, target_int_bound_volume, tol);
+      cylinder, grid, n_quad_pts_dir, target_volume, target_centroid, target_unf_bound_volume, tol);
   }
 }

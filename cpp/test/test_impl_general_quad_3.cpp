@@ -11,7 +11,6 @@
 //! @file test_impl_impl_general_quad_3.cpp
 //! @author Pablo Antolin (pablo.antolin@epfl.ch)
 //! @brief Test 3 for Implicit general quadrature.
-//! @version 0.0.2
 //! @date 2025-01-21
 //!
 //! @copyright Copyright (c) 2025-present
@@ -54,11 +53,11 @@ TEST_CASE("General function quadrature for annulus (2D)", "[impl]")
 
   const real target_volume{ numbers::pi * (R1 * R1 - R0 * R0) };
   const auto target_centroid = origin;
-  const real target_int_bound_volume = numbers::two * numbers::pi * (R0 + R1);
+  const real target_unf_bound_volume = numbers::two * numbers::pi * (R0 + R1);
 
   const Tolerance tol{ 1.0e-6 };
   test_volume_and_centroid<2>(
-    annulus, grid, n_quad_pts_dir, target_volume, target_centroid, target_int_bound_volume, tol);
+    annulus, grid, n_quad_pts_dir, target_volume, target_centroid, target_unf_bound_volume, tol);
 }
 
 // NOLINTNEXTLINE(misc-use-anonymous-namespace,readability-function-cognitive-complexity)
@@ -81,9 +80,9 @@ TEST_CASE("General function quadrature for torus (3D)", "[impl]")
 
   const real target_volume{ numbers::two * numbers::pi * numbers::pi * minor_radius * minor_radius * major_radius };
   const auto target_centroid = origin;
-  const real target_int_bound_volume = numbers::four * numbers::pi * numbers::pi * minor_radius * major_radius;
+  const real target_unf_bound_volume = numbers::four * numbers::pi * numbers::pi * minor_radius * major_radius;
 
   const Tolerance tol{ 1.0e-3 };
   test_volume_and_centroid<3>(
-    torus, grid, n_quad_pts_dir, target_volume, target_centroid, target_int_bound_volume, tol);
+    torus, grid, n_quad_pts_dir, target_volume, target_centroid, target_unf_bound_volume, tol);
 }

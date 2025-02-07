@@ -11,7 +11,6 @@
 //! @file tpms_lib.cpp
 //! @author Pablo Antolin (pablo.antolin@epfl.ch)
 //! @brief Implementation of TPMS functions to be consumed by Algoim.
-//! @version 0.0.2
 //! @date 2025-01-21
 //!
 //! @copyright Copyright (c) 2025-present
@@ -36,7 +35,7 @@ namespace {
   template<typename T, int dim> Point<3, T> extend_to_3D(const Point<dim, T> &vec)
   {
     if constexpr (dim == 2) {
-      return add_component<T, 2>(vec, 2, T{ numbers::zero });
+      return Point<3, T>(vec(0), vec(1), T{ numbers::zero });
     } else {
       return vec;
     }

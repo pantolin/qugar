@@ -11,7 +11,6 @@
 //! @file bbox.cpp
 //! @author Pablo Antolin (pablo.antolin@epfl.ch)
 //! @brief Implementation of Cartesian bounding box class.
-//! @version 0.0.2
 //! @date 2025-01-21
 //!
 //! @copyright Copyright (c) 2025-present
@@ -132,6 +131,19 @@ template<int dim>::algoim::HyperRectangle<real, dim> BoundBox<dim>::to_hyperrect
     rectangle.max(dir) = this->max(dir);
   }
   return rectangle;
+}
+
+template<int dim> BoundBox<dim> BoundBox<dim>::extend(const real delta) const
+{
+  Point<dim> min_pt = this->min_corner();
+  Point<dim> max_pt = this->max_corner();
+
+  for (int dir = 0; dir < dim; ++dir) {
+    min_pt(dir) -= delta;
+    max_pt(dir) += delta;
+  }
+
+  return BoundBox<dim>(min_pt, max_pt);
 }
 
 

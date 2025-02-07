@@ -14,7 +14,6 @@
 //! @file impl_quadrature.hpp
 //! @author Pablo Antolin (pablo.antolin@epfl.ch)
 //! @brief Declaration of quadratures for general implicit functions on grids.
-//! @version 0.0.2
 //! @date 2025-01-21
 //!
 //! @copyright Copyright (c) 2025-present
@@ -36,7 +35,7 @@ std::shared_ptr<const CutCellsQuad<dim>>
   create_quadrature(const UnfittedImplDomain<dim> &unf_domain, const std::vector<int> &cells, int n_pts_dir);
 
 template<int dim>
-std::shared_ptr<const CutIntBoundsQuad<dim>> create_interior_bound_quadrature(const UnfittedImplDomain<dim> &unf_domain,
+std::shared_ptr<const CutUnfBoundsQuad<dim>> create_unfitted_bound_quadrature(const UnfittedImplDomain<dim> &unf_domain,
   const std::vector<int> &cells,
   int n_pts_dir);
 

@@ -11,7 +11,7 @@
 cmake_minimum_required(VERSION 3.23)
 
 # Set the project name and language
-set(qugar_VERSION "0.0.2")
+set(qugar_VERSION "0.0.3")
 project(
   qugar 
   VERSION ${qugar_VERSION}
@@ -65,10 +65,6 @@ set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 
 # Adding sources
 add_subdirectory(qugar)
-
-# if (qugar_BUILD_PYTHON)
-# add_subdirectory(${cpp_SOURCE_DIR})
-# endif()
 
 # Don't even look at tests if we're not top level
 if(NOT PROJECT_IS_TOP_LEVEL)

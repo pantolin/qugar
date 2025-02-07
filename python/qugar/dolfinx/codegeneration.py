@@ -75,7 +75,7 @@ class _IntegralModifier:
     the cells have a static quadrature defined at compile time), and a
     new version where those values are loaded dynamically at runtime
     for every cell from provided custom coefficients. The latter also
-    allows to use normals at custom interior boundaries that do not
+    allows to use normals at custom unfitted boundaries that do not
     coincide with cells' facets.
 
     Parameters:
@@ -386,11 +386,11 @@ class _IntegralModifier:
 
     def _get_constant_normal_offsets(self) -> tuple[np.int64, ...]:
         """Finds the indices of the (fake) constants associated to
-        interior boundary normals.
+        unfitted boundary normals.
 
         Returns:
             tuple[np.int64, ...]: Offsets of the constants associated
-            to interior boundary normals.
+            to unfitted boundary normals.
         """
 
         constant_offsets = self._ir.expression.original_constant_offsets
@@ -432,7 +432,7 @@ class _IntegralModifier:
         return code_block
 
     def _modify_normal_constants(self, code: str) -> str:
-        """In the case of interior custom boundaries, this function
+        """In the case of unfitted custom boundaries, this function
         replaces the used (fake) constants by their corresponding
         boundary normals varying at every quadrature point.
 
@@ -444,7 +444,7 @@ class _IntegralModifier:
         """
 
         if all(
-            not quad_data.interior_boundary for quad_data in self._data.quad_data_FE_tables.keys()
+            not quad_data.unfitted_boundary for quad_data in self._data.quad_data_FE_tables.keys()
         ):
             return code  # No normals to subsitute.
 
@@ -458,7 +458,7 @@ class _IntegralModifier:
         # Note that in cases as for linear triangles, quantities as
         # the jacobians are constant at all the quadrature points and
         # therefore FFCx defines them out of the quadrature loops.
-        # However, in the case of interior boundaries, these quantities
+        # However, in the case of unfitted boundaries, these quantities
         # get multiplied by boundary normals that vary from point
         # to point and become non constant.
         # Thus, we take those constant definitions and move them to the
@@ -489,7 +489,7 @@ class _IntegralModifier:
             assert code[i0 : i0 + 2] == "{\n"
             block = "{\n" + cnt_vars_block + code[i0 + 2 : i1]
 
-            if quad_data.interior_boundary:
+            if quad_data.unfitted_boundary:
                 block = self._substitute_normals(block, quad_name)
 
             new_code += code[ind:i0] + block
@@ -536,7 +536,7 @@ class _IntegralModifier:
 
         For every quadrature rule available in the integral (i.e., for
         every integrand), a function is created for loading its number
-        of points, weights array, interior boundary normals (if needed),
+        of points, weights array, unfitted boundary normals (if needed),
         and all the FE tables associated to that quadrature.
 
         Every function takes as input a pointer to the array of
@@ -568,7 +568,7 @@ class _IntegralModifier:
             normals_name = f"normals_{quad_name}"
             n_pts_name = f"n_pts_Q{quad_name}"
 
-            has_normals = quad_data.interior_boundary
+            has_normals = quad_data.unfitted_boundary
 
             # Creating function's signature.
             indent = " " * len(f"int {func_name}(")
@@ -637,7 +637,7 @@ class _IntegralModifier:
         for quad_data, FE_tables in self._data.quad_data_FE_tables.items():
             quad_name = quad_data.name
 
-            has_normals = quad_data.interior_boundary
+            has_normals = quad_data.unfitted_boundary
 
             func_name = f"load_values_{itg_name}_Q{quad_name}"
             weights_name = f"weights_{quad_name}"
@@ -704,7 +704,7 @@ class _IntegralModifier:
         (static) array, 1D array accesses.
         The upper bounds of the quadrature points loops are modified to
         accomodate the number of quadrature points for every
-        particular cell. And, in the case of interior custom boundaries,
+        particular cell. And, in the case of unfitted custom boundaries,
         the used (fake) constants are replaced by their corresponding
         boundary normals.
 

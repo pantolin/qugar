@@ -15,7 +15,6 @@
 //! @file qugar.hpp
 //! @author Pablo Antolin (pablo.antolin@epfl.ch)
 //! @brief QUGaR's main include definition.
-//! @version 0.0.2
 //! @date 2025-01-21
 //!
 //! @copyright Copyright (c) 2025-present

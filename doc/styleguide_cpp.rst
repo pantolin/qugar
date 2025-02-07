@@ -197,8 +197,7 @@ Header files should follow the below template:
     //! @file foo.hpp
     //! @author Pablo Antolin (pablo.antolin@epfl.ch)
     //! @brief Definition of Foo class.
-    //! @version 0.0.2
-    //! @date 2025-01-21
+        //! @date 2025-01-21
     //!
     //! @copyright Copyright (c) 2025-present
 
@@ -243,8 +242,7 @@ Implementation files should follow the below template:
     //! @file foo.cpp
     //! @author Pablo Antolin (pablo.antolin@epfl.ch)
     //! @brief Implementation of Foo class.
-    //! @version 0.0.2
-    //! @date 2025-01-21
+        //! @date 2025-01-21
     //!
     //! @copyright Copyright (c) 2025-present
 

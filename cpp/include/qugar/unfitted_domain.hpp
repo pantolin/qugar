@@ -15,7 +15,6 @@
 //! @file unfitted_domain.hpp
 //! @author Pablo Antolin (pablo.antolin@epfl.ch)
 //! @brief Declaration of of UnfittedDomain class.
-//! @version 0.0.2
 //! @date 2025-01-21
 //!
 //! @copyright Copyright (c) 2025-present
@@ -36,14 +35,14 @@ enum class ImmersedFacetStatus : std::uint8_t {
   cut,
   full,
   empty,
-  cut_int_bdry,
+  cut_unf_bdry,
   cut_ext_bdry,
-  cut_int_bdry_ext_bdry,
-  full_int_bdry,
+  cut_unf_bdry_ext_bdry,
+  full_unf_bdry,
   full_ext_bdry,
-  int_bdry,
+  unf_bdry,
   ext_bdry,
-  int_bdry_ext_bdry
+  unf_bdry_ext_bdry
 };
 
 template<int dim> class UnfittedDomain
@@ -66,6 +65,7 @@ public:
 
   void get_empty_facets(std::vector<int> &cell_ids, std::vector<int> &local_facets_ids) const;
   void get_full_facets(std::vector<int> &cell_ids, std::vector<int> &local_facets_ids) const;
+  void get_full_unfitted_facets(std::vector<int> &cell_ids, std::vector<int> &local_facets_ids) const;
   void get_cut_facets(std::vector<int> &cell_ids, std::vector<int> &local_facets_ids) const;
 
   [[nodiscard]] bool is_full_cell(int cell_id) const;
@@ -75,9 +75,10 @@ public:
   [[nodiscard]] bool is_full_facet(int cell_id, int local_facet_id) const;
   [[nodiscard]] bool is_empty_facet(int cell_id, int local_facet_id) const;
   [[nodiscard]] bool is_cut_facet(int cell_id, int local_facet_id) const;
+  [[nodiscard]] bool is_full_unfitted_facet(int cell_id, int local_facet_id) const;
 
-  [[nodiscard]] bool has_internal_boundary(int cell_id, int local_facet_id) const;
-  [[nodiscard]] bool has_internal_boundary_on_domain_boundary(int cell_id, int local_facet_id) const;
+  [[nodiscard]] bool has_unfitted_boundary(int cell_id, int local_facet_id) const;
+  [[nodiscard]] bool has_unfitted_boundary_on_domain_boundary(int cell_id, int local_facet_id) const;
   [[nodiscard]] bool has_external_boundary(int cell_id, int local_facet_id) const;
 
 protected:

@@ -11,7 +11,6 @@
 //! @file quadrature_test_utils.hpp
 //! @author Pablo Antolin (pablo.antolin@epfl.ch)
 //! @brief Utils for quadrature testing.
-//! @version 0.0.2
 //! @date 2025-01-21
 //!
 //! @copyright Copyright (c) 2025-present
@@ -131,18 +130,18 @@ qugar::real compute_volume(const qugar::impl::UnfittedImplDomain<dim> &unf_domai
   return vol;
 }
 
-//! @brief Computes the volume of the interior boundary for a given unfitted implicit domain and quadrature.
+//! @brief Computes the volume of the unfitted boundary for a given unfitted implicit domain and quadrature.
 //!
-//! This function calculates the volume of the interior boundary by iterating through the cut cells
+//! This function calculates the volume of the unfitted boundary by iterating through the cut cells
 //! in the provided quadrature and summing up the weighted volumes of these cells.
 //!
 //! @tparam dim The dimension of the unfitted implicit domain.
 //! @param unf_domain The unfitted implicit domain object containing the grid information.
 //! @param quad The quadrature object containing the cut cells and their corresponding weights.
-//! @return The computed volume of the interior boundary.
+//! @return The computed volume of the unfitted boundary.
 template<int dim>
-qugar::real compute_interior_boundary_volume(const qugar::impl::UnfittedImplDomain<dim> &unf_domain,
-  const qugar::CutIntBoundsQuad<dim> &quad)
+qugar::real compute_unfitted_boundary_volume(const qugar::impl::UnfittedImplDomain<dim> &unf_domain,
+  const qugar::CutUnfBoundsQuad<dim> &quad)
 {
   using qugar::at;
   qugar::real vol{ qugar::numbers::zero };
@@ -174,7 +173,7 @@ qugar::real compute_interior_boundary_volume(const qugar::impl::UnfittedImplDoma
 
 //! @brief Tests the volume and centroid calculations for a given Bezier tensor product.
 //!
-//! This function computes the volume, interior boundary area, and centroid of a given
+//! This function computes the volume, unfitted boundary area, and centroid of a given
 //! Bezier tensor product using a specified quadrature rule. It then compares the computed
 //! values with the exact values provided as input parameters.
 //!
@@ -184,7 +183,7 @@ qugar::real compute_interior_boundary_volume(const qugar::impl::UnfittedImplDoma
 //! @param n_quad_pts_dir The number of quadrature points per direction.
 //! @param exact_volume The exact volume to compare against.
 //! @param exact_centroid The exact centroid to compare against.
-//! @param exact_int_bound_area The exact interior boundary area to compare against.
+//! @param exact_unf_bound_area The exact unfitted boundary area to compare against.
 template<int dim>
 void test_volume_and_centroid(const std::shared_ptr<const qugar::impl::ImplicitFunc<dim>> func,
   const std::shared_ptr<const qugar::CartGridTP<dim>> grid,
@@ -192,7 +191,7 @@ void test_volume_and_centroid(const std::shared_ptr<const qugar::impl::ImplicitF
   const int n_quad_pts_dir,
   const qugar::real exact_volume,
   const qugar::Point<dim> &exact_centroid,
-  const qugar::real exact_int_bound_area,
+  const qugar::real exact_unf_bound_area,
   const qugar::Tolerance tol = qugar::Tolerance())
 {
   assert(grid != nullptr);
@@ -202,16 +201,16 @@ void test_volume_and_centroid(const std::shared_ptr<const qugar::impl::ImplicitF
 
   const auto quad = qugar::impl::create_quadrature(unf_domain, unf_domain.get_cut_cells(), n_quad_pts_dir);
 
-  const auto int_bound_quad =
-    qugar::impl::create_interior_bound_quadrature(unf_domain, unf_domain.get_cut_cells(), n_quad_pts_dir);
+  const auto unf_bound_quad =
+    qugar::impl::create_unfitted_bound_quadrature(unf_domain, unf_domain.get_cut_cells(), n_quad_pts_dir);
 
   const auto volume = compute_volume(unf_domain, *quad);
   // NOLINTNEXTLINE (bugprone-chained-comparison)
   REQUIRE((tol.equal(volume, exact_volume)));
 
-  const auto int_bound_area = compute_interior_boundary_volume(unf_domain, *int_bound_quad);
+  const auto unf_bound_area = compute_unfitted_boundary_volume(unf_domain, *unf_bound_quad);
   // NOLINTNEXTLINE (bugprone-chained-comparison)
-  REQUIRE((tol.equal(int_bound_area, exact_int_bound_area)));
+  REQUIRE((tol.equal(unf_bound_area, exact_unf_bound_area)));
 
   const auto centroid = compute_centroid(unf_domain, *quad);
   // NOLINTNEXTLINE (cppcoreguidelines-avoid-do-while)

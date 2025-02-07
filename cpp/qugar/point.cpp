@@ -11,7 +11,6 @@
 //! @file point.cpp
 //! @author Pablo Antolin (pablo.antolin@epfl.ch)
 //! @brief Implementation of point related functionalities.
-//! @version 0.0.2
 //! @date 2025-01-14
 //!
 //! @copyright Copyright (c) 2025-present

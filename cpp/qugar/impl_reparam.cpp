@@ -11,7 +11,6 @@
 //! @file impl_reparam.cpp
 //! @author Pablo Antolin (pablo.antolin@epfl.ch)
 //! @brief Implementation of reparameterization generization tools implicit functions on grids.
-//! @version 0.0.2
 //! @date 2025-01-13
 //!
 //! @copyright Copyright (c) 2025-present
