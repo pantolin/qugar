@@ -582,6 +582,52 @@ def DOLFINx_to_lexicg_faces(dim: int) -> npt.NDArray[np.int32]:
 
 
 @staticmethod
+def lexicg_to_VTK_faces(dim: int) -> npt.NDArray[np.int32]:
+    """Creates the permutation array to map from lexicographical to
+    VTK faces ordering.
+
+    Args:
+        dim (int): Parametric dimension of the cells (1D, 2D, or 3D).
+
+    Returns:
+        npt.NDArray[np.int32]:  Permutation array from lexicographical
+            to VTK such that `faces_vtk[i] = faces_lex[perm_array[i]]`
+            or `faces_lex[i] = perm_array[faces_vtk[i]]`.
+    """
+
+    assert 1 <= dim <= 3
+    if dim == 1:
+        return np.array([0, 1], dtype=np.int32)
+    elif dim == 2:
+        return np.array([2, 1, 3, 0], dtype=np.int32)
+    else:  # if dim == 3:
+        return np.array([2, 4, 0, 1, 3, 5], dtype=np.int32)
+
+
+@staticmethod
+def VTK_to_lexicg_faces(dim: int) -> npt.NDArray[np.int32]:
+    """Creates the permutation array to map from VTK to
+    lexicographical faces ordering.
+
+    Args:
+        dim (int): Parametric dimension of the cells (1D, 2D, or 3D).
+
+    Returns:
+        npt.NDArray[np.int32]:  Permutation array from VTK to
+            lexicographical such that `faces_lex[i] = faces_vtk[perm_array[i]]` or
+            `faces_vtk[i] = perm_array[faces_lex[i]]`.
+    """
+
+    assert 1 <= dim <= 3
+    if dim == 1:
+        return np.array([0, 1], dtype=np.int32)
+    elif dim == 2:
+        return np.array([3, 1, 0, 2], dtype=np.int32)
+    else:  # if dim == 3:
+        return np.array([2, 3, 0, 4, 1, 5], dtype=np.int32)
+
+
+@staticmethod
 def lexicg_to_DOLFINx_edges(dim: int) -> npt.NDArray[np.int32]:
     """Creates the permutation array to map from lexicographical to
     DOLFINx edges ordering.
