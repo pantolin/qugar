@@ -263,7 +263,7 @@ def _create_quad_points_grid(
         assert normals.shape == (n_pts, dim)
         new_normals = np.zeros((n_pts, 3), points.dtype)
         new_normals[:, :dim] = normals
-        points_grid.cell_data["normals"] = new_normals
+        points_grid.cell_data["Normals"] = new_normals
 
     return points_grid
 
@@ -507,7 +507,7 @@ def unfitted_domain_facets_to_PyVista(
     if dim == 2:
         grid = cast(pv.DataSet, grid.extract_all_edges())
     else:
-        grid = cast(pv.DataSet, grid.extract_all_surfaces())
+        grid = cast(pv.DataSet, grid.extract_surface())
 
     n_facets_per_cell = 2 * dim
     grid.cell_data["VTK local facets ids"] = np.tile(np.arange(n_facets_per_cell), n_cells)
@@ -531,9 +531,15 @@ def unfitted_domain_facets_to_PyVista(
 
         domain_ = domain.cpp_object
 
-    for lex_cells_facets, status in zip(
-        (domain_.full_facets, domain_.cut_facets, domain_.empty_facets), (0, 1, 2)
-    ):
+    facets = {}
+    if full:
+        facets[0] = domain_.full_facets
+    if cut:
+        facets[1] = domain_.cut_facets
+    if empty:
+        facets[2] = domain_.emptyfacets
+
+    for status, lex_cells_facets in facets.items():
         vtk_facets = vtk_lex_mask[lex_cells_facets[1]]
         vtk_cells = lex_cells_facets[0] * n_facets_per_cell + vtk_facets
         grid.cell_data["Facet status (0: full, 1: cut, 2: empty)"][vtk_cells] = status

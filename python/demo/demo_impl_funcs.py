@@ -8,7 +8,7 @@
 #       jupytext_version: 1.15.1
 # ---
 
-# # Creation of unfitted implicit domains and visualization with VTK
+# # Creation of unfitted implicit domains
 
 #
 # This demo is implemented in {download}`demo_impl_funcs.py` and it
@@ -16,15 +16,14 @@
 #
 # - The library of available implicit functions for defining domains.
 # - How to create an unfitted implicit domain described by an implicit function.
-# - How to generate a reparameterization of an unfitted domain and visualize it with VTK.
-# - How to generate a custom quadrature for an unfitted domain and visualize it with VTK.
+# - How to visualize an unfitted domain in PyVista by creating a reparameterization.
 
-# This demo requires the [FEniCSx](https://fenicsproject.org) and [VTK](https://vtk.org)
+# This demo requires the [FEniCSx](https://fenicsproject.org) and [PyVista](https://pyvista.org)
 # capabilities of QUGaR.
 
 # ## Geometry definition
 #
-# First we check that FEniCSx and VTK installations are available.
+# First we check that FEniCSx and PyVista installations are available.
 
 # +
 import qugar.utils
@@ -32,21 +31,24 @@ import qugar.utils
 if not qugar.utils.has_FEniCSx:
     raise ValueError("FEniCSx installation not found is required.")
 
-if not qugar.utils.has_VTK:
-    raise ValueError("VTK installation not found is required.")
+if not qugar.utils.has_PyVista:
+    raise ValueError("PyVista installation not found is required.")
 # -
 
 # Then the modules and functions to be used are imported:
 
 # +
+
 from mpi4py import MPI
 
 import numpy as np
+import pyvista as pv
 
 import qugar
 import qugar.cpp
 import qugar.impl
 import qugar.mesh
+import qugar.plot
 import qugar.reparam
 
 # -
@@ -61,12 +63,10 @@ import qugar.reparam
 # - A {py:class}`2D disk<qugar.impl.create_disk>` defined by its center and radius.
 
 func_disk = qugar.impl.create_disk(radius=0.8, center=np.array([0.51, 0.45]), use_bzr=True)
-name_disk = "disk"
 
 # - A {py:class}`3D sphere<qugar.impl.create_sphere>` defined by its center and radius.
 
 func_sphere = qugar.impl.create_sphere(radius=0.8, center=np.array([0.5, 0.45, 0.35]), use_bzr=True)
-name_sphere = "sphere"
 
 # - A {py:class}`2D half-space<qugar.impl.create_line>` defined as the domain
 # on one side of an infinite line.
@@ -74,7 +74,6 @@ name_sphere = "sphere"
 func_line = qugar.impl.create_line(
     origin=np.array([0.5, 0.5]), normal=np.array([1.0, 0.2]), use_bzr=True
 )
-name_line = "line"
 
 # - A {py:class}`3D half-space<qugar.impl.create_plane>` defined as the domain
 # on one side of an infinite plane.
@@ -82,7 +81,6 @@ name_line = "line"
 func_plane = qugar.impl.create_plane(
     origin=np.array([0.3, 0.47, 0.27]), normal=np.array([1.0, 0.3, -1.0]), use_bzr=True
 )
-name_plane = "plane"
 
 # - A {py:class}`3D cylinder<qugar.impl.create_cylinder>` defined by a point on the axis,
 # the direction of the revolution axis, and the radius.
@@ -90,7 +88,6 @@ name_plane = "plane"
 func_cylinder = qugar.impl.create_cylinder(
     radius=0.4, origin=np.array([0.55, 0.45, 0.47]), axis=np.array([1.0, 0.9, -0.95]), use_bzr=True
 )
-name_cylinder = "cylinder"
 
 
 # - A {py:class}`2D annulus<qugar.impl.create_annulus>` defined by its center and inner and outer
@@ -99,7 +96,6 @@ name_cylinder = "cylinder"
 func_annulus = qugar.impl.create_annulus(
     inner_radius=0.2, outer_radius=0.75, center=np.array([0.55, 0.47]), use_bzr=True
 )
-name_annulus = "annulus"
 
 # - A {py:class}`2D ellipse<qugar.impl.create_ellipse>` defined by a 2D reference system
 # (described through an origin and $x$-axis) and the length of the semi-axes along the
@@ -109,7 +105,6 @@ ref_system = qugar.cpp.create_ref_system(origin=np.array([0.5, 0.5]), axis=np.ar
 func_ellipse = qugar.impl.create_ellipse(
     semi_axes=np.array([0.7, 0.5]), ref_system=ref_system, use_bzr=True
 )
-name_ellipse = "ellipse"
 
 # - A {py:class}`3D ellipsoid<qugar.impl.create_ellipsoid>` defined by a 3D reference system
 # (described through an origin and $x$- and $y$-axes) and the length of the semi-axes along the
@@ -123,7 +118,6 @@ ref_system = qugar.cpp.create_ref_system(
 func_ellipsoid = qugar.impl.create_ellipsoid(
     semi_axes=np.array([0.7, 0.45, 0.52]), ref_system=ref_system, use_bzr=True
 )
-name_ellipsoid = "ellipsoid"
 
 # - A {py:class}`3D torus<qugar.impl.create_torus>` defined by its major and minor radii,
 # its center, and the direction of the revolution axis for the major radius.
@@ -135,20 +129,17 @@ func_torus = qugar.impl.create_torus(
     axis=np.array([1.0, 0.9, 0.8]),
     use_bzr=True,
 )
-name_torus = "torus"
 
 # - A 2D or 3D {py:class}`constant function<qugar.impl.create_constant>` defined by
 # a constant value and a dimension.
 
 func_constant = qugar.impl.create_constant(value=-0.5, dim=3, use_bzr=True)
-name_constant = "constant"
 
 # - A 2D or 3D {py:class}`dim-linear function<qugar.impl.create_dim_linear>` that defines
 # a bi- or tri-linear function through its values in the 4 (respec. 8) vertices
 # of the unit square (resp. cube)
 
 func_dimlinear = qugar.impl.create_dim_linear(coefs=[-0.5, 0.5, 0.5, -0.7])
-name_dimlinear = "dim-linear"
 
 # Internally, (almost all) these functions can be represented through (Bezier) polynomials
 # or analytical $C^1(\mathbb{R}^d)$ functions by propertly setting the argument `use_bzr`
@@ -172,7 +163,6 @@ name_dimlinear = "dim-linear"
 # $$
 
 func_schoen = qugar.impl.create_Schoen(periods=[2, 2, 2])
-name_schoen = "Schoen"
 
 # - [Schoen F-RD](https://minimalsurfaces.blog/home/repository/triply-periodic/schoen-f-rd/),
 # defined as:
@@ -186,7 +176,6 @@ name_schoen = "Schoen"
 # $$
 
 func_schoeniwp = qugar.impl.create_Schoen_IWP(periods=[2, 2, 2])
-name_schoeniwp = "Schoen-IWP"
 
 # - [Schoen I-WP](https://minimalsurfaces.blog/home/repository/triply-periodic/schoen-i-wp/),
 # defined as:
@@ -200,7 +189,6 @@ name_schoeniwp = "Schoen-IWP"
 # $$
 
 func_schoenfrd = qugar.impl.create_Schoen_FRD(periods=[2, 2, 2])
-name_schoenfrd = "Schoen-FRD"
 
 # - [Fischer-Koch S](http://kenbrakke.com/evolver/examples/periodic/periodic.html#fishers),
 # defined as:
@@ -214,7 +202,6 @@ name_schoenfrd = "Schoen-FRD"
 # $$
 
 func_fischerkochs = qugar.impl.create_Fischer_Koch_S(periods=[2, 2, 2])
-name_fischerkochs = "Fischer-Koch-S"
 
 # - [Schwarz D (Diamond)](https://en.wikipedia.org/wiki/Schwarz_minimal_surface#Schwarz_D_(%22Diamond%22)),
 # defined as:
@@ -227,7 +214,6 @@ name_fischerkochs = "Fischer-Koch-S"
 # $$
 
 func_schwarzd = qugar.impl.create_Schwarz_Diamond(periods=[2, 2, 2])
-name_schwarzd = "Schwarz-D"
 
 # - [Schwarz P (Primitive)](https://en.wikipedia.org/wiki/Schwarz_minimal_surface#Schwarz_P_(%22Primitive%22)),
 # defined as:
@@ -239,7 +225,6 @@ name_schwarzd = "Schwarz-D"
 # $$
 
 func_schwarzp = qugar.impl.create_Schwarz_Primitive(periods=[2, 2, 2])
-name_schwarzp = "Schwarz-P"
 
 #
 # where $\alpha=2\pi m$, $\beta=2\pi n$, and $\gamma=2\pi p$, and $m$, $n$, and $p$
@@ -273,38 +258,39 @@ name_schwarzp = "Schwarz-P"
 
 # First we choose a function among the ones defined above.
 
-func = func_cylinder
-name = name_cylinder
+func = func_schoen
 
 # and then generate the unfitted domain using a Cartesian mesh over a hypercube $[0,1]^d$
 # with 8 cells per direction, where $d=2$ or $d=3$.
 
 dim = func.dim
-n_cells_dir = 8
+n_cells = [8] * dim
 
 mesh = qugar.mesh.create_Cartesian_mesh(
-    comm=MPI.COMM_WORLD, n_cells=[8] * func.dim, xmin=np.zeros(dim), xmax=np.ones(dim)
+    comm=MPI.COMM_WORLD, n_cells=n_cells, xmin=np.zeros(dim), xmax=np.ones(dim)
 )
 unf_domain = qugar.impl.create_unfitted_impl_domain(func, mesh)
 
 # ## Visualization
 
-# We create a custom quadrature associated to the cells, levelset boundary, and
-# facets of the created domain, and dump it to a VTK file.
+# Finally, we create a visualization of the unfitted domain's interior a levelset
+# through a parameterization.
 
-unf_domain.quadrature_to_VTK_file(f"test_{name}_quadrature", n_pts_dir=3)
-
-# Finally, reparameterizations of the domain's interior and levelset boundary
-# are generated and written to VTK files.
-
+# +
 reparam = qugar.reparam.create_reparam_mesh(unf_domain, n_pts_dir=4, levelset=False)
-reparam.to_VTK_file(f"test_{name}_reparam")
+reparam_pv = qugar.plot.reparam_mesh_to_PyVista(reparam)
 
-reparam_levelset = qugar.reparam.create_reparam_mesh(unf_domain, n_pts_dir=4, levelset=True)
-reparam_levelset.to_VTK_file(f"test_{name}_levelset_reparam")
+reparam_srf = qugar.reparam.create_reparam_mesh(unf_domain, n_pts_dir=4, levelset=True)
+reparam_srf_pv = qugar.plot.reparam_mesh_to_PyVista(reparam_srf)
 
-# Note that the generated VTK meshes for reparameterizations are high-order (being the degree
-# the number of points per direction minus 1, degree 3 in this case).
-# If visualized with [Paraview](https://www.paraview.org), the rendering tessellation can be
-# significantly improved by incremening the `Nonlinear Subdivision Level` parameter (visible when
-# toggling on the `advanced properties` in the `Properties` panel).
+pl = pv.Plotter(shape=(1, 2))
+pl.subplot(0, 0)
+pl.add_mesh(reparam_pv.get("reparam"), color="white")
+pl.add_mesh(reparam_pv.get("wirebasket"), color="blue", line_width=2)
+
+pl.subplot(0, 1)
+pl.add_mesh(reparam_srf_pv.get("reparam"), color="white")
+pl.add_mesh(reparam_srf_pv.get("wirebasket"), color="blue", line_width=2)
+
+pl.show()
+# -
