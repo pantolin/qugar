@@ -16,6 +16,8 @@ jobs:
     permissions:
       id-token: write
       pages: write
+      contents: write
+
 
     steps:
       - uses: actions/checkout@v4
@@ -58,21 +60,6 @@ jobs:
             raise ValueError('Invalid documentation deployment branch')
           print(f'echo \"target={dst_dir}\" >> $GITHUB_OUTPUT')"
 
-  deploy:
-    runs-on: ubuntu-24.04
-    needs: build
-
-    environment:
-      # environment created automatically by GitHub
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-
-    permissions:
-      id-token: write
-      pages: write
-      contents: write
-
-    steps:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: peaceiris/actions-gh-pages@v4
@@ -82,5 +69,30 @@ jobs:
           # destination_dir: ${{ steps.docs-publish-dir.outputs.target }}
           destination_dir: test
           keep_files: true
+
+  # deploy:
+  #   runs-on: ubuntu-24.04
+  #   needs: build
+
+  #   environment:
+  #     # environment created automatically by GitHub
+  #     name: github-pages
+  #     url: ${{ steps.deployment.outputs.page_url }}
+
+  #   permissions:
+  #     id-token: write
+  #     pages: write
+  #     contents: write
+
+  #   steps:
+  #     - name: Deploy to GitHub Pages
+  #       id: deployment
+  #       uses: peaceiris/actions-gh-pages@v4
+  #       with:
+  #         github_token: ${{ secrets.GITHUB_TOKEN }}
+  #         publish_dir: ./pages
+  #         # destination_dir: ${{ steps.docs-publish-dir.outputs.target }}
+  #         destination_dir: test
+  #         keep_files: true
 
               
