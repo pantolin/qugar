@@ -55,7 +55,7 @@ jobs:
           elif github_ref == 'refs/heads/release':
             target = qugar.__version__
           else:
-            raise ValueError("Invalid documentation deployment branch")
+            raise ValueError('Invalid documentation deployment branch')
           print(f'::set-output name=target::{target}')"
 
 
