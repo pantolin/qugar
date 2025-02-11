@@ -1,0 +1,196 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>qugar.impl.impl_unfitted_domain &mdash; QUGaR 0.0.4 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/dark_mode_css/general.css?v=c0a7eb24" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/dark_mode_css/dark.css?v=70edf1c7" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=8c5712d9"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../../../_static/dark_mode_js/default_dark.js?v=fd565c74"></script>
+      <script src="../../../_static/dark_mode_js/theme_switcher.js?v=358d3910"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            QUGaR
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../demos.html">Demos</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api.html">API reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../developer.html">Developer resources</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../contributing.html">Contributing</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">QUGaR</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">qugar.impl.impl_unfitted_domain</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for qugar.impl.impl_unfitted_domain</h1><div class="highlight"><pre>
+<span></span><span class="c1"># --------------------------------------------------------------------------</span>
+<span class="c1">#</span>
+<span class="c1"># Copyright (C) 2025-present by Pablo Antolin</span>
+<span class="c1">#</span>
+<span class="c1"># This file is part of the QUGaR library.</span>
+<span class="c1">#</span>
+<span class="c1"># SPDX-License-Identifier:    MIT</span>
+<span class="c1">#</span>
+<span class="c1"># --------------------------------------------------------------------------</span>
+
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">cast</span>
+
+<span class="kn">import</span> <span class="nn">qugar.utils</span>
+
+<span class="k">if</span> <span class="ow">not</span> <span class="n">qugar</span><span class="o">.</span><span class="n">has_FEniCSx</span><span class="p">:</span>
+    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;FEniCSx installation not found is required.&quot;</span><span class="p">)</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">numpy.typing</span> <span class="k">as</span> <span class="nn">npt</span>
+
+<span class="kn">import</span> <span class="nn">qugar.cpp</span>
+<span class="kn">from</span> <span class="nn">qugar.cpp</span> <span class="kn">import</span> <span class="n">UnfittedImplDomain_2D</span><span class="p">,</span> <span class="n">UnfittedImplDomain_3D</span>
+<span class="kn">from</span> <span class="nn">qugar.impl</span> <span class="kn">import</span> <span class="n">ImplicitFunc</span>
+<span class="kn">from</span> <span class="nn">qugar.mesh</span> <span class="kn">import</span> <span class="n">CartesianMesh</span>
+<span class="kn">from</span> <span class="nn">qugar.unfitted_domain</span> <span class="kn">import</span> <span class="n">UnfittedDomain</span>
+
+
+<div class="viewcode-block" id="UnfittedImplDomain">
+<a class="viewcode-back" href="../../../generated/qugar.impl.html#qugar.impl.UnfittedImplDomain">[docs]</a>
+<span class="k">class</span> <span class="nc">UnfittedImplDomain</span><span class="p">(</span><span class="n">UnfittedDomain</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Class for storing an unfitted implicit domain</span>
+<span class="sd">    and access its cut, full, and empty cells and facets.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">cart_mesh</span><span class="p">:</span> <span class="n">CartesianMesh</span><span class="p">,</span>
+        <span class="n">cpp_object</span><span class="p">:</span> <span class="n">UnfittedImplDomain_2D</span> <span class="o">|</span> <span class="n">UnfittedImplDomain_3D</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Constructor.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            cart_mesh (CartesianMesh): Cartesian tensor-product mesh</span>
+<span class="sd">                for which the cell decomposition is generated.</span>
+<span class="sd">            cpp_object (UnfittedImplDomain_2D | UnfittedImplDomain_3D):</span>
+<span class="sd">                Already generated unfitted implicit domain binary object.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">cart_mesh</span><span class="p">,</span> <span class="n">cpp_object</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="create_unfitted_impl_domain">
+<a class="viewcode-back" href="../../../generated/qugar.impl.html#qugar.impl.create_unfitted_impl_domain">[docs]</a>
+<span class="k">def</span> <span class="nf">create_unfitted_impl_domain</span><span class="p">(</span>
+    <span class="n">impl_func</span><span class="p">:</span> <span class="n">ImplicitFunc</span><span class="p">,</span>
+    <span class="n">cart_mesh</span><span class="p">:</span> <span class="n">CartesianMesh</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">UnfittedImplDomain</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Creates a new unfitted implicit domain using an implicit function.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        impl_func (ImplicitFunc_2D | ImplicitFunc_3D): Implicit function</span>
+<span class="sd">            that describes the domain.</span>
+<span class="sd">        cart_mesh (CartesianMesh): Cartesian tensor-product mesh for</span>
+<span class="sd">            which the unfitted domain is generated.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        UnfittedImplDomain: Created unfitted implicit domain.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">n_local_cells</span> <span class="o">=</span> <span class="n">cart_mesh</span><span class="o">.</span><span class="n">num_local_cells</span>
+
+    <span class="k">if</span> <span class="n">n_local_cells</span> <span class="o">==</span> <span class="n">cart_mesh</span><span class="o">.</span><span class="n">num_global_cells</span><span class="p">:</span>
+        <span class="n">unf_domain</span> <span class="o">=</span> <span class="n">qugar</span><span class="o">.</span><span class="n">cpp</span><span class="o">.</span><span class="n">create_unfitted_impl_domain</span><span class="p">(</span>
+            <span class="n">impl_func</span><span class="o">.</span><span class="n">cpp_object</span><span class="p">,</span> <span class="n">cart_mesh</span><span class="o">.</span><span class="n">cpp_object</span>
+        <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">dlf_cells</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">n_local_cells</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
+        <span class="n">lex_cells</span> <span class="o">=</span> <span class="n">cast</span><span class="p">(</span>
+            <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">],</span>
+            <span class="n">cart_mesh</span><span class="o">.</span><span class="n">get_lexicg_cell_ids</span><span class="p">(</span><span class="n">dlf_cells</span><span class="p">,</span> <span class="n">lexicg</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
+        <span class="p">)</span>
+        <span class="n">unf_domain</span> <span class="o">=</span> <span class="n">qugar</span><span class="o">.</span><span class="n">cpp</span><span class="o">.</span><span class="n">create_unfitted_impl_domain</span><span class="p">(</span>
+            <span class="n">impl_func</span><span class="o">.</span><span class="n">cpp_object</span><span class="p">,</span> <span class="n">cart_mesh</span><span class="o">.</span><span class="n">cpp_object</span><span class="p">,</span> <span class="n">lex_cells</span>
+        <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">UnfittedImplDomain</span><span class="p">(</span><span class="n">cart_mesh</span><span class="p">,</span> <span class="n">unf_domain</span><span class="p">)</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Pablo Antolin.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

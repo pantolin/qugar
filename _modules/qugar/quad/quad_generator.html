@@ -1,0 +1,404 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>qugar.quad.quad_generator &mdash; QUGaR 0.0.4 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/dark_mode_css/general.css?v=c0a7eb24" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/dark_mode_css/dark.css?v=70edf1c7" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=8c5712d9"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../../../_static/dark_mode_js/default_dark.js?v=fd565c74"></script>
+      <script src="../../../_static/dark_mode_js/theme_switcher.js?v=358d3910"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            QUGaR
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../demos.html">Demos</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api.html">API reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../developer.html">Developer resources</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../contributing.html">Contributing</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">QUGaR</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">qugar.quad.quad_generator</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for qugar.quad.quad_generator</h1><div class="highlight"><pre>
+<span></span><span class="c1"># --------------------------------------------------------------------------</span>
+<span class="c1">#</span>
+<span class="c1"># Copyright (C) 2025-present by Pablo Antolin</span>
+<span class="c1">#</span>
+<span class="c1"># This file is part of the QUGaR library.</span>
+<span class="c1">#</span>
+<span class="c1"># SPDX-License-Identifier:    MIT</span>
+<span class="c1">#</span>
+<span class="c1"># --------------------------------------------------------------------------</span>
+
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span>
+
+<span class="kn">import</span> <span class="nn">qugar.utils</span>
+
+<span class="k">if</span> <span class="ow">not</span> <span class="n">qugar</span><span class="o">.</span><span class="n">has_FEniCSx</span><span class="p">:</span>
+    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;FEniCSx installation not found is required.&quot;</span><span class="p">)</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">numpy.typing</span> <span class="k">as</span> <span class="nn">npt</span>
+
+<span class="kn">import</span> <span class="nn">qugar.cpp</span>
+<span class="kn">from</span> <span class="nn">qugar.mesh</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">CartesianMesh</span><span class="p">,</span>
+    <span class="n">lexicg_to_DOLFINx_faces</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">qugar.quad.quad_data</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">CustomQuad</span><span class="p">,</span>
+    <span class="n">CustomQuadFacet</span><span class="p">,</span>
+    <span class="n">CustomQuadUnfBoundary</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">qugar.unfitted_domain</span> <span class="kn">import</span> <span class="n">UnfittedDomain</span>
+
+
+<div class="viewcode-block" id="QuadGenerator">
+<a class="viewcode-back" href="../../../generated/qugar.quad.html#qugar.quad.QuadGenerator">[docs]</a>
+<span class="k">class</span> <span class="nc">QuadGenerator</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Class for generating quadratures for unfitted domains.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">unf_domain</span><span class="p">:</span> <span class="n">UnfittedDomain</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Constructor.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            unf_domain (UnfittedDomain): Unfitted domain</span>
+<span class="sd">                whose quadratures are generated.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_unf_domain</span> <span class="o">=</span> <span class="n">unf_domain</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">cart_mesh</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">CartesianMesh</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Gets the domain&#39;s Cartesian mesh.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            CartesianMesh: Domain&#39;s Cartesian mesh.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unf_domain</span><span class="o">.</span><span class="n">cart_mesh</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">unfitted_domain</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">UnfittedDomain</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Gets the unfitted domain.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            UnfittedDomain: Stored unfitted domain.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unf_domain</span>
+
+<div class="viewcode-block" id="QuadGenerator.get_num_points">
+<a class="viewcode-back" href="../../../generated/qugar.quad.html#qugar.quad.QuadGenerator.get_num_points">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">get_num_points</span><span class="p">(</span><span class="n">degree</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the number of points per direction to be used</span>
+<span class="sd">        for a given degree of exactness.</span>
+
+<span class="sd">        It computes the number of points assuming the Gauss-Legendre quadrature.</span>
+<span class="sd">        The degree of exactness is 2 times the number of points plues one.</span>
+
+<span class="sd">        It does not consider the map of of the quadrature tile.</span>
+<span class="sd">        A slightly higher number of points/degree may be needed.</span>
+<span class="sd">        See the Appendix of the following paper for more details:</span>
+
+<span class="sd">        Antolin, P., Wei, X. and Buffa, A., 2022. Robust numerical integration on curved</span>
+<span class="sd">          polyhedra based on folded decompositions.</span>
+<span class="sd">          Computer Methods in Applied Mechanics and Engineering, 395, p.114948.</span>
+
+
+<span class="sd">        Args:</span>
+<span class="sd">            degree (int): Expected degree of exactness of the quadrature.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            int: Number of quadrature points per direction for every quadrature tile.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">assert</span> <span class="n">degree</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;Invalid degree.&quot;</span>
+
+        <span class="k">return</span> <span class="nb">max</span><span class="p">(</span><span class="nb">int</span><span class="p">((</span><span class="n">degree</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">),</span> <span class="mi">1</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="QuadGenerator.create_quad_custom_cells">
+<a class="viewcode-back" href="../../../generated/qugar.quad.html#qugar.quad.QuadGenerator.create_quad_custom_cells">[docs]</a>
+    <span class="k">def</span> <span class="nf">create_quad_custom_cells</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">degree</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">dlf_cells</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">],</span>
+        <span class="n">tag</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">CustomQuad</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the custom quadratures for the given `cells`.</span>
+
+<span class="sd">        Among the given `cells`, it only creates quadratures for a</span>
+<span class="sd">        subset of those (the custom cells), while no points or</span>
+<span class="sd">        weights are generated for the others. Thus, the cells without</span>
+<span class="sd">        custom quadratures will be listed in the returned</span>
+<span class="sd">        `CustomQuadInterface`, but will have 0 points associated to</span>
+<span class="sd">        them.</span>
+
+<span class="sd">        Note:</span>
+<span class="sd">            This call may require the generation of the quadratures on</span>
+<span class="sd">            the fly, what can be potentially expensive.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            degree (int): Expected degree of exactness of the quadrature</span>
+<span class="sd">                to be generated.</span>
+
+<span class="sd">            dlf_cells (npt.NDArray[np.int32]): Array of DOLFINx cell ids</span>
+<span class="sd">                (local to current MPI process) for which quadratures</span>
+<span class="sd">                will be generated.</span>
+
+<span class="sd">            tag (Optional[int]): Mesh tag of the subdomain associated to</span>
+<span class="sd">                the given cells. Defaults to None.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            CustomQuadInterface: Generated custom quadrature.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">n_pts_dir</span> <span class="o">=</span> <span class="n">QuadGenerator</span><span class="o">.</span><span class="n">get_num_points</span><span class="p">(</span><span class="n">degree</span><span class="p">)</span>
+
+        <span class="n">lex_cells</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cart_mesh</span><span class="o">.</span><span class="n">get_lexicg_cell_ids</span><span class="p">(</span><span class="n">dlf_cells</span><span class="p">,</span> <span class="n">lexicg</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+        <span class="n">quad</span> <span class="o">=</span> <span class="n">qugar</span><span class="o">.</span><span class="n">cpp</span><span class="o">.</span><span class="n">create_quadrature</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_unf_domain</span><span class="o">.</span><span class="n">cpp_object</span><span class="p">,</span> <span class="n">lex_cells</span><span class="p">,</span> <span class="n">n_pts_dir</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">CustomQuad</span><span class="p">(</span><span class="n">dlf_cells</span><span class="p">,</span> <span class="n">quad</span><span class="o">.</span><span class="n">n_pts_per_entity</span><span class="p">,</span> <span class="n">quad</span><span class="o">.</span><span class="n">points</span><span class="p">,</span> <span class="n">quad</span><span class="o">.</span><span class="n">weights</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="QuadGenerator.create_quad_unf_boundaries">
+<a class="viewcode-back" href="../../../generated/qugar.quad.html#qugar.quad.QuadGenerator.create_quad_unf_boundaries">[docs]</a>
+    <span class="k">def</span> <span class="nf">create_quad_unf_boundaries</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">degree</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">dlf_cells</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">],</span>
+        <span class="n">tag</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">CustomQuadUnfBoundary</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the custom quadrature for unfitted boundaries for the</span>
+<span class="sd">        given `cells`.</span>
+
+<span class="sd">        Warning:</span>
+<span class="sd">            All the given cells associated should contain unfitted</span>
+<span class="sd">            boundaries. I.e., they must be cut cells. If not, the</span>
+<span class="sd">            custom coefficients generator will raise an</span>
+<span class="sd">            exception.</span>
+
+<span class="sd">        Note:</span>
+<span class="sd">            This call may require the generation of the quadratures on</span>
+<span class="sd">            the fly, what can be potentially expensive.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            degree (int): Expected degree of exactness of the quadrature</span>
+<span class="sd">                to be generated.</span>
+
+<span class="sd">            dlf_cells (npt.NDArray[np.int32]): Array of DOLFINx cell ids</span>
+<span class="sd">                (local to current MPI process) for which quadratures</span>
+<span class="sd">                will be generated. It must only contain cells with</span>
+<span class="sd">                unfitted boundaries.</span>
+
+<span class="sd">            tag (int): Mesh tag of the subdomain associated to the given</span>
+<span class="sd">                cells.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            CustomQuadUnfBoundaryInterface: Generated custom quadrature</span>
+<span class="sd">            for unfitted boundaries.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">n_pts_dir</span> <span class="o">=</span> <span class="n">QuadGenerator</span><span class="o">.</span><span class="n">get_num_points</span><span class="p">(</span><span class="n">degree</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">dlf_cells</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unf_domain</span><span class="o">.</span><span class="n">get_cut_cells</span><span class="p">(</span><span class="n">lexicg</span><span class="o">=</span><span class="kc">False</span><span class="p">))):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;Unfitted boundary quadratures can only be generated for cells &quot;</span>
+                <span class="s2">&quot;containing unfitted boundaries&quot;</span>
+            <span class="p">)</span>
+
+        <span class="n">lex_cells</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cart_mesh</span><span class="o">.</span><span class="n">get_lexicg_cell_ids</span><span class="p">(</span><span class="n">dlf_cells</span><span class="p">,</span> <span class="n">lexicg</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+        <span class="n">quad</span> <span class="o">=</span> <span class="n">qugar</span><span class="o">.</span><span class="n">cpp</span><span class="o">.</span><span class="n">create_unfitted_bound_quadrature</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_unf_domain</span><span class="o">.</span><span class="n">_cpp_object</span><span class="p">,</span> <span class="n">lex_cells</span><span class="p">,</span> <span class="n">n_pts_dir</span>
+        <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">CustomQuadUnfBoundary</span><span class="p">(</span>
+            <span class="n">dlf_cells</span><span class="p">,</span> <span class="n">quad</span><span class="o">.</span><span class="n">n_pts_per_entity</span><span class="p">,</span> <span class="n">quad</span><span class="o">.</span><span class="n">points</span><span class="p">,</span> <span class="n">quad</span><span class="o">.</span><span class="n">weights</span><span class="p">,</span> <span class="n">quad</span><span class="o">.</span><span class="n">normals</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="QuadGenerator.create_quad_custom_facets">
+<a class="viewcode-back" href="../../../generated/qugar.quad.html#qugar.quad.QuadGenerator.create_quad_custom_facets">[docs]</a>
+    <span class="k">def</span> <span class="nf">create_quad_custom_facets</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">degree</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">dlf_cells</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">],</span>
+        <span class="n">dlf_local_facets</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">],</span>
+        <span class="n">tag</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">CustomQuadFacet</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the custom quadratures for the given facets.</span>
+
+<span class="sd">        Among the facets associated to `tag`, it only creates</span>
+<span class="sd">        quadratures for a subset of those (the custom facets), while no</span>
+<span class="sd">        points or weights are generated for the others. Thus, the facets</span>
+<span class="sd">        without custom quadratures will be listed in the returned</span>
+<span class="sd">        `CustomQuadFacetInterface`, but will have 0 points associated to</span>
+
+<span class="sd">        Among the given facets, it only creates quadratures for a</span>
+<span class="sd">        subset of those (the custom facets), while no points or</span>
+<span class="sd">        weights are generated for the others. Thus, the facets without</span>
+<span class="sd">        custom quadratures will be listed in the returned</span>
+<span class="sd">        `CustomQuadFacetInterface`, but will have 0 points associated to</span>
+<span class="sd">        them.</span>
+
+<span class="sd">        Note:</span>
+<span class="sd">            This call may require the generation of the quadratures on</span>
+<span class="sd">            the fly, what can be potentially expensive.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            degree (int): Expected degree of exactness of the quadrature</span>
+<span class="sd">                to be generated.</span>
+
+<span class="sd">            dlf_cells (npt.NDArray[np.int32]): Array of DOLFINx cell ids</span>
+<span class="sd">                (local to current MPI process) for which quadratures</span>
+<span class="sd">                will be generated. It must only contain cells with</span>
+<span class="sd">                unfitted boundaries. Beyond a cell id, for indentifying</span>
+<span class="sd">                a facet, a local facet id (from the array</span>
+<span class="sd">                `local_facets`) is also needed.</span>
+
+<span class="sd">            dlf_local_facets (npt.NDArray[np.int32]): Array of local facet</span>
+<span class="sd">                ids for which the custom quadratures are generated. Each</span>
+<span class="sd">                facet is identified through a value in `cells` and a</span>
+<span class="sd">                value in `local_facets`, having both arrays the same</span>
+<span class="sd">                length. The numbering of these facets follows the</span>
+<span class="sd">                FEniCSx convention. See</span>
+<span class="sd">                https://github.com/FEniCS/basix/#supported-elements</span>
+
+<span class="sd">            tag (int): Mesh tag of the subdomain associated to the given</span>
+<span class="sd">                cells.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            CustomQuadFacetInterface: Generated custom facet</span>
+<span class="sd">            quadratures.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">n_pts_dir</span> <span class="o">=</span> <span class="n">QuadGenerator</span><span class="o">.</span><span class="n">get_num_points</span><span class="p">(</span><span class="n">degree</span><span class="p">)</span>
+
+        <span class="n">lex_cells</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cart_mesh</span><span class="o">.</span><span class="n">get_lexicg_cell_ids</span><span class="p">(</span><span class="n">dlf_cells</span><span class="p">,</span> <span class="n">lexicg</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+        <span class="n">lex_to_dlf_faces</span> <span class="o">=</span> <span class="n">lexicg_to_DOLFINx_faces</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cart_mesh</span><span class="o">.</span><span class="n">tdim</span><span class="p">)</span>
+        <span class="n">lex_local_facets</span> <span class="o">=</span> <span class="n">lex_to_dlf_faces</span><span class="p">[</span><span class="n">dlf_local_facets</span><span class="p">]</span>
+        <span class="n">quad</span> <span class="o">=</span> <span class="n">qugar</span><span class="o">.</span><span class="n">cpp</span><span class="o">.</span><span class="n">create_facets_quadrature</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_unf_domain</span><span class="o">.</span><span class="n">_cpp_object</span><span class="p">,</span>
+            <span class="n">lex_cells</span><span class="p">,</span>
+            <span class="n">lex_local_facets</span><span class="p">,</span>
+            <span class="n">n_pts_dir</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">CustomQuadFacet</span><span class="p">(</span>
+            <span class="n">dlf_cells</span><span class="p">,</span>
+            <span class="n">dlf_local_facets</span><span class="p">,</span>
+            <span class="n">quad</span><span class="o">.</span><span class="n">n_pts_per_entity</span><span class="p">,</span>
+            <span class="n">quad</span><span class="o">.</span><span class="n">points</span><span class="p">,</span>
+            <span class="n">quad</span><span class="o">.</span><span class="n">weights</span><span class="p">,</span>
+        <span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="create_quadrature_generator">
+<a class="viewcode-back" href="../../../generated/qugar.quad.html#qugar.quad.create_quadrature_generator">[docs]</a>
+<span class="k">def</span> <span class="nf">create_quadrature_generator</span><span class="p">(</span>
+    <span class="n">unf_domain</span><span class="p">:</span> <span class="n">UnfittedDomain</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">QuadGenerator</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Creates a quadrature generator for geometries.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        unf_domain (UnfittedDomain): Unfitted domain</span>
+<span class="sd">            whose quadratures are generated.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        QuadGenerator: Quadrature generator for unfitted geometries.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">QuadGenerator</span><span class="p">(</span><span class="n">unf_domain</span><span class="p">)</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Pablo Antolin.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
