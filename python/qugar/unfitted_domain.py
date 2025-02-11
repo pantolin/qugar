@@ -55,6 +55,15 @@ class UnfittedDomain:
         self._cpp_object = cpp_object
 
     @property
+    def dim(self) -> int:
+        """Gets the dimension of the mesh.
+
+        Returns:
+            int: Mesh's topological dimension (2 or 3).
+        """
+        return self.cart_mesh.tdim
+
+    @property
     def cart_mesh(self) -> CartesianMesh:
         """Gets the stored Cartesian mesh.
 
