@@ -58,6 +58,7 @@ jobs:
             dst_dir = qugar.__version__
           else:
             raise ValueError('Invalid documentation deployment branch')
+          dst_dir + "test"
           print(f'echo \"target={dst_dir}\" >> $GITHUB_OUTPUT')"
 
       - name: Deploy to GitHub Pages
@@ -66,8 +67,7 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./pages
-          # destination_dir: ${{ steps.docs-publish-dir.outputs.target }}
-          destination_dir: test
+          destination_dir: ${{ steps.docs-publish-dir.outputs.target }}
           keep_files: true
 
   # deploy:
