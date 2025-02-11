@@ -58,7 +58,7 @@ jobs:
             dst_dir = qugar.__version__
           else:
             raise ValueError('Invalid documentation deployment branch')
-          dst_dir = "test2"
+          dst_dir = 'test'
           print(f'echo \"target={dst_dir}\" >> $GITHUB_OUTPUT')"
 
       - name: Deploy to GitHub Pages
