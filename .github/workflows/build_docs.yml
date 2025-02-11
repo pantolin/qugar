@@ -49,14 +49,14 @@ jobs:
           import qugar
           github_ref = os.environ.get('GITHUB_REF')
           if github_ref == 'refs/heads/main':
-            target = 'main'
+            dst_dir = 'main'
           elif github_ref == 'refs/heads/doc':
-            target = 'main'
+            dst_dir = 'main'
           elif github_ref == 'refs/heads/release':
-            target = qugar.__version__
+            dst_dir = qugar.__version__
           else:
             raise ValueError('Invalid documentation deployment branch')
-          print(f'::set-output name=target::{target}')"
+          print(f'echo \"target={dst_dir}\" >> $GITHUB_OUTPUT')"
 
 
       - name: Deploy docs
