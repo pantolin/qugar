@@ -55,7 +55,7 @@ during the Python package installation process.
 .. rubric:: Optional
 
 - `FEniCSx <https://fenicsproject.org>`_ (check the file ``python/pyproject.toml`` for required version compatibility)
-- `VTK <https://pypi.org/project/vtk/>`__
+- `PyVista <https://pypi.org/project/pyvista>`__
 
 .. rubric:: Optional for testing
 
@@ -133,7 +133,7 @@ So, if you want to solve your PDEs using unfitted domains through FEniCSx, make 
 
 However, it is also possible to use QUGaR's Python interface without DOLFINx (check the demos page for examples).
 
-QUGaR's Python interface provides some extra visualization features through the `VTK <https://vtk.org>`__ library. To enable such features, install `vtk` (for instance, from `PyPI <https://pypi.org/project/vtk/>`__ or `conda-forge <https://anaconda.org/conda-forge/vtk>`__). However, be aware that in the mid-future, VTK  dependency will be replaced by `pyvista <https://pyvista.org>`_.
+QUGaR's Python interface provides some extra visualization features through the `PyVista <https://pyvista.org>`__ library. To enable such features, install `pyvista` (for instance, from `PyPI <https://pypi.org/project/pyvista/>`__ or `conda-forge <https://anaconda.org/conda-forge/pyvista>`__).
 
 
 Documentation

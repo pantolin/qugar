@@ -33,7 +33,7 @@ docs = [
       "pyyaml",
 ]
 lint = ["ruff", "mypy"]
-vtk = ["vtk"]
+pyvista = ["pyvista"]
 fenicsx = [
       "fenics-dolfinx>=0.9.0,<0.10.0",
       "fenics-basix>=0.9.0,<0.10.0",
@@ -43,7 +43,7 @@ fenicsx = [
 all = [
       "qugar[docs]",
       "qugar[fenicsx]",
-      "qugar[vtk]",
+      "qugar[pyvista]",
       "qugar[lint]",
       "qugar[test]",
 ]

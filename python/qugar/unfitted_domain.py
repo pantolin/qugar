@@ -10,8 +10,7 @@
 
 from typing import Optional, cast
 
-import qugar.utils
-from qugar import has_FEniCSx, has_VTK
+from qugar import has_FEniCSx
 
 if not has_FEniCSx:
     raise ValueError("FEniCSx installation not found is required.")
@@ -22,7 +21,6 @@ import numpy as np
 import numpy.typing as npt
 from dolfinx.mesh import MeshTags
 
-import qugar.cpp
 from qugar.cpp import UnfittedDomain_2D, UnfittedDomain_3D
 from qugar.mesh import CartesianMesh, DOLFINx_to_lexicg_faces
 from qugar.mesh.utils import create_cells_to_facets_map
@@ -411,35 +409,3 @@ class UnfittedDomain:
         facet_dim = self._cart_mesh.tdim - 1
 
         return dolfinx.mesh.meshtags(self._cart_mesh.dolfinx_mesh, facet_dim, facets, tags)
-
-    if has_VTK:
-        from vtkmodules.vtkCommonDataModel import vtkMultiBlockDataSet
-
-        def quadrature_to_VTK(self, n_pts_dir: int = 4) -> vtkMultiBlockDataSet:
-            """
-            Generates quadrature data for an unfitted domain and exports it to a
-            VTK data structure. It generates, and export, quadrature points
-            for the interior of the cells, the unfitted boundaries, and the facets.
-
-            Args:
-                n_pts_dir (int, optional): Number of points per direction for quadrature.
-                    Defaults to 4.
-
-            Returns:
-                vtkMultiBlockDataSet:
-                    A VTK multiblock dataset containing the quadrature data.
-            """
-            return qugar.vtk.quadrature_to_VTK(self, n_pts_dir)
-
-        def quadrature_to_VTK_file(self, name, n_pts_dir: int = 4):
-            """
-            Generates quadrature data for an unfitted domain, exports it to a
-            VTK data structure and dumps it into a file.
-
-            Args:
-                name (str): The name of the file to write the VTK data to (without the extension).
-                n_pts_dir (int, optional): Number of points per direction for quadrature.
-                    Defaults to 4.
-            """
-            vtk_mb = self.quadrature_to_VTK(n_pts_dir)
-            qugar.vtk.write_VTK_to_file(vtk_mb, name)
