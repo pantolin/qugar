@@ -211,8 +211,8 @@ def check_UFL() -> bool:
 """Whether FEniCSx packages were available."""
 has_FEniCSx: bool = check_DOLFINx() and check_Basix() and check_FFCx() and check_UFL()
 
-"""Whether VTK packages were available."""
-has_VTK: bool = importlib.util.find_spec("vtk") is not None
+"""Whether PyVista packages were available."""
+has_PyVista: bool = importlib.util.find_spec("pyvista") is not None
 
 
-__all__ = ["has_FEniCSx", "has_VTK"]
+__all__ = ["has_FEniCSx", "has_PyVista"]

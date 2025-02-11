@@ -59,6 +59,16 @@ namespace {
                                               + std::to_string(range) };
     nb::class_<ReparamMesh>(module, pyclass_name_cut_cells.c_str(), "ReparamMesh object")
       .def_prop_ro(
+        "dim",
+        [](ReparamMesh & /*mesh*/) { return dim; },
+        nb::rv_policy::reference_internal,
+        "Mesh parametric dimension.")
+      .def_prop_ro(
+        "range",
+        [](ReparamMesh & /*mesh*/) { return range; },
+        nb::rv_policy::reference_internal,
+        "Mesh geometric dimension.")
+      .def_prop_ro(
         "order", [](ReparamMesh &mesh) { return mesh.get_order(); }, nb::rv_policy::reference_internal, "Mesh order.")
       .def_prop_ro(
         "chebyshev",

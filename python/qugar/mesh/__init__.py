@@ -16,10 +16,12 @@ from qugar.mesh.utils import (
     DOLFINx_to_lexicg_nodes,
     DOLFINx_to_VTK_nodes,
     VTK_to_DOLFINx_nodes,
+    VTK_to_lexicg_faces,
     VTK_to_lexicg_nodes,
     lexicg_to_DOLFINx_edges,
     lexicg_to_DOLFINx_faces,
     lexicg_to_DOLFINx_nodes,
+    lexicg_to_VTK_faces,
     lexicg_to_VTK_nodes,
 )
 
@@ -30,8 +32,10 @@ __all__ = [
     "DOLFINx_to_VTK_nodes",
     "VTK_to_DOLFINx_nodes",
     "VTK_to_lexicg_nodes",
+    "VTK_to_lexicg_faces",
     "lexicg_to_DOLFINx_edges",
     "lexicg_to_DOLFINx_faces",
+    "lexicg_to_VTK_faces",
     "lexicg_to_DOLFINx_nodes",
     "lexicg_to_VTK_nodes",
 ]

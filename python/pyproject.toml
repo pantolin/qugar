@@ -13,7 +13,7 @@ build-backend = "scikit_build_core.build"
 
 [project]
 name = "QUGaR"
-version = "0.0.3"
+version = "0.0.4"
 description = "QUGaR Python interface"
 readme = "README.md"
 requires-python = ">=3.10.0"
@@ -33,7 +33,7 @@ docs = [
       "pyyaml",
 ]
 lint = ["ruff", "mypy"]
-vtk = ["vtk"]
+pyvista = ["pyvista"]
 fenicsx = [
       "fenics-dolfinx>=0.9.0,<0.10.0",
       "fenics-basix>=0.9.0,<0.10.0",
@@ -43,7 +43,7 @@ fenicsx = [
 all = [
       "qugar[docs]",
       "qugar[fenicsx]",
-      "qugar[vtk]",
+      "qugar[pyvista]",
       "qugar[lint]",
       "qugar[test]",
 ]

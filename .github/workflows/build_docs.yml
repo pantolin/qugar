@@ -30,7 +30,7 @@ jobs:
       - name: Install QUGaR (Python)
         run: |
           python3 -m pip -v install --no-cache-dir -r ./python/build-requirements.txt
-          python3 -m pip -v install --no-cache-dir './python/.[docs,vtk,fenicsx]'
+          python3 -m pip -v install --no-cache-dir './python/.[docs,pyvista,fenicsx]'
 
       - name: Build docs
         run: |

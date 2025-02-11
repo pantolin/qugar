@@ -13,7 +13,7 @@ Public user interface
    qugar.impl
    qugar.quad
    qugar.reparam
-   qugar.vtk
+   qugar.plot
    qugar.dolfinx
 
 

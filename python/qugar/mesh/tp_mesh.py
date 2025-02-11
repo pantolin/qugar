@@ -21,7 +21,7 @@ if not qugar.utils.has_FEniCSx:
 from mpi4py import MPI
 
 import basix.ufl
-import dolfinx.cpp
+import dolfinx.cpp as dlf_cpp
 import dolfinx.mesh
 import numpy as np
 import numpy.typing as npt
@@ -250,7 +250,7 @@ def _create_mesh(
 
     if comm.rank > 1:
         assert coords.shape[0] == 0 and conn.shape[0] == 0
-        partitioner = dolfinx.cpp.mesh.create_cell_partitioner(ghost_mode)
+        partitioner = dlf_cpp.mesh.create_cell_partitioner(ghost_mode)
     else:
         partitioner = None
 
@@ -594,7 +594,7 @@ class TensorProductMesh:
         comm: MPI.Intracomm,
         nodes_coords: npt.NDArray[np.float32 | np.float64],
         merge_nodes: bool,
-        merge_tol: type[np.float32 | np.float64],
+        merge_tol: Optional[type[np.float32 | np.float64]] = None,
         ghost_mode=GhostMode.shared_facet,
     ) -> None:
         """Creates the underlying DOLFINx mesh and stores it in
@@ -612,11 +612,12 @@ class TensorProductMesh:
             merge_nodes (bool): If `True`, coincident nodes will be
                 merged together into a single one. Otherwise, duplicated
                 nodes will not be merged.
-            merge_tol (type[np.float32 | np.float64]): Absolute
+            merge_tol (Optional[type[np.float32 | np.float64]]): Absolute
                 tolerance to be used for seeking coincident nodes.
                 If not set, and if `merge_nodes` is set to `True`,
                 this tolerance will be automatically computed in the
-                function `merge_coincident_points_in_mesh`.
+                function `merge_coincident_points_in_mesh`. Defaults to
+                None.
         """
 
         if comm.rank == 0:
@@ -690,6 +691,40 @@ class TensorProductMesh:
             )
 
             return cell_ids.astype(np.int32)
+
+    def get_DOLFINx_global_cell_ids(
+        self,
+        cell_ids: npt.NDArray[np.int32 | np.int64] | np.int32 | np.int64,
+        lexicg: bool = True,
+    ) -> npt.NDArray[np.int32]:
+        """Transforms the given local `cell_ids` into the corresponding global ids
+        of the underlying DOLFINx mesh.
+
+        Args:
+            cell_ids (npt.NDArray[np.int32 | np.int64] | np.int32 | np.int64):
+                Cell indices to be transformed. They may be local
+                indices referred to the underlying DOLFINx mesh (if
+                `lexicg` is set to `False`) or lexicographical indices
+                (if `lexicg` is `True`). If `lexicg` is set to `False`,
+                all the local DOLFINx indices must belong to the current
+                subdomain (process).
+            lexicg (bool, optional): Whether `cell_ids` follow the
+                tensor-product lexicographical numbering or the DOLFINx
+                one. Defaults to `True`.
+
+        Note:
+            All the indices in `cell_ids` must be contained in the
+            current subdomain.
+
+        Returns:
+            npt.NDArray[np.int32]: Indices of the cells in the underlying DOLFINx mesh.
+            These indices correspond to the global numbering associated to the
+            current subdomain (process).
+        """
+
+        dlf_cell_ids = self.get_DOLFINx_local_cell_ids(cell_ids, lexicg)
+        index_map = self.dolfinx_mesh.topology.index_map(self.tdim)
+        return index_map.local_to_global(dlf_cell_ids)
 
     def get_lexicg_cell_ids(
         self,

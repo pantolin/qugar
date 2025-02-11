@@ -15,6 +15,7 @@ FEniCSx dependent demos
 
    generated/demos/demo_div_thm.md
    generated/demos/demo_impl_funcs.md
+   generated/demos/demo_plot.md
 
 
 FEniCSx independent demos
@@ -35,3 +36,4 @@ List of all demos
    generated/demos/demo_div_thm.md
    generated/demos/demo_div_thm_no_fenicsx.md
    generated/demos/demo_impl_funcs.md
+   generated/demos/demo_plot.md

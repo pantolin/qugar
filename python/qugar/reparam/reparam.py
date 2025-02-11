@@ -11,9 +11,7 @@
 
 from typing import TypeAlias
 
-import qugar
 import qugar.cpp as cpp
-from qugar import has_VTK
 from qugar.unfitted_domain import UnfittedDomain
 
 
@@ -42,28 +40,6 @@ class UnfDomainReparamMesh:
             ReparamMesh: The C++ object underlying this instance.
         """
         return self._cpp_object
-
-    if has_VTK:
-        import vtkmodules.vtkCommonDataModel
-
-        def to_VTK(self) -> vtkmodules.vtkCommonDataModel.vtkCompositeDataSet:
-            """
-            Converts the reparameterized mesh to a VTK multi-block object.
-
-            Returns:
-                vtkCompositeDataSet: The VTK multi-block object.
-            """
-            return qugar.vtk.reparam_to_VTK(self.cpp_object)
-
-        def to_VTK_file(self, name):
-            """
-            Converts the current object to a VTK format and writes it to a file.
-
-            Args:
-                name (str): The name of the file to write the VTK data to (without the extension).
-            """
-            vtk_mb = self.to_VTK()
-            qugar.vtk.write_VTK_to_file(vtk_mb, name)
 
 
 def create_reparam_mesh(
