@@ -70,6 +70,7 @@ jobs:
     permissions:
       id-token: write
       pages: write
+      contents: write
 
     steps:
       - name: Deploy to GitHub Pages
