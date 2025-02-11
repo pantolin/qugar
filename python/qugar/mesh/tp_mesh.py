@@ -692,6 +692,40 @@ class TensorProductMesh:
 
             return cell_ids.astype(np.int32)
 
+    def get_DOLFINx_global_cell_ids(
+        self,
+        cell_ids: npt.NDArray[np.int32 | np.int64] | np.int32 | np.int64,
+        lexicg: bool = True,
+    ) -> npt.NDArray[np.int32]:
+        """Transforms the given local `cell_ids` into the corresponding global ids
+        of the underlying DOLFINx mesh.
+
+        Args:
+            cell_ids (npt.NDArray[np.int32 | np.int64] | np.int32 | np.int64):
+                Cell indices to be transformed. They may be local
+                indices referred to the underlying DOLFINx mesh (if
+                `lexicg` is set to `False`) or lexicographical indices
+                (if `lexicg` is `True`). If `lexicg` is set to `False`,
+                all the local DOLFINx indices must belong to the current
+                subdomain (process).
+            lexicg (bool, optional): Whether `cell_ids` follow the
+                tensor-product lexicographical numbering or the DOLFINx
+                one. Defaults to `True`.
+
+        Note:
+            All the indices in `cell_ids` must be contained in the
+            current subdomain.
+
+        Returns:
+            npt.NDArray[np.int32]: Indices of the cells in the underlying DOLFINx mesh.
+            These indices correspond to the global numbering associated to the
+            current subdomain (process).
+        """
+
+        dlf_cell_ids = self.get_DOLFINx_local_cell_ids(cell_ids, lexicg)
+        index_map = self.dolfinx_mesh.topology.index_map(self.tdim)
+        return index_map.local_to_global(dlf_cell_ids)
+
     def get_lexicg_cell_ids(
         self,
         cell_ids: npt.NDArray[np.int32 | np.int64] | np.int32 | np.int64,
