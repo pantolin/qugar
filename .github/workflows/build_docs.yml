@@ -41,17 +41,45 @@ jobs:
           cd doc
           python3 build_docs.py
 
-      - name: Setup Pages
-        uses: actions/configure-pages@v5
+      - name: Determine directory to publish docs to
+        id: docs-publish-dir
+        run: |
+          python -c "
+          import os, re
+          import qugar
+          github_ref = os.environ.get('GITHUB_REF')
+          if github_ref == 'refs/heads/main':
+            dst_dir = 'main'
+          elif github_ref == 'refs/heads/doc':
+            dst_dir = 'main'
+          elif github_ref == 'refs/heads/release':
+            dst_dir = qugar.__version__
+          else:
+            raise ValueError('Invalid documentation deployment branch')
+          print(f'echo \"target={dst_dir}\" >> $GITHUB_OUTPUT')"
 
-      - name: Upload documentation as artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          # Upload entire repository
-          path: './doc/pages'
+  deploy:
+    runs-on: ubuntu-24.04
+    needs: build
 
+    environment:
+      # environment created automatically by GitHub
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    permissions:
+      id-token: write
+      pages: write
+      contents: write
+
+    steps:
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./pages
+          destination_dir: ${{ steps.docs-publish-dir.outputs.target }}
+          keep_files: false
+
+              
