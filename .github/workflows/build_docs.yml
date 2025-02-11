@@ -60,7 +60,7 @@ jobs:
 
   deploy:
     runs-on: ubuntu-24.04
-    container: ghcr.io/fenics/dolfinx/dolfinx:v0.9.0
+    needs: build
 
     environment:
       # environment created automatically by GitHub
