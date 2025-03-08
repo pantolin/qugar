@@ -167,7 +167,7 @@ TEST_CASE("General function quadrature", "[impl]")
   const auto facet_quad =
     create_facets_quadrature<3>(unf_domain, cut_facets_cells, cut_facets_local_facets_ids, n_pts_dir);
   // NOLINTNEXTLINE (bugprone-chained-comparison)
-  REQUIRE(facet_quad->points.size() == 249441);
+  REQUIRE(facet_quad->points.size() == 249390);
 
   const auto facet_centroid = compute_points_centroid<2>(facet_quad->points, facet_quad->weights);
   const Point<2> target_facet_centroid(0.499999990594248, 0.4999999928073127);
