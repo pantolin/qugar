@@ -56,6 +56,8 @@ private:
   void create_decomposition(const SubCartGridTP<dim> &subgrid,
     const std::function<FuncSign(const BoundBox<dim> &)> &func_sign,
     const std::optional<std::vector<int>> &target_cells);
+
+  void classify_undetermined_sign_cell(const SubCartGridTP<dim> &subgrid);
 };
 
 

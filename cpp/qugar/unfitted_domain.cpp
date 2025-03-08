@@ -147,28 +147,26 @@ void UnfittedDomain<dim>::get_cut_facets(std::vector<int> &cell_ids, std::vector
   }
 }
 
-template<int dim>
-void UnfittedDomain<dim>::get_full_unfitted_facets(std::vector<int> &cell_ids, std::vector<int> &local_facets_ids) const
-{
-  cell_ids.clear();
-  local_facets_ids.clear();
+// template<int dim>
+// void UnfittedDomain<dim>::get_full_unfitted_facets(std::vector<int> &cell_ids, std::vector<int> &local_facets_ids)
+// const
+// {
+//   const auto n_facets_estimate = this->cut_cells_.size() * n_facets_per_cell;
 
-  const auto n_facets_per_cell = dim * 2;
-  const auto n_facets_estimate = this->cut_cells_.size() * n_facets_per_cell;
+//   cell_ids.clear();
+//   local_facets_ids.clear();
+//   cell_ids.reserve(n_facets_estimate);
+//   local_facets_ids.reserve(n_facets_estimate);
 
-  cell_ids.reserve(n_facets_estimate);
-  local_facets_ids.reserve(n_facets_estimate);
-
-  for (const auto cell_id : this->cut_cells_) {
-    for (int local_facet_id = 0; local_facet_id < n_facets_per_cell; ++local_facet_id) {
-
-      if (this->is_full_unfitted_facet(cell_id, local_facet_id)) {
-        cell_ids.push_back(cell_id);
-        local_facets_ids.push_back(local_facet_id);
-      }
-    }
-  }
-}
+//   for (const auto cell_id : this->cut_cells_) {
+//     for (int local_facet_id = 0; local_facet_id < static_cast<int>(n_facets_per_cell); ++local_facet_id) {
+//       if (this->is_full_unfitted_facet(cell_id, local_facet_id)) {
+//         cell_ids.push_back(cell_id);
+//         local_facets_ids.push_back(local_facet_id);
+//       }
+//     }
+//   }
+// }
 
 
 template<int dim> bool UnfittedDomain<dim>::is_full_cell(const int cell_id) const
@@ -192,28 +190,14 @@ template<int dim> bool UnfittedDomain<dim>::is_cut_cell(const int cell_id) const
 template<int dim> bool UnfittedDomain<dim>::is_full_facet(const int cell_id, const int local_facet_id) const
 {
   const auto facet = at(this->facets_status_.at(cell_id), local_facet_id);
-  switch (facet) {
-  case ImmersedFacetStatus::full:
-  case ImmersedFacetStatus::full_unf_bdry:
-    return true;
-  default:
-    return false;
-  }
+  return facet == ImmersedFacetStatus::full;
 }
 
 template<int dim> bool UnfittedDomain<dim>::is_empty_facet(const int cell_id, const int local_facet_id) const
 {
-  const auto facet = at(this->facets_status_.at(cell_id), local_facet_id);
-  switch (facet) {
-  case ImmersedFacetStatus::empty:
-  case ImmersedFacetStatus::cut_ext_bdry:
-  case ImmersedFacetStatus::ext_bdry:
-  case ImmersedFacetStatus::unf_bdry_ext_bdry:
-    return true;
-  default:
-    return false;
-  }
+  return !this->is_full_facet(cell_id, local_facet_id) && !this->is_cut_facet(cell_id, local_facet_id);
 }
+
 template<int dim> bool UnfittedDomain<dim>::is_cut_facet(const int cell_id, const int local_facet_id) const
 {
   const auto facet = at(this->facets_status_.at(cell_id), local_facet_id);
@@ -222,8 +206,6 @@ template<int dim> bool UnfittedDomain<dim>::is_cut_facet(const int cell_id, cons
   case ImmersedFacetStatus::cut_unf_bdry:
   case ImmersedFacetStatus::cut_ext_bdry:
   case ImmersedFacetStatus::cut_unf_bdry_ext_bdry:
-  case ImmersedFacetStatus::unf_bdry:
-  case ImmersedFacetStatus::unf_bdry_ext_bdry:
     return true;
   default:
     return false;
@@ -238,14 +220,7 @@ template<int dim> bool UnfittedDomain<dim>::is_full_unfitted_facet(const int cel
 
 template<int dim> bool UnfittedDomain<dim>::has_unfitted_boundary(const int cell_id, const int local_facet_id) const
 {
-  if (this->grid_->on_boundary(cell_id, local_facet_id)) {
-    // All the internal interfaces that are on the boundary are
-    // considered as cut.
-    return false;
-  }
-
   const auto facet = at(this->facets_status_.at(cell_id), local_facet_id);
-
   return facet == ImmersedFacetStatus::cut_unf_bdry || facet == ImmersedFacetStatus::cut_unf_bdry_ext_bdry
          || facet == ImmersedFacetStatus::full_unf_bdry || facet == ImmersedFacetStatus::unf_bdry
          || facet == ImmersedFacetStatus::unf_bdry_ext_bdry;
