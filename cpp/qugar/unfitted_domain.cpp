@@ -75,7 +75,6 @@ template<int dim> auto UnfittedDomain<dim>::get_cell_facets_status(const int cel
 template<int dim>
 void UnfittedDomain<dim>::get_empty_facets(std::vector<int> &cell_ids, std::vector<int> &local_facets_ids) const
 {
-  const auto n_facets_per_cell = dim * 2;
   const auto n_facets_estimate = (this->empty_cells_.size() + this->cut_cells_.size()) * n_facets_per_cell;
 
   cell_ids.clear();
@@ -84,15 +83,14 @@ void UnfittedDomain<dim>::get_empty_facets(std::vector<int> &cell_ids, std::vect
   local_facets_ids.reserve(n_facets_estimate);
 
   for (const auto &cell_id : this->empty_cells_) {
-    for (int local_facet_id = 0; local_facet_id < n_facets_per_cell; ++local_facet_id) {
+    for (int local_facet_id = 0; local_facet_id < static_cast<int>(n_facets_per_cell); ++local_facet_id) {
       cell_ids.push_back(cell_id);
       local_facets_ids.push_back(local_facet_id);
     }
   }
 
   for (const auto cell_id : this->cut_cells_) {
-    for (int local_facet_id = 0; local_facet_id < n_facets_per_cell; ++local_facet_id) {
-
+    for (int local_facet_id = 0; local_facet_id < static_cast<int>(n_facets_per_cell); ++local_facet_id) {
       if (this->is_empty_facet(cell_id, local_facet_id)) {
         cell_ids.push_back(cell_id);
         local_facets_ids.push_back(local_facet_id);
@@ -114,14 +112,14 @@ void UnfittedDomain<dim>::get_full_facets(std::vector<int> &cell_ids, std::vecto
   local_facets_ids.reserve(n_facets_estimate);
 
   for (const auto &cell_id : this->full_cells_) {
-    for (int local_facet_id = 0; local_facet_id < n_facets_per_cell; ++local_facet_id) {
+    for (int local_facet_id = 0; local_facet_id < static_cast<int>(n_facets_per_cell); ++local_facet_id) {
       cell_ids.push_back(cell_id);
       local_facets_ids.push_back(local_facet_id);
     }
   }
 
   for (const auto &cell_id : this->cut_cells_) {
-    for (int local_facet_id = 0; local_facet_id < n_facets_per_cell; ++local_facet_id) {
+    for (int local_facet_id = 0; local_facet_id < static_cast<int>(n_facets_per_cell); ++local_facet_id) {
       if (this->is_full_facet(cell_id, local_facet_id)) {
         cell_ids.push_back(cell_id);
         local_facets_ids.push_back(local_facet_id);
@@ -144,8 +142,7 @@ void UnfittedDomain<dim>::get_cut_facets(std::vector<int> &cell_ids, std::vector
   local_facets_ids.reserve(n_facets_estimate);
 
   for (const auto cell_id : this->cut_cells_) {
-    for (int local_facet_id = 0; local_facet_id < n_facets_per_cell; ++local_facet_id) {
-
+    for (int local_facet_id = 0; local_facet_id < static_cast<int>(n_facets_per_cell); ++local_facet_id) {
       if (this->is_cut_facet(cell_id, local_facet_id)) {
         cell_ids.push_back(cell_id);
         local_facets_ids.push_back(local_facet_id);
