@@ -57,6 +57,18 @@ protected:
 public:
   virtual ~UnfittedDomain() = default;
 
+  /// Copy constructor
+  UnfittedDomain(const UnfittedDomain &other) = default;
+
+  /// Copy assignment operator
+  UnfittedDomain &operator=(const UnfittedDomain &other) = default;
+
+  /// Move constructor
+  UnfittedDomain(UnfittedDomain &&other) noexcept = default;
+
+  /// Move assignment operator
+  UnfittedDomain &operator=(UnfittedDomain &&other) noexcept = default;
+
   [[nodiscard]] GridPtr get_grid() const;
   [[nodiscard]] const std::vector<int> &get_full_cells() const;
   [[nodiscard]] const std::vector<int> &get_empty_cells() const;
