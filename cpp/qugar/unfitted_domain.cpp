@@ -102,12 +102,10 @@ void UnfittedDomain<dim>::get_empty_facets(std::vector<int> &cell_ids, std::vect
 template<int dim>
 void UnfittedDomain<dim>::get_full_facets(std::vector<int> &cell_ids, std::vector<int> &local_facets_ids) const
 {
-  cell_ids.clear();
-  local_facets_ids.clear();
-
-  const auto n_facets_per_cell = dim * 2;
   const auto n_facets_estimate = (this->full_cells_.size() + this->cut_cells_.size()) * n_facets_per_cell;
 
+  cell_ids.clear();
+  local_facets_ids.clear();
   cell_ids.reserve(n_facets_estimate);
   local_facets_ids.reserve(n_facets_estimate);
 
@@ -132,12 +130,10 @@ void UnfittedDomain<dim>::get_full_facets(std::vector<int> &cell_ids, std::vecto
 template<int dim>
 void UnfittedDomain<dim>::get_cut_facets(std::vector<int> &cell_ids, std::vector<int> &local_facets_ids) const
 {
-  cell_ids.clear();
-  local_facets_ids.clear();
-
-  const auto n_facets_per_cell = dim * 2;
   const auto n_facets_estimate = this->cut_cells_.size() * n_facets_per_cell;
 
+  cell_ids.clear();
+  local_facets_ids.clear();
   cell_ids.reserve(n_facets_estimate);
   local_facets_ids.reserve(n_facets_estimate);
 
