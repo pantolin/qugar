@@ -43,9 +43,6 @@ public:
   using GridPtr = std::shared_ptr<const CartGridTP<dim>>;
   using FuncPtr = std::shared_ptr<const ImplicitFunc<dim>>;
 
-  // private:
-  //   explicit UnfittedImplDomain(GridPtr grid);
-
   explicit UnfittedImplDomain(const FuncPtr phi, GridPtr grid);
 
   explicit UnfittedImplDomain(const FuncPtr phi, GridPtr grid, const std::vector<int> &cells);
