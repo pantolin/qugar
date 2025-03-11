@@ -6,6 +6,7 @@ var classqugar_1_1impl_1_1UnfittedImplDomain =
     [ "GridPtr", "da/de2/classqugar_1_1impl_1_1UnfittedImplDomain.html#ab54cd5067c35832de0f8f6aca3bd4801", null ],
     [ "UnfittedImplDomain", "da/de2/classqugar_1_1impl_1_1UnfittedImplDomain.html#ad2f0b70380219aaf4e79aa2941c16b8b", null ],
     [ "UnfittedImplDomain", "da/de2/classqugar_1_1impl_1_1UnfittedImplDomain.html#aa149e80e2a896d25411d6a9b283ba5b6", null ],
+    [ "classify_undetermined_sign_cell", "da/de2/classqugar_1_1impl_1_1UnfittedImplDomain.html#a85e08fd19b2e1c66acb808ced7a5e9d5", null ],
     [ "create_decomposition", "da/de2/classqugar_1_1impl_1_1UnfittedImplDomain.html#ae65b0eae87b60e202c04dfd53a05459f", null ],
     [ "get_impl_func", "da/de2/classqugar_1_1impl_1_1UnfittedImplDomain.html#a743b362447cb335af437eb1e425f2a38", null ],
     [ "phi_", "da/de2/classqugar_1_1impl_1_1UnfittedImplDomain.html#ac6242e68f32795f6bd428e507b855292", null ]

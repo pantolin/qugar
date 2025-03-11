@@ -108,6 +108,7 @@ $(function(){initNavTree('df/d58/classqugar_1_1UnfittedDomain.html','../../'); i
   <div class="summary">
 <a href="#pub-types">Public Types</a> &#124;
 <a href="#pub-methods">Public Member Functions</a> &#124;
+<a href="#pub-static-attribs">Static Public Attributes</a> &#124;
 <a href="#pro-methods">Protected Member Functions</a> &#124;
 <a href="#pro-attribs">Protected Attributes</a> &#124;
 <a href="../../d7/d83/classqugar_1_1UnfittedDomain-members.html">List of all members</a>  </div>
@@ -124,8 +125,8 @@ Inheritance diagram for qugar::UnfittedDomain&lt; dim &gt;:</div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-types" name="pub-types"></a>
 Public Types</h2></td></tr>
-<tr class="memitem:ac9b61f1b67082859f89937d231b426e8" id="r_ac9b61f1b67082859f89937d231b426e8"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ac9b61f1b67082859f89937d231b426e8">FacetsStatus</a> = std::array&lt;<a class="el" href="../../d0/d6b/namespacequgar.html#a2a8e94584d3f66820b45e705a99aa8ba">ImmersedFacetStatus</a>, static_cast&lt;std::size_t&gt;(dim) * 2&gt;</td></tr>
-<tr class="separator:ac9b61f1b67082859f89937d231b426e8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a934e42746b340c926a99ba4979672d52" id="r_a934e42746b340c926a99ba4979672d52"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a934e42746b340c926a99ba4979672d52">FacetsStatus</a> = std::array&lt;<a class="el" href="../../d0/d6b/namespacequgar.html#a2a8e94584d3f66820b45e705a99aa8ba">ImmersedFacetStatus</a>, <a class="el" href="#a87f40c518e6d81f905232f98aca00a98">n_facets_per_cell</a>&gt;</td></tr>
+<tr class="separator:a934e42746b340c926a99ba4979672d52"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aec64583f1f8b1945e39e9ce03185585a" id="r_aec64583f1f8b1945e39e9ce03185585a"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aec64583f1f8b1945e39e9ce03185585a">GridPtr</a> = std::shared_ptr&lt;const <a class="el" href="../../d1/d84/classqugar_1_1CartGridTP.html">CartGridTP</a>&lt;dim&gt;&gt;</td></tr>
 <tr class="separator:aec64583f1f8b1945e39e9ce03185585a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
@@ -133,6 +134,18 @@ Public Types</h2></td></tr>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a17bd71bf028763f2a4c8dab1690034ef" id="r_a17bd71bf028763f2a4c8dab1690034ef"><td class="memItemLeft" align="right" valign="top">virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a17bd71bf028763f2a4c8dab1690034ef">~UnfittedDomain</a> ()=default</td></tr>
 <tr class="separator:a17bd71bf028763f2a4c8dab1690034ef"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8de0551c32e337ac9a099c8ebe6cb0e3" id="r_a8de0551c32e337ac9a099c8ebe6cb0e3"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a8de0551c32e337ac9a099c8ebe6cb0e3">UnfittedDomain</a> (const <a class="el" href="../../df/d58/classqugar_1_1UnfittedDomain.html">UnfittedDomain</a> &amp;other)=default</td></tr>
+<tr class="memdesc:a8de0551c32e337ac9a099c8ebe6cb0e3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Copy constructor.  <br /></td></tr>
+<tr class="separator:a8de0551c32e337ac9a099c8ebe6cb0e3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af7ff828a1e69735e32a8c29abbad1e4c" id="r_af7ff828a1e69735e32a8c29abbad1e4c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../df/d58/classqugar_1_1UnfittedDomain.html">UnfittedDomain</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af7ff828a1e69735e32a8c29abbad1e4c">operator=</a> (const <a class="el" href="../../df/d58/classqugar_1_1UnfittedDomain.html">UnfittedDomain</a> &amp;other)=default</td></tr>
+<tr class="memdesc:af7ff828a1e69735e32a8c29abbad1e4c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Copy assignment operator.  <br /></td></tr>
+<tr class="separator:af7ff828a1e69735e32a8c29abbad1e4c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9428bf7a2fc0a280dd6ad8d420c7a7ff" id="r_a9428bf7a2fc0a280dd6ad8d420c7a7ff"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a9428bf7a2fc0a280dd6ad8d420c7a7ff">UnfittedDomain</a> (<a class="el" href="../../df/d58/classqugar_1_1UnfittedDomain.html">UnfittedDomain</a> &amp;&amp;other) noexcept=default</td></tr>
+<tr class="memdesc:a9428bf7a2fc0a280dd6ad8d420c7a7ff"><td class="mdescLeft">&#160;</td><td class="mdescRight">Move constructor.  <br /></td></tr>
+<tr class="separator:a9428bf7a2fc0a280dd6ad8d420c7a7ff"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a334e02e57aee47573192c5663dbef992" id="r_a334e02e57aee47573192c5663dbef992"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../df/d58/classqugar_1_1UnfittedDomain.html">UnfittedDomain</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a334e02e57aee47573192c5663dbef992">operator=</a> (<a class="el" href="../../df/d58/classqugar_1_1UnfittedDomain.html">UnfittedDomain</a> &amp;&amp;other) noexcept=default</td></tr>
+<tr class="memdesc:a334e02e57aee47573192c5663dbef992"><td class="mdescLeft">&#160;</td><td class="mdescRight">Move assignment operator.  <br /></td></tr>
+<tr class="separator:a334e02e57aee47573192c5663dbef992"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2b65515823be0accc41838c80e6fcd97" id="r_a2b65515823be0accc41838c80e6fcd97"><td class="memItemLeft" align="right" valign="top"><a class="el" href="#aec64583f1f8b1945e39e9ce03185585a">GridPtr</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a2b65515823be0accc41838c80e6fcd97">get_grid</a> () const</td></tr>
 <tr class="separator:a2b65515823be0accc41838c80e6fcd97"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a07ef97b39133da30209d7791c1d76328" id="r_a07ef97b39133da30209d7791c1d76328"><td class="memItemLeft" align="right" valign="top">const std::vector&lt; int &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a07ef97b39133da30209d7791c1d76328">get_full_cells</a> () const</td></tr>
@@ -141,7 +154,7 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:acb726f494bf1452d0dfd1a8890858adf"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8a55ae8d412e4b104629b03945fa3477" id="r_a8a55ae8d412e4b104629b03945fa3477"><td class="memItemLeft" align="right" valign="top">const std::vector&lt; int &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a8a55ae8d412e4b104629b03945fa3477">get_cut_cells</a> () const</td></tr>
 <tr class="separator:a8a55ae8d412e4b104629b03945fa3477"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a45425fe89e3e75616e3ef3c9b4c28b26" id="r_a45425fe89e3e75616e3ef3c9b4c28b26"><td class="memItemLeft" align="right" valign="top"><a class="el" href="#ac9b61f1b67082859f89937d231b426e8">FacetsStatus</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a45425fe89e3e75616e3ef3c9b4c28b26">get_cell_facets_status</a> (int cell_id) const</td></tr>
+<tr class="memitem:a45425fe89e3e75616e3ef3c9b4c28b26" id="r_a45425fe89e3e75616e3ef3c9b4c28b26"><td class="memItemLeft" align="right" valign="top"><a class="el" href="#a934e42746b340c926a99ba4979672d52">FacetsStatus</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a45425fe89e3e75616e3ef3c9b4c28b26">get_cell_facets_status</a> (int cell_id) const</td></tr>
 <tr class="separator:a45425fe89e3e75616e3ef3c9b4c28b26"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5374aa3ed6b18f38e648664af94f4eae" id="r_a5374aa3ed6b18f38e648664af94f4eae"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a5374aa3ed6b18f38e648664af94f4eae">get_empty_facets</a> (std::vector&lt; int &gt; &amp;cell_ids, std::vector&lt; int &gt; &amp;local_facets_ids) const</td></tr>
 <tr class="separator:a5374aa3ed6b18f38e648664af94f4eae"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -172,6 +185,11 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a208332112b0122b6595cba94e91d0658" id="r_a208332112b0122b6595cba94e91d0658"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a208332112b0122b6595cba94e91d0658">has_external_boundary</a> (int cell_id, int local_facet_id) const</td></tr>
 <tr class="separator:a208332112b0122b6595cba94e91d0658"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-static-attribs" name="pub-static-attribs"></a>
+Static Public Attributes</h2></td></tr>
+<tr class="memitem:a87f40c518e6d81f905232f98aca00a98" id="r_a87f40c518e6d81f905232f98aca00a98"><td class="memItemLeft" align="right" valign="top">static const std::size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a87f40c518e6d81f905232f98aca00a98">n_facets_per_cell</a> = static_cast&lt;std::size_t&gt;(dim) * 2</td></tr>
+<tr class="separator:a87f40c518e6d81f905232f98aca00a98"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pro-methods" name="pro-methods"></a>
 Protected Member Functions</h2></td></tr>
 <tr class="memitem:a4cc79a0b3a4ffec4654193db976352c4" id="r_a4cc79a0b3a4ffec4654193db976352c4"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a4cc79a0b3a4ffec4654193db976352c4">UnfittedDomain</a> (const <a class="el" href="#aec64583f1f8b1945e39e9ce03185585a">GridPtr</a> &amp;grid)</td></tr>
@@ -189,12 +207,12 @@ Protected Attributes</h2></td></tr>
 <tr class="separator:ad7f3adb03e9ee72fec51a42c51338a78"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af539c42135624a81b99e0685a92aa001" id="r_af539c42135624a81b99e0685a92aa001"><td class="memItemLeft" align="right" valign="top">std::vector&lt; int &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af539c42135624a81b99e0685a92aa001">cut_cells_</a></td></tr>
 <tr class="separator:af539c42135624a81b99e0685a92aa001"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a73d696e1153ae8106680750329924fd9" id="r_a73d696e1153ae8106680750329924fd9"><td class="memItemLeft" align="right" valign="top">std::unordered_map&lt; int, <a class="el" href="#ac9b61f1b67082859f89937d231b426e8">FacetsStatus</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a73d696e1153ae8106680750329924fd9">facets_status_</a></td></tr>
+<tr class="memitem:a73d696e1153ae8106680750329924fd9" id="r_a73d696e1153ae8106680750329924fd9"><td class="memItemLeft" align="right" valign="top">std::unordered_map&lt; int, <a class="el" href="#a934e42746b340c926a99ba4979672d52">FacetsStatus</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a73d696e1153ae8106680750329924fd9">facets_status_</a></td></tr>
 <tr class="separator:a73d696e1153ae8106680750329924fd9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Member Typedef Documentation</h2>
-<a id="ac9b61f1b67082859f89937d231b426e8" name="ac9b61f1b67082859f89937d231b426e8"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ac9b61f1b67082859f89937d231b426e8">&#9670;&#160;</a></span>FacetsStatus</h2>
+<a id="a934e42746b340c926a99ba4979672d52" name="a934e42746b340c926a99ba4979672d52"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a934e42746b340c926a99ba4979672d52">&#9670;&#160;</a></span>FacetsStatus</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -202,7 +220,7 @@ Protected Attributes</h2></td></tr>
 template&lt;int dim&gt; </div>
       <table class="memname">
         <tr>
-          <td class="memname">using <a class="el" href="../../df/d58/classqugar_1_1UnfittedDomain.html">qugar::UnfittedDomain</a>&lt; dim &gt;::FacetsStatus = std::array&lt;<a class="el" href="../../d0/d6b/namespacequgar.html#a2a8e94584d3f66820b45e705a99aa8ba">ImmersedFacetStatus</a>, static_cast&lt;std::size_t&gt;(dim) * 2&gt;</td>
+          <td class="memname">using <a class="el" href="../../df/d58/classqugar_1_1UnfittedDomain.html">qugar::UnfittedDomain</a>&lt; dim &gt;::FacetsStatus = std::array&lt;<a class="el" href="../../d0/d6b/namespacequgar.html#a2a8e94584d3f66820b45e705a99aa8ba">ImmersedFacetStatus</a>, <a class="el" href="#a87f40c518e6d81f905232f98aca00a98">n_facets_per_cell</a>&gt;</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -227,7 +245,7 @@ template&lt;int dim&gt; </div>
 </div>
 <h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a4cc79a0b3a4ffec4654193db976352c4" name="a4cc79a0b3a4ffec4654193db976352c4"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a4cc79a0b3a4ffec4654193db976352c4">&#9670;&#160;</a></span>UnfittedDomain()</h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a4cc79a0b3a4ffec4654193db976352c4">&#9670;&#160;</a></span>UnfittedDomain() <span class="overload">[1/3]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -280,6 +298,64 @@ template&lt;int dim&gt; </div>
 
 </div>
 </div>
+<a id="a8de0551c32e337ac9a099c8ebe6cb0e3" name="a8de0551c32e337ac9a099c8ebe6cb0e3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8de0551c32e337ac9a099c8ebe6cb0e3">&#9670;&#160;</a></span>UnfittedDomain() <span class="overload">[2/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;int dim&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="../../df/d58/classqugar_1_1UnfittedDomain.html">qugar::UnfittedDomain</a>&lt; dim &gt;::UnfittedDomain </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="../../df/d58/classqugar_1_1UnfittedDomain.html">UnfittedDomain</a>&lt; dim &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>other</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">default</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Copy constructor. </p>
+
+</div>
+</div>
+<a id="a9428bf7a2fc0a280dd6ad8d420c7a7ff" name="a9428bf7a2fc0a280dd6ad8d420c7a7ff"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9428bf7a2fc0a280dd6ad8d420c7a7ff">&#9670;&#160;</a></span>UnfittedDomain() <span class="overload">[3/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;int dim&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="../../df/d58/classqugar_1_1UnfittedDomain.html">qugar::UnfittedDomain</a>&lt; dim &gt;::UnfittedDomain </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="../../df/d58/classqugar_1_1UnfittedDomain.html">UnfittedDomain</a>&lt; dim &gt; &amp;&amp;</td>          <td class="paramname"><span class="paramname"><em>other</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">default</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Move constructor. </p>
+
+</div>
+</div>
 <h2 class="groupheader">Member Function Documentation</h2>
 <a id="a45425fe89e3e75616e3ef3c9b4c28b26" name="a45425fe89e3e75616e3ef3c9b4c28b26"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a45425fe89e3e75616e3ef3c9b4c28b26">&#9670;&#160;</a></span>get_cell_facets_status()</h2>
@@ -293,7 +369,7 @@ template&lt;int dim&gt; </div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="#ac9b61f1b67082859f89937d231b426e8">FacetsStatus</a> <a class="el" href="../../df/d58/classqugar_1_1UnfittedDomain.html">qugar::UnfittedDomain</a>&lt; dim &gt;::get_cell_facets_status </td>
+          <td class="memname"><a class="el" href="#a934e42746b340c926a99ba4979672d52">FacetsStatus</a> <a class="el" href="../../df/d58/classqugar_1_1UnfittedDomain.html">qugar::UnfittedDomain</a>&lt; dim &gt;::get_cell_facets_status </td>
           <td>(</td>
           <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>cell_id</em></span></td><td>)</td>
           <td> const</td>
@@ -811,6 +887,64 @@ template&lt;int dim&gt; </div>
 
 </div>
 </div>
+<a id="af7ff828a1e69735e32a8c29abbad1e4c" name="af7ff828a1e69735e32a8c29abbad1e4c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af7ff828a1e69735e32a8c29abbad1e4c">&#9670;&#160;</a></span>operator=() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;int dim&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="../../df/d58/classqugar_1_1UnfittedDomain.html">UnfittedDomain</a> &amp; <a class="el" href="../../df/d58/classqugar_1_1UnfittedDomain.html">qugar::UnfittedDomain</a>&lt; dim &gt;::operator= </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="../../df/d58/classqugar_1_1UnfittedDomain.html">UnfittedDomain</a>&lt; dim &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>other</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">default</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Copy assignment operator. </p>
+
+</div>
+</div>
+<a id="a334e02e57aee47573192c5663dbef992" name="a334e02e57aee47573192c5663dbef992"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a334e02e57aee47573192c5663dbef992">&#9670;&#160;</a></span>operator=() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;int dim&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="../../df/d58/classqugar_1_1UnfittedDomain.html">UnfittedDomain</a> &amp; <a class="el" href="../../df/d58/classqugar_1_1UnfittedDomain.html">qugar::UnfittedDomain</a>&lt; dim &gt;::operator= </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="../../df/d58/classqugar_1_1UnfittedDomain.html">UnfittedDomain</a>&lt; dim &gt; &amp;&amp;</td>          <td class="paramname"><span class="paramname"><em>other</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">default</span><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Move assignment operator. </p>
+
+</div>
+</div>
 <a id="a69b57482034af6c56b3d79c031dc8956" name="a69b57482034af6c56b3d79c031dc8956"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a69b57482034af6c56b3d79c031dc8956">&#9670;&#160;</a></span>sort()</h2>
 
@@ -899,7 +1033,7 @@ template&lt;int dim&gt; </div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">std::unordered_map&lt;int, <a class="el" href="#ac9b61f1b67082859f89937d231b426e8">FacetsStatus</a>&gt; <a class="el" href="../../df/d58/classqugar_1_1UnfittedDomain.html">qugar::UnfittedDomain</a>&lt; dim &gt;::facets_status_</td>
+          <td class="memname">std::unordered_map&lt;int, <a class="el" href="#a934e42746b340c926a99ba4979672d52">FacetsStatus</a>&gt; <a class="el" href="../../df/d58/classqugar_1_1UnfittedDomain.html">qugar::UnfittedDomain</a>&lt; dim &gt;::facets_status_</td>
         </tr>
       </table>
   </td>
@@ -953,6 +1087,30 @@ template&lt;int dim&gt; </div>
   </td>
   <td class="mlabels-right">
 <span class="mlabels"><span class="mlabel">protected</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a87f40c518e6d81f905232f98aca00a98" name="a87f40c518e6d81f905232f98aca00a98"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a87f40c518e6d81f905232f98aca00a98">&#9670;&#160;</a></span>n_facets_per_cell</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;int dim&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">const std::size_t <a class="el" href="../../df/d58/classqugar_1_1UnfittedDomain.html">qugar::UnfittedDomain</a>&lt; dim &gt;::n_facets_per_cell = static_cast&lt;std::size_t&gt;(dim) * 2</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">

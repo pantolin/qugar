@@ -1,7 +1,7 @@
 var searchData=
 [
   ['facets_5fstatus_5f_0',['facets_status_',['../df/d58/classqugar_1_1UnfittedDomain.html#a73d696e1153ae8106680750329924fd9',1,'qugar::UnfittedDomain']]],
-  ['facetsstatus_1',['FacetsStatus',['../da/de2/classqugar_1_1impl_1_1UnfittedImplDomain.html#a6c0e6abd73f5618b3493cf76ce9e5fa4',1,'qugar::impl::UnfittedImplDomain::FacetsStatus'],['../df/d58/classqugar_1_1UnfittedDomain.html#ac9b61f1b67082859f89937d231b426e8',1,'qugar::UnfittedDomain::FacetsStatus']]],
+  ['facetsstatus_1',['FacetsStatus',['../da/de2/classqugar_1_1impl_1_1UnfittedImplDomain.html#a6c0e6abd73f5618b3493cf76ce9e5fa4',1,'qugar::impl::UnfittedImplDomain::FacetsStatus'],['../df/d58/classqugar_1_1UnfittedDomain.html#a934e42746b340c926a99ba4979672d52',1,'qugar::UnfittedDomain::FacetsStatus']]],
   ['find_5fcoincident_5fpoints_2',['find_coincident_points',['../d0/d6b/namespacequgar.html#a810f1ea11af7a4d73dc7071cad604b4c',1,'qugar']]],
   ['five_3',['five',['../dd/dcc/namespacequgar_1_1numbers.html#a6e62ebad4e7bf1eeaff41d95770ec791',1,'qugar::numbers']]],
   ['flat_4',['flat',['../de/d1b/classqugar_1_1TensorIndexTP.html#a6154fb26baefac7e9a9d7bd7090209b8',1,'qugar::TensorIndexTP::flat()'],['../d1/d02/classqugar_1_1TensorIndexRangeTP_1_1Iterator.html#a9fd848ed82dfcfb1e91f1eaec64ffc52',1,'qugar::TensorIndexRangeTP::Iterator::flat()']]],

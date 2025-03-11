@@ -1,9 +1,11 @@
 var classqugar_1_1UnfittedDomain =
 [
-    [ "FacetsStatus", "df/d58/classqugar_1_1UnfittedDomain.html#ac9b61f1b67082859f89937d231b426e8", null ],
+    [ "FacetsStatus", "df/d58/classqugar_1_1UnfittedDomain.html#a934e42746b340c926a99ba4979672d52", null ],
     [ "GridPtr", "df/d58/classqugar_1_1UnfittedDomain.html#aec64583f1f8b1945e39e9ce03185585a", null ],
     [ "UnfittedDomain", "df/d58/classqugar_1_1UnfittedDomain.html#a4cc79a0b3a4ffec4654193db976352c4", null ],
     [ "~UnfittedDomain", "df/d58/classqugar_1_1UnfittedDomain.html#a17bd71bf028763f2a4c8dab1690034ef", null ],
+    [ "UnfittedDomain", "df/d58/classqugar_1_1UnfittedDomain.html#a8de0551c32e337ac9a099c8ebe6cb0e3", null ],
+    [ "UnfittedDomain", "df/d58/classqugar_1_1UnfittedDomain.html#a9428bf7a2fc0a280dd6ad8d420c7a7ff", null ],
     [ "get_cell_facets_status", "df/d58/classqugar_1_1UnfittedDomain.html#a45425fe89e3e75616e3ef3c9b4c28b26", null ],
     [ "get_cut_cells", "df/d58/classqugar_1_1UnfittedDomain.html#a8a55ae8d412e4b104629b03945fa3477", null ],
     [ "get_cut_facets", "df/d58/classqugar_1_1UnfittedDomain.html#ac15cc8193ee1298b84e4c0e3335f3fd7", null ],
@@ -23,10 +25,13 @@ var classqugar_1_1UnfittedDomain =
     [ "is_full_cell", "df/d58/classqugar_1_1UnfittedDomain.html#a6d74220efcb99ac879dcd817a9cca17e", null ],
     [ "is_full_facet", "df/d58/classqugar_1_1UnfittedDomain.html#abbca2315663410c0b4cbd6f39e202267", null ],
     [ "is_full_unfitted_facet", "df/d58/classqugar_1_1UnfittedDomain.html#ae931f50b3ff7d153f212b8610651fb95", null ],
+    [ "operator=", "df/d58/classqugar_1_1UnfittedDomain.html#af7ff828a1e69735e32a8c29abbad1e4c", null ],
+    [ "operator=", "df/d58/classqugar_1_1UnfittedDomain.html#a334e02e57aee47573192c5663dbef992", null ],
     [ "sort", "df/d58/classqugar_1_1UnfittedDomain.html#a69b57482034af6c56b3d79c031dc8956", null ],
     [ "cut_cells_", "df/d58/classqugar_1_1UnfittedDomain.html#af539c42135624a81b99e0685a92aa001", null ],
     [ "empty_cells_", "df/d58/classqugar_1_1UnfittedDomain.html#ad7f3adb03e9ee72fec51a42c51338a78", null ],
     [ "facets_status_", "df/d58/classqugar_1_1UnfittedDomain.html#a73d696e1153ae8106680750329924fd9", null ],
     [ "full_cells_", "df/d58/classqugar_1_1UnfittedDomain.html#a53478a20890958296045fd7e1716573a", null ],
-    [ "grid_", "df/d58/classqugar_1_1UnfittedDomain.html#a2a6adc16cb5e53cdd43e4ad23bb81a6e", null ]
+    [ "grid_", "df/d58/classqugar_1_1UnfittedDomain.html#a2a6adc16cb5e53cdd43e4ad23bb81a6e", null ],
+    [ "n_facets_per_cell", "df/d58/classqugar_1_1UnfittedDomain.html#a87f40c518e6d81f905232f98aca00a98", null ]
 ];

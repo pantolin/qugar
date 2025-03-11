@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['unfitteddomain_0',['UnfittedDomain',['../df/d58/classqugar_1_1UnfittedDomain.html#a4cc79a0b3a4ffec4654193db976352c4',1,'qugar::UnfittedDomain']]],
+  ['unfitteddomain_0',['UnfittedDomain',['../df/d58/classqugar_1_1UnfittedDomain.html#a4cc79a0b3a4ffec4654193db976352c4',1,'qugar::UnfittedDomain::UnfittedDomain(const GridPtr &amp;grid)'],['../df/d58/classqugar_1_1UnfittedDomain.html#a8de0551c32e337ac9a099c8ebe6cb0e3',1,'qugar::UnfittedDomain::UnfittedDomain(const UnfittedDomain &amp;other)=default'],['../df/d58/classqugar_1_1UnfittedDomain.html#a9428bf7a2fc0a280dd6ad8d420c7a7ff',1,'qugar::UnfittedDomain::UnfittedDomain(UnfittedDomain &amp;&amp;other) noexcept=default']]],
   ['unfittedimpldomain_1',['UnfittedImplDomain',['../da/de2/classqugar_1_1impl_1_1UnfittedImplDomain.html#ad2f0b70380219aaf4e79aa2941c16b8b',1,'qugar::impl::UnfittedImplDomain::UnfittedImplDomain(const FuncPtr phi, GridPtr grid)'],['../da/de2/classqugar_1_1impl_1_1UnfittedImplDomain.html#aa149e80e2a896d25411d6a9b283ba5b6',1,'qugar::impl::UnfittedImplDomain::UnfittedImplDomain(const FuncPtr phi, GridPtr grid, const std::vector&lt; int &gt; &amp;cells)']]],
   ['unique_2',['unique',['../db/d28/classqugar_1_1Tolerance.html#a3316d9726b6f5e92144022db982b3f76',1,'qugar::Tolerance']]],
   ['update_3',['update',['../db/d28/classqugar_1_1Tolerance.html#acbae50b5c4df57d316544be693b02368',1,'qugar::Tolerance::update(const real tol)'],['../db/d28/classqugar_1_1Tolerance.html#ab3923ad80c4e201919fd9937c4eba440',1,'qugar::Tolerance::update(const Tolerance &amp;tol)']]],
