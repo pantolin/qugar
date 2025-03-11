@@ -4,7 +4,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/../cmake/modules
 macro(qugar_setup_dependencies)
 
   if(NOT algoim::algoim)
-    cpmaddpackage("gh:pantolin/algoim@1.0.1")
+    cpmaddpackage("gh:pantolin/algoim@1.0.2")
   endif()
 
   # Algoim polynomial funcionalities require to solve

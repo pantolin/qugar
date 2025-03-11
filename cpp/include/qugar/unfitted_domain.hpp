@@ -48,7 +48,8 @@ enum class ImmersedFacetStatus : std::uint8_t {
 template<int dim> class UnfittedDomain
 {
 public:
-  using FacetsStatus = std::array<ImmersedFacetStatus, static_cast<std::size_t>(dim) * 2>;
+  static const std::size_t n_facets_per_cell = static_cast<std::size_t>(dim) * 2;
+  using FacetsStatus = std::array<ImmersedFacetStatus, n_facets_per_cell>;
   using GridPtr = std::shared_ptr<const CartGridTP<dim>>;
 
 protected:
@@ -56,6 +57,18 @@ protected:
 
 public:
   virtual ~UnfittedDomain() = default;
+
+  /// Copy constructor
+  UnfittedDomain(const UnfittedDomain &other) = default;
+
+  /// Copy assignment operator
+  UnfittedDomain &operator=(const UnfittedDomain &other) = default;
+
+  /// Move constructor
+  UnfittedDomain(UnfittedDomain &&other) noexcept = default;
+
+  /// Move assignment operator
+  UnfittedDomain &operator=(UnfittedDomain &&other) noexcept = default;
 
   [[nodiscard]] GridPtr get_grid() const;
   [[nodiscard]] const std::vector<int> &get_full_cells() const;
