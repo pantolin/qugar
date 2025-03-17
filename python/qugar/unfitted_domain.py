@@ -8,7 +8,7 @@
 #
 # --------------------------------------------------------------------------
 
-from typing import Optional, cast
+from typing import Callable, Optional, cast
 
 from qugar import has_FEniCSx
 
@@ -110,10 +110,11 @@ class UnfittedDomain:
         self,
         lex_cells: npt.NDArray[np.int32],
         lex_facets: npt.NDArray[np.int32],
-        facet_ids: bool,
-        lexicg: bool,
-    ) -> npt.NDArray[np.int32] | tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]:
-        """Transforms the given lexicographical facets indices.
+        lexicg: bool = False,
+    ) -> tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]:
+        """Transforms the given lexicographical facets indices to
+        either lexicographical (if `lexicg` is `True`) or DOLFINx local
+        numbering (otherwise)
 
         Args:
             lex_cells (npt.NDArray[np.int32]): Indices of the facets
@@ -125,33 +126,24 @@ class UnfittedDomain:
                 the same length). The face ids follow the
                 lexicographical ordering.
 
-            facet_ids (bool, optional): If `True`, the DOLFINx (local)
-                face indices will be returned. Otherwise, the facets are
-                returned as one array of cells and another one of local
-                facets referred to those cells. Defaults to `True`.
-
-            lexicg (bool, optional): In the case in which `facet_ids` is
-                set to `False`, `lexicg` describes the ordering for the
+            lexicg (bool, optional): Describes the ordering for the
                 returned cells and local facets. If `lexicg` is set to
                 `True`, cell indices and local facets follow the
-                lexicographical ordering of the Cartesian mesh.
+                lexicographical ordering of the Cartesian mesh (i.e.,
+                they same as the input `lex_cells` and `lex_facets`)
                 Otherwise, they correspond to DOLFINx local numbering
-                of the current submesh. If `facet_ids` is set to `True`,
-                this options does not play any role.
+                of the current submesh.
                 Defaults to `False`.
 
         Returns:
-            npt.NDArray[np.int32] | tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]:
-            Transformed facet indices. If `facet_ids` is set to `True`,
-            it returns the DOLFINx (local) facet indices associated to
-            the current proces. Otherwise, the facets are returned as
-            one array of cells and another one of local facets referred
-            to those cells. In the latter case, the indices of the cells
+            tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]:
+            Transformed facets returned asone array of cells and another
+            one of local facets referred to those cells. The indices of the cells
             and local facets may follow the lexicographical ordering if
             `lexicg` is set to `True`. Otherwise, they follow the
             DOLFINx numbering.
         """
-        if not facet_ids and lexicg:
+        if lexicg:
             return lex_cells, lex_facets
 
         tdim = self._cart_mesh.tdim
@@ -159,8 +151,29 @@ class UnfittedDomain:
 
         dlf_cells = self._transform_lexicg_cell_ids(lex_cells, lexicg=False)
         dlf_facets = dlf_to_lex_facets[lex_facets]
-        if not facet_ids:
-            return dlf_cells, dlf_facets
+        return dlf_cells, dlf_facets
+
+    def _transform_cell_facet_pairs_to_facet_ids(
+        self,
+        dlf_cells: npt.NDArray[np.int32],
+        dlf_facets: npt.NDArray[np.int32],
+    ) -> npt.NDArray[np.int32]:
+        """Transforms the given pairs of cells and local facets to
+        DOLFINx local facets indices.
+
+        Args:
+            dlf_cells (npt.NDArray[np.int32]): Indices of the cells
+                following the DOLFINx local ordering.
+
+            dlf_facets (npt.NDArray[np.int32]): Local indices of the
+                facets referred to `dlf_cells` (both arrays should have
+                the same length). The face ids follow the DOLFINx
+                ordering.
+
+        Returns:
+            npt.NDArray[np.int32]: DOLFINx (local) facet indices associated to
+            the current proces.
+        """
 
         cells_to_facets = create_cells_to_facets_map(self._cart_mesh.dolfinx_mesh)
         return cells_to_facets[dlf_cells, dlf_facets]
@@ -210,150 +223,172 @@ class UnfittedDomain:
         """
         return self._transform_lexicg_cell_ids(self._cpp_object.empty_cells, lexicg)
 
-    def get_cut_facets(
-        self, facet_ids: bool = True, lexicg: bool = False
-    ) -> npt.NDArray[np.int32] | tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]:
-        """Gets the cut facets.
+    def _get_facets(
+        self,
+        facets_getter: Callable[
+            [Optional[npt.NDArray[np.int32]], Optional[npt.NDArray[np.int32]]],
+            tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]],
+        ],
+        cell_ids: Optional[npt.NDArray[np.int32]] = None,
+        local_facet_ids: Optional[npt.NDArray[np.int32]] = None,
+    ) -> tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]:
+        """Accesses a list of facets either through the function `facets_getter`,
+        if `cell_ids` and `local_facet_ids` are not `None`, or
+        through `all_facets_getter`.
 
         Args:
-            facet_ids (bool, optional): If `True`, the DOLFINx (local)
-                face indices will be returned. Otherwise, the facets are
-                returned as one array of cells and another one of local
-                facets referred to those cells. Defaults to `True`.
-
-            lexicg (bool, optional): In the case in which `facet_ids` is
-                set to `False`, `lexicg` describes the ordering for the
-                returned cells and local facets. If `lexicg` is set to
-                `True`, cell indices and local facets follow the
-                lexicographical ordering of the Cartesian mesh.
-                Otherwise, they correspond to DOLFINx local numbering
-                of the current submesh. If `facet_ids` is set to `True`,
-                this options does not play any role.
-                Defaults to `False`.
+            facets_getter (Callable[[npt.NDArray[np.int32], npt.NDArray[np.int32]],
+                tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]): Function to
+                access the facets if `cell_ids` and `local_facet_ids` are provided.
+                The function should return the facets as pairs of cells and local facets
+                following DOLFINx ordering.
+            all_facets_getter (Callable[[], tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]]):
+                Function to access all the facets if `cell_ids` and `local_facet_ids` are not provided.
+                The function should return the facets as pairs of cells and local facets
+                following DOLFINx ordering.
+            dlf_cell_ids (Optional[npt.NDArray[np.int32]]): Indices of the
+                candidate cells to get. If follows the DOLFINx local numbering.
+                If not provided, the facets are accessed through `all_facets_getter`,
+                otherwise, through `facets_getter`. Defaults to None.
+            dlf_local_facet_ids (Optional[npt.NDArray[np.int32]]): Local
+                indices of the candidate facets to get.
+                The face ids follow the DOLFINx ordering.
+                If not provided, the facets are accessed through `all_facets_getter`,
+                otherwise, through `facets_getter`. Defaults to None.
 
         Returns:
-            npt.NDArray[np.int32] | tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]:
-            Cut facets. If `facet_ids` is set to `True`, it returns
-            the DOLFINx (local) facet indices associated to the current
-            proces. Otherwise, the facets are returned as one array of
+            tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]:
+            Gotten facets. The facets are returned as one array of
             cells and another one of local facets referred to those
-            cells. In the latter case, the indices of the cells and
-            local facets may follow the lexicographical ordering if
-            `lexicg` is set to `True`. Otherwise, they follow the
-            DOLFINx numbering.
+            cells both with the same length and both following DOLFINx ordering.
+        """
+        if cell_ids is not None:
+            assert local_facet_ids is not None, "Both cell and facet ids must be provided."
+            assert cell_ids.size == local_facet_ids.size, "Non-matching sizes."
+            lex_cells, lex_facets = facets_getter(cell_ids, local_facet_ids)
+        else:
+            lex_cells, lex_facets = facets_getter(None, None)
+
+        return self._transform_lexicg_facet_ids(lex_cells, lex_facets, lexicg=False)
+
+    def get_cut_facets(
+        self,
+        cell_ids: Optional[npt.NDArray[np.int32]] = None,
+        local_facet_ids: Optional[npt.NDArray[np.int32]] = None,
+    ) -> tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]:
+        """Gets the cut facets as pairs of cells and local facets.
+
+        Args:
+            dlf_cell_ids (Optional[npt.NDArray[np.int32]]): Indices of the
+                candidate cells to get the cut facets. If follows the DOLFINx local numbering.
+                If not provided, all the cut facets are returned. Defaults to None.
+            dlf_local_facet_ids (Optional[npt.NDArray[np.int32]]): Local
+                indices of the candidate facets referred to `cell_ids` (both arrays
+                should have the same length). The face ids follow the
+                DOLFINx ordering. If not provided, all the cut facets are returned.
+                Defaults to None.
+
+        Returns:
+            tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]:
+            Cut facets. The facets are returned as one array of
+            cells and another one of local facets referred to those
+            cells both with the same length and both following DOLFINx ordering.
         """
 
-        lex_cells, lex_facets = self._cpp_object.cut_facets
-        return self._transform_lexicg_facet_ids(lex_cells, lex_facets, facet_ids, lexicg)
+        return self._get_facets(self._cpp_object.get_cut_facets, cell_ids, local_facet_ids)
 
     def get_full_facets(
-        self, facet_ids: bool = True, lexicg: bool = False
-    ) -> npt.NDArray[np.int32] | tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]:
-        """Gets the full facets.
+        self,
+        cell_ids: Optional[npt.NDArray[np.int32]] = None,
+        local_facet_ids: Optional[npt.NDArray[np.int32]] = None,
+    ) -> tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]:
+        """Gets the full facets as pairs of cells and local facets.
 
         Args:
-            facet_ids (bool, optional): If `True`, the DOLFINx (local)
-                face indices will be returned. Otherwise, the facets are
-                returned as one array of cells and another one of local
-                facets referred to those cells. Defaults to `True`.
-
-            lexicg (bool, optional): In the case in which `facet_ids` is
-                set to `False`, `lexicg` describes the ordering for the
-                returned cells and local facets. If `lexicg` is set to
-                `True`, cell indices and local facets follow the
-                lexicographical ordering of the Cartesian mesh.
-                Otherwise, they correspond to DOLFINx local numbering
-                of the current submesh. If `facet_ids` is set to `True`,
-                this options does not play any role.
-                Defaults to `False`.
+            dlf_cell_ids (Optional[npt.NDArray[np.int32]]): Indices of the
+                candidate cells to get the full facets. If follows the DOLFINx local numbering.
+                If not provided, all the full facets are returned. Defaults to None.
+            dlf_local_facet_ids (Optional[npt.NDArray[np.int32]]): Local
+                indices of the candidate facets referred to `cell_ids` (both arrays
+                should have the same length). The face ids follow the
+                DOLFINx ordering. If not provided, all the full facets are returned.
+                Defaults to None.
 
         Returns:
-            npt.NDArray[np.int32] | tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]:
-            Full facets. If `facet_ids` is set to `True`, it returns
-            the DOLFINx (local) facet indices associated to the current
-            proces. Otherwise, the facets are returned as one array of
+            tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]:
+            Full facets. The facets are returned as one array of
             cells and another one of local facets referred to those
-            cells. In the latter case, the indices of the cells and
-            local facets may follow the lexicographical ordering if
-            `lexicg` is set to `True`. Otherwise, they follow the
-            DOLFINx numbering.
+            cells both with the same length and both following DOLFINx ordering.
         """
 
-        lex_cells, lex_facets = self._cpp_object.full_facets
-        return self._transform_lexicg_facet_ids(lex_cells, lex_facets, facet_ids, lexicg)
+        return self._get_facets(
+            self._cpp_object.get_full_facets,
+            cell_ids,
+            local_facet_ids,
+        )
 
     def get_empty_facets(
-        self, facet_ids: bool = True, lexicg: bool = False
-    ) -> npt.NDArray[np.int32] | tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]:
-        """Gets the empty facets.
+        self,
+        cell_ids: Optional[npt.NDArray[np.int32]] = None,
+        local_facet_ids: Optional[npt.NDArray[np.int32]] = None,
+    ) -> tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]:
+        """Gets the empty facets as pairs of cells and local facets.
 
         Args:
-            facet_ids (bool, optional): If `True`, the DOLFINx (local)
-                face indices will be returned. Otherwise, the facets are
-                returned as one array of cells and another one of local
-                facets referred to those cells. Defaults to `True`.
-
-            lexicg (bool, optional): In the case in which `facet_ids` is
-                set to `False`, `lexicg` describes the ordering for the
-                returned cells and local facets. If `lexicg` is set to
-                `True`, cell indices and local facets follow the
-                lexicographical ordering of the Cartesian mesh.
-                Otherwise, they correspond to DOLFINx local numbering
-                of the current submesh. If `facet_ids` is set to `True`,
-                this options does not play any role.
-                Defaults to `False`.
+            dlf_cell_ids (Optional[npt.NDArray[np.int32]]): Indices of the
+                candidate cells to get the empty facets. If follows the DOLFINx local numbering.
+                If not provided, all the empty facets are returned. Defaults to None.
+            dlf_local_facet_ids (Optional[npt.NDArray[np.int32]]): Local
+                indices of the candidate facets referred to `cell_ids` (both arrays
+                should have the same length). The face ids follow the
+                DOLFINx ordering. If not provided, all the empty facets are returned.
+                Defaults to None.
 
         Returns:
-            npt.NDArray[np.int32] | tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]:
-            Empty facets. If `facet_ids` is set to `True`, it returns
-            the DOLFINx (local) facet indices associated to the current
-            proces. Otherwise, the facets are returned as one array of
+            tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]:
+            Empty facets. The facets are returned as one array of
             cells and another one of local facets referred to those
-            cells. In the latter case, the indices of the cells and
-            local facets may follow the lexicographical ordering if
-            `lexicg` is set to `True`. Otherwise, they follow the
-            DOLFINx numbering.
+            cells both with the same length and both following DOLFINx ordering.
         """
 
-        lex_cells, lex_facets = self._cpp_object.empty_facets
-        return self._transform_lexicg_facet_ids(lex_cells, lex_facets, facet_ids, lexicg)
+        return self._get_facets(
+            self._cpp_object.get_empty_facets,
+            cell_ids,
+            local_facet_ids,
+        )
 
     def get_unf_bdry_facets(
-        self, facet_ids: bool = True, lexicg: bool = False
-    ) -> npt.NDArray[np.int32] | tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]:
-        """Gets the facets that contain a part of the unfitted boundary.
+        self,
+        cell_ids: Optional[npt.NDArray[np.int32]] = None,
+        local_facet_ids: Optional[npt.NDArray[np.int32]] = None,
+    ) -> tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]:
+        """Gets the facets that contain unfitted boundaries as pairs of cells
+        and local facets.
 
         Args:
-            facet_ids (bool, optional): If `True`, the DOLFINx (local)
-                face indices will be returned. Otherwise, the facets are
-                returned as one array of cells and another one of local
-                facets referred to those cells. Defaults to `True`.
-
-            lexicg (bool, optional): In the case in which `facet_ids` is
-                set to `False`, `lexicg` describes the ordering for the
-                returned cells and local facets. If `lexicg` is set to
-                `True`, cell indices and local facets follow the
-                lexicographical ordering of the Cartesian mesh.
-                Otherwise, they correspond to DOLFINx local numbering
-                of the current submesh. If `facet_ids` is set to `True`,
-                this options does not play any role.
-                Defaults to `False`.
+            dlf_cell_ids (Optional[npt.NDArray[np.int32]]): Indices of the
+                candidate cells to get the facets that contain unfitted boundaries.
+                If follows the DOLFINx local numbering.
+                If not provided, all the facets that contain unfitted boundaries are returned.
+                Defaults to None.
+            dlf_local_facet_ids (Optional[npt.NDArray[np.int32]]): Local
+                indices of the candidate facets referred to `cell_ids` (both arrays
+                should have the same length). The face ids follow the
+                DOLFINx ordering. If not provided, all the facets that contain unfitted
+                boundaries are returned. Defaults to None.
 
         Returns:
-            npt.NDArray[np.int32] | tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]:
-            Facets that contain a part of the unfitted boundary.
-            If `facet_ids` is set to `True`, it returns
-            the DOLFINx (local) facet indices associated to the current
-            proces. Otherwise, the facets are returned as one array of
-            cells and another one of local facets referred to those
-            cells. In the latter case, the indices of the cells and
-            local facets may follow the lexicographical ordering if
-            `lexicg` is set to `True`. Otherwise, they follow the
-            DOLFINx numbering.
+            tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]:
+            Facets that contain unfitted boundaries. The facets are returned as one
+            array of cells and another one of local facets referred to those
+            cells both with the same length and both following DOLFINx ordering.
         """
 
-        lex_cells, lex_facets = self._cpp_object.unf_bdry_facets
-        return self._transform_lexicg_facet_ids(lex_cells, lex_facets, facet_ids, lexicg)
+        return self._get_facets(
+            self._cpp_object.get_unf_bdry_facets,
+            cell_ids,
+            local_facet_ids,
+        )
 
     def create_cell_tags(
         self,
@@ -426,17 +461,20 @@ class UnfittedDomain:
         tags = np.empty(0, dtype=np.int32)
 
         if cut_tag is not None:
-            cut_facets = cast(npt.NDArray[np.int32], self.get_cut_facets(facet_ids=True))
+            cells, local_facets = self.get_cut_facets()
+            cut_facets = self._transform_cell_facet_pairs_to_facet_ids(cells, local_facets)
             facets = np.concatenate([facets, cut_facets])
             tags = np.concatenate([tags, np.full(cut_facets.size, cut_tag, dtype=np.int32)])
 
         if full_tag is not None:
-            full_facets = cast(npt.NDArray[np.int32], self.get_full_facets(facet_ids=True))
+            cells, local_facets = self.get_full_facets()
+            full_facets = self._transform_cell_facet_pairs_to_facet_ids(cells, local_facets)
             facets = np.concatenate([facets, full_facets])
             tags = np.concatenate([tags, np.full(full_facets.size, full_tag, dtype=np.int32)])
 
         if empty_tag is not None:
-            empty_facets = cast(npt.NDArray[np.int32], self.get_empty_facets(facet_ids=True))
+            cells, local_facets = self.get_empty_facets()
+            empty_facets = self._transform_cell_facet_pairs_to_facet_ids(cells, local_facets)
             facets = np.concatenate([facets, empty_facets])
             tags = np.concatenate([tags, np.full(empty_facets.size, empty_tag, dtype=np.int32)])
 

@@ -82,6 +82,27 @@ public:
   void get_full_unfitted_facets(std::vector<int> &cell_ids, std::vector<int> &local_facets_ids) const;
   void get_cut_facets(std::vector<int> &cell_ids, std::vector<int> &local_facets_ids) const;
 
+  void get_empty_facets(const std::vector<int> &target_cell_ids,
+    const std::vector<int> &target_local_facets_ids,
+    std::vector<int> &cell_ids,
+    std::vector<int> &local_facets_ids) const;
+  void get_full_facets(const std::vector<int> &target_cell_ids,
+    const std::vector<int> &target_local_facets_ids,
+    std::vector<int> &cell_ids,
+    std::vector<int> &local_facets_ids) const;
+  void get_unfitted_facets(const std::vector<int> &target_cell_ids,
+    const std::vector<int> &target_local_facets_ids,
+    std::vector<int> &cell_ids,
+    std::vector<int> &local_facets_ids) const;
+  void get_full_unfitted_facets(const std::vector<int> &target_cell_ids,
+    const std::vector<int> &target_local_facets_ids,
+    std::vector<int> &cell_ids,
+    std::vector<int> &local_facets_ids) const;
+  void get_cut_facets(const std::vector<int> &target_cell_ids,
+    const std::vector<int> &target_local_facets_ids,
+    std::vector<int> &cell_ids,
+    std::vector<int> &local_facets_ids) const;
+
   [[nodiscard]] bool is_full_cell(int cell_id) const;
   [[nodiscard]] bool is_empty_cell(int cell_id) const;
   [[nodiscard]] bool is_cut_cell(int cell_id) const;

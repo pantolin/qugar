@@ -206,6 +206,138 @@ void UnfittedDomain<dim>::get_unfitted_facets(std::vector<int> &cell_ids, std::v
   }
 }
 
+template<int dim>
+void UnfittedDomain<dim>::get_empty_facets(const std::vector<int> &target_cell_ids,
+  const std::vector<int> &target_local_facets_ids,
+  std::vector<int> &cell_ids,
+  std::vector<int> &local_facets_ids) const
+{
+  assert(target_cell_ids.size() == target_local_facets_ids.size());
+
+  cell_ids.clear();
+  local_facets_ids.clear();
+  cell_ids.reserve(target_cell_ids.size());
+  local_facets_ids.reserve(target_cell_ids.size());
+
+  auto it_cell = target_cell_ids.cbegin();
+  auto it_facet = target_local_facets_ids.cbegin();
+
+  for (; it_cell != target_cell_ids.cend(); ++it_cell, ++it_facet) {
+    const auto cell_id = *it_cell;
+    const auto local_facet_id = *it_facet;
+    if (this->is_empty_facet(cell_id, local_facet_id)) {
+      cell_ids.push_back(cell_id);
+      local_facets_ids.push_back(local_facet_id);
+    }
+  }
+}
+
+template<int dim>
+void UnfittedDomain<dim>::get_full_facets(const std::vector<int> &target_cell_ids,
+  const std::vector<int> &target_local_facets_ids,
+  std::vector<int> &cell_ids,
+  std::vector<int> &local_facets_ids) const
+{
+  assert(target_cell_ids.size() == target_local_facets_ids.size());
+
+  cell_ids.clear();
+  local_facets_ids.clear();
+  cell_ids.reserve(target_cell_ids.size());
+  local_facets_ids.reserve(target_cell_ids.size());
+
+  auto it_cell = target_cell_ids.cbegin();
+  auto it_facet = target_local_facets_ids.cbegin();
+
+  for (; it_cell != target_cell_ids.cend(); ++it_cell, ++it_facet) {
+    const auto cell_id = *it_cell;
+    const auto local_facet_id = *it_facet;
+    if (this->is_full_facet(cell_id, local_facet_id)) {
+      cell_ids.push_back(cell_id);
+      local_facets_ids.push_back(local_facet_id);
+    }
+  }
+}
+
+
+template<int dim>
+void UnfittedDomain<dim>::get_cut_facets(const std::vector<int> &target_cell_ids,
+  const std::vector<int> &target_local_facets_ids,
+  std::vector<int> &cell_ids,
+  std::vector<int> &local_facets_ids) const
+{
+  assert(target_cell_ids.size() == target_local_facets_ids.size());
+
+  cell_ids.clear();
+  local_facets_ids.clear();
+  cell_ids.reserve(target_cell_ids.size());
+  local_facets_ids.reserve(target_cell_ids.size());
+
+  auto it_cell = target_cell_ids.cbegin();
+  auto it_facet = target_local_facets_ids.cbegin();
+
+  for (; it_cell != target_cell_ids.cend(); ++it_cell, ++it_facet) {
+    const auto cell_id = *it_cell;
+    const auto local_facet_id = *it_facet;
+    if (this->is_cut_facet(cell_id, local_facet_id)) {
+      cell_ids.push_back(cell_id);
+      local_facets_ids.push_back(local_facet_id);
+    }
+  }
+}
+
+template<int dim>
+void UnfittedDomain<dim>::get_full_unfitted_facets(const std::vector<int> &target_cell_ids,
+  const std::vector<int> &target_local_facets_ids,
+  std::vector<int> &cell_ids,
+  std::vector<int> &local_facets_ids) const
+{
+  assert(target_cell_ids.size() == target_local_facets_ids.size());
+
+  cell_ids.clear();
+  local_facets_ids.clear();
+  cell_ids.reserve(target_cell_ids.size());
+  local_facets_ids.reserve(target_cell_ids.size());
+
+  auto it_cell = target_cell_ids.cbegin();
+  auto it_facet = target_local_facets_ids.cbegin();
+
+  for (; it_cell != target_cell_ids.cend(); ++it_cell, ++it_facet) {
+    const auto cell_id = *it_cell;
+    const auto local_facet_id = *it_facet;
+    if (this->is_full_unfitted_facet(cell_id, local_facet_id)) {
+      cell_ids.push_back(cell_id);
+      local_facets_ids.push_back(local_facet_id);
+    }
+  }
+}
+
+
+template<int dim>
+void UnfittedDomain<dim>::get_unfitted_facets(const std::vector<int> &target_cell_ids,
+  const std::vector<int> &target_local_facets_ids,
+  std::vector<int> &cell_ids,
+  std::vector<int> &local_facets_ids) const
+{
+  assert(target_cell_ids.size() == target_local_facets_ids.size());
+
+  cell_ids.clear();
+  local_facets_ids.clear();
+  cell_ids.reserve(target_cell_ids.size());
+  local_facets_ids.reserve(target_cell_ids.size());
+
+  auto it_cell = target_cell_ids.cbegin();
+  auto it_facet = target_local_facets_ids.cbegin();
+
+  for (; it_cell != target_cell_ids.cend(); ++it_cell, ++it_facet) {
+    const auto cell_id = *it_cell;
+    const auto local_facet_id = *it_facet;
+    if (this->has_unfitted_boundary(cell_id, local_facet_id)) {
+      cell_ids.push_back(cell_id);
+      local_facets_ids.push_back(local_facet_id);
+    }
+  }
+}
+
 
 template<int dim> bool UnfittedDomain<dim>::is_full_cell(const int cell_id) const
 {
@@ -227,19 +359,31 @@ template<int dim> bool UnfittedDomain<dim>::is_cut_cell(const int cell_id) const
 
 template<int dim> bool UnfittedDomain<dim>::is_full_facet(const int cell_id, const int local_facet_id) const
 {
-  const auto facet = at(this->facets_status_.at(cell_id), local_facet_id);
-  return facet == ImmersedFacetStatus::full;
+  auto it = this->facets_status_.find(cell_id);
+  if (it != this->facets_status_.end()) {
+    const auto facet = at(it->second, local_facet_id);
+    return facet == ImmersedFacetStatus::full;
+  } else {
+    assert(0 <= local_facet_id && local_facet_id < static_cast<int>(n_facets_per_cell));
+    return this->is_full_cell(cell_id);
+  }
 }
 
 template<int dim> bool UnfittedDomain<dim>::is_empty_facet(const int cell_id, const int local_facet_id) const
 {
-  const auto facet = at(this->facets_status_.at(cell_id), local_facet_id);
-  switch (facet) {
-  case ImmersedFacetStatus::empty:
-  case ImmersedFacetStatus::ext_bdry:
-    return true;
-  default:
-    return false;
+  auto it = this->facets_status_.find(cell_id);
+  if (it != this->facets_status_.end()) {
+    const auto facet = at(it->second, local_facet_id);
+    switch (facet) {
+    case ImmersedFacetStatus::empty:
+    case ImmersedFacetStatus::ext_bdry:
+      return true;
+    default:
+      return false;
+    }
+  } else {
+    assert(0 <= local_facet_id && local_facet_id < static_cast<int>(n_facets_per_cell));
+    return this->is_empty_cell(cell_id);
   }
 }
 

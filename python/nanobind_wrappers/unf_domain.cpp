@@ -27,6 +27,7 @@
 #include <nanobind/ndarray.h>
 // NOLINTBEGIN (misc-include-cleaner)
 #include <nanobind/stl/array.h>
+#include <nanobind/stl/optional.h>
 #include <nanobind/stl/shared_ptr.h>
 // NOLINTEND (misc-include-cleaner)
 
@@ -47,6 +48,33 @@ namespace {
       const auto facets_py = Array(facets.data(), { facets.size() }, nb::handle());
       return nb::make_tuple(cells_py, facets_py);
     };
+
+    const auto get_facets =
+      [&make_tuple](const auto &accessor_0,
+        const auto &accessor_1,
+        const std::optional<nb::ndarray<const int, nb::numpy, nb::shape<-1>>> &target_cell_ids_py,
+        const std::optional<nb::ndarray<const int, nb::numpy, nb::shape<-1>>> &target_local_facet_ids_py) {
+        std::vector<int> cell_ids;
+        std::vector<int> local_facet_ids;
+
+        if (target_cell_ids_py.has_value() && target_local_facet_ids_py.has_value()) {
+          assert(target_local_facets_ids_py.has_value());
+
+          const std::span<const int> cells_span(target_cell_ids_py.value().data(), target_cell_ids_py.value().size());
+          const std::span<const int> local_facets_span(
+            target_local_facet_ids_py.value().data(), target_local_facet_ids_py.value().size());
+
+          accessor_0(std::vector<int>(cells_span.begin(), cells_span.end()),
+            std::vector<int>(local_facets_span.begin(), local_facets_span.end()),
+            cell_ids,
+            local_facet_ids);
+        } else {
+          accessor_1(cell_ids, local_facet_ids);
+        }
+
+        return make_tuple(cell_ids, local_facet_ids);
+      };
+
 
     const std::string pyclass_name{ std::string("UnfittedDomain_") + std::to_string(dim) + "D" };
     nb::class_<UnfDomain>(module, pyclass_name.c_str(), "UnfittedDomain object")
@@ -75,46 +103,78 @@ namespace {
           return Array(domain.get_cut_cells().data(), { domain.get_cut_cells().size() }, nb::handle());
         },
         nb::rv_policy::reference_internal)
-      .def_prop_ro(
-        "empty_facets",
-        [&make_tuple](UnfDomain &domain) {
-          std::vector<int> cell_ids;
-          std::vector<int> local_facet_ids;
-          domain.get_empty_facets(cell_ids, local_facet_ids);
+      .def(
+        "get_empty_facets",
+        [&get_facets](UnfDomain &domain,
+          const std::optional<nb::ndarray<const int, nb::numpy, nb::shape<-1>>> &target_cell_ids_py,
+          const std::optional<nb::ndarray<const int, nb::numpy, nb::shape<-1>>> &target_local_facet_ids_py) {
+          const auto accessor_0 =
+            [&domain](
+              const auto &target_cell_ids, const auto &target_local_facet_ids, auto &cell_ids, auto &local_facet_ids) {
+              domain.get_empty_facets(target_cell_ids, target_local_facet_ids, cell_ids, local_facet_ids);
+            };
+          const auto accessor_1 = [&domain](auto &cell_ids, auto &local_facet_ids) {
+            domain.get_empty_facets(cell_ids, local_facet_ids);
+          };
 
-          return make_tuple(cell_ids, local_facet_ids);
+          return get_facets(accessor_0, accessor_1, target_cell_ids_py, target_local_facet_ids_py);
         },
-        nb::rv_policy::reference_internal)
-      .def_prop_ro(
-        "full_facets",
-        [&make_tuple](UnfDomain &domain) {
-          std::vector<int> cell_ids;
-          std::vector<int> local_facet_ids;
-          domain.get_full_facets(cell_ids, local_facet_ids);
+        nb::arg("target_cell_ids") = nb::none(),
+        nb::arg("target_local_facet_ids") = nb::none())
+      .def(
+        "get_full_facets",
+        [&get_facets](UnfDomain &domain,
+          const std::optional<nb::ndarray<const int, nb::numpy, nb::shape<-1>>> &target_cell_ids_py,
+          const std::optional<nb::ndarray<const int, nb::numpy, nb::shape<-1>>> &target_local_facet_ids_py) {
+          const auto accessor_0 =
+            [&domain](
+              const auto &target_cell_ids, const auto &target_local_facet_ids, auto &cell_ids, auto &local_facet_ids) {
+              domain.get_full_facets(target_cell_ids, target_local_facet_ids, cell_ids, local_facet_ids);
+            };
+          const auto accessor_1 = [&domain](auto &cell_ids, auto &local_facet_ids) {
+            domain.get_full_facets(cell_ids, local_facet_ids);
+          };
 
-          return make_tuple(cell_ids, local_facet_ids);
+          return get_facets(accessor_0, accessor_1, target_cell_ids_py, target_local_facet_ids_py);
         },
-        nb::rv_policy::reference_internal)
-      .def_prop_ro(
-        "cut_facets",
-        [&make_tuple](UnfDomain &domain) {
-          std::vector<int> cell_ids;
-          std::vector<int> local_facet_ids;
-          domain.get_cut_facets(cell_ids, local_facet_ids);
+        nb::arg("target_cell_ids") = nb::none(),
+        nb::arg("target_local_facet_ids") = nb::none())
+      .def(
+        "get_cut_facets",
+        [&get_facets](UnfDomain &domain,
+          const std::optional<nb::ndarray<const int, nb::numpy, nb::shape<-1>>> &target_cell_ids_py,
+          const std::optional<nb::ndarray<const int, nb::numpy, nb::shape<-1>>> &target_local_facet_ids_py) {
+          const auto accessor_0 =
+            [&domain](
+              const auto &target_cell_ids, const auto &target_local_facet_ids, auto &cell_ids, auto &local_facet_ids) {
+              domain.get_cut_facets(target_cell_ids, target_local_facet_ids, cell_ids, local_facet_ids);
+            };
+          const auto accessor_1 = [&domain](auto &cell_ids, auto &local_facet_ids) {
+            domain.get_cut_facets(cell_ids, local_facet_ids);
+          };
 
-          return make_tuple(cell_ids, local_facet_ids);
+          return get_facets(accessor_0, accessor_1, target_cell_ids_py, target_local_facet_ids_py);
         },
-        nb::rv_policy::reference_internal)
-      .def_prop_ro(
-        "unf_bdry_facets",
-        [&make_tuple](UnfDomain &domain) {
-          std::vector<int> cell_ids;
-          std::vector<int> local_facet_ids;
-          domain.get_unfitted_facets(cell_ids, local_facet_ids);
+        nb::arg("target_cell_ids") = nb::none(),
+        nb::arg("target_local_facet_ids") = nb::none())
+      .def(
+        "get_unf_bdry_facets",
+        [&get_facets](UnfDomain &domain,
+          const std::optional<nb::ndarray<const int, nb::numpy, nb::shape<-1>>> &target_cell_ids_py,
+          const std::optional<nb::ndarray<const int, nb::numpy, nb::shape<-1>>> &target_local_facet_ids_py) {
+          const auto accessor_0 =
+            [&domain](
+              const auto &target_cell_ids, const auto &target_local_facet_ids, auto &cell_ids, auto &local_facet_ids) {
+              domain.get_unfitted_facets(target_cell_ids, target_local_facet_ids, cell_ids, local_facet_ids);
+            };
+          const auto accessor_1 = [&domain](auto &cell_ids, auto &local_facet_ids) {
+            domain.get_unfitted_facets(cell_ids, local_facet_ids);
+          };
 
-          return make_tuple(cell_ids, local_facet_ids);
+          return get_facets(accessor_0, accessor_1, target_cell_ids_py, target_local_facet_ids_py);
         },
-        nb::rv_policy::reference_internal);
+        nb::arg("target_cell_ids") = nb::none(),
+        nb::arg("target_local_facet_ids") = nb::none());
   }
 
   // Declare class for unfitted implicit domains.
