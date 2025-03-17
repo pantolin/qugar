@@ -316,7 +316,44 @@ class UnfittedDomain:
         """
 
         lex_cells, lex_facets = self._cpp_object.empty_facets
-        return self._get_facets(lex_cells, lex_facets, facet_ids, lexicg)
+        return self._transform_lexicg_facet_ids(lex_cells, lex_facets, facet_ids, lexicg)
+
+    def get_unf_bdry_facets(
+        self, facet_ids: bool = True, lexicg: bool = False
+    ) -> npt.NDArray[np.int32] | tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]:
+        """Gets the facets that contain a part of the unfitted boundary.
+
+        Args:
+            facet_ids (bool, optional): If `True`, the DOLFINx (local)
+                face indices will be returned. Otherwise, the facets are
+                returned as one array of cells and another one of local
+                facets referred to those cells. Defaults to `True`.
+
+            lexicg (bool, optional): In the case in which `facet_ids` is
+                set to `False`, `lexicg` describes the ordering for the
+                returned cells and local facets. If `lexicg` is set to
+                `True`, cell indices and local facets follow the
+                lexicographical ordering of the Cartesian mesh.
+                Otherwise, they correspond to DOLFINx local numbering
+                of the current submesh. If `facet_ids` is set to `True`,
+                this options does not play any role.
+                Defaults to `False`.
+
+        Returns:
+            npt.NDArray[np.int32] | tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]:
+            Facets that contain a part of the unfitted boundary.
+            If `facet_ids` is set to `True`, it returns
+            the DOLFINx (local) facet indices associated to the current
+            proces. Otherwise, the facets are returned as one array of
+            cells and another one of local facets referred to those
+            cells. In the latter case, the indices of the cells and
+            local facets may follow the lexicographical ordering if
+            `lexicg` is set to `True`. Otherwise, they follow the
+            DOLFINx numbering.
+        """
+
+        lex_cells, lex_facets = self._cpp_object.unf_bdry_facets
+        return self._transform_lexicg_facet_ids(lex_cells, lex_facets, facet_ids, lexicg)
 
     def create_cell_tags(
         self,

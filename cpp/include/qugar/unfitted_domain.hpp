@@ -78,6 +78,7 @@ public:
 
   void get_empty_facets(std::vector<int> &cell_ids, std::vector<int> &local_facets_ids) const;
   void get_full_facets(std::vector<int> &cell_ids, std::vector<int> &local_facets_ids) const;
+  void get_unfitted_facets(std::vector<int> &cell_ids, std::vector<int> &local_facets_ids) const;
   void get_full_unfitted_facets(std::vector<int> &cell_ids, std::vector<int> &local_facets_ids) const;
   void get_cut_facets(std::vector<int> &cell_ids, std::vector<int> &local_facets_ids) const;
 

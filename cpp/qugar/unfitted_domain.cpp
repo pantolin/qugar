@@ -147,26 +147,64 @@ void UnfittedDomain<dim>::get_cut_facets(std::vector<int> &cell_ids, std::vector
   }
 }
 
-// template<int dim>
-// void UnfittedDomain<dim>::get_full_unfitted_facets(std::vector<int> &cell_ids, std::vector<int> &local_facets_ids)
-// const
-// {
-//   const auto n_facets_estimate = this->cut_cells_.size() * n_facets_per_cell;
+template<int dim>
+void UnfittedDomain<dim>::get_full_unfitted_facets(std::vector<int> &cell_ids, std::vector<int> &local_facets_ids) const
+{
+  const auto n_facets_estimate = this->cut_cells_.size() * n_facets_per_cell;
 
-//   cell_ids.clear();
-//   local_facets_ids.clear();
-//   cell_ids.reserve(n_facets_estimate);
-//   local_facets_ids.reserve(n_facets_estimate);
+  cell_ids.clear();
+  local_facets_ids.clear();
+  cell_ids.reserve(n_facets_estimate);
+  local_facets_ids.reserve(n_facets_estimate);
 
-//   for (const auto cell_id : this->cut_cells_) {
-//     for (int local_facet_id = 0; local_facet_id < static_cast<int>(n_facets_per_cell); ++local_facet_id) {
-//       if (this->is_full_unfitted_facet(cell_id, local_facet_id)) {
-//         cell_ids.push_back(cell_id);
-//         local_facets_ids.push_back(local_facet_id);
-//       }
-//     }
-//   }
-// }
+  for (const auto &cell_id : this->full_cells_) {
+    for (int local_facet_id = 0; local_facet_id < static_cast<int>(n_facets_per_cell); ++local_facet_id) {
+      if (this->is_full_unfitted_facet(cell_id, local_facet_id)) {
+        cell_ids.push_back(cell_id);
+        local_facets_ids.push_back(local_facet_id);
+      }
+    }
+  }
+
+  for (const auto cell_id : this->cut_cells_) {
+    for (int local_facet_id = 0; local_facet_id < static_cast<int>(n_facets_per_cell); ++local_facet_id) {
+      if (this->is_full_unfitted_facet(cell_id, local_facet_id)) {
+        cell_ids.push_back(cell_id);
+        local_facets_ids.push_back(local_facet_id);
+      }
+    }
+  }
+}
+
+
+template<int dim>
+void UnfittedDomain<dim>::get_unfitted_facets(std::vector<int> &cell_ids, std::vector<int> &local_facets_ids) const
+{
+  const auto n_facets_estimate = this->cut_cells_.size() * n_facets_per_cell;
+
+  cell_ids.clear();
+  local_facets_ids.clear();
+  cell_ids.reserve(n_facets_estimate);
+  local_facets_ids.reserve(n_facets_estimate);
+
+  for (const auto &cell_id : this->full_cells_) {
+    for (int local_facet_id = 0; local_facet_id < static_cast<int>(n_facets_per_cell); ++local_facet_id) {
+      if (this->has_unfitted_boundary(cell_id, local_facet_id)) {
+        cell_ids.push_back(cell_id);
+        local_facets_ids.push_back(local_facet_id);
+      }
+    }
+  }
+
+  for (const auto cell_id : this->cut_cells_) {
+    for (int local_facet_id = 0; local_facet_id < static_cast<int>(n_facets_per_cell); ++local_facet_id) {
+      if (this->has_unfitted_boundary(cell_id, local_facet_id)) {
+        cell_ids.push_back(cell_id);
+        local_facets_ids.push_back(local_facet_id);
+      }
+    }
+  }
+}
 
 
 template<int dim> bool UnfittedDomain<dim>::is_full_cell(const int cell_id) const

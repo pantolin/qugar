@@ -104,6 +104,16 @@ namespace {
 
           return make_tuple(cell_ids, local_facet_ids);
         },
+        nb::rv_policy::reference_internal)
+      .def_prop_ro(
+        "unf_bdry_facets",
+        [&make_tuple](UnfDomain &domain) {
+          std::vector<int> cell_ids;
+          std::vector<int> local_facet_ids;
+          domain.get_unfitted_facets(cell_ids, local_facet_ids);
+
+          return make_tuple(cell_ids, local_facet_ids);
+        },
         nb::rv_policy::reference_internal);
   }
 
