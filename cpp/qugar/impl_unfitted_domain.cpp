@@ -72,6 +72,31 @@ namespace {
       target_cells.cbegin(), target_cells.cend(), [&range](const int cell_id) { return range.is_in_range(cell_id); });
   }
 
+  //! @brief Checks if the subgrid intersects with the target cells.
+  //!
+  //! This function determines whether any of the target cells are within the range
+  //! of the given subgrid by checking if at least one cell ID from the target cells
+  //! exists within the subgrid's range.
+  //!
+  //! @p target_cells is an optional vector of cell indices to test for intersection.
+  //! If `target_cells` is not provided, this function returns `true` (it assumes that
+  //! all the cells are considered.)
+  //!
+  //! @tparam dim The dimensionality of the grid.
+  //! @param subgrid The subgrid to check for intersection with target cells.
+  //! @param target_cells An optional vector of cell indices to test for intersection.
+  //! @return `true` if any target cell is within the subgrid's range, or no target cells are defined;
+  //! `false` otherwise.
+  template<int dim>
+  bool intersect(const SubCartGridTP<dim> &subgrid, const std::optional<std::vector<int>> &target_cells)
+  {
+    if (target_cells.has_value()) {
+      return intersect(subgrid, target_cells.value());
+    } else {
+      return true;
+    }
+  }
+
 
   //! Inserts cell IDs from a subgrid into a container.
   //!
@@ -491,7 +516,7 @@ void UnfittedImplDomain<dim>::create_decomposition(const SubCartGridTP<dim> &sub
   const std::function<FuncSign(const BoundBox<dim> &)> &func_sign,
   const std::optional<std::vector<int>> &target_cells)
 {
-  if (target_cells.has_value() && !intersect(subgrid, target_cells.value())) {
+  if (!intersect(subgrid, target_cells)) {
     return;
   }
 
@@ -500,46 +525,38 @@ void UnfittedImplDomain<dim>::create_decomposition(const SubCartGridTP<dim> &sub
   const auto ext_domain = domain.extend(numbers::eps * 1000);
   const auto sign = func_sign(ext_domain);
 
-  if (sign == FuncSign::undetermined && !subgrid.is_unique_cell()) {
-    for (const auto &subgrid_half : subgrid.split()) {
-      this->create_decomposition(*subgrid_half, func_sign, target_cells);
+  if (sign == FuncSign::undetermined) {
+    if (subgrid.is_unique_cell()) {
+      this->classify_undetermined_sign_cell(subgrid);
+    } else {
+      for (const auto &subgrid_half : subgrid.split()) {
+        this->create_decomposition(*subgrid_half, func_sign, target_cells);
+      }
     }
   } else {
-    switch (sign) {
-    case FuncSign::undetermined: {
-      this->classify_undetermined_sign_cell(subgrid);
-      return;
-    }
-    case FuncSign::positive: {
-      insert_cells(subgrid, target_cells, this->empty_cells_);
-      insert_facets(subgrid, target_cells, ImmersedFacetStatus::empty, this->facets_status_);
-      return;
-    }
-    case FuncSign::negative: {
-      insert_cells(subgrid, target_cells, this->full_cells_);
-      insert_facets(subgrid, target_cells, ImmersedFacetStatus::full, this->facets_status_);
-      return;
-    }
-    }
+    assert(sign == FuncSign::positive || sign == FuncSign::negative);
+
+    std::vector<int> &cells = sign == FuncSign::positive ? this->empty_cells_ : this->full_cells_;
+    const auto facet_status = sign == FuncSign::positive ? ImmersedFacetStatus::empty : ImmersedFacetStatus::full;
+    insert_cells(subgrid, target_cells, cells);
+    insert_facets(subgrid, target_cells, facet_status, this->facets_status_);
   }
 }
 
 template<int dim> void UnfittedImplDomain<dim>::classify_undetermined_sign_cell(const SubCartGridTP<dim> &subgrid)
 {
   assert(subgrid.is_unique_cell());
-  const auto cell_id = subgrid.get_single_cell();
   const auto [status, facets] = classify_cut_cell_and_facets(*this->phi_, subgrid);
-  switch (status) {
-  case ImmersedStatus::cut:
-    this->cut_cells_.push_back(cell_id);
-    break;
-  case ImmersedStatus::empty:
-    this->empty_cells_.push_back(cell_id);
-    break;
-  case ImmersedStatus::full:
-    this->full_cells_.push_back(cell_id);
-    break;
-  }
+
+  // NOLINTBEGIN (readability-avoid-nested-conditional-operator)
+  std::vector<int> &cells = status == ImmersedStatus::cut
+                              ? this->cut_cells_
+                              : (status == ImmersedStatus::empty ? this->empty_cells_ : this->full_cells_);
+  // NOLINTEND (readability-avoid-nested-conditional-operator)
+
+  const auto cell_id = subgrid.get_single_cell();
+  cells.push_back(cell_id);
+
   this->facets_status_.emplace(cell_id, facets);
 }
 
