@@ -464,18 +464,11 @@ namespace {
     }
 
     assert(tmp_cell_status == ImmersedStatusTmp::cut || tmp_cell_status == ImmersedStatusTmp::full_unf_bdry);
+    // Full cells that may contain unfitted boundaries are considered full.
+    const auto cell_status = tmp_cell_status == ImmersedStatusTmp::cut ? ImmersedStatus::cut : ImmersedStatus::full;
 
     for (int local_facet_id = 0; local_facet_id < dim * 2; ++local_facet_id) {
       at(facets, local_facet_id) = classify_facet(phi, subgrid, local_facet_id, tmp_cell_status);
-    }
-
-    ImmersedStatus cell_status{ ImmersedStatus::cut };
-
-    // Looking for full_unf_bdry cells whose facets are either full.
-    // In that case, we consider the cell as full.
-    if (tmp_cell_status == ImmersedStatusTmp::full_unf_bdry
-        && std::ranges::all_of(facets, [](const auto &facet) { return facet == ImmersedFacetStatus::full; })) {
-      cell_status = ImmersedStatus::full;
     }
 
     return std::make_pair(cell_status, facets);
