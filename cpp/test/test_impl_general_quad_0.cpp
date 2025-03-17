@@ -152,7 +152,6 @@ TEST_CASE("General function quadrature", "[impl]")
   const Point<3> target_centroid(0.5000000310737452, 0.4999998788332324, 0.4999999483123341);
   const auto centroid = compute_points_centroid(quad->points, quad->weights);
   // NOLINTNEXTLINE (cppcoreguidelines-avoid-do-while)
-  std::cerr << centroid << std::endl;
   REQUIRE(tol.coincident(centroid, target_centroid));
 
   const auto unf_bound_quad = create_unfitted_bound_quadrature<3>(unf_domain, unf_domain.get_cut_cells(), n_pts_dir);
