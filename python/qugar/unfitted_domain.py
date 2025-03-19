@@ -15,11 +15,8 @@ from qugar import has_FEniCSx
 if not has_FEniCSx:
     raise ValueError("FEniCSx installation not found is required.")
 
-import dolfinx
-import dolfinx.mesh
 import numpy as np
 import numpy.typing as npt
-from dolfinx.mesh import MeshTags
 
 from qugar.cpp import UnfittedDomain_2D, UnfittedDomain_3D
 from qugar.mesh import CartesianMesh, DOLFINx_to_lexicg_faces
@@ -390,17 +387,17 @@ class UnfittedDomain:
             local_facet_ids,
         )
 
-    def create_cell_tags(
+    def create_cell_subdomain_data(
         self,
         cut_tag: Optional[int] = None,
         full_tag: Optional[int] = None,
         empty_tag: Optional[int] = None,
-    ) -> MeshTags:
-        """Creates a `MeshTags` objects containing the cut, full, and
+    ) -> list[tuple[int, npt.NDArray[np.int32]]]:
+        """Creates subdomain data that may contain the cut, full, and/or
         empty cells.
 
         If the tag for cut, full, or empty cells are not provided, those
-        cells will not be included in the generated `MeshTags`.
+        cells will not be included.
 
         Args:
             cut_tag (Optional[int]): Tag to assign to cut cells. Defaults to None.
@@ -408,42 +405,43 @@ class UnfittedDomain:
             empty_tag (Optional[int]): Tag to assign to empty cells. Defaults to None.
 
         Returns:
-            MeshTags: Generated mesh tags.
+            list[tuple[int, npt.NDArray[np.int32]]]: Generated cells subdomain data.
+            It is a list where is entry is a tuple with a tag (identifier) and an array
+            of cell ids.
         """
 
-        cells = np.empty(0, dtype=np.int32)
-        tags = np.empty(0, dtype=np.int32)
+        subdomain_data = []
+
+        def add_cells(cells, tag):
+            ids = [i for i in range(len(subdomain_data)) if subdomain_data[i][0] == tag]
+            if len(ids) > 0:
+                id = ids[0]
+                subdomain_data[id] = (tag, np.concatenate([subdomain_data[id][1], cells]))
+            else:
+                subdomain_data.append((tag, cells))
 
         if cut_tag is not None:
-            cut_cells = self.get_cut_cells(lexicg=False)
-            cells = np.concatenate([cells, cut_cells])
-            tags = np.concatenate([tags, np.full(cut_cells.size, cut_tag, dtype=np.int32)])
+            add_cells(self.get_cut_cells(lexicg=False), cut_tag)
 
         if full_tag is not None:
-            full_cells = self.get_full_cells(lexicg=False)
-            cells = np.concatenate([cells, full_cells])
-            tags = np.concatenate([tags, np.full(full_cells.size, full_tag, dtype=np.int32)])
+            add_cells(self.get_full_cells(lexicg=False), full_tag)
 
         if empty_tag is not None:
-            empty_cells = self.get_empty_cells(lexicg=False)
-            cells = np.concatenate([cells, empty_cells])
-            tags = np.concatenate([tags, np.full(empty_cells.size, empty_tag, dtype=np.int32)])
+            add_cells(self.get_empty_cells(lexicg=False), empty_tag)
 
-        sort_ind = cells.argsort()
-        cells = cells[sort_ind]
-        tags = tags[sort_ind]
+        for i, tag_cells in enumerate(subdomain_data):
+            subdomain_data[i] = (tag_cells[0], np.sort(tag_cells[1]))
 
-        tdim = self._cart_mesh.tdim
-        return dolfinx.mesh.meshtags(self._cart_mesh.dolfinx_mesh, tdim, cells, tags)
+        return subdomain_data
 
-    def create_facet_tags(
+    def create_facet_subdomain_data(
         self,
         cut_tag: Optional[int] = None,
         full_tag: Optional[int] = None,
         empty_tag: Optional[int] = None,
-    ) -> MeshTags:
-        """Creates a `MeshTags` objects containing the cut, full, and
-        empty facets.
+    ) -> list[tuple[int, npt.NDArray[np.int32]]]:
+        """Creates subdomain data that may contain the cut, full, and/or
+        empty facets
 
         If the tag for cut, full, or empty facets are not provided, those
         facets will not be included in the generated `MeshTags`.
@@ -454,33 +452,37 @@ class UnfittedDomain:
             empty_tag (Optional[int]): Tag to assign to empty facets. Defaults to None.
 
         Returns:
-            MeshTags: Generated mesh tags.
+            list[tuple[int, npt.NDArray[np.int32]]]: Generated tags subdomain data.
+            It is a list where is entry is a tuple with a tag (identifier) and an array
+            of facets. The array of facets is made of consecutive pairs of cells and local facets.
+
         """
 
-        facets = np.empty(0, dtype=np.int32)
-        tags = np.empty(0, dtype=np.int32)
+        subdomain_data = []
+
+        def add_facets(cells, local_facets, tag):
+            assert len(cells) == len(local_facets), "Non-matching sizes."
+            facets = np.empty(2 * len(cells), dtype=np.int32)
+            facets[0::2] = cells
+            facets[1::2] = local_facets
+
+            ids = [i for i in range(len(subdomain_data)) if subdomain_data[i][0] == tag]
+            if len(ids) > 0:
+                id = ids[0]
+                subdomain_data[id] = (tag, np.concatenate([subdomain_data[id][1], facets]))
+            else:
+                subdomain_data.append((tag, facets))
 
         if cut_tag is not None:
             cells, local_facets = self.get_cut_facets()
-            cut_facets = self._transform_cell_facet_pairs_to_facet_ids(cells, local_facets)
-            facets = np.concatenate([facets, cut_facets])
-            tags = np.concatenate([tags, np.full(cut_facets.size, cut_tag, dtype=np.int32)])
+            add_facets(cells, local_facets, cut_tag)
 
         if full_tag is not None:
             cells, local_facets = self.get_full_facets()
-            full_facets = self._transform_cell_facet_pairs_to_facet_ids(cells, local_facets)
-            facets = np.concatenate([facets, full_facets])
-            tags = np.concatenate([tags, np.full(full_facets.size, full_tag, dtype=np.int32)])
+            add_facets(cells, local_facets, full_tag)
 
         if empty_tag is not None:
             cells, local_facets = self.get_empty_facets()
-            empty_facets = self._transform_cell_facet_pairs_to_facet_ids(cells, local_facets)
-            facets = np.concatenate([facets, empty_facets])
-            tags = np.concatenate([tags, np.full(empty_facets.size, empty_tag, dtype=np.int32)])
+            add_facets(cells, local_facets, cut_tag)
 
-        sort_ind = facets.argsort()
-        facets = facets[sort_ind]
-        tags = tags[sort_ind]
-        facet_dim = self._cart_mesh.tdim - 1
-
-        return dolfinx.mesh.meshtags(self._cart_mesh.dolfinx_mesh, facet_dim, facets, tags)
+        return subdomain_data

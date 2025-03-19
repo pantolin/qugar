@@ -76,7 +76,7 @@ def create_div_thm_volume_ufl_form(domain: UnfittedImplDomain, n_quad_pts: int):
 
     full_tag = 1
     cut_tag = 0
-    cell_tags = domain.create_cell_tags(cut_tag=cut_tag, full_tag=full_tag)
+    cell_tags = domain.create_cell_subdomain_data(cut_tag=cut_tag, full_tag=full_tag)
 
     quad_degree = get_Gauss_quad_degree(n_quad_pts)
     dx_ = ufl.dx(
@@ -113,13 +113,16 @@ def create_div_thm_surface_ufl_form(domain: UnfittedImplDomain, n_quad_pts: int)
 
     cut_tag = 0
     full_tag = 1
-    cell_tags = domain.create_cell_tags(cut_tag=cut_tag, full_tag=full_tag)
-    facet_tags = domain.create_facet_tags(cut_tag=cut_tag, full_tag=full_tag)
+    cell_subdomain_data = domain.create_cell_subdomain_data(cut_tag=cut_tag, full_tag=full_tag)
+    facet_tags = domain.create_facet_subdomain_data(cut_tag=cut_tag, full_tag=full_tag)
 
     quad_degree = get_Gauss_quad_degree(n_quad_pts)
 
     ds_int = dx_bdry_unf(
-        domain=dlf_mesh, subdomain_data=cell_tags, subdomain_id=cut_tag, degree=quad_degree
+        domain=dlf_mesh,
+        subdomain_data=cell_subdomain_data,
+        subdomain_id=cut_tag,
+        degree=quad_degree,
     )
 
     ds_ = ufl.ds(domain=dlf_mesh, subdomain_data=facet_tags)
@@ -594,6 +597,6 @@ def test_tpms(
 
 
 if __name__ == "__main__":
-    # test_disk(8, 6, np.float64, True, False)
+    test_disk(8, 6, np.float64, True, False)
     # test_cylinder(8, 6, np.float64, True, False)
-    test_tpms(3, 12, 8, np.float32, False)
+    # test_tpms(3, 12, 8, np.float32, False)

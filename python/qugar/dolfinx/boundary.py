@@ -20,6 +20,7 @@ from typing import Optional
 import dolfinx.fem
 import dolfinx.mesh
 import numpy as np
+import numpy.typing as npt
 import ufl
 from ufl.geometry import Jacobian
 from ufl.measure import integral_type_to_measure_name
@@ -123,7 +124,9 @@ class dx_bdry_unf(ufl.Measure):
         domain: ufl.AbstractDomain | dolfinx.mesh.Mesh,
         subdomain_id: str | int | tuple[int] = "everywhere",
         metadata: dict | None = None,
-        subdomain_data: dolfinx.mesh.MeshTags | None = None,
+        subdomain_data: dolfinx.mesh.MeshTags
+        | list[tuple[int, npt.NDArray[np.int32]]]
+        | None = None,
         degree: Optional[int] = None,
     ):
         """Initialize.
@@ -137,11 +140,10 @@ class dx_bdry_unf(ufl.Measure):
             metadata (dict | None, optional): Dictionary with additional
                 compiler-specific parameters for optimization or
                 debugging of generated code. Defaults to None.
-            subdomain_data (dolfinx.mesh.MeshTags | None, optional):
-                Object representing data to interpret subdomain_id with.
-                Defaults to None.
+            subdomain_data (dolfinx.mesh.MeshTags | list[tuple[int, npt.NDArray[np.int32]]] | None, optional):
+                Object representing data to interpret subdomain_id with. Defaults to None.
             degree (int, optional): The degree of the quadrature rule.
-        """
+        """  # noqa: E501
 
         assert domain is not None
 
