@@ -580,19 +580,8 @@ std::shared_ptr<const CutIsoBoundsQuad<dim - 1>> create_facets_quadrature(const 
   for (const int cell_id : cells) {
     const auto local_facet_id = *facet_it++;
 
-    if (unf_domain.is_cut_facet(cell_id, local_facet_id)) {
-      compute_facet_quadrature_with_algoim<dim>(*phi, unf_domain, cell_id, local_facet_id, n_pts_dir, *quad);
-
-      constexpr bool purge_unf_bdry{ true };
-      constexpr bool purge_iso_bdry{ true };
-      purge_facet_points(*phi, unf_domain, cell_id, local_facet_id, purge_unf_bdry, purge_iso_bdry, *quad);
-    }
-
-    else if (unf_domain.is_empty_facet(cell_id, local_facet_id)) {
-      n_pts_per_facet.push_back(0);
-    }
-
-    else {// if (unf_domain.is_full_facet(cell_id, local_facet_id)) {
+    if (unf_domain.is_full_facet(cell_id, local_facet_id)
+        || unf_domain.is_full_unfitted_facet(cell_id, local_facet_id)) {
       const auto &gauss_pt = gauss_01->points();
       points.insert(points.end(), gauss_pt.cbegin(), gauss_pt.cend());
 
@@ -600,6 +589,15 @@ std::shared_ptr<const CutIsoBoundsQuad<dim - 1>> create_facets_quadrature(const 
       weights.insert(weights.end(), gauss_wg.cbegin(), gauss_wg.cend());
 
       n_pts_per_facet.push_back(n_pts_per_quad_set);
+    } else if (unf_domain.is_cut_facet(cell_id, local_facet_id)
+               || unf_domain.has_unfitted_boundary(cell_id, local_facet_id)) {
+      compute_facet_quadrature_with_algoim<dim>(*phi, unf_domain, cell_id, local_facet_id, n_pts_dir, *quad);
+
+      constexpr bool purge_unf_bdry{ false };
+      constexpr bool purge_iso_bdry{ true };
+      purge_facet_points(*phi, unf_domain, cell_id, local_facet_id, purge_unf_bdry, purge_iso_bdry, *quad);
+    } else {// if (unf_domain.is_empty_facet(cell_id, local_facet_id)) {
+      n_pts_per_facet.push_back(0);
     }
   }
 
