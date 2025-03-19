@@ -113,7 +113,6 @@ public:
   [[nodiscard]] bool is_full_unfitted_facet(int cell_id, int local_facet_id) const;
 
   [[nodiscard]] bool has_unfitted_boundary(int cell_id, int local_facet_id) const;
-  [[nodiscard]] bool has_unfitted_boundary_on_domain_boundary(int cell_id, int local_facet_id) const;
   [[nodiscard]] bool has_external_boundary(int cell_id, int local_facet_id) const;
 
 protected:

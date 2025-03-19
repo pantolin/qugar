@@ -457,7 +457,13 @@ def quadrature_to_PyVista(
 
     cut_facets_cells, cut_facets_local_facets = domain_.cut_facets
     facets_quad = qugar.cpp.create_facets_quadrature(
-        domain_, cut_facets_cells, cut_facets_local_facets, n_pts_dir, full_facets=False
+        domain_,
+        cut_facets_cells,
+        cut_facets_local_facets,
+        n_pts_dir,
+        full_facets=False,
+        remove_unf_bdry=False,
+        remove_cut=False,
     )
     facets_points_set = _create_quad_facet_points_grid(domain_.grid, facets_quad)
 

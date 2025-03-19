@@ -39,6 +39,7 @@
 #include <array>
 #include <cassert>
 #include <cmath>
+#include <cstddef>
 #include <functional>
 #include <memory>
 #include <vector>
@@ -107,35 +108,6 @@ namespace {
       quad.weights.push_back(weight * norm_normal / domain.volume());
 
       quad.normals.push_back(normal);
-    }
-
-    void add_full_facet_points(const int local_facet_id, const int n_pts_dir)
-    {
-      assert(0 <= local_facet_id && local_facet_id < 2 * dim);
-      assert(0 <= n_pts_dir);
-
-      const int const_dir = get_facet_constant_dir<dim>(local_facet_id);
-      const int side = get_facet_side<dim>(local_facet_id);
-      const auto facet_coord_0_1 = side == 0 ? numbers::zero : numbers::one;
-
-      const auto gauss_01 = Quadrature<dim - 1>::create_Gauss_01(n_pts_dir);
-
-      // Unit normal in element's domain.
-      Point<dim> normal{};
-      normal(const_dir) = side == 0 ? -numbers::one : numbers::one;
-
-      const auto n_pts = static_cast<int>(gauss_01->get_num_points());
-
-      const auto &points_01 = gauss_01->points();
-      const auto &weights_01 = gauss_01->weights();
-      for (int i = 0; i < n_pts; ++i) {
-        const auto &facet_point_01 = at(points_01, i);
-        const auto point_01 = add_component(facet_point_01, const_dir, facet_coord_0_1);
-        quad.points.push_back(point_01);
-        quad.normals.push_back(normal);
-
-        quad.weights.push_back(at(weights_01, i));
-      }
     }
   };
 
@@ -242,24 +214,41 @@ namespace {
     }
   }
 
-  template<int dim, typename T>
+  template<typename T, const bool is_facet_quad> void erase_points_in_quad(std::vector<int> &points_to_erase, T &quad)
+  {
+    // Sort in descending order
+    std::ranges::sort(points_to_erase, std::ranges::greater());
+
+    for (const auto &pt_id : points_to_erase) {
+      quad.points.erase(quad.points.begin() + pt_id);
+      quad.weights.erase(quad.weights.begin() + pt_id);
+      if constexpr (!is_facet_quad) {
+        quad.normals.erase(quad.normals.begin() + pt_id);
+      }
+    }
+
+    const auto n_pts_to_erase = static_cast<int>(points_to_erase.size());
+    if constexpr (is_facet_quad) {
+      quad.n_pts_per_facet.back() -= n_pts_to_erase;
+    } else {
+      quad.n_pts_per_cell.back() -= n_pts_to_erase;
+    }
+  }
+
+  template<int dim>
   // NOLINTBEGIN (bugprone-easily-swappable-parameters)
   void purge_facet_points(const ImplicitFunc<dim> &func,
     const UnfittedImplDomain<dim> &unf_domain,
     const int cell_id,
     const int local_facet_id,
-    const bool purge_unfitted_bdry,
-    const bool purge_external_bdry,
-    T &quad)
+    CutUnfBoundsQuad<dim> &quad)
   // NOLINTEND (bugprone-easily-swappable-parameters)
   {
-    const bool unf_bound = purge_unfitted_bdry && unf_domain.has_unfitted_boundary(cell_id, local_facet_id);
-    const bool ext_bound = purge_external_bdry && unf_domain.has_external_boundary(cell_id, local_facet_id);
+    const bool unf_bound = unf_domain.has_unfitted_boundary(cell_id, local_facet_id);
+    const bool ext_bound = unf_domain.has_external_boundary(cell_id, local_facet_id);
     if (!unf_bound && !ext_bound) {
       return;
     }
-
-    constexpr bool is_facet_quad = std::is_same_v<T, CutIsoBoundsQuad<dim - 1>>;
 
     const Tolerance tol(1000.0 * numbers::eps);
 
@@ -268,67 +257,92 @@ namespace {
     const auto domain = unf_domain.get_grid()->get_cell_domain(cell_id);
     const auto facet_coord_0_1 = side == 0 ? numbers::zero : numbers::one;
 
-    int n_pts{ 0 };
-    if constexpr (is_facet_quad) {
-      n_pts = quad.n_pts_per_facet.back();
-    } else {
-      n_pts = quad.n_pts_per_cell.back();
-    }
+    const int n_pts = quad.n_pts_per_cell.back();
     const auto n_tot_pts = static_cast<int>(quad.points.size());
 
-    std::vector<int> points_to_purge;
+    std::vector<int> points_to_erase;
 
-    Point<dim> point;
     // NOLINTNEXTLINE (misc-const-correctness)
-    bool pointing_outside{ true };
     for (int pt_id = n_tot_pts - n_pts; pt_id < n_tot_pts; ++pt_id) {
 
       const auto &pt_01 = at(quad.points, pt_id);
 
-      if constexpr (is_facet_quad) {
-        const Point<dim> sup_pt_01 = add_component<real, dim - 1>(pt_01, const_dir, facet_coord_0_1);
-        point = domain.scale_from_0_1(sup_pt_01);
-      } else {
-
-        if (!tol.equal(pt_01(const_dir), facet_coord_0_1)) {
-          continue;
-        }
-
-        const auto normal = at(quad.normals, pt_id);
-        const auto normal_comp = normal(const_dir);
-        if (tol.smaller_than(std::abs(normal_comp), numbers::one)) {
-          // Not normal to facet.
-          continue;
-        }
-
-        pointing_outside = side == 0 ? tol.is_negative(normal_comp) : tol.is_positive(normal_comp);
-
-        point = domain.scale_from_0_1(pt_01);
+      if (!tol.equal(pt_01(const_dir), facet_coord_0_1)) {
+        // Point not on facet.
+        continue;
       }
 
-      if (on_levelset(func, point, tol)) {
-        if ((pointing_outside && unf_bound) || (!pointing_outside && ext_bound)) {
+      const auto normal = at(quad.normals, pt_id);
+      const auto normal_comp = normal(const_dir);
+      if (!tol.smaller_than(std::abs(normal_comp), numbers::one)) {
+        // Not normal to facet.
+        continue;
+      }
+
+      if (on_levelset(func, domain.scale_from_0_1(pt_01), tol)) {
+        points_to_erase.push_back(pt_id);
+      }
+    }
+
+    erase_points_in_quad<CutUnfBoundsQuad<dim>, false>(points_to_erase, quad);
+  }
+
+  template<int dim>
+  // NOLINTBEGIN (bugprone-easily-swappable-parameters)
+  void purge_facet_points(const ImplicitFunc<dim> &func,
+    const UnfittedImplDomain<dim> &unf_domain,
+    const int cell_id,
+    const int local_facet_id,
+    bool purge_unf_bdry,
+    bool purge_unf_ext_bdry,
+    bool purge_cut,
+    CutIsoBoundsQuad<dim - 1> &quad)
+  // NOLINTEND (bugprone-easily-swappable-parameters)
+  {
+    const bool has_unf_bdry = unf_domain.has_unfitted_boundary(cell_id, local_facet_id);
+    purge_unf_bdry = purge_unf_bdry && has_unf_bdry;
+    purge_unf_ext_bdry = purge_unf_ext_bdry && has_unf_bdry;
+    purge_cut = purge_cut && unf_domain.is_cut_facet(cell_id, local_facet_id);
+
+    if (!purge_unf_bdry && !purge_unf_ext_bdry && !purge_cut) {
+      return;
+    }
+
+    const Tolerance tol(1000.0 * numbers::eps);
+
+    const int const_dir = get_facet_constant_dir<dim>(local_facet_id);
+    const int side = get_facet_side<dim>(local_facet_id);
+    const auto domain = unf_domain.get_grid()->get_cell_domain(cell_id);
+    const auto facet_coord_0_1 = side == 0 ? numbers::zero : numbers::one;
+
+    const auto n_pts = quad.n_pts_per_facet.back();
+    const auto n_tot_pts = static_cast<int>(quad.points.size());
+
+    std::vector<int> points_to_purge;
+    points_to_purge.reserve(static_cast<std::size_t>(n_pts));
+
+    Point<dim> point;
+    // NOLINTNEXTLINE (misc-const-correctness)
+    for (int pt_id = n_tot_pts - n_pts; pt_id < n_tot_pts; ++pt_id) {
+
+      const auto &pt_01 = at(quad.points, pt_id);
+      const Point<dim> sup_pt_01 = add_component<real, dim - 1>(pt_01, const_dir, facet_coord_0_1);
+      point = domain.scale_from_0_1(sup_pt_01);
+
+      if (on_levelset(func, point, tol)) {// On unfitted boundary, either internal or external.
+        const auto normal = func.grad(point);
+        const auto normal_comp = normal(const_dir);
+
+        const auto pointing_outside = side == 0 ? tol.is_negative(normal_comp) : tol.is_positive(normal_comp);
+        if ((pointing_outside && purge_unf_bdry) || (!pointing_outside && purge_unf_ext_bdry)) {
           points_to_purge.push_back(pt_id);
         }
+      } else if (purge_cut) {// Not on unfitted boundary, so on cut facet.
+        points_to_purge.push_back(pt_id);
       }
     }
 
-    // Sort in descending order
-    std::ranges::sort(points_to_purge, std::ranges::greater());
-
-    for (const auto &pt_id : points_to_purge) {
-      quad.points.erase(quad.points.begin() + pt_id);
-      quad.weights.erase(quad.weights.begin() + pt_id);
-      if constexpr (!is_facet_quad) {
-        quad.normals.erase(quad.normals.begin() + pt_id);
-      }
-    }
-
-    if constexpr (is_facet_quad) {
-      quad.n_pts_per_facet.back() -= static_cast<int>(points_to_purge.size());
-    } else {
-      quad.n_pts_per_cell.back() -= static_cast<int>(points_to_purge.size());
-    }
+    erase_points_in_quad<CutIsoBoundsQuad<dim - 1>, true>(points_to_purge, quad);
   }
 
 
@@ -522,24 +536,10 @@ std::shared_ptr<const CutUnfBoundsQuad<dim>> create_unfitted_bound_quadrature(co
     CutUnfBoundsQuadWrapper<dim> quad_wrapper(*quad, *phi, domain);
     compute_quadrature_with_algoim<dim, true>(*phi, domain, n_pts_dir, quad_wrapper);
 
-
-    // Purging points in external boundaries that must be classified as facet points.
+    // Purging points on facets that must be classified as facet points.
     constexpr int n_local_facets = dim * 2;
     for (int local_facet_id = 0; local_facet_id < n_local_facets; ++local_facet_id) {
-      const bool is_full_unf = unf_domain.is_full_unfitted_facet(cell_id, local_facet_id);
-      const bool has_unf_bdry =
-        is_full_unf || unf_domain.has_unfitted_boundary_on_domain_boundary(cell_id, local_facet_id);
-      const bool has_ext_bdry = unf_domain.has_external_boundary(cell_id, local_facet_id);
-
-
-      purge_facet_points(*phi, unf_domain, cell_id, local_facet_id, has_unf_bdry, has_ext_bdry, *quad);
-
-      if (is_full_unf) {
-        const auto n_pts_0 = quad->points.size();
-        quad_wrapper.add_full_facet_points(local_facet_id, n_pts_dir);
-        const auto n_pts_1 = quad->points.size();
-        quad->n_pts_per_cell.back() += static_cast<int>(n_pts_1 - n_pts_0);
-      }
+      purge_facet_points(*phi, unf_domain, cell_id, local_facet_id, *quad);
     }
   }
 
@@ -547,12 +547,16 @@ std::shared_ptr<const CutUnfBoundsQuad<dim>> create_unfitted_bound_quadrature(co
 }
 
 
+// NOLINTBEGIN (bugprone-easily-swappable-parameters)
 template<int dim>
 std::shared_ptr<const CutIsoBoundsQuad<dim - 1>> create_facets_quadrature(const UnfittedImplDomain<dim> &unf_domain,
   const std::vector<int> &cells,
   const std::vector<int> &facets,
   const int n_pts_dir,
-  const bool full_facets)
+  const bool full_facets,
+  const bool remove_unf_bdry,
+  const bool remove_cut)
+// NOLINTEND (bugprone-easily-swappable-parameters)
 {
   static_assert(dim == 2 || dim == 3, "Invalid dimension.");
 
@@ -598,11 +602,12 @@ std::shared_ptr<const CutIsoBoundsQuad<dim - 1>> create_facets_quadrature(const 
       }
     } else if (unf_domain.is_cut_facet(cell_id, local_facet_id)
                || unf_domain.has_unfitted_boundary(cell_id, local_facet_id)) {
+
       compute_facet_quadrature_with_algoim<dim>(*phi, unf_domain, cell_id, local_facet_id, n_pts_dir, *quad);
 
-      constexpr bool purge_unf_bdry{ false };
-      constexpr bool purge_iso_bdry{ true };
-      purge_facet_points(*phi, unf_domain, cell_id, local_facet_id, purge_unf_bdry, purge_iso_bdry, *quad);
+      constexpr bool remove_unf_ext_bdry{ true };
+      purge_facet_points(
+        *phi, unf_domain, cell_id, local_facet_id, remove_unf_bdry, remove_unf_ext_bdry, remove_cut, *quad);
     } else {// if (unf_domain.is_empty_facet(cell_id, local_facet_id)) {
       n_pts_per_facet.push_back(0);
     }
@@ -628,11 +633,15 @@ template std::shared_ptr<const CutIsoBoundsQuad<1>> create_facets_quadrature<2>(
   const std::vector<int> &,
   const std::vector<int> &,
   const int,
+  const bool,
+  const bool,
   const bool);
 template std::shared_ptr<const CutIsoBoundsQuad<2>> create_facets_quadrature<3>(const UnfittedImplDomain<3> &,
   const std::vector<int> &,
   const std::vector<int> &,
   const int,
+  const bool,
+  const bool,
   const bool);
 
 }// namespace qugar::impl

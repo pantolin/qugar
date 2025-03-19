@@ -218,20 +218,25 @@ namespace {
         const CellsArray &cells_py,
         const CellsArray &facets_py,
         const int n_pts_dir,
-        const bool full_facets) {
+        const bool full_facets,
+        const bool remove_unf_bdry,
+        const bool remove_cut) {
         const std::span<const int> cells_span(cells_py.data(), cells_py.size());
         const std::vector<int> cells(cells_span.begin(), cells_span.end());
 
         const std::span<const int> facets_span(facets_py.data(), facets_py.size());
         const std::vector<int> facets(facets_span.begin(), facets_span.end());
 
-        return create_facets_quadrature<dim>(unf_domain, cells, facets, n_pts_dir, full_facets);
+        return create_facets_quadrature<dim>(
+          unf_domain, cells, facets, n_pts_dir, full_facets, remove_unf_bdry, remove_cut);
       },
       nb::arg("unf_domain"),
       nb::arg("cells"),
       nb::arg("facets"),
       nb::arg("n_pts_dir"),
-      nb::arg("full_facets"));
+      nb::arg("full_facets") = false,
+      nb::arg("remove_unf_bdry") = false,
+      nb::arg("remove_cut") = false);
   }
 
 }// namespace

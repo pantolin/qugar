@@ -93,8 +93,16 @@ TEST_CASE("Schwarz Diamond 2D function quadrature", "[impl]")
   // NOLINTNEXTLINE (cppcoreguidelines-avoid-do-while)
   REQUIRE(tol.coincident(unf_bound_centroid, target_unf_bound_centroid));
 
-  const auto facet_quad =
-    create_facets_quadrature<2>(unf_domain, cut_facets_cells, cut_facets_local_facets_ids, n_pts_dir, true);
+  constexpr bool include_full_facets{ true };
+  constexpr bool remove_unf_bdry{ false };
+  constexpr bool remove_cut{ false };
+  const auto facet_quad = create_facets_quadrature<2>(unf_domain,
+    cut_facets_cells,
+    cut_facets_local_facets_ids,
+    n_pts_dir,
+    include_full_facets,
+    remove_unf_bdry,
+    remove_cut);
   // NOLINTNEXTLINE (bugprone-chained-comparison)
   REQUIRE(facet_quad->points.size() == 24);
 
@@ -163,8 +171,16 @@ TEST_CASE("General function quadrature", "[impl]")
   // NOLINTNEXTLINE (cppcoreguidelines-avoid-do-while)
   REQUIRE(tol.coincident(unf_bound_centroid, target_unf_bound_centroid));
 
-  const auto facet_quad =
-    create_facets_quadrature<3>(unf_domain, cut_facets_cells, cut_facets_local_facets_ids, n_pts_dir, true);
+  constexpr bool include_full_facets{ true };
+  constexpr bool remove_unf_bdry{ false };
+  constexpr bool remove_cut{ false };
+  const auto facet_quad = create_facets_quadrature<3>(unf_domain,
+    cut_facets_cells,
+    cut_facets_local_facets_ids,
+    n_pts_dir,
+    include_full_facets,
+    remove_unf_bdry,
+    remove_cut);
   // NOLINTNEXTLINE (bugprone-chained-comparison)
   REQUIRE(facet_quad->points.size() == 249390);
 

@@ -415,12 +415,6 @@ template<int dim> bool UnfittedDomain<dim>::has_unfitted_boundary(const int cell
          || facet == ImmersedFacetStatus::unf_bdry_ext_bdry;
 }
 
-template<int dim>
-bool UnfittedDomain<dim>::has_unfitted_boundary_on_domain_boundary(const int cell_id, const int local_facet_id) const
-{
-  return this->grid_->on_boundary(cell_id, local_facet_id) && has_unfitted_boundary(cell_id, local_facet_id);
-}
-
 template<int dim> bool UnfittedDomain<dim>::has_external_boundary(const int cell_id, const int local_facet_id) const
 {
   const auto facet = at(this->facets_status_.at(cell_id), local_facet_id);

@@ -416,9 +416,7 @@ for facet_id in range(dim * 2):
 for facet_id in range(dim * 2):
     cells = find_cut_facets_on_boundary(unf_domain, facet_id)
     facets = np.full_like(cells, facet_id)
-    facet_quad = qugar.cpp.create_facets_quadrature(
-        unf_domain, cells, facets, n_quad_pts, full_facets=False
-    )
+    facet_quad = qugar.cpp.create_facets_quadrature(unf_domain, cells, facets, n_quad_pts)
 
     pt_id = 0
     for cell_id, n_pts in zip(facet_quad.cells, facet_quad.n_pts_per_entity):

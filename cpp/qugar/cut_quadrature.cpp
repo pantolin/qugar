@@ -82,11 +82,14 @@ std::shared_ptr<const CutIsoBoundsQuad<dim - 1>> create_facets_quadrature(const 
   const std::vector<int> &cells,
   const std::vector<int> &facets,
   const int n_pts_dir,
-  const bool full_facets)
+  const bool full_facets,
+  const bool remove_unf_bdry,
+  const bool remove_cut)
 {
   const auto *unf_impl_domain = dynamic_cast<const impl::UnfittedImplDomain<dim> *>(&unf_domain);
   assert(unf_impl_domain != nullptr);
-  return impl::create_facets_quadrature<dim>(*unf_impl_domain, cells, facets, n_pts_dir, full_facets);
+  return impl::create_facets_quadrature<dim>(
+    *unf_impl_domain, cells, facets, n_pts_dir, full_facets, remove_unf_bdry, remove_cut);
 }
 
 
@@ -120,11 +123,15 @@ template std::shared_ptr<const CutIsoBoundsQuad<1>> create_facets_quadrature<2>(
   const std::vector<int> &,
   const std::vector<int> &,
   const int,
+  const bool,
+  const bool,
   const bool);
 template std::shared_ptr<const CutIsoBoundsQuad<2>> create_facets_quadrature<3>(const UnfittedDomain<3> &,
   const std::vector<int> &,
   const std::vector<int> &,
   const int,
+  const bool,
+  const bool,
   const bool);
 
 }// namespace qugar

@@ -250,7 +250,13 @@ class QuadGenerator:
         lex_to_dlf_faces = lexicg_to_DOLFINx_faces(self.cart_mesh.tdim)
         lex_local_facets = lex_to_dlf_faces[dlf_local_facets]
         quad = qugar.cpp.create_facets_quadrature(
-            self._unf_domain._cpp_object, lex_cells, lex_local_facets, n_pts_dir, full_facets=False
+            self._unf_domain._cpp_object,
+            lex_cells,
+            lex_local_facets,
+            n_pts_dir,
+            full_facets=False,
+            remove_unf_bdry=False,
+            remove_cut=False,
         )
 
         return CustomQuadFacet(

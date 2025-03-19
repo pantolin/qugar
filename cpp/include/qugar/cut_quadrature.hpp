@@ -96,7 +96,9 @@ std::shared_ptr<const CutIsoBoundsQuad<dim - 1>> create_facets_quadrature(const 
   const std::vector<int> &cells,
   const std::vector<int> &facets,
   int n_pts_dir,
-  bool full_facets);
+  bool full_facets,
+  bool remove_unf_bdry,
+  bool remove_cut);
 
 
 }// namespace qugar
