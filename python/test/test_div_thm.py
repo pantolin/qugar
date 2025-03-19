@@ -18,7 +18,7 @@ if not has_FEniCSx:
 
 from mpi4py import MPI
 
-import dolfinx.fem
+import dolfinx.fem as fem
 import dolfinx.mesh
 import numpy as np
 import pytest
@@ -189,12 +189,8 @@ def check_div_thm(
 
     quad_gen = create_quadrature_generator(domain)
 
-    vol_integral = dolfinx.fem.assemble_scalar(
-        form_vol, coeffs=form_vol.pack_coefficients(quad_gen)
-    )
-    srf_integral = dolfinx.fem.assemble_scalar(
-        form_srf, coeffs=form_srf.pack_coefficients(quad_gen)
-    )
+    vol_integral = fem.assemble_scalar(form_vol, coeffs=form_vol.pack_coefficients(quad_gen))
+    srf_integral = fem.assemble_scalar(form_srf, coeffs=form_srf.pack_coefficients(quad_gen))
 
     assert np.isclose(vol_integral, srf_integral, atol=atol, rtol=rtol)
 
