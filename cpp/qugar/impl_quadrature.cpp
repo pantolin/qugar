@@ -432,8 +432,10 @@ namespace {
 
 
 template<int dim>
-std::shared_ptr<const CutCellsQuad<dim>>
-  create_quadrature(const UnfittedImplDomain<dim> &unf_domain, const std::vector<int> &cells, const int n_pts_dir)
+std::shared_ptr<const CutCellsQuad<dim>> create_quadrature(const UnfittedImplDomain<dim> &unf_domain,
+  const std::vector<int> &cells,
+  const int n_pts_dir,
+  const bool full_cells)
 {
   static_assert(dim == 2 || dim == 3, "Invalid dimension.");
 
@@ -467,7 +469,7 @@ std::shared_ptr<const CutCellsQuad<dim>>
       CutCellsQuadWrapper<dim> quad_wrapper(*quad, domain);
       compute_quadrature_with_algoim<dim, false>(*phi, domain, n_pts_dir, quad_wrapper);
 
-    } else if (unf_domain.is_full_cell(cell_id)) {
+    } else if (full_cells && unf_domain.is_full_cell(cell_id)) {
       const auto &gauss_pt = gauss_01->points();
       points.insert(points.end(), gauss_pt.cbegin(), gauss_pt.cend());
 
@@ -549,7 +551,8 @@ template<int dim>
 std::shared_ptr<const CutIsoBoundsQuad<dim - 1>> create_facets_quadrature(const UnfittedImplDomain<dim> &unf_domain,
   const std::vector<int> &cells,
   const std::vector<int> &facets,
-  const int n_pts_dir)
+  const int n_pts_dir,
+  const bool full_facets)
 {
   static_assert(dim == 2 || dim == 3, "Invalid dimension.");
 
@@ -582,13 +585,17 @@ std::shared_ptr<const CutIsoBoundsQuad<dim - 1>> create_facets_quadrature(const 
 
     if (unf_domain.is_full_facet(cell_id, local_facet_id)
         || unf_domain.is_full_unfitted_facet(cell_id, local_facet_id)) {
-      const auto &gauss_pt = gauss_01->points();
-      points.insert(points.end(), gauss_pt.cbegin(), gauss_pt.cend());
+      if (full_facets) {
+        const auto &gauss_pt = gauss_01->points();
+        points.insert(points.end(), gauss_pt.cbegin(), gauss_pt.cend());
 
-      const auto &gauss_wg = gauss_01->weights();
-      weights.insert(weights.end(), gauss_wg.cbegin(), gauss_wg.cend());
+        const auto &gauss_wg = gauss_01->weights();
+        weights.insert(weights.end(), gauss_wg.cbegin(), gauss_wg.cend());
 
-      n_pts_per_facet.push_back(n_pts_per_quad_set);
+        n_pts_per_facet.push_back(n_pts_per_quad_set);
+      } else {
+        n_pts_per_facet.push_back(0);
+      }
     } else if (unf_domain.is_cut_facet(cell_id, local_facet_id)
                || unf_domain.has_unfitted_boundary(cell_id, local_facet_id)) {
       compute_facet_quadrature_with_algoim<dim>(*phi, unf_domain, cell_id, local_facet_id, n_pts_dir, *quad);
@@ -608,9 +615,9 @@ std::shared_ptr<const CutIsoBoundsQuad<dim - 1>> create_facets_quadrature(const 
 
 
 template std::shared_ptr<const CutCellsQuad<2>>
-  create_quadrature<2>(const UnfittedImplDomain<2> &, const std::vector<int> &, const int);
+  create_quadrature<2>(const UnfittedImplDomain<2> &, const std::vector<int> &, const int, const bool);
 template std::shared_ptr<const CutCellsQuad<3>>
-  create_quadrature<3>(const UnfittedImplDomain<3> &, const std::vector<int> &, const int);
+  create_quadrature<3>(const UnfittedImplDomain<3> &, const std::vector<int> &, const int, const bool);
 
 template std::shared_ptr<const CutUnfBoundsQuad<2>>
   create_unfitted_bound_quadrature<2>(const UnfittedImplDomain<2> &, const std::vector<int> &, const int);
@@ -620,10 +627,12 @@ template std::shared_ptr<const CutUnfBoundsQuad<3>>
 template std::shared_ptr<const CutIsoBoundsQuad<1>> create_facets_quadrature<2>(const UnfittedImplDomain<2> &,
   const std::vector<int> &,
   const std::vector<int> &,
-  const int);
+  const int,
+  const bool);
 template std::shared_ptr<const CutIsoBoundsQuad<2>> create_facets_quadrature<3>(const UnfittedImplDomain<3> &,
   const std::vector<int> &,
   const std::vector<int> &,
-  const int);
+  const int,
+  const bool);
 
 }// namespace qugar::impl

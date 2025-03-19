@@ -131,7 +131,9 @@ class QuadGenerator:
 
         lex_cells = self.cart_mesh.get_lexicg_cell_ids(dlf_cells, lexicg=False)
 
-        quad = qugar.cpp.create_quadrature(self._unf_domain.cpp_object, lex_cells, n_pts_dir)
+        quad = qugar.cpp.create_quadrature(
+            self._unf_domain.cpp_object, lex_cells, n_pts_dir, full_cells=False
+        )
 
         return CustomQuad(dlf_cells, quad.n_pts_per_entity, quad.points, quad.weights)
 
@@ -248,10 +250,7 @@ class QuadGenerator:
         lex_to_dlf_faces = lexicg_to_DOLFINx_faces(self.cart_mesh.tdim)
         lex_local_facets = lex_to_dlf_faces[dlf_local_facets]
         quad = qugar.cpp.create_facets_quadrature(
-            self._unf_domain._cpp_object,
-            lex_cells,
-            lex_local_facets,
-            n_pts_dir,
+            self._unf_domain._cpp_object, lex_cells, lex_local_facets, n_pts_dir, full_facets=False
         )
 
         return CustomQuadFacet(

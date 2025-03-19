@@ -336,9 +336,7 @@ def create_full_facet_quadrature(
 # So, first, we create a custom quadrature for the cut cells.
 
 cut_cells_quad = qugar.cpp.create_quadrature(
-    unf_domain,
-    unf_domain.cut_cells,
-    n_quad_pts,
+    unf_domain, unf_domain.cut_cells, n_quad_pts, full_cells=False
 )
 
 # and for the full cells.
@@ -418,7 +416,9 @@ for facet_id in range(dim * 2):
 for facet_id in range(dim * 2):
     cells = find_cut_facets_on_boundary(unf_domain, facet_id)
     facets = np.full_like(cells, facet_id)
-    facet_quad = qugar.cpp.create_facets_quadrature(unf_domain, cells, facets, n_quad_pts)
+    facet_quad = qugar.cpp.create_facets_quadrature(
+        unf_domain, cells, facets, n_quad_pts, full_facets=False
+    )
 
     pt_id = 0
     for cell_id, n_pts in zip(facet_quad.cells, facet_quad.n_pts_per_entity):

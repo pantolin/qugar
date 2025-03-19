@@ -444,7 +444,9 @@ def quadrature_to_PyVista(
         assert isinstance(domain, UnfittedDomain), "Invalid type."
         domain_ = domain.cpp_object
 
-    cells_quad = qugar.cpp.create_quadrature(domain_, domain_.cut_cells, n_pts_dir)
+    cells_quad = qugar.cpp.create_quadrature(
+        domain_, domain_.cut_cells, n_pts_dir, full_cells=False
+    )
 
     cells_points_set = _cut_quad_to_PyVista(domain_.grid, cells_quad)
 
@@ -455,7 +457,7 @@ def quadrature_to_PyVista(
 
     cut_facets_cells, cut_facets_local_facets = domain_.cut_facets
     facets_quad = qugar.cpp.create_facets_quadrature(
-        domain_, cut_facets_cells, cut_facets_local_facets, n_pts_dir
+        domain_, cut_facets_cells, cut_facets_local_facets, n_pts_dir, full_facets=False
     )
     facets_points_set = _create_quad_facet_points_grid(domain_.grid, facets_quad)
 
