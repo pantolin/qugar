@@ -341,13 +341,8 @@ namespace {
       }
     }
 
-    if (cell_status == ImmersedStatusTmp::full_unf_bdry) {
-      if (facet_quad.nodes.empty() || unf_bdry || ext_bdry) {
-        // Patological cases with external boundaries are overriden.
-        return ImmersedFacetStatus::full_unf_bdry;
-      } else {
-        return ImmersedFacetStatus::full;
-      }
+    if (cell_status == ImmersedStatusTmp::full_unf_bdry && !cut_facet) {
+      return ImmersedFacetStatus::full_unf_bdry;
     }
 
     constexpr std::array<ImmersedFacetStatus, 8> values{ ImmersedFacetStatus::empty,
@@ -360,7 +355,7 @@ namespace {
       ImmersedFacetStatus::cut_unf_bdry_ext_bdry };
 
     const int index = ext_bdry + (unf_bdry * 2) + (cut_facet * 4);
-    auto facet_status = at(values, index);
+    const auto facet_status = at(values, index);
 
     const real cell_facet_vol = facet_quad.sumWeights();
     const int n_pts = static_cast<int>(facet_quad.nodes.size());
@@ -449,6 +444,8 @@ namespace {
     classify_cut_cell_and_facets(const ImplicitFunc<dim> &phi, const SubCartGridTP<dim> &subgrid)
   {
     assert(subgrid.is_unique_cell());
+    const auto cell_id = subgrid.get_single_cell();
+    static_cast<void>(cell_id);
 
     const auto domain = subgrid.get_domain();
 
