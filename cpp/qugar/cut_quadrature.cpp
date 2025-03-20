@@ -62,9 +62,33 @@ std::shared_ptr<const CutCellsQuad<dim>> create_quadrature(const UnfittedDomain<
   const int n_pts_dir,
   const bool full_cells)
 {
+  static_assert(dim == 2 || dim == 3, "Invalid dimension.");
+
+  assert(0 < n_pts_dir);
+
+  // Estimation of number of points.
+  const int n_cells = static_cast<int>(cells.size());
+  const int n_quad_set_per_cell_estimate{ 2 };// This is an estimation.
+  const int n_pts_per_quad_set = n_pts_dir * n_pts_dir * (dim == 3 ? n_pts_dir : 1);
+  const int n_pts_per_cell_estimate = n_quad_set_per_cell_estimate * n_pts_per_quad_set;
+  const int n_pts_estimate = n_cells * n_pts_per_cell_estimate;
+
+  const auto quad = std::make_shared<CutCellsQuad<dim>>();
+  quad->reserve(n_cells, n_pts_estimate);
+
+  quad->cells = cells;
+
   const auto *unf_impl_domain = dynamic_cast<const impl::UnfittedImplDomain<dim> *>(&unf_domain);
-  assert(unf_impl_domain != nullptr);
-  return impl::create_quadrature<dim>(*unf_impl_domain, cells, n_pts_dir, full_cells);
+  if (unf_impl_domain != nullptr) {
+    for (const int cell_id : cells) {
+      impl::create_cell_quadrature<dim>(*unf_impl_domain, cell_id, n_pts_dir, full_cells, *quad);
+    }
+  } else {
+    // Not implemented for non-implicit domains.
+    assert(false);
+  }
+
+  return quad;
 }
 
 template<int dim>
@@ -72,9 +96,33 @@ std::shared_ptr<const CutUnfBoundsQuad<dim>> create_unfitted_bound_quadrature(co
   const std::vector<int> &cells,
   const int n_pts_dir)
 {
+  static_assert(dim == 2 || dim == 3, "Invalid dimension.");
+
+  assert(0 < n_pts_dir);
+
+  // Estimation of number of points.
+  const int n_cells = static_cast<int>(cells.size());
+  const int n_quad_set_per_cell_estimate{ 2 };// This is an estimation.
+  const int n_pts_per_quad_set = n_pts_dir * (dim == 3 ? n_pts_dir : 1);
+  const int n_pts_per_cell_estimate = n_quad_set_per_cell_estimate * n_pts_per_quad_set;
+  const int n_pts_estimate = n_cells * n_pts_per_cell_estimate;
+
+  const auto quad = std::make_shared<CutUnfBoundsQuad<dim>>();
+  quad->reserve(n_cells, n_pts_estimate);
+
+  quad->cells = cells;
+
   const auto *unf_impl_domain = dynamic_cast<const impl::UnfittedImplDomain<dim> *>(&unf_domain);
-  assert(unf_impl_domain != nullptr);
-  return impl::create_unfitted_bound_quadrature<dim>(*unf_impl_domain, cells, n_pts_dir);
+  if (unf_impl_domain != nullptr) {
+    for (const int cell_id : cells) {
+      impl::create_cell_unfitted_bound_quadrature(*unf_impl_domain, cell_id, n_pts_dir, *quad);
+    }
+  } else {
+    // Not implemented for non-implicit domains.
+    assert(false);
+  }
+
+  return quad;
 }
 
 template<int dim>
@@ -86,10 +134,41 @@ std::shared_ptr<const CutIsoBoundsQuad<dim - 1>> create_facets_quadrature(const 
   const bool remove_unf_bdry,
   const bool remove_cut)
 {
+  static_assert(dim == 2 || dim == 3, "Invalid dimension.");
+
+  assert(cells.size() == facets.size());
+  assert(0 < n_pts_dir);
+
+  // Estimation of number of points.
+  const int n_cells = static_cast<int>(cells.size());
+  const int n_quad_set_per_facet_estimate{ 2 };// This is (almost surely) an overestimation.
+  const int n_pts_per_quad_set = n_pts_dir * (dim == 3 ? n_pts_dir : 1);
+  const int n_pts_per_facet_estimate = n_quad_set_per_facet_estimate * n_pts_per_quad_set;
+  const int n_pts_estimate = n_cells * n_pts_per_facet_estimate;
+
+  const auto quad = std::make_shared<CutIsoBoundsQuad<dim - 1>>();
+  quad->reserve(n_cells, n_pts_estimate);
+
+  quad->cells = cells;
+  quad->local_facet_ids = facets;
+
+  auto facet_it = facets.cbegin();
+
   const auto *unf_impl_domain = dynamic_cast<const impl::UnfittedImplDomain<dim> *>(&unf_domain);
-  assert(unf_impl_domain != nullptr);
-  return impl::create_facets_quadrature<dim>(
-    *unf_impl_domain, cells, facets, n_pts_dir, full_facets, remove_unf_bdry, remove_cut);
+
+  if (unf_impl_domain != nullptr) {
+    for (const int cell_id : cells) {
+      const auto local_facet_id = *facet_it++;
+
+      impl::create_facet_quadrature<dim>(
+        *unf_impl_domain, cell_id, local_facet_id, n_pts_dir, full_facets, remove_unf_bdry, remove_cut, *quad);
+    }
+  } else {
+    // Not implemented for non-implicit domains.
+    assert(false);
+  }
+
+  return quad;
 }
 
 

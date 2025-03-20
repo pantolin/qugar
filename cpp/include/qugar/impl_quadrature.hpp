@@ -29,26 +29,29 @@
 
 namespace qugar::impl {
 
-
 template<int dim>
-std::shared_ptr<const CutCellsQuad<dim>> create_quadrature(const UnfittedImplDomain<dim> &unf_domain,
-  const std::vector<int> &cells,
+void create_cell_quadrature(const UnfittedImplDomain<dim> &unf_domain,
+  int cell_id,
   int n_pts_dir,
-  bool full_cells);
+  bool full_cells,
+  CutCellsQuad<dim> &quad);
 
 template<int dim>
-std::shared_ptr<const CutUnfBoundsQuad<dim>> create_unfitted_bound_quadrature(const UnfittedImplDomain<dim> &unf_domain,
-  const std::vector<int> &cells,
-  int n_pts_dir);
+void create_cell_unfitted_bound_quadrature(const UnfittedImplDomain<dim> &unf_domain,
+  int cell_id,
+  int n_pts_dir,
+  CutUnfBoundsQuad<dim> &quad);
 
 template<int dim>
-std::shared_ptr<const CutIsoBoundsQuad<dim - 1>> create_facets_quadrature(const UnfittedImplDomain<dim> &unf_domain,
-  const std::vector<int> &cells,
-  const std::vector<int> &facets,
+void create_facet_quadrature(const UnfittedImplDomain<dim> &unf_domain,
+  int cell_id,
+  int local_facet_id,
   int n_pts_dir,
   bool full_facets,
   bool remove_unf_bdry,
-  bool remove_cut);
+  bool remove_cut,
+  CutIsoBoundsQuad<dim - 1> &quad);
+
 
 }// namespace qugar::impl
 

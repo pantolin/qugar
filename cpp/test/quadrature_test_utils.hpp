@@ -199,10 +199,10 @@ void test_volume_and_centroid(const std::shared_ptr<const qugar::impl::ImplicitF
 
   const qugar::impl::UnfittedImplDomain<dim> unf_domain(func, grid);
 
-  const auto quad = qugar::impl::create_quadrature(unf_domain, unf_domain.get_cut_cells(), n_quad_pts_dir, true);
+  const auto quad = qugar::create_quadrature(unf_domain, unf_domain.get_cut_cells(), n_quad_pts_dir, true);
 
   const auto unf_bound_quad =
-    qugar::impl::create_unfitted_bound_quadrature(unf_domain, unf_domain.get_cut_cells(), n_quad_pts_dir);
+    qugar::create_unfitted_bound_quadrature(unf_domain, unf_domain.get_cut_cells(), n_quad_pts_dir);
 
   const auto volume = compute_volume(unf_domain, *quad);
   // NOLINTNEXTLINE (bugprone-chained-comparison)

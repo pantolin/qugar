@@ -133,10 +133,10 @@ int main(/* int argc, const char **argv */)
     domain_01, std::array<std::size_t, 3>({ { n_elems_dir, n_elems_dir, n_elems_dir } }));
   const qugar::impl::UnfittedImplDomain<3> unf_domain(bzr, grid);
 
-  const auto quad = qugar::impl::create_quadrature<3>(unf_domain, unf_domain.get_cut_cells(), n_quad_pts_dir, true);
+  const auto quad = qugar::create_quadrature<3>(unf_domain, unf_domain.get_cut_cells(), n_quad_pts_dir, true);
 
   const auto unf_bound_quad =
-    qugar::impl::create_unfitted_bound_quadrature<3>(unf_domain, unf_domain.get_cut_cells(), n_quad_pts_dir);
+    qugar::create_unfitted_bound_quadrature<3>(unf_domain, unf_domain.get_cut_cells(), n_quad_pts_dir);
 
   std::cerr << "Volume: " << compute_volume<3>(unf_domain, *quad) << "\n";
   std::cerr << "Exact volume: " << exact_volume << "\n\n";
