@@ -224,7 +224,8 @@ def test_disk(
         dtype (type): Data type to use for numerical operations (np.float32 or np.float64).
         use_bzr (bool): Flag to indicate whether to use Bezier representation for the implicit
             function.
-        negative (bool): Flag to indicate whether the negative of the implicit function should be used.
+        negative (bool): Flag to indicate whether the negative of the implicit function
+            should be used.
     """
     radius = 0.8
     center = np.array([0.51, 0.45], dtype=dtype)
@@ -262,7 +263,8 @@ def test_sphere(
         dtype (type): Data type to use for numerical operations (np.float32 or np.float64).
         use_bzr (bool): Flag to indicate whether to use Bezier representation for the implicit
             function.
-        negative (bool): Flag to indicate whether the negative of the implicit function should be used.
+        negative (bool): Flag to indicate whether the negative of the implicit function
+            should be used.
     """
     radius = 0.8
     center = np.array([0.5, 0.45, 0.35], dtype=dtype)
@@ -300,7 +302,8 @@ def test_line(
         dtype (type): Data type to use for numerical operations (np.float32 or np.float64).
         use_bzr (bool): Flag to indicate whether to use Bezier representation for the implicit
             function.
-        negative (bool): Flag to indicate whether the negative of the implicit function should be used.
+        negative (bool): Flag to indicate whether the negative of the implicit function
+            should be used.
     """
 
     a = 0.2
@@ -340,7 +343,8 @@ def test_plane(
         dtype (type): Data type to use for numerical operations (np.float32 or np.float64).
         use_bzr (bool): Flag to indicate whether to use Bezier representation for the implicit
             function.
-        negative (bool): Flag to indicate whether the negative of the implicit function should be used.
+        negative (bool): Flag to indicate whether the negative of the implicit function
+            should be used.
     """
 
     origin = np.array([0.3, 0.47, 0.27], dtype=dtype)
@@ -379,7 +383,8 @@ def test_cylinder(
         dtype (type): Data type to use for numerical operations (np.float32 or np.float64).
         use_bzr (bool): Flag to indicate whether to use Bezier representation for the implicit
             function.
-        negative (bool): Flag to indicate whether the negative of the implicit function should be used.
+        negative (bool): Flag to indicate whether the negative of the implicit function
+            should be used.
     """
 
     origin = np.array([0.55, 0.45, 0.47], dtype=dtype)
@@ -419,7 +424,8 @@ def test_annulus(
         dtype (type): Data type to use for numerical operations (np.float32 or np.float64).
         use_bzr (bool): Flag to indicate whether to use Bezier representation for the implicit
             function.
-        negative (bool): Flag to indicate whether the negative of the implicit function should be used.
+        negative (bool): Flag to indicate whether the negative of the implicit function
+            should be used.
     """
 
     center = np.array([0.55, 0.47], dtype=dtype)
@@ -459,7 +465,8 @@ def test_ellipse(
         dtype (type): Data type to use for numerical operations (np.float32 or np.float64).
         use_bzr (bool): Flag to indicate whether to use Bezier representation for the implicit
             function.
-        negative (bool): Flag to indicate whether the negative of the implicit function should be used.
+        negative (bool): Flag to indicate whether the negative of the implicit function
+            should be used.
     """
 
     center = np.array([0.5, 0.5], dtype=dtype)
@@ -500,7 +507,8 @@ def test_ellipsoid(
         dtype (type): Data type to use for numerical operations (np.float32 or np.float64).
         use_bzr (bool): Flag to indicate whether to use Bezier representation for the implicit
             function.
-        negative (bool): Flag to indicate whether the negative of the implicit function should be used.
+        negative (bool): Flag to indicate whether the negative of the implicit function
+            should be used.
     """
 
     center = np.array([0.5, 0.5, 0.5], dtype=dtype)
@@ -542,7 +550,8 @@ def test_torus(
         dtype (type): Data type to use for numerical operations (np.float32 or np.float64).
         use_bzr (bool): Flag to indicate whether to use Bezier representation for the implicit
             function.
-        negative (bool): Flag to indicate whether the negative of the implicit function should be used.
+        negative (bool): Flag to indicate whether the negative of the implicit function
+            should be used.
     """
 
     center = np.array([0.55, 0.47, 0.51], dtype=dtype)
@@ -584,7 +593,8 @@ def test_tpms(
         n_quad_pts (int): Number of quadrature points per direction to use for the cut cells
             and facets in the test.
         dtype (type): Data type to use for numerical operations (np.float32 or np.float64).
-        negative (bool): Flag to indicate whether the negative of the implicit function should be used.
+        negative (bool): Flag to indicate whether the negative of the implicit function
+            should be used.
     """
 
     periods = np.ones(dim, dtype=dtype)
