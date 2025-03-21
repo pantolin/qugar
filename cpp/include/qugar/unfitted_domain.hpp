@@ -48,7 +48,8 @@ enum class ImmersedFacetStatus : std::uint8_t {
 template<int dim> class UnfittedDomain
 {
 public:
-  using FacetsStatus = std::array<ImmersedFacetStatus, static_cast<std::size_t>(dim) * 2>;
+  static const std::size_t n_facets_per_cell = static_cast<std::size_t>(dim) * 2;
+  using FacetsStatus = std::array<ImmersedFacetStatus, n_facets_per_cell>;
   using GridPtr = std::shared_ptr<const CartGridTP<dim>>;
 
 protected:
@@ -56,6 +57,18 @@ protected:
 
 public:
   virtual ~UnfittedDomain() = default;
+
+  /// Copy constructor
+  UnfittedDomain(const UnfittedDomain &other) = default;
+
+  /// Copy assignment operator
+  UnfittedDomain &operator=(const UnfittedDomain &other) = default;
+
+  /// Move constructor
+  UnfittedDomain(UnfittedDomain &&other) noexcept = default;
+
+  /// Move assignment operator
+  UnfittedDomain &operator=(UnfittedDomain &&other) noexcept = default;
 
   [[nodiscard]] GridPtr get_grid() const;
   [[nodiscard]] const std::vector<int> &get_full_cells() const;
@@ -65,21 +78,53 @@ public:
 
   void get_empty_facets(std::vector<int> &cell_ids, std::vector<int> &local_facets_ids) const;
   void get_full_facets(std::vector<int> &cell_ids, std::vector<int> &local_facets_ids) const;
+  void get_unfitted_facets(std::vector<int> &cell_ids, std::vector<int> &local_facets_ids) const;
   void get_full_unfitted_facets(std::vector<int> &cell_ids, std::vector<int> &local_facets_ids) const;
   void get_cut_facets(std::vector<int> &cell_ids, std::vector<int> &local_facets_ids) const;
+
+  void get_empty_facets(const std::vector<int> &target_cell_ids,
+    const std::vector<int> &target_local_facets_ids,
+    std::vector<int> &cell_ids,
+    std::vector<int> &local_facets_ids) const;
+  void get_full_facets(const std::vector<int> &target_cell_ids,
+    const std::vector<int> &target_local_facets_ids,
+    std::vector<int> &cell_ids,
+    std::vector<int> &local_facets_ids) const;
+  void get_unfitted_facets(const std::vector<int> &target_cell_ids,
+    const std::vector<int> &target_local_facets_ids,
+    std::vector<int> &cell_ids,
+    std::vector<int> &local_facets_ids) const;
+  void get_full_unfitted_facets(const std::vector<int> &target_cell_ids,
+    const std::vector<int> &target_local_facets_ids,
+    std::vector<int> &cell_ids,
+    std::vector<int> &local_facets_ids) const;
+  void get_cut_facets(const std::vector<int> &target_cell_ids,
+    const std::vector<int> &target_local_facets_ids,
+    std::vector<int> &cell_ids,
+    std::vector<int> &local_facets_ids) const;
 
   [[nodiscard]] bool is_full_cell(int cell_id) const;
   [[nodiscard]] bool is_empty_cell(int cell_id) const;
   [[nodiscard]] bool is_cut_cell(int cell_id) const;
 
+  // Full unfitted facets are not considered full.
   [[nodiscard]] bool is_full_facet(int cell_id, int local_facet_id) const;
   [[nodiscard]] bool is_empty_facet(int cell_id, int local_facet_id) const;
   [[nodiscard]] bool is_cut_facet(int cell_id, int local_facet_id) const;
   [[nodiscard]] bool is_full_unfitted_facet(int cell_id, int local_facet_id) const;
 
   [[nodiscard]] bool has_unfitted_boundary(int cell_id, int local_facet_id) const;
-  [[nodiscard]] bool has_unfitted_boundary_on_domain_boundary(int cell_id, int local_facet_id) const;
   [[nodiscard]] bool has_external_boundary(int cell_id, int local_facet_id) const;
+
+  // Full unfitted facets are not considered full.
+  [[nodiscard]] static bool is_full_facet(ImmersedFacetStatus status);
+
+  [[nodiscard]] static bool is_empty_facet(ImmersedFacetStatus status);
+  [[nodiscard]] static bool is_cut_facet(ImmersedFacetStatus status);
+  [[nodiscard]] static bool is_full_unfitted_facet(ImmersedFacetStatus status);
+
+  [[nodiscard]] static bool has_unfitted_boundary(ImmersedFacetStatus status);
+  [[nodiscard]] static bool has_external_boundary(ImmersedFacetStatus status);
 
 protected:
   GridPtr grid_;

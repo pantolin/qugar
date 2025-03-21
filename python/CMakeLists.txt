@@ -44,7 +44,7 @@ endif()
 
 include(../cmake/CPM.cmake)
 if(NOT algoim::algoim)
-  cpmaddpackage("gh:pantolin/algoim@1.0.1")
+  cpmaddpackage("gh:pantolin/algoim@1.0.2")
 endif()
 
 # Create the binding library nanobind handles its own calls to

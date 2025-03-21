@@ -43,9 +43,6 @@ public:
   using GridPtr = std::shared_ptr<const CartGridTP<dim>>;
   using FuncPtr = std::shared_ptr<const ImplicitFunc<dim>>;
 
-  // private:
-  //   explicit UnfittedImplDomain(GridPtr grid);
-
   explicit UnfittedImplDomain(const FuncPtr phi, GridPtr grid);
 
   explicit UnfittedImplDomain(const FuncPtr phi, GridPtr grid, const std::vector<int> &cells);
@@ -59,6 +56,8 @@ private:
   void create_decomposition(const SubCartGridTP<dim> &subgrid,
     const std::function<FuncSign(const BoundBox<dim> &)> &func_sign,
     const std::optional<std::vector<int>> &target_cells);
+
+  void classify_undetermined_sign_cell(const SubCartGridTP<dim> &subgrid);
 };
 
 

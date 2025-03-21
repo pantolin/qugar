@@ -408,6 +408,7 @@ class MockQuadGenerator:
         degree: int,
         cells: npt.NDArray[np.int32],
         local_facets: npt.NDArray[np.int32],
+        integral_type: str,
         tag: Optional[int] = None,
     ) -> CustomQuadFacet:
         """Returns the custom quadratures for the given facets.
@@ -448,9 +449,14 @@ class MockQuadGenerator:
                 FEniCSx convention. See
                 https://github.com/FEniCS/basix/#supported-elements
 
+            integral_type (str): Type of integral to be computed. It can
+                be either 'interior_facet' or 'exterior_facet'.
+                Right now it is not used.
+
 
             tag (Optional[int]): Mesh tag of the subdomain associated
-                to the given facets. Defaults to None.
+                to the given facets. Right now it is not used.
+                Defaults to None.
 
         Returns:
             CustomQuadFacetProtocol: Generated custom facet

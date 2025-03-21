@@ -43,7 +43,8 @@ except subprocess.CalledProcessError:
     raise Exception("Sphinx failed.")
 
 # Moving created documentation to pages for being uploaded.
-output_dir = "./pages/" + version
+# output_dir = "./pages/" + version
+output_dir = "./pages"
 os.makedirs(output_dir, exist_ok=True)
 subprocess.run("mv ./build/sphinx_html/* " + output_dir + "/", shell=True)
 

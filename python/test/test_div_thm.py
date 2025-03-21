@@ -18,7 +18,7 @@ if not has_FEniCSx:
 
 from mpi4py import MPI
 
-import dolfinx.fem
+import dolfinx.fem as fem
 import dolfinx.mesh
 import numpy as np
 import pytest
@@ -76,7 +76,7 @@ def create_div_thm_volume_ufl_form(domain: UnfittedImplDomain, n_quad_pts: int):
 
     full_tag = 1
     cut_tag = 0
-    cell_tags = domain.create_cell_tags(cut_tag=cut_tag, full_tag=full_tag)
+    cell_tags = domain.create_cell_subdomain_data(cut_tag=cut_tag, full_tag=full_tag)
 
     quad_degree = get_Gauss_quad_degree(n_quad_pts)
     dx_ = ufl.dx(
@@ -113,17 +113,23 @@ def create_div_thm_surface_ufl_form(domain: UnfittedImplDomain, n_quad_pts: int)
 
     cut_tag = 0
     full_tag = 1
-    cell_tags = domain.create_cell_tags(cut_tag=cut_tag, full_tag=full_tag)
-    facet_tags = domain.create_facet_tags(cut_tag=cut_tag, full_tag=full_tag)
+    unf_bdry_tag = 2
+    cell_subdomain_data = domain.create_cell_subdomain_data(cut_tag=cut_tag, full_tag=full_tag)
+    facet_tags = domain.create_exterior_facet_subdomain_data(
+        cut_tag=cut_tag, full_tag=full_tag, unf_bdry_tag=unf_bdry_tag
+    )
 
     quad_degree = get_Gauss_quad_degree(n_quad_pts)
 
-    ds_int = dx_bdry_unf(
-        domain=dlf_mesh, subdomain_data=cell_tags, subdomain_id=cut_tag, degree=quad_degree
+    ds_unf = dx_bdry_unf(
+        domain=dlf_mesh,
+        subdomain_data=cell_subdomain_data,
+        subdomain_id=cut_tag,
+        degree=quad_degree,
     )
 
     ds_ = ufl.ds(domain=dlf_mesh, subdomain_data=facet_tags)
-    ds = ds_(cut_tag, degree=quad_degree) + ds_(full_tag)
+    ds = ds_(cut_tag, degree=quad_degree) + ds_((full_tag, unf_bdry_tag))
 
     # Note: if no specific number of quadrature points is set for the cut facets,
     # it would be enough to use a single tag for both cut and full facets.
@@ -133,7 +139,7 @@ def create_div_thm_surface_ufl_form(domain: UnfittedImplDomain, n_quad_pts: int)
     facet_normal = ufl.FacetNormal(dlf_mesh)
     func = create_vector_func(dlf_mesh)
 
-    ufl_form_srf = ufl.inner(func, bound_normal) * ds_int + ufl.inner(func, facet_normal) * ds
+    ufl_form_srf = ufl.inner(func, bound_normal) * ds_unf + ufl.inner(func, facet_normal) * ds
     return ufl_form_srf
 
 
@@ -186,12 +192,8 @@ def check_div_thm(
 
     quad_gen = create_quadrature_generator(domain)
 
-    vol_integral = dolfinx.fem.assemble_scalar(
-        form_vol, coeffs=form_vol.pack_coefficients(quad_gen)
-    )
-    srf_integral = dolfinx.fem.assemble_scalar(
-        form_srf, coeffs=form_srf.pack_coefficients(quad_gen)
-    )
+    vol_integral = fem.assemble_scalar(form_vol, coeffs=form_vol.pack_coefficients(quad_gen))
+    srf_integral = fem.assemble_scalar(form_srf, coeffs=form_srf.pack_coefficients(quad_gen))
 
     assert np.isclose(vol_integral, srf_integral, atol=atol, rtol=rtol)
 
@@ -549,7 +551,7 @@ def test_torus(
 
 
 @pytest.mark.parametrize("dim", [2, 3])
-@pytest.mark.parametrize("n_cells", [12])
+@pytest.mark.parametrize("n_cells", [11, 12])
 @pytest.mark.parametrize("n_quad_pts", [8])
 @pytest.mark.parametrize("dtype", dtypes)
 @pytest.mark.parametrize("negative", [False, True])
@@ -594,6 +596,6 @@ def test_tpms(
 
 
 if __name__ == "__main__":
-    # test_disk(8, 6, np.float64, True, False)
+    test_disk(8, 6, np.float64, True, False)
     # test_cylinder(8, 6, np.float64, True, False)
-    test_tpms(3, 12, 8, np.float32, False)
+    # test_tpms(2, 12, 8, np.float32, True)

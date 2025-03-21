@@ -18,6 +18,7 @@
 #include "reparam_test_utils.hpp"
 
 #include <qugar/bbox.hpp>
+#include <qugar/point.hpp>
 #include <qugar/primitive_funcs_lib.hpp>
 
 #include <catch2/catch_test_macros.hpp>
