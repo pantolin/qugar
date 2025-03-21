@@ -377,7 +377,7 @@
 
 <span class="k">def</span> <span class="nf">_create_quad_facet_points_grid</span><span class="p">(</span>
     <span class="n">grid</span><span class="p">:</span> <span class="n">CartGridTP_2D</span> <span class="o">|</span> <span class="n">CartGridTP_3D</span><span class="p">,</span>
-    <span class="n">quad</span><span class="p">:</span> <span class="n">CutIsoBoundsQuad_1D</span> <span class="o">|</span> <span class="n">CutIsoBoundsQuad_2D</span><span class="p">,</span>
+    <span class="n">quads</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">CutIsoBoundsQuad_1D</span> <span class="o">|</span> <span class="n">CutIsoBoundsQuad_2D</span><span class="p">],</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pv</span><span class="o">.</span><span class="n">UnstructuredGrid</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Creates a PyVista unstructured grid containing quadrature points contained</span>
@@ -386,44 +386,62 @@
 <span class="sd">    Args:</span>
 <span class="sd">        grid (CartGridTP_2D | CartGridTP_3D): The Cartesian grid for</span>
 <span class="sd">            whose facets quadrature points are associated to.</span>
-<span class="sd">        quad (CutIsoBoundsQuad_2D | CutIsoBoundsQuad_3D): The</span>
-<span class="sd">            quadrature containing the facet quadrature points.</span>
+<span class="sd">        quads (list[CutIsoBoundsQuad_2D | CutIsoBoundsQuad_3D]): The</span>
+<span class="sd">            list of quadratures containing the facet quadrature points.</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        pv.UnstructuredGrid: The generated PyVista unstructured grid.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">quads</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;Empty list of quadratures.&quot;</span>
+
     <span class="c1"># First we transform point from the reference facet (with one dimension less)</span>
     <span class="c1"># to facets on the reference cell (with the same dimension as the cell).</span>
-    <span class="n">n_pts</span><span class="p">,</span> <span class="n">dim</span> <span class="o">=</span> <span class="n">quad</span><span class="o">.</span><span class="n">points</span><span class="o">.</span><span class="n">shape</span>
-    <span class="n">dim</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="n">dim</span> <span class="o">=</span> <span class="n">quads</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">points</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span>
+    <span class="n">dtype</span> <span class="o">=</span> <span class="n">quads</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">points</span><span class="o">.</span><span class="n">dtype</span>
+
+    <span class="n">n_pts</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">quad</span><span class="o">.</span><span class="n">points</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">quad</span> <span class="ow">in</span> <span class="n">quads</span><span class="p">)</span>
+    <span class="n">n_facets</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">quad</span><span class="o">.</span><span class="n">cells</span><span class="o">.</span><span class="n">size</span> <span class="k">for</span> <span class="n">quad</span> <span class="ow">in</span> <span class="n">quads</span><span class="p">)</span>
 
     <span class="n">facets_const_dirs</span> <span class="o">=</span> <span class="n">_facets_const_dirs</span><span class="p">(</span><span class="n">dim</span><span class="p">)</span>
     <span class="n">facets_const_sides</span> <span class="o">=</span> <span class="n">_facets_const_sides</span><span class="p">(</span><span class="n">dim</span><span class="p">)</span>
     <span class="n">facets_active_dirs</span> <span class="o">=</span> <span class="n">_facets_active_dirs</span><span class="p">(</span><span class="n">dim</span><span class="p">)</span>
 
-    <span class="n">dtype</span> <span class="o">=</span> <span class="n">quad</span><span class="o">.</span><span class="n">points</span><span class="o">.</span><span class="n">dtype</span>
     <span class="n">points</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n_pts</span><span class="p">,</span> <span class="n">dim</span><span class="p">),</span> <span class="n">dtype</span><span class="p">)</span>
-    <span class="n">ofs</span> <span class="o">=</span> <span class="mi">0</span>
-    <span class="k">for</span> <span class="n">facet_id</span><span class="p">,</span> <span class="n">n_pts_cell</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">quad</span><span class="o">.</span><span class="n">facets</span><span class="p">,</span> <span class="n">quad</span><span class="o">.</span><span class="n">n_pts_per_entity</span><span class="p">):</span>
-        <span class="n">const_dir</span> <span class="o">=</span> <span class="n">facets_const_dirs</span><span class="p">[</span><span class="n">facet_id</span><span class="p">]</span>
-        <span class="n">const_side</span> <span class="o">=</span> <span class="n">dtype</span><span class="o">.</span><span class="n">type</span><span class="p">(</span><span class="n">facets_const_sides</span><span class="p">[</span><span class="n">facet_id</span><span class="p">])</span>
-        <span class="n">active_dirs</span> <span class="o">=</span> <span class="n">facets_active_dirs</span><span class="p">[</span><span class="n">facet_id</span><span class="p">]</span>
+    <span class="n">weights</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n_pts</span><span class="p">,</span> <span class="n">dtype</span><span class="p">)</span>
+    <span class="n">cells</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n_facets</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
+    <span class="n">n_pts_per_entity</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n_facets</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
+    <span class="n">facets</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n_facets</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
 
-        <span class="n">points_facet</span> <span class="o">=</span> <span class="n">points</span><span class="p">[</span><span class="n">ofs</span> <span class="p">:</span> <span class="n">ofs</span> <span class="o">+</span> <span class="n">n_pts_cell</span><span class="p">,</span> <span class="p">:</span><span class="n">dim</span><span class="p">]</span>
-        <span class="n">points_facet</span><span class="p">[:,</span> <span class="n">const_dir</span><span class="p">]</span> <span class="o">=</span> <span class="n">const_side</span>
-        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="nb">dir</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">active_dirs</span><span class="p">):</span>
-            <span class="n">points_facet</span><span class="p">[:,</span> <span class="nb">dir</span><span class="p">]</span> <span class="o">=</span> <span class="n">quad</span><span class="o">.</span><span class="n">points</span><span class="p">[</span><span class="n">ofs</span> <span class="p">:</span> <span class="n">ofs</span> <span class="o">+</span> <span class="n">n_pts_cell</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span>
+    <span class="n">ofs_pts</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">ofs_cell</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">quad</span> <span class="ow">in</span> <span class="n">quads</span><span class="p">:</span>
+        <span class="n">ofs_pts_quad</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">cell_id</span><span class="p">,</span> <span class="n">facet_id</span><span class="p">,</span> <span class="n">n_pts_facet</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">quad</span><span class="o">.</span><span class="n">cells</span><span class="p">,</span> <span class="n">quad</span><span class="o">.</span><span class="n">facets</span><span class="p">,</span> <span class="n">quad</span><span class="o">.</span><span class="n">n_pts_per_entity</span><span class="p">):</span>
+            <span class="n">const_dir</span> <span class="o">=</span> <span class="n">facets_const_dirs</span><span class="p">[</span><span class="n">facet_id</span><span class="p">]</span>
+            <span class="n">const_side</span> <span class="o">=</span> <span class="n">dtype</span><span class="o">.</span><span class="n">type</span><span class="p">(</span><span class="n">facets_const_sides</span><span class="p">[</span><span class="n">facet_id</span><span class="p">])</span>
+            <span class="n">active_dirs</span> <span class="o">=</span> <span class="n">facets_active_dirs</span><span class="p">[</span><span class="n">facet_id</span><span class="p">]</span>
 
-        <span class="n">ofs</span> <span class="o">+=</span> <span class="n">n_pts_cell</span>
+            <span class="n">points_facet</span> <span class="o">=</span> <span class="n">points</span><span class="p">[</span><span class="n">ofs_pts</span> <span class="p">:</span> <span class="n">ofs_pts</span> <span class="o">+</span> <span class="n">n_pts_facet</span><span class="p">,</span> <span class="p">:</span><span class="n">dim</span><span class="p">]</span>
+            <span class="n">points_facet</span><span class="p">[:,</span> <span class="n">const_dir</span><span class="p">]</span> <span class="o">=</span> <span class="n">const_side</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="nb">dir</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">active_dirs</span><span class="p">):</span>
+                <span class="n">points_facet</span><span class="p">[:,</span> <span class="nb">dir</span><span class="p">]</span> <span class="o">=</span> <span class="n">quad</span><span class="o">.</span><span class="n">points</span><span class="p">[</span><span class="n">ofs_pts_quad</span> <span class="p">:</span> <span class="n">ofs_pts_quad</span> <span class="o">+</span> <span class="n">n_pts_facet</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span>
+            <span class="n">weights</span><span class="p">[</span><span class="n">ofs_pts</span> <span class="p">:</span> <span class="n">ofs_pts</span> <span class="o">+</span> <span class="n">n_pts_facet</span><span class="p">]</span> <span class="o">=</span> <span class="n">quad</span><span class="o">.</span><span class="n">weights</span><span class="p">[</span>
+                <span class="n">ofs_pts_quad</span> <span class="p">:</span> <span class="n">ofs_pts_quad</span> <span class="o">+</span> <span class="n">n_pts_facet</span>
+            <span class="p">]</span>
+            <span class="n">cells</span><span class="p">[</span><span class="n">ofs_cell</span><span class="p">]</span> <span class="o">=</span> <span class="n">cell_id</span>
+            <span class="n">facets</span><span class="p">[</span><span class="n">ofs_cell</span><span class="p">]</span> <span class="o">=</span> <span class="n">facet_id</span>
+            <span class="n">n_pts_per_entity</span><span class="p">[</span><span class="n">ofs_cell</span><span class="p">]</span> <span class="o">=</span> <span class="n">n_pts_facet</span>
+
+            <span class="n">ofs_pts</span> <span class="o">+=</span> <span class="n">n_pts_facet</span>
+            <span class="n">ofs_pts_quad</span> <span class="o">+=</span> <span class="n">n_pts_facet</span>
+            <span class="n">ofs_cell</span> <span class="o">+=</span> <span class="mi">1</span>
 
     <span class="c1"># Then, we create the grid.</span>
-    <span class="n">points_grid</span> <span class="o">=</span> <span class="n">_create_quad_points_grid</span><span class="p">(</span>
-        <span class="n">grid</span><span class="p">,</span> <span class="n">points</span><span class="p">,</span> <span class="n">quad</span><span class="o">.</span><span class="n">n_pts_per_entity</span><span class="p">,</span> <span class="n">quad</span><span class="o">.</span><span class="n">cells</span><span class="p">,</span> <span class="n">quad</span><span class="o">.</span><span class="n">weights</span><span class="p">,</span> <span class="kc">None</span>
-    <span class="p">)</span>
+    <span class="n">points_grid</span> <span class="o">=</span> <span class="n">_create_quad_points_grid</span><span class="p">(</span><span class="n">grid</span><span class="p">,</span> <span class="n">points</span><span class="p">,</span> <span class="n">n_pts_per_entity</span><span class="p">,</span> <span class="n">cells</span><span class="p">,</span> <span class="n">weights</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 
     <span class="c1"># Finally we append the lexicographical local facet ids as cell data.</span>
-    <span class="n">lex_local_facets</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">quad</span><span class="o">.</span><span class="n">facets</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">),</span> <span class="n">quad</span><span class="o">.</span><span class="n">n_pts_per_entity</span><span class="p">)</span>
+    <span class="n">lex_local_facets</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">facets</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">),</span> <span class="n">n_pts_per_entity</span><span class="p">)</span>
     <span class="n">points_grid</span><span class="o">.</span><span class="n">cell_data</span><span class="p">[</span><span class="s2">&quot;Lexicographical local facets ids&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">lex_local_facets</span>
 
     <span class="k">return</span> <span class="n">points_grid</span>
@@ -524,7 +542,9 @@
         <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">domain</span><span class="p">,</span> <span class="n">UnfittedDomain</span><span class="p">),</span> <span class="s2">&quot;Invalid type.&quot;</span>
         <span class="n">domain_</span> <span class="o">=</span> <span class="n">domain</span><span class="o">.</span><span class="n">cpp_object</span>
 
-    <span class="n">cells_quad</span> <span class="o">=</span> <span class="n">qugar</span><span class="o">.</span><span class="n">cpp</span><span class="o">.</span><span class="n">create_quadrature</span><span class="p">(</span><span class="n">domain_</span><span class="p">,</span> <span class="n">domain_</span><span class="o">.</span><span class="n">cut_cells</span><span class="p">,</span> <span class="n">n_pts_dir</span><span class="p">)</span>
+    <span class="n">cells_quad</span> <span class="o">=</span> <span class="n">qugar</span><span class="o">.</span><span class="n">cpp</span><span class="o">.</span><span class="n">create_quadrature</span><span class="p">(</span>
+        <span class="n">domain_</span><span class="p">,</span> <span class="n">domain_</span><span class="o">.</span><span class="n">cut_cells</span><span class="p">,</span> <span class="n">n_pts_dir</span><span class="p">,</span> <span class="n">full_cells</span><span class="o">=</span><span class="kc">False</span>
+    <span class="p">)</span>
 
     <span class="n">cells_points_set</span> <span class="o">=</span> <span class="n">_cut_quad_to_PyVista</span><span class="p">(</span><span class="n">domain_</span><span class="o">.</span><span class="n">grid</span><span class="p">,</span> <span class="n">cells_quad</span><span class="p">)</span>
 
@@ -533,11 +553,25 @@
     <span class="p">)</span>
     <span class="n">unf_bdry_points_set</span> <span class="o">=</span> <span class="n">_cut_quad_to_PyVista</span><span class="p">(</span><span class="n">domain_</span><span class="o">.</span><span class="n">grid</span><span class="p">,</span> <span class="n">unf_bdry_quad</span><span class="p">)</span>
 
-    <span class="n">cut_facets_cells</span><span class="p">,</span> <span class="n">cut_facets_local_facets</span> <span class="o">=</span> <span class="n">domain_</span><span class="o">.</span><span class="n">cut_facets</span>
-    <span class="n">facets_quad</span> <span class="o">=</span> <span class="n">qugar</span><span class="o">.</span><span class="n">cpp</span><span class="o">.</span><span class="n">create_facets_quadrature</span><span class="p">(</span>
-        <span class="n">domain_</span><span class="p">,</span> <span class="n">cut_facets_cells</span><span class="p">,</span> <span class="n">cut_facets_local_facets</span><span class="p">,</span> <span class="n">n_pts_dir</span>
+    <span class="n">cut_facets_cells</span><span class="p">,</span> <span class="n">cut_facets_local_facets</span> <span class="o">=</span> <span class="n">domain_</span><span class="o">.</span><span class="n">get_cut_facets</span><span class="p">()</span>
+    <span class="n">cut_facets_quad</span> <span class="o">=</span> <span class="n">qugar</span><span class="o">.</span><span class="n">cpp</span><span class="o">.</span><span class="n">create_exterior_facets_quadrature</span><span class="p">(</span>
+        <span class="n">domain_</span><span class="p">,</span>
+        <span class="n">cut_facets_cells</span><span class="p">,</span>
+        <span class="n">cut_facets_local_facets</span><span class="p">,</span>
+        <span class="n">n_pts_dir</span><span class="p">,</span>
+        <span class="n">full_facets</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
     <span class="p">)</span>
-    <span class="n">facets_points_set</span> <span class="o">=</span> <span class="n">_create_quad_facet_points_grid</span><span class="p">(</span><span class="n">domain_</span><span class="o">.</span><span class="n">grid</span><span class="p">,</span> <span class="n">facets_quad</span><span class="p">)</span>
+    <span class="n">unf_bdry_facets_cells</span><span class="p">,</span> <span class="n">unf_bdry_facets_local_facets</span> <span class="o">=</span> <span class="n">domain_</span><span class="o">.</span><span class="n">get_unf_bdry_facets</span><span class="p">()</span>
+    <span class="n">unf_bdry_facets_quad</span> <span class="o">=</span> <span class="n">qugar</span><span class="o">.</span><span class="n">cpp</span><span class="o">.</span><span class="n">create_exterior_facets_quadrature</span><span class="p">(</span>
+        <span class="n">domain_</span><span class="p">,</span>
+        <span class="n">unf_bdry_facets_cells</span><span class="p">,</span>
+        <span class="n">unf_bdry_facets_local_facets</span><span class="p">,</span>
+        <span class="n">n_pts_dir</span><span class="p">,</span>
+        <span class="n">full_facets</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">facets_points_set</span> <span class="o">=</span> <span class="n">_create_quad_facet_points_grid</span><span class="p">(</span>
+        <span class="n">domain_</span><span class="o">.</span><span class="n">grid</span><span class="p">,</span> <span class="p">[</span><span class="n">cut_facets_quad</span><span class="p">,</span> <span class="n">unf_bdry_facets_quad</span><span class="p">]</span>
+    <span class="p">)</span>
 
     <span class="k">if</span> <span class="ow">not</span> <span class="n">is_cpp</span><span class="p">:</span>
         <span class="n">_append_DOLFINx_cell_ids</span><span class="p">(</span><span class="n">cells_points_set</span><span class="p">,</span> <span class="n">domain</span><span class="o">.</span><span class="n">cart_mesh</span><span class="p">)</span>
@@ -549,7 +583,7 @@
         <span class="p">{</span>
             <span class="s2">&quot;Cut cells quadrature&quot;</span><span class="p">:</span> <span class="n">cells_points_set</span><span class="p">,</span>
             <span class="s2">&quot;Unfitted boundary quadrature&quot;</span><span class="p">:</span> <span class="n">unf_bdry_points_set</span><span class="p">,</span>
-            <span class="s2">&quot;Cut facets quadrature&quot;</span><span class="p">:</span> <span class="n">facets_points_set</span><span class="p">,</span>
+            <span class="s2">&quot;Cut/unfitted facets quadrature&quot;</span><span class="p">:</span> <span class="n">facets_points_set</span><span class="p">,</span>
         <span class="p">}</span>
     <span class="p">)</span></div>
 
@@ -616,11 +650,11 @@
 
     <span class="n">facets</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="k">if</span> <span class="n">full</span><span class="p">:</span>
-        <span class="n">facets</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">domain_</span><span class="o">.</span><span class="n">full_facets</span>
+        <span class="n">facets</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">domain_</span><span class="o">.</span><span class="n">get_full_facets</span><span class="p">()</span>
     <span class="k">if</span> <span class="n">cut</span><span class="p">:</span>
-        <span class="n">facets</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">domain_</span><span class="o">.</span><span class="n">cut_facets</span>
+        <span class="n">facets</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">domain_</span><span class="o">.</span><span class="n">get_cut_facets</span><span class="p">()</span>
     <span class="k">if</span> <span class="n">empty</span><span class="p">:</span>
-        <span class="n">facets</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">domain_</span><span class="o">.</span><span class="n">emptyfacets</span>
+        <span class="n">facets</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">domain_</span><span class="o">.</span><span class="n">get_empty_facets</span><span class="p">()</span>
 
     <span class="k">for</span> <span class="n">status</span><span class="p">,</span> <span class="n">lex_cells_facets</span> <span class="ow">in</span> <span class="n">facets</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
         <span class="n">vtk_facets</span> <span class="o">=</span> <span class="n">vtk_lex_mask</span><span class="p">[</span><span class="n">lex_cells_facets</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span>

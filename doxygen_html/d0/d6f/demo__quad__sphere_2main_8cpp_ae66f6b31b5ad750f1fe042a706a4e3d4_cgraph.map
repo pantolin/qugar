@@ -1,9 +1,9 @@
 <map id="main" name="main">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,77,60,102"/>
-<area shape="rect" id="Node000002" href="$d2/d5e/namespacequgar_1_1impl.html#acb0d1bcc709c42fe6f5780b26b4ab3fe" title=" " alt="" coords="137,5,283,45"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="59,75,107,55,128,47,130,52,109,60,61,80"/>
-<area shape="rect" id="Node000003" href="$d2/d5e/namespacequgar_1_1impl.html#a9745b5890413ee8ef0145304ba308eba" title=" " alt="" coords="108,69,312,109"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="60,87,94,87,94,92,60,92"/>
-<area shape="rect" id="Node000004" href="$df/d58/classqugar_1_1UnfittedDomain.html#a8a55ae8d412e4b104629b03945fa3477" title=" " alt="" coords="125,133,295,173"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="61,99,109,119,130,126,128,131,107,124,59,104"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,63,60,88"/>
+<area shape="rect" id="Node000002" href="$d0/d6b/namespacequgar.html#a278123c4be055875c8a95c2a680cf6b2" title=" " alt="" coords="108,5,295,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="59,61,107,41,135,32,136,37,109,46,61,65"/>
+<area shape="rect" id="Node000003" href="$d0/d6b/namespacequgar.html#a5f637d6a93679ad8b021497f1b3354b3" title=" " alt="" coords="119,55,284,95"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="60,73,105,73,105,78,60,78"/>
+<area shape="rect" id="Node000004" href="$df/d58/classqugar_1_1UnfittedDomain.html#a8a55ae8d412e4b104629b03945fa3477" title=" " alt="" coords="116,119,287,159"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="61,85,109,105,129,112,127,117,107,110,59,90"/>
 </map>

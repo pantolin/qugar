@@ -1,5 +1,7 @@
 var NAVTREEINDEX3 =
 {
+"d7/d46/structqugar_1_1impl_1_1RootsIntervals.html#a75cc3500a10e87d95dc2aa76570f64f6":[0,0,0,0,9,4],
+"d7/d46/structqugar_1_1impl_1_1RootsIntervals.html#a75cc3500a10e87d95dc2aa76570f64f6":[2,0,0,0,9,4],
 "d7/d46/structqugar_1_1impl_1_1RootsIntervals.html#a90b402e1b57765b97b4cf51c7f460649":[0,0,0,0,9,9],
 "d7/d46/structqugar_1_1impl_1_1RootsIntervals.html#a90b402e1b57765b97b4cf51c7f460649":[2,0,0,0,9,9],
 "d7/d46/structqugar_1_1impl_1_1RootsIntervals.html#aafb678bd6305f934e20f19a56be5261f":[0,0,0,0,9,2],
@@ -247,7 +249,5 @@ var NAVTREEINDEX3 =
 "da/de2/classqugar_1_1impl_1_1UnfittedImplDomain.html#aa481f08744ea7a363c1d2345de006e6e":[2,0,0,0,10,1],
 "da/de2/classqugar_1_1impl_1_1UnfittedImplDomain.html#ab54cd5067c35832de0f8f6aca3bd4801":[0,0,0,0,10,3],
 "da/de2/classqugar_1_1impl_1_1UnfittedImplDomain.html#ab54cd5067c35832de0f8f6aca3bd4801":[2,0,0,0,10,3],
-"da/de2/classqugar_1_1impl_1_1UnfittedImplDomain.html#ac6242e68f32795f6bd428e507b855292":[0,0,0,0,10,9],
-"da/de2/classqugar_1_1impl_1_1UnfittedImplDomain.html#ac6242e68f32795f6bd428e507b855292":[2,0,0,0,10,9],
-"da/de2/classqugar_1_1impl_1_1UnfittedImplDomain.html#ad2f0b70380219aaf4e79aa2941c16b8b":[0,0,0,0,10,4]
+"da/de2/classqugar_1_1impl_1_1UnfittedImplDomain.html#ac6242e68f32795f6bd428e507b855292":[0,0,0,0,10,9]
 };

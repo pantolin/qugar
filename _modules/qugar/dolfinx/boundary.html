@@ -98,6 +98,7 @@
 <span class="kn">import</span> <span class="nn">dolfinx.fem</span>
 <span class="kn">import</span> <span class="nn">dolfinx.mesh</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">numpy.typing</span> <span class="k">as</span> <span class="nn">npt</span>
 <span class="kn">import</span> <span class="nn">ufl</span>
 <span class="kn">from</span> <span class="nn">ufl.geometry</span> <span class="kn">import</span> <span class="n">Jacobian</span>
 <span class="kn">from</span> <span class="nn">ufl.measure</span> <span class="kn">import</span> <span class="n">integral_type_to_measure_name</span>
@@ -206,7 +207,9 @@
         <span class="n">domain</span><span class="p">:</span> <span class="n">ufl</span><span class="o">.</span><span class="n">AbstractDomain</span> <span class="o">|</span> <span class="n">dolfinx</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">Mesh</span><span class="p">,</span>
         <span class="n">subdomain_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;everywhere&quot;</span><span class="p">,</span>
         <span class="n">metadata</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">subdomain_data</span><span class="p">:</span> <span class="n">dolfinx</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">MeshTags</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">subdomain_data</span><span class="p">:</span> <span class="n">dolfinx</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">MeshTags</span>
+        <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">]]]</span>
+        <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">degree</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize.</span>
@@ -220,11 +223,10 @@
 <span class="sd">            metadata (dict | None, optional): Dictionary with additional</span>
 <span class="sd">                compiler-specific parameters for optimization or</span>
 <span class="sd">                debugging of generated code. Defaults to None.</span>
-<span class="sd">            subdomain_data (dolfinx.mesh.MeshTags | None, optional):</span>
-<span class="sd">                Object representing data to interpret subdomain_id with.</span>
-<span class="sd">                Defaults to None.</span>
+<span class="sd">            subdomain_data (dolfinx.mesh.MeshTags | list[tuple[int, npt.NDArray[np.int32]]] | None, optional):</span>
+<span class="sd">                Object representing data to interpret subdomain_id with. Defaults to None.</span>
 <span class="sd">            degree (int, optional): The degree of the quadrature rule.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        &quot;&quot;&quot;</span>  <span class="c1"># noqa: E501</span>
 
         <span class="k">assert</span> <span class="n">domain</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
 

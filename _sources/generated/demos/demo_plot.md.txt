@@ -99,7 +99,7 @@ quad = qugar.plot.quadrature_to_PyVista(unf_domain, n_pts_dir=3)
 
 quad_cells = cast(pv.UnstructuredGrid, quad.get("Cut cells quadrature"))
 quad_unf_bdry = cast(pv.UnstructuredGrid, quad.get("Unfitted boundary quadrature"))
-quad_facets = cast(pv.UnstructuredGrid, quad.get("Cut facets quadrature"))
+quad_facets = cast(pv.UnstructuredGrid, quad.get("Cut/unfitted facets quadrature"))
 ```
 
 cut and full cells and cut facets of the unfitted domain,
@@ -163,7 +163,7 @@ pl.add_title("Unfitted boundary quadrature", font_size=12)
 pl.add_mesh(quad_unf_bdry, point_size=4, render_points_as_spheres=True)
 pl.add_mesh(cut_cells, color="blue", style="wireframe")
 glyphs = quad_unf_bdry.glyph(
-    orient="Normals", scale=False, factor=0.05, geom=pv.Arrow(), color_mode="scalar"
+    orient=True, scale=False, factor=0.05, geom=pv.Arrow(), color_mode="scalar"
 )
 pl.add_mesh(glyphs)
 pl.add_mesh(reparam_srf_pv.get("reparam"), color="white")

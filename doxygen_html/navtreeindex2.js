@@ -1,5 +1,7 @@
 var NAVTREEINDEX2 =
 {
+"d2/dfe/classqugar_1_1BoundBox.html#a9d62b83005f71342d673418514af4dd7":[2,0,0,1,25],
+"d2/dfe/classqugar_1_1BoundBox.html#a9d96731fff23236bac684b07cd9a8af3":[0,0,0,2,17],
 "d2/dfe/classqugar_1_1BoundBox.html#a9d96731fff23236bac684b07cd9a8af3":[2,0,0,1,17],
 "d2/dfe/classqugar_1_1BoundBox.html#aab6a648a06ab633cab3296402fa8956a":[0,0,0,2,23],
 "d2/dfe/classqugar_1_1BoundBox.html#aab6a648a06ab633cab3296402fa8956a":[2,0,0,1,23],
@@ -200,9 +202,9 @@ var NAVTREEINDEX2 =
 "d6/dc2/structstd_1_1hash_3_01qugar_1_1TensorIndexTP_3_01dim_01_4_01_4.html#a7fc8e5d6d9f316f52ee830222b1ead1e":[0,0,1,0,0],
 "d6/dc2/structstd_1_1hash_3_01qugar_1_1TensorIndexTP_3_01dim_01_4_01_4.html#a7fc8e5d6d9f316f52ee830222b1ead1e":[2,0,1,0,0],
 "d6/dc8/impl__quadrature_8hpp.html":[3,0,0,1,0,10],
-"d6/dc8/impl__quadrature_8hpp.html#a89d266bc3410263e7b8c845257dc46d6":[3,0,0,1,0,10,0],
-"d6/dc8/impl__quadrature_8hpp.html#a9745b5890413ee8ef0145304ba308eba":[3,0,0,1,0,10,2],
-"d6/dc8/impl__quadrature_8hpp.html#acb0d1bcc709c42fe6f5780b26b4ab3fe":[3,0,0,1,0,10,1],
+"d6/dc8/impl__quadrature_8hpp.html#a0746c9c5b25e2bdef4a92328270a059b":[3,0,0,1,0,10,1],
+"d6/dc8/impl__quadrature_8hpp.html#a689166b93e58d4e3ec1843b3a5c79c38":[3,0,0,1,0,10,0],
+"d6/dc8/impl__quadrature_8hpp.html#a8c49e0b3478f8ec592f35af212fad1dd":[3,0,0,1,0,10,2],
 "d6/dc8/impl__quadrature_8hpp_source.html":[3,0,0,1,0,10],
 "d6/dcd/classqugar_1_1impl_1_1funcs_1_1Cylinder.html":[0,0,0,0,0,8],
 "d6/dcd/classqugar_1_1impl_1_1funcs_1_1Cylinder.html":[2,0,0,0,0,8],
@@ -247,7 +249,5 @@ var NAVTREEINDEX2 =
 "d7/d46/structqugar_1_1impl_1_1RootsIntervals.html#a69bbefa388bae9768e39de30d6fe74bb":[0,0,0,0,9,8],
 "d7/d46/structqugar_1_1impl_1_1RootsIntervals.html#a69bbefa388bae9768e39de30d6fe74bb":[2,0,0,0,9,8],
 "d7/d46/structqugar_1_1impl_1_1RootsIntervals.html#a72d682daf88b84fe4c3107d207b2c3ae":[0,0,0,0,9,6],
-"d7/d46/structqugar_1_1impl_1_1RootsIntervals.html#a72d682daf88b84fe4c3107d207b2c3ae":[2,0,0,0,9,6],
-"d7/d46/structqugar_1_1impl_1_1RootsIntervals.html#a75cc3500a10e87d95dc2aa76570f64f6":[0,0,0,0,9,4],
-"d7/d46/structqugar_1_1impl_1_1RootsIntervals.html#a75cc3500a10e87d95dc2aa76570f64f6":[2,0,0,0,9,4]
+"d7/d46/structqugar_1_1impl_1_1RootsIntervals.html#a72d682daf88b84fe4c3107d207b2c3ae":[2,0,0,0,9,6]
 };

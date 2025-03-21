@@ -1,5 +1,7 @@
 var NAVTREEINDEX4 =
 {
+"da/de2/classqugar_1_1impl_1_1UnfittedImplDomain.html#ac6242e68f32795f6bd428e507b855292":[2,0,0,0,10,9],
+"da/de2/classqugar_1_1impl_1_1UnfittedImplDomain.html#ad2f0b70380219aaf4e79aa2941c16b8b":[0,0,0,0,10,4],
 "da/de2/classqugar_1_1impl_1_1UnfittedImplDomain.html#ad2f0b70380219aaf4e79aa2941c16b8b":[2,0,0,0,10,4],
 "da/de2/classqugar_1_1impl_1_1UnfittedImplDomain.html#ae65b0eae87b60e202c04dfd53a05459f":[0,0,0,0,10,7],
 "da/de2/classqugar_1_1impl_1_1UnfittedImplDomain.html#ae65b0eae87b60e202c04dfd53a05459f":[2,0,0,0,10,7],
@@ -247,7 +249,5 @@ var NAVTREEINDEX4 =
 "dd/d80/classqugar_1_1impl_1_1DomainFunc.html#a46bfc92f111abaa98e1430688e41f832":[2,0,0,0,4,1],
 "dd/d80/classqugar_1_1impl_1_1DomainFunc.html#a7f52295303ff8d6b3984c8d3b8cc0a12":[0,0,0,0,4,4],
 "dd/d80/classqugar_1_1impl_1_1DomainFunc.html#a7f52295303ff8d6b3984c8d3b8cc0a12":[2,0,0,0,4,4],
-"dd/d80/classqugar_1_1impl_1_1DomainFunc.html#aaae9b9c195a2ef2d74e29e9b57b5338d":[0,0,0,0,4,3],
-"dd/d80/classqugar_1_1impl_1_1DomainFunc.html#aaae9b9c195a2ef2d74e29e9b57b5338d":[2,0,0,0,4,3],
-"dd/d80/classqugar_1_1impl_1_1DomainFunc.html#ac545fa07e9c597c2107a0f66b6c99428":[0,0,0,0,4,9]
+"dd/d80/classqugar_1_1impl_1_1DomainFunc.html#aaae9b9c195a2ef2d74e29e9b57b5338d":[0,0,0,0,4,3]
 };

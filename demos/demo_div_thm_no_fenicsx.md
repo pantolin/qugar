@@ -329,9 +329,7 @@ So, first, we create a custom quadrature for the cut cells.
 
 ```python
 cut_cells_quad = qugar.cpp.create_quadrature(
-    unf_domain,
-    unf_domain.cut_cells,
-    n_quad_pts,
+    unf_domain, unf_domain.cut_cells, n_quad_pts, full_cells=False
 )
 ```
 

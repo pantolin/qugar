@@ -310,18 +310,17 @@ Uncomment the one you want to use.</p>
 </div>
 <p>In order to be able to integrate over the different families of cells and facets,
 we create tags for the cut and full cells and facets using QUGaR built-in functions.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">cell_tags_vol</span> <span class="o">=</span> <span class="n">unf_domain</span><span class="o">.</span><span class="n">create_cell_tags</span><span class="p">(</span><span class="n">cut_tag</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">full_tag</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-<span class="n">cell_tags_int_srf</span> <span class="o">=</span> <span class="n">unf_domain</span><span class="o">.</span><span class="n">create_cell_tags</span><span class="p">(</span><span class="n">cut_tag</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-<span class="n">facet_tags</span> <span class="o">=</span> <span class="n">unf_domain</span><span class="o">.</span><span class="n">create_facet_tags</span><span class="p">(</span><span class="n">cut_tag</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">full_tag</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">cell_subdomain_data</span> <span class="o">=</span> <span class="n">unf_domain</span><span class="o">.</span><span class="n">create_cell_subdomain_data</span><span class="p">(</span><span class="n">cut_tag</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">full_tag</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">facet_tags</span> <span class="o">=</span> <span class="n">unf_domain</span><span class="o">.</span><span class="n">create_exterior_facet_subdomain_data</span><span class="p">(</span><span class="n">cut_tag</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">full_tag</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">unf_bdry_tag</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Note that the same tag can be used for two different families of cells or facets.</p>
 <p>For computing volumetric integrals, we use standard UFL measures with the
 defined cell tags.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">dx</span> <span class="o">=</span> <span class="n">ufl</span><span class="o">.</span><span class="n">dx</span><span class="p">(</span>
-    <span class="n">subdomain_id</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+    <span class="n">subdomain_id</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
     <span class="n">domain</span><span class="o">=</span><span class="n">dlf_mesh</span><span class="p">,</span>
-    <span class="n">subdomain_data</span><span class="o">=</span><span class="n">cell_tags_vol</span><span class="p">,</span>
+    <span class="n">subdomain_data</span><span class="o">=</span><span class="n">cell_subdomain_data</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="n">ufl_form_vol</span> <span class="o">=</span> <span class="n">div_F</span> <span class="o">*</span> <span class="n">dx</span>
 </pre></div>
@@ -330,7 +329,7 @@ defined cell tags.</p>
 for <span class="math notranslate nohighlight">\(\Gamma_{\text{int}}\)</span> we use the
 <a class="reference internal" href="../qugar.dolfinx.html#qugar.dolfinx.dx_bdry_unf" title="qugar.dolfinx.dx_bdry_unf"><code class="xref py py-class docutils literal notranslate"><span class="pre">dx_bdry_unf</span></code></a> measure introduced in QUGaR
 (note that we integrate over the cut cells only)</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">ds_int</span> <span class="o">=</span> <span class="n">dx_bdry_unf</span><span class="p">(</span><span class="n">subdomain_id</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">domain</span><span class="o">=</span><span class="n">dlf_mesh</span><span class="p">,</span> <span class="n">subdomain_data</span><span class="o">=</span><span class="n">cell_tags_int_srf</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">ds_int</span> <span class="o">=</span> <span class="n">dx_bdry_unf</span><span class="p">(</span><span class="n">subdomain_id</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">domain</span><span class="o">=</span><span class="n">dlf_mesh</span><span class="p">,</span> <span class="n">subdomain_data</span><span class="o">=</span><span class="n">cell_subdomain_data</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>and the standard UFL external facet measure for (both parts of) <span class="math notranslate nohighlight">\(\Gamma_{\text{ext}}\)</span>.</p>

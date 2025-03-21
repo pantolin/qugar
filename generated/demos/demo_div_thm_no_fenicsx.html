@@ -392,9 +392,7 @@ Check their docstrings for more information.</p>
 <p>We compute now the volumetric integral for the cut and full cells.</p>
 <p>So, first, we create a custom quadrature for the cut cells.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">cut_cells_quad</span> <span class="o">=</span> <span class="n">qugar</span><span class="o">.</span><span class="n">cpp</span><span class="o">.</span><span class="n">create_quadrature</span><span class="p">(</span>
-    <span class="n">unf_domain</span><span class="p">,</span>
-    <span class="n">unf_domain</span><span class="o">.</span><span class="n">cut_cells</span><span class="p">,</span>
-    <span class="n">n_quad_pts</span><span class="p">,</span>
+    <span class="n">unf_domain</span><span class="p">,</span> <span class="n">unf_domain</span><span class="o">.</span><span class="n">cut_cells</span><span class="p">,</span> <span class="n">n_quad_pts</span><span class="p">,</span> <span class="n">full_cells</span><span class="o">=</span><span class="kc">False</span>
 <span class="p">)</span>
 </pre></div>
 </div>

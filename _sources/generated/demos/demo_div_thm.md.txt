@@ -236,9 +236,8 @@ In order to be able to integrate over the different families of cells and facets
 we create tags for the cut and full cells and facets using QUGaR built-in functions.
 
 ```python
-cell_tags_vol = unf_domain.create_cell_tags(cut_tag=0, full_tag=0)
-cell_tags_int_srf = unf_domain.create_cell_tags(cut_tag=0)
-facet_tags = unf_domain.create_facet_tags(cut_tag=0, full_tag=0)
+cell_subdomain_data = unf_domain.create_cell_subdomain_data(cut_tag=0, full_tag=1)
+facet_tags = unf_domain.create_exterior_facet_subdomain_data(cut_tag=0, full_tag=0, unf_bdry_tag=0)
 ```
 
 Note that the same tag can be used for two different families of cells or facets.
@@ -250,9 +249,9 @@ defined cell tags.
 
 ```python
 dx = ufl.dx(
-    subdomain_id=0,
+    subdomain_id=(0, 1),
     domain=dlf_mesh,
-    subdomain_data=cell_tags_vol,
+    subdomain_data=cell_subdomain_data,
 )
 ufl_form_vol = div_F * dx
 ```
@@ -263,7 +262,7 @@ for $\Gamma_{\text{int}}$ we use the
 (note that we integrate over the cut cells only)
 
 ```python
-ds_int = dx_bdry_unf(subdomain_id=0, domain=dlf_mesh, subdomain_data=cell_tags_int_srf)
+ds_int = dx_bdry_unf(subdomain_id=0, domain=dlf_mesh, subdomain_data=cell_subdomain_data)
 ```
 
 and the standard UFL external facet measure for (both parts of) $\Gamma_{\text{ext}}$.
