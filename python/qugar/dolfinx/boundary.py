@@ -217,8 +217,6 @@ class dx_bdry_unf(ufl.Measure):
         """
         parent_name = integral_type_to_measure_name[self._integral_type]
         parent_str = super().__str__()
-        print(parent_str)
-        print()
         return parent_str.replace(parent_name, self._measure_name, 1)
 
     def __repr__(self) -> str:
