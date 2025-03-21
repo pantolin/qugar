@@ -113,12 +113,15 @@ def create_div_thm_surface_ufl_form(domain: UnfittedImplDomain, n_quad_pts: int)
 
     cut_tag = 0
     full_tag = 1
+    unf_bdry_tag = 2
     cell_subdomain_data = domain.create_cell_subdomain_data(cut_tag=cut_tag, full_tag=full_tag)
-    facet_tags = domain.create_facet_subdomain_data(cut_tag=cut_tag, full_tag=full_tag)
+    facet_tags = domain.create_exterior_facet_subdomain_data(
+        cut_tag=cut_tag, full_tag=full_tag, unf_bdry_tag=unf_bdry_tag
+    )
 
     quad_degree = get_Gauss_quad_degree(n_quad_pts)
 
-    ds_int = dx_bdry_unf(
+    ds_unf = dx_bdry_unf(
         domain=dlf_mesh,
         subdomain_data=cell_subdomain_data,
         subdomain_id=cut_tag,
@@ -126,7 +129,7 @@ def create_div_thm_surface_ufl_form(domain: UnfittedImplDomain, n_quad_pts: int)
     )
 
     ds_ = ufl.ds(domain=dlf_mesh, subdomain_data=facet_tags)
-    ds = ds_(cut_tag, degree=quad_degree) + ds_(full_tag)
+    ds = ds_(cut_tag, degree=quad_degree) + ds_((full_tag, unf_bdry_tag))
 
     # Note: if no specific number of quadrature points is set for the cut facets,
     # it would be enough to use a single tag for both cut and full facets.
@@ -136,7 +139,7 @@ def create_div_thm_surface_ufl_form(domain: UnfittedImplDomain, n_quad_pts: int)
     facet_normal = ufl.FacetNormal(dlf_mesh)
     func = create_vector_func(dlf_mesh)
 
-    ufl_form_srf = ufl.inner(func, bound_normal) * ds_int + ufl.inner(func, facet_normal) * ds
+    ufl_form_srf = ufl.inner(func, bound_normal) * ds_unf + ufl.inner(func, facet_normal) * ds
     return ufl_form_srf
 
 
@@ -548,7 +551,7 @@ def test_torus(
 
 
 @pytest.mark.parametrize("dim", [2, 3])
-@pytest.mark.parametrize("n_cells", [12])
+@pytest.mark.parametrize("n_cells", [11, 12])
 @pytest.mark.parametrize("n_quad_pts", [8])
 @pytest.mark.parametrize("dtype", dtypes)
 @pytest.mark.parametrize("negative", [False, True])
@@ -595,4 +598,4 @@ def test_tpms(
 if __name__ == "__main__":
     test_disk(8, 6, np.float64, True, False)
     # test_cylinder(8, 6, np.float64, True, False)
-    # test_tpms(3, 12, 8, np.float32, False)
+    # test_tpms(2, 12, 8, np.float32, True)

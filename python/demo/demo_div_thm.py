@@ -229,7 +229,7 @@ div_F = ufl.div(F)
 # we create tags for the cut and full cells and facets using QUGaR built-in functions.
 
 cell_subdomain_data = unf_domain.create_cell_subdomain_data(cut_tag=0, full_tag=1)
-facet_tags = unf_domain.create_facet_subdomain_data(cut_tag=0, full_tag=0)
+facet_tags = unf_domain.create_exterior_facet_subdomain_data(cut_tag=0, full_tag=0, unf_bdry_tag=0)
 
 # Note that the same tag can be used for two different families of cells or facets.
 

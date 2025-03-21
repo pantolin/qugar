@@ -15,6 +15,7 @@ from qugar import has_FEniCSx
 if not has_FEniCSx:
     raise ValueError("FEniCSx installation not found is required.")
 
+import dolfinx.mesh
 import numpy as np
 import numpy.typing as npt
 
@@ -220,6 +221,17 @@ class UnfittedDomain:
         """
         return self._transform_lexicg_cell_ids(self._cpp_object.empty_cells, lexicg)
 
+    def _get_exterior_facets(self) -> npt.NDArray[np.int32]:
+        """Gets the exterior facets of the mesh.
+
+        Returns:
+            npt.NDArray[np.int32]: Sorted list of owned facet indices that are
+            exterior facets of the mesh.
+        """
+        msh = self._cart_mesh.dolfinx_mesh
+        msh.topology.create_connectivity(msh.topology.dim - 1, msh.topology.dim)
+        return dolfinx.mesh.exterior_facet_indices(msh.topology)
+
     def _get_facets(
         self,
         facets_getter: Callable[
@@ -396,7 +408,7 @@ class UnfittedDomain:
         """Creates subdomain data that may contain the cut, full, and/or
         empty cells.
 
-        If the tag for cut, full, or empty cells are not provided, those
+        If the tag for cut, full, or empty tags are not provided, those
         cells will not be included.
 
         Args:
@@ -410,15 +422,13 @@ class UnfittedDomain:
             of cell ids.
         """
 
-        subdomain_data = []
+        subdomain_data = {}
 
         def add_cells(cells, tag):
-            ids = [i for i in range(len(subdomain_data)) if subdomain_data[i][0] == tag]
-            if len(ids) > 0:
-                id = ids[0]
-                subdomain_data[id] = (tag, np.concatenate([subdomain_data[id][1], cells]))
+            if tag in subdomain_data:
+                subdomain_data[tag] = np.concatenate([subdomain_data[tag], cells])
             else:
-                subdomain_data.append((tag, cells))
+                subdomain_data[tag] = cells
 
         if cut_tag is not None:
             add_cells(self.get_cut_cells(lexicg=False), cut_tag)
@@ -429,60 +439,75 @@ class UnfittedDomain:
         if empty_tag is not None:
             add_cells(self.get_empty_cells(lexicg=False), empty_tag)
 
-        for i, tag_cells in enumerate(subdomain_data):
-            subdomain_data[i] = (tag_cells[0], np.sort(tag_cells[1]))
+        return list((tag, np.sort(cells)) for tag, cells in subdomain_data.items())
 
-        return subdomain_data
-
-    def create_facet_subdomain_data(
+    def create_exterior_facet_subdomain_data(
         self,
         cut_tag: Optional[int] = None,
         full_tag: Optional[int] = None,
+        unf_bdry_tag: Optional[int] = None,
         empty_tag: Optional[int] = None,
     ) -> list[tuple[int, npt.NDArray[np.int32]]]:
-        """Creates subdomain data that may contain the cut, full, and/or
-        empty facets
+        """Creates subdomain data that may contain the cut, full, unfitted and/or
+        empty exterior facets
 
-        If the tag for cut, full, or empty facets are not provided, those
-        facets will not be included in the generated `MeshTags`.
+        If the tag for cut, full, unfitted, or empty tags are not provided, those
+        facets will not be included.
 
         Args:
-            cut_tag (Optional[int]): Tag to assign to cut facets. Defaults to None.
-            full_tag (Optional[int]): Tag to assign to full facets. Defaults to None.
-            empty_tag (Optional[int]): Tag to assign to empty facets. Defaults to None.
+            cut_tag (Optional[int]): Tag to assign to cut exterior facets. Defaults to None.
+            full_tag (Optional[int]): Tag to assign to full exterior facets. Defaults to None.
+            unf_bdry_tag (Optional[int]): Tag to assign to facets that contain unfitted boundaries.
+                They are not necessarily exterior facets in the sense of exterior facets
+                of the underlying (non-cut) mesh. Defaults to None.
+            empty_tag (Optional[int]): Tag to assign to empty exterior facets. Defaults to None.
 
         Returns:
             list[tuple[int, npt.NDArray[np.int32]]]: Generated tags subdomain data.
             It is a list where is entry is a tuple with a tag (identifier) and an array
-            of facets. The array of facets is made of consecutive pairs of cells and local facets.
+            of exterior facets. The array of facets is made of consecutive pairs of cells and
+            local facet ids.
 
         """
 
-        subdomain_data = []
+        subdomain_data = {}
 
-        def add_facets(cells, local_facets, tag):
+        ext_facets = self._get_exterior_facets()
+
+        def add_facets(cells, local_facets, tag, only_ext_facets):
             assert len(cells) == len(local_facets), "Non-matching sizes."
-            facets = np.empty(2 * len(cells), dtype=np.int32)
-            facets[0::2] = cells
-            facets[1::2] = local_facets
 
-            ids = [i for i in range(len(subdomain_data)) if subdomain_data[i][0] == tag]
-            if len(ids) > 0:
-                id = ids[0]
-                subdomain_data[id] = (tag, np.concatenate([subdomain_data[id][1], facets]))
+            if only_ext_facets:
+                facets_ids = self._transform_cell_facet_pairs_to_facet_ids(cells, local_facets)
+                _, _, ids = np.intersect1d(
+                    ext_facets, facets_ids, assume_unique=False, return_indices=True
+                )
+                cells, local_facets = cells[ids], local_facets[ids]
+
+            facets = np.empty((len(cells), 2), dtype=np.int32)
+            facets[:, 0] = cells
+            facets[:, 1] = local_facets
+            facets = facets.ravel()
+
+            if tag in subdomain_data:
+                subdomain_data[tag] = np.concatenate([subdomain_data[tag], facets])
             else:
-                subdomain_data.append((tag, facets))
+                subdomain_data[tag] = facets
 
         if cut_tag is not None:
             cells, local_facets = self.get_cut_facets()
-            add_facets(cells, local_facets, cut_tag)
+            add_facets(cells, local_facets, cut_tag, True)
 
         if full_tag is not None:
             cells, local_facets = self.get_full_facets()
-            add_facets(cells, local_facets, full_tag)
+            add_facets(cells, local_facets, full_tag, True)
+
+        if unf_bdry_tag is not None:
+            cells, local_facets = self.get_unf_bdry_facets()
+            add_facets(cells, local_facets, unf_bdry_tag, False)
 
         if empty_tag is not None:
             cells, local_facets = self.get_empty_facets()
-            add_facets(cells, local_facets, cut_tag)
+            add_facets(cells, local_facets, cut_tag, True)
 
-        return subdomain_data
+        return list((tag, entities) for tag, entities in subdomain_data.items())

@@ -542,7 +542,6 @@ void create_facet_quadrature(const UnfittedImplDomain<dim> &unf_domain,
 {
   static_assert(dim == 2 || dim == 3, "Invalid dimension.");
 
-  assert(cells.size() == facets.size());
   assert(0 <= cell_id);
   assert(0 <= local_facet_id && local_facet_id < dim * 2);
   assert(0 < n_pts_dir);

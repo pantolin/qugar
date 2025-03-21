@@ -195,6 +195,7 @@ class QuadGenerator:
         degree: int,
         dlf_cells: npt.NDArray[np.int32],
         dlf_local_facets: npt.NDArray[np.int32],
+        integral_type: str,
         tag: Optional[int] = None,
     ) -> CustomQuadFacet:
         """Returns the custom quadratures for the given facets.
@@ -235,13 +236,20 @@ class QuadGenerator:
                 FEniCSx convention. See
                 https://github.com/FEniCS/basix/#supported-elements
 
+            integral_type (str): Type of integral to be computed. It can
+                be either 'interior_facet' or 'exterior_facet'.
+
             tag (int): Mesh tag of the subdomain associated to the given
-                cells.
+                cells. Right now, it is not used. However, in the future
+                it may be used to filter the different boundaries
+                on the same cell.
 
         Returns:
             CustomQuadFacetInterface: Generated custom facet
             quadratures.
         """
+
+        assert integral_type in ["interior_facet", "exterior_facet"], "Invalid integral type."
 
         n_pts_dir = QuadGenerator.get_num_points(degree)
 
@@ -249,14 +257,18 @@ class QuadGenerator:
 
         lex_to_dlf_faces = lexicg_to_DOLFINx_faces(self.cart_mesh.tdim)
         lex_local_facets = lex_to_dlf_faces[dlf_local_facets]
-        quad = qugar.cpp.create_facets_quadrature(
+
+        if integral_type == "interior_facet":
+            quad_func = qugar.cpp.create_interior_facets_quadrature
+        else:
+            quad_func = qugar.cpp.create_exterior_facets_quadrature
+
+        quad = quad_func(
             self._unf_domain._cpp_object,
             lex_cells,
             lex_local_facets,
             n_pts_dir,
             full_facets=False,
-            remove_unf_bdry=False,
-            remove_cut=False,
         )
 
         return CustomQuadFacet(
