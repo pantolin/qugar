@@ -299,7 +299,7 @@ def _cut_quad_to_PyVista(
 
 def _create_quad_facet_points_grid(
     grid: CartGridTP_2D | CartGridTP_3D,
-    quad: CutIsoBoundsQuad_1D | CutIsoBoundsQuad_2D,
+    quads: list[CutIsoBoundsQuad_1D | CutIsoBoundsQuad_2D],
 ) -> pv.UnstructuredGrid:
     """
     Creates a PyVista unstructured grid containing quadrature points contained
@@ -308,44 +308,62 @@ def _create_quad_facet_points_grid(
     Args:
         grid (CartGridTP_2D | CartGridTP_3D): The Cartesian grid for
             whose facets quadrature points are associated to.
-        quad (CutIsoBoundsQuad_2D | CutIsoBoundsQuad_3D): The
-            quadrature containing the facet quadrature points.
+        quads (list[CutIsoBoundsQuad_2D | CutIsoBoundsQuad_3D]): The
+            list of quadratures containing the facet quadrature points.
 
     Returns:
         pv.UnstructuredGrid: The generated PyVista unstructured grid.
     """
 
+    assert len(quads) > 0, "Empty list of quadratures."
+
     # First we transform point from the reference facet (with one dimension less)
     # to facets on the reference cell (with the same dimension as the cell).
-    n_pts, dim = quad.points.shape
-    dim += 1
+    dim = quads[0].points.shape[1] + 1
+    dtype = quads[0].points.dtype
+
+    n_pts = sum(quad.points.shape[0] for quad in quads)
+    n_facets = sum(quad.cells.size for quad in quads)
 
     facets_const_dirs = _facets_const_dirs(dim)
     facets_const_sides = _facets_const_sides(dim)
     facets_active_dirs = _facets_active_dirs(dim)
 
-    dtype = quad.points.dtype
     points = np.zeros((n_pts, dim), dtype)
-    ofs = 0
-    for facet_id, n_pts_cell in zip(quad.facets, quad.n_pts_per_entity):
-        const_dir = facets_const_dirs[facet_id]
-        const_side = dtype.type(facets_const_sides[facet_id])
-        active_dirs = facets_active_dirs[facet_id]
+    weights = np.zeros(n_pts, dtype)
+    cells = np.zeros(n_facets, dtype=np.int32)
+    n_pts_per_entity = np.zeros(n_facets, dtype=np.int32)
+    facets = np.zeros(n_facets, dtype=np.int32)
 
-        points_facet = points[ofs : ofs + n_pts_cell, :dim]
-        points_facet[:, const_dir] = const_side
-        for i, dir in enumerate(active_dirs):
-            points_facet[:, dir] = quad.points[ofs : ofs + n_pts_cell, i]
+    ofs_pts = 0
+    ofs_cell = 0
+    for quad in quads:
+        ofs_pts_quad = 0
+        for cell_id, facet_id, n_pts_facet in zip(quad.cells, quad.facets, quad.n_pts_per_entity):
+            const_dir = facets_const_dirs[facet_id]
+            const_side = dtype.type(facets_const_sides[facet_id])
+            active_dirs = facets_active_dirs[facet_id]
 
-        ofs += n_pts_cell
+            points_facet = points[ofs_pts : ofs_pts + n_pts_facet, :dim]
+            points_facet[:, const_dir] = const_side
+            for i, dir in enumerate(active_dirs):
+                points_facet[:, dir] = quad.points[ofs_pts_quad : ofs_pts_quad + n_pts_facet, i]
+            weights[ofs_pts : ofs_pts + n_pts_facet] = quad.weights[
+                ofs_pts_quad : ofs_pts_quad + n_pts_facet
+            ]
+            cells[ofs_cell] = cell_id
+            facets[ofs_cell] = facet_id
+            n_pts_per_entity[ofs_cell] = n_pts_facet
+
+            ofs_pts += n_pts_facet
+            ofs_pts_quad += n_pts_facet
+            ofs_cell += 1
 
     # Then, we create the grid.
-    points_grid = _create_quad_points_grid(
-        grid, points, quad.n_pts_per_entity, quad.cells, quad.weights, None
-    )
+    points_grid = _create_quad_points_grid(grid, points, n_pts_per_entity, cells, weights, None)
 
     # Finally we append the lexicographical local facet ids as cell data.
-    lex_local_facets = np.repeat(quad.facets.reshape(-1), quad.n_pts_per_entity)
+    lex_local_facets = np.repeat(facets.reshape(-1), n_pts_per_entity)
     points_grid.cell_data["Lexicographical local facets ids"] = lex_local_facets
 
     return points_grid
@@ -455,17 +473,25 @@ def quadrature_to_PyVista(
     )
     unf_bdry_points_set = _cut_quad_to_PyVista(domain_.grid, unf_bdry_quad)
 
-    cut_facets_cells, cut_facets_local_facets = domain_.cut_facets
-    facets_quad = qugar.cpp.create_facets_quadrature(
+    cut_facets_cells, cut_facets_local_facets = domain_.get_cut_facets()
+    cut_facets_quad = qugar.cpp.create_exterior_facets_quadrature(
         domain_,
         cut_facets_cells,
         cut_facets_local_facets,
         n_pts_dir,
         full_facets=False,
-        remove_unf_bdry=False,
-        remove_cut=False,
     )
-    facets_points_set = _create_quad_facet_points_grid(domain_.grid, facets_quad)
+    unf_bdry_facets_cells, unf_bdry_facets_local_facets = domain_.get_unf_bdry_facets()
+    unf_bdry_facets_quad = qugar.cpp.create_exterior_facets_quadrature(
+        domain_,
+        unf_bdry_facets_cells,
+        unf_bdry_facets_local_facets,
+        n_pts_dir,
+        full_facets=False,
+    )
+    facets_points_set = _create_quad_facet_points_grid(
+        domain_.grid, [cut_facets_quad, unf_bdry_facets_quad]
+    )
 
     if not is_cpp:
         _append_DOLFINx_cell_ids(cells_points_set, domain.cart_mesh)
@@ -477,7 +503,7 @@ def quadrature_to_PyVista(
         {
             "Cut cells quadrature": cells_points_set,
             "Unfitted boundary quadrature": unf_bdry_points_set,
-            "Cut facets quadrature": facets_points_set,
+            "Cut/unfitted facets quadrature": facets_points_set,
         }
     )
 
@@ -541,11 +567,11 @@ def unfitted_domain_facets_to_PyVista(
 
     facets = {}
     if full:
-        facets[0] = domain_.full_facets
+        facets[0] = domain_.get_full_facets()
     if cut:
-        facets[1] = domain_.cut_facets
+        facets[1] = domain_.get_cut_facets()
     if empty:
-        facets[2] = domain_.emptyfacets
+        facets[2] = domain_.get_empty_facets()
 
     for status, lex_cells_facets in facets.items():
         vtk_facets = vtk_lex_mask[lex_cells_facets[1]]
