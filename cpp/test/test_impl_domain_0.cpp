@@ -46,14 +46,12 @@ void horizontal_Bezier_test()
   const qugar::impl::UnfittedImplDomain<2> unf_domain(bezier, grid);
 
   for (const auto &cell_id : unf_domain.get_full_cells()) {
-    REQUIRE((0 <= cell_id && cell_id < 5));
-  }
-  for (const auto &cell_id : unf_domain.get_cut_cells()) {
-    REQUIRE((5 <= cell_id && cell_id < 10));
+    REQUIRE((0 <= cell_id && cell_id < 10));
   }
   for (const auto &cell_id : unf_domain.get_empty_cells()) {
     REQUIRE((10 <= cell_id));
   }
+  REQUIRE((unf_domain.get_cut_cells().empty()));
 }
 
 
@@ -71,14 +69,12 @@ void vertical_Bezier_test()
   const qugar::impl::UnfittedImplDomain<2> unf_domain(bezier, grid);
 
   for (const auto &cell_id : unf_domain.get_full_cells()) {
-    REQUIRE((cell_id % 4 == 0));
-  }
-  for (const auto &cell_id : unf_domain.get_cut_cells()) {
-    REQUIRE((cell_id % 4 == 1));
+    REQUIRE((cell_id % 4 < 2));
   }
   for (const auto &cell_id : unf_domain.get_empty_cells()) {
     REQUIRE(((cell_id % 4) >= 2));
   }
+  REQUIRE((unf_domain.get_cut_cells().empty()));
 }
 
 void horizontal_general_test()
@@ -95,14 +91,12 @@ void horizontal_general_test()
   const qugar::impl::UnfittedImplDomain<2> unf_domain(plane, grid);
 
   for (const auto &cell_id : unf_domain.get_full_cells()) {
-    REQUIRE((0 <= cell_id && cell_id < 5));
-  }
-  for (const auto &cell_id : unf_domain.get_cut_cells()) {
-    REQUIRE((5 <= cell_id && cell_id < 10));
+    REQUIRE((0 <= cell_id && cell_id < 10));
   }
   for (const auto &cell_id : unf_domain.get_empty_cells()) {
     REQUIRE((10 <= cell_id));
   }
+  REQUIRE((unf_domain.get_cut_cells().empty()));
 }
 
 
@@ -120,14 +114,12 @@ void vertical_general_test()
   const qugar::impl::UnfittedImplDomain<2> unf_domain(plane, grid);
 
   for (const auto &cell_id : unf_domain.get_full_cells()) {
-    REQUIRE((cell_id % 4 == 0));
-  }
-  for (const auto &cell_id : unf_domain.get_cut_cells()) {
-    REQUIRE((cell_id % 4 == 1));
+    REQUIRE((cell_id % 4 < 2));
   }
   for (const auto &cell_id : unf_domain.get_empty_cells()) {
     REQUIRE(((cell_id % 4) >= 2));
   }
+  REQUIRE((unf_domain.get_cut_cells().empty()));
 }
 
 }// namespace

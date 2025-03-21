@@ -186,6 +186,15 @@ class _CustomCoeffsPackerIntegral:
         """
         return self._subdomain_id
 
+    @property
+    def _integral_type(self) -> str:
+        """Returns the integral type.
+
+        Returns:
+            str: Integral type.
+        """
+        return self._itg_data.integral_type
+
     def _is_interior_facet(self) -> bool:
         """Checks if the current integral corresponds to an
         ``interior_facet``.
@@ -194,7 +203,7 @@ class _CustomCoeffsPackerIntegral:
             bool: ``True`` if the current integral is on an interior
             facet, ``False`` otherwise.
         """
-        return self._itg_data.integral_type == "interior_facet"
+        return self._integral_type == "interior_facet"
 
     def _is_mixed_dim(self) -> bool:
         """Checks if the current integral presents mixed dimensions.
@@ -213,7 +222,7 @@ class _CustomCoeffsPackerIntegral:
             bool: ``True`` if the current integral is on an exterior
             facet, ``False`` otherwise.
         """
-        return self._itg_data.integral_type == "exterior_facet"
+        return self._integral_type == "exterior_facet"
 
     def _is_facet(self) -> bool:
         """Checks if the current integral corresponds to a facet, either
@@ -567,7 +576,9 @@ class _CustomCoeffsPackerIntegral:
             cells = self._domain[:, 0].reshape(-1)
             facets = self._domain[:, 1].reshape(-1)
 
-        quad_facet = quad_gen.create_quad_custom_facets(degree, cells, facets, subdom_tag)
+        quad_facet = quad_gen.create_quad_custom_facets(
+            degree, cells, facets, self._integral_type, subdom_tag
+        )
 
         quad = self._map_facet_quadrature(quad_facet, cells, facets)
         if not interior_facet:
