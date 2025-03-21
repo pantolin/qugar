@@ -107,6 +107,7 @@ public:
   [[nodiscard]] bool is_empty_cell(int cell_id) const;
   [[nodiscard]] bool is_cut_cell(int cell_id) const;
 
+  // Full unfitted facets are not considered full.
   [[nodiscard]] bool is_full_facet(int cell_id, int local_facet_id) const;
   [[nodiscard]] bool is_empty_facet(int cell_id, int local_facet_id) const;
   [[nodiscard]] bool is_cut_facet(int cell_id, int local_facet_id) const;
@@ -114,6 +115,16 @@ public:
 
   [[nodiscard]] bool has_unfitted_boundary(int cell_id, int local_facet_id) const;
   [[nodiscard]] bool has_external_boundary(int cell_id, int local_facet_id) const;
+
+  // Full unfitted facets are not considered full.
+  [[nodiscard]] static bool is_full_facet(ImmersedFacetStatus status);
+
+  [[nodiscard]] static bool is_empty_facet(ImmersedFacetStatus status);
+  [[nodiscard]] static bool is_cut_facet(ImmersedFacetStatus status);
+  [[nodiscard]] static bool is_full_unfitted_facet(ImmersedFacetStatus status);
+
+  [[nodiscard]] static bool has_unfitted_boundary(ImmersedFacetStatus status);
+  [[nodiscard]] static bool has_external_boundary(ImmersedFacetStatus status);
 
 protected:
   GridPtr grid_;
