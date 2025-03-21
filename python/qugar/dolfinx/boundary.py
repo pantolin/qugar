@@ -115,9 +115,9 @@ class dx_bdry_unf(ufl.Measure):
     """
 
     # Static definition of (fake) custom quadrature points and weights.
-    _weights = np.array([-1.0, -1.0], dtype=np.float64)
-    _points_2D = np.array([[0.1, 0.1], [0.2, 0.2]], dtype=np.float64)
-    _points_3D = np.array([[0.1, 0.1, 0.1], [0.2, 0.2, 0.2]], dtype=np.float64)
+    _weights = [-1.0, -1.0]
+    _points_2D = [[0.1, 0.1], [0.2, 0.2]]
+    _points_3D = [[0.1, 0.1, 0.1], [0.2, 0.2, 0.2]]
 
     def __init__(
         self,
