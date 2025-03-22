@@ -45,7 +45,7 @@ class UnfittedDomain:
 
         assert cpp_object.dim == cart_mesh.tdim, "Non-matching dimensions."
         assert cart_mesh.tdim == cart_mesh.gdim, "Mesh must have co-dimension 0."
-        assert cart_mesh.cpp_object == cpp_object.grid, "Non-matching grids."
+        assert cart_mesh.grid_cpp_object == cpp_object.grid, "Non-matching grids."
 
         self._cart_mesh = cart_mesh
         self._cpp_object = cpp_object

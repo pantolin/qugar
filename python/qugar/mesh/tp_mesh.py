@@ -1186,7 +1186,7 @@ class CartesianMesh(TensorProductMesh):
         super().__init__(comm, nodes_coords, n_cells, degree, ghost_mode)
 
     @property
-    def cpp_object(self) -> qugar.cpp.CartGridTP_2D | qugar.cpp.CartGridTP_2D:
+    def grid_cpp_object(self) -> qugar.cpp.CartGridTP_2D | qugar.cpp.CartGridTP_2D:
         """Returns the stored (C++) Cartesian grid object.
 
         Returns:
