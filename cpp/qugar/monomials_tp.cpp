@@ -100,7 +100,7 @@ std::shared_ptr<MonomialsTP<dim, range>> MonomialsTP<dim, range>::create_derivat
     const auto flat_id = tid.flat(new_order);
 
     ++tid(dir);
-    const auto old_flat_id = tid.flat(this->get_order());
+    const auto old_flat_id = static_cast<int>(tid.flat(this->get_order()));
 
     at(new_coefs, flat_id) = static_cast<real>(tid(dir)) * this->get_coef(old_flat_id);
   }

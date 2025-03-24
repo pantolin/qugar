@@ -26,6 +26,7 @@
 
 #include <array>
 #include <cstddef>
+#include <cstdint>
 #include <memory>
 #include <optional>
 #include <vector>
@@ -78,7 +79,7 @@ public:
   //! @param tolerance Tolerance to be used in checkings.
   //! @return Id of the cell. If the @p point belongs to more than one cell,
   //! it returns the lowest index of the neighbor cells.
-  [[nodiscard]] int get_cell_id(const PointType &point, const Tolerance &tolerance = Tolerance()) const;
+  [[nodiscard]] std::int64_t get_cell_id(const PointType &point, const Tolerance &tolerance = Tolerance()) const;
 
   //! @brief Checks if the given @p point is on the boundary of two cells (up to @p tolerance).
   //!
@@ -96,25 +97,25 @@ public:
   //! @param cell_id Id of the cell whose facet is checked.
   //! @param local_facet_id Id of the local facet of the cell.
   //! @return bool Whether the face is on the grid's boundary.
-  [[nodiscard]] bool on_boundary(int cell_id, int local_facet_id) const;
+  [[nodiscard]] bool on_boundary(std::int64_t cell_id, int local_facet_id) const;
 
   //! @brief Gets the list of cells belonging to given facet of the grid.
   //!
   //! @param facet_id Id of the grid facet. It must be in the range [0, dim*2).
   //! @return List of cells on the facet.
-  [[nodiscard]] std::vector<int> get_boundary_cells(int facet_id) const;
+  [[nodiscard]] std::vector<std::int64_t> get_boundary_cells(int facet_id) const;
 
   //! @brief Gets the flat index of a grid cell from the tensor index.
   //!
   //! @param tid Tensor cell index to transform.
   //! @return Flat cell index.
-  [[nodiscard]] int to_flat(const TensorIndexTP<dim> &tid) const;
+  [[nodiscard]] std::int64_t to_flat(const TensorIndexTP<dim> &tid) const;
 
   //! @brief Gets the tensor index of a grid cell from the flat index.
   //!
   //! @param fid Flat cell index to transform.
   //! @return Tensor cell index.
-  [[nodiscard]] TensorIndexTP<dim> to_tensor(int fid) const;
+  [[nodiscard]] TensorIndexTP<dim> to_tensor(std::int64_t fid) const;
 
   //! @brief Gets the number of cells per direction.
   //!
@@ -125,13 +126,13 @@ public:
   //! @brief Gets the total number of cell.
   //!
   //! @return Total number of cells.
-  [[nodiscard]] int get_num_cells() const;
+  [[nodiscard]] std::size_t get_num_cells() const;
 
   //! @brief Gets an cell's domain.
   //!
   //! @param cell_fid Flat id of the cell.
   //! @return Bounding box of the cell's domain.
-  [[nodiscard]] BoundBox<dim> get_cell_domain(int cell_fid) const;
+  [[nodiscard]] BoundBox<dim> get_cell_domain(std::int64_t cell_fid) const;
 
   //@}
 
@@ -197,12 +198,12 @@ public:
   //!
   //! @param tid Tensor cell index to transform.
   //! @return Flat cell index.
-  [[nodiscard]] int to_flat(const TensorIndexTP<dim> &tid) const;
+  [[nodiscard]] std::int64_t to_flat(const TensorIndexTP<dim> &tid) const;
 
   //! @brief Gets the total number of cells of the subgrid.
   //!
   //! @return Total number of cells.
-  [[nodiscard]] int get_num_cells() const;
+  [[nodiscard]] std::size_t get_num_cells() const;
 
   //! @brief Checks if the subgrid has only one cell.
   //!
@@ -232,7 +233,7 @@ public:
   //! @brief Gets the single cell in the subgrid.
   //!
   //! @return Single cell in the subgrid.
-  [[nodiscard]] int get_single_cell() const;
+  [[nodiscard]] std::int64_t get_single_cell() const;
 };
 
 }// namespace qugar

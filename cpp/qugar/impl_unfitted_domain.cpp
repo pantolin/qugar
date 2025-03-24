@@ -65,11 +65,12 @@ namespace {
   //! @param subgrid The subgrid to check for intersection with target cells.
   //! @param target_cells A vector of cell indices to test for intersection.
   //! @return `true` if any target cell is within the subgrid's range; `false` otherwise.
-  template<int dim> bool intersect(const SubCartGridTP<dim> &subgrid, const std::vector<int> &target_cells)
+  template<int dim> bool intersect(const SubCartGridTP<dim> &subgrid, const std::vector<std::int64_t> &target_cells)
   {
     const auto &range = subgrid.get_range();
-    return std::any_of(
-      target_cells.cbegin(), target_cells.cend(), [&range](const int cell_id) { return range.is_in_range(cell_id); });
+    return std::any_of(target_cells.cbegin(), target_cells.cend(), [&range](const std::int64_t cell_id) {
+      return range.is_in_range(cell_id);
+    });
   }
 
   //! @brief Checks if the subgrid intersects with the target cells.
@@ -88,7 +89,7 @@ namespace {
   //! @return `true` if any target cell is within the subgrid's range, or no target cells are defined;
   //! `false` otherwise.
   template<int dim>
-  bool intersect(const SubCartGridTP<dim> &subgrid, const std::optional<std::vector<int>> &target_cells)
+  bool intersect(const SubCartGridTP<dim> &subgrid, const std::optional<std::vector<std::int64_t>> &target_cells)
   {
     if (target_cells.has_value()) {
       return intersect(subgrid, target_cells.value());
@@ -110,8 +111,8 @@ namespace {
   //! all cell IDs from the `subgrid` are inserted into `container`.
   template<int dim>
   void insert_cells(const SubCartGridTP<dim> &subgrid,
-    const std::optional<std::vector<int>> &target_cells,
-    std::vector<int> &container)
+    const std::optional<std::vector<std::int64_t>> &target_cells,
+    std::vector<std::int64_t> &container)
   {
     const auto &cells_range = subgrid.get_range();
 
@@ -127,16 +128,16 @@ namespace {
     } else {
       container.reserve(container.size() + static_cast<std::size_t>(subgrid.get_num_cells()));
       for (const auto &cell_tid : cells_range) {
-        container.push_back(subgrid.to_flat(cell_tid));
+        container.push_back(static_cast<int>(subgrid.to_flat(cell_tid)));
       }
     }
   }
 
   template<int dim>
   void insert_facets(const SubCartGridTP<dim> &subgrid,
-    const std::optional<std::vector<int>> &target_cells,
+    const std::optional<std::vector<std::int64_t>> &target_cells,
     const ImmersedFacetStatus facet_value,
-    std::unordered_map<int, typename UnfittedImplDomain<dim>::FacetsStatus> &cells_facets)
+    std::unordered_map<std::int64_t, typename UnfittedImplDomain<dim>::FacetsStatus> &cells_facets)
   {
     const auto &cells_range = subgrid.get_range();
 
@@ -481,7 +482,7 @@ UnfittedImplDomain<dim>::UnfittedImplDomain(const FuncPtr phi, const GridPtr gri
   assert(phi != nullptr);
 
   this->phi_ = phi;
-  const std::optional<std::vector<int>> cells;
+  const std::optional<std::vector<std::int64_t>> cells;
   const auto compute_sign = create_compute_sign_function<dim>(*phi);
   this->create_decomposition(SubCartGridTP<dim>(*grid), compute_sign, cells);
   this->sort();
@@ -489,7 +490,9 @@ UnfittedImplDomain<dim>::UnfittedImplDomain(const FuncPtr phi, const GridPtr gri
 
 
 template<int dim>
-UnfittedImplDomain<dim>::UnfittedImplDomain(const FuncPtr phi, const GridPtr grid, const std::vector<int> &cells)
+UnfittedImplDomain<dim>::UnfittedImplDomain(const FuncPtr phi,
+  const GridPtr grid,
+  const std::vector<std::int64_t> &cells)
   : UnfittedDomain<dim>(grid)
 {
   assert(phi != nullptr);
@@ -504,7 +507,7 @@ template<int dim>
 // NOLINTNEXTLINE (misc-no-recursion)
 void UnfittedImplDomain<dim>::create_decomposition(const SubCartGridTP<dim> &subgrid,
   const std::function<FuncSign(const BoundBox<dim> &)> &func_sign,
-  const std::optional<std::vector<int>> &target_cells)
+  const std::optional<std::vector<std::int64_t>> &target_cells)
 {
   if (!intersect(subgrid, target_cells)) {
     return;
@@ -526,7 +529,7 @@ void UnfittedImplDomain<dim>::create_decomposition(const SubCartGridTP<dim> &sub
   } else {
     assert(sign == FuncSign::positive || sign == FuncSign::negative);
 
-    std::vector<int> &cells = sign == FuncSign::positive ? this->empty_cells_ : this->full_cells_;
+    std::vector<std::int64_t> &cells = sign == FuncSign::positive ? this->empty_cells_ : this->full_cells_;
     const auto facet_status = sign == FuncSign::positive ? ImmersedFacetStatus::empty : ImmersedFacetStatus::full;
     insert_cells(subgrid, target_cells, cells);
     insert_facets(subgrid, target_cells, facet_status, this->facets_status_);
@@ -539,13 +542,13 @@ template<int dim> void UnfittedImplDomain<dim>::classify_undetermined_sign_cell(
   const auto [status, facets] = classify_cut_cell_and_facets(*this->phi_, subgrid);
 
   // NOLINTBEGIN (readability-avoid-nested-conditional-operator)
-  std::vector<int> &cells = status == ImmersedStatus::cut
-                              ? this->cut_cells_
-                              : (status == ImmersedStatus::empty ? this->empty_cells_ : this->full_cells_);
+  std::vector<std::int64_t> &cells = status == ImmersedStatus::cut
+                                       ? this->cut_cells_
+                                       : (status == ImmersedStatus::empty ? this->empty_cells_ : this->full_cells_);
   // NOLINTEND (readability-avoid-nested-conditional-operator)
 
   const auto cell_id = subgrid.get_single_cell();
-  cells.push_back(cell_id);
+  cells.push_back(static_cast<int>(cell_id));
 
   this->facets_status_.emplace(cell_id, facets);
 }

@@ -51,29 +51,30 @@ template<int dim> auto UnfittedDomain<dim>::get_grid() const -> GridPtr
   return this->grid_;
 }
 
-template<int dim> const std::vector<int> &UnfittedDomain<dim>::get_full_cells() const
+template<int dim> const std::vector<std::int64_t> &UnfittedDomain<dim>::get_full_cells() const
 {
   return this->full_cells_;
 }
 
-template<int dim> const std::vector<int> &UnfittedDomain<dim>::get_empty_cells() const
+template<int dim> const std::vector<std::int64_t> &UnfittedDomain<dim>::get_empty_cells() const
 {
   return this->empty_cells_;
 }
 
-template<int dim> const std::vector<int> &UnfittedDomain<dim>::get_cut_cells() const
+template<int dim> const std::vector<std::int64_t> &UnfittedDomain<dim>::get_cut_cells() const
 {
   return this->cut_cells_;
 }
 
-template<int dim> auto UnfittedDomain<dim>::get_cell_facets_status(const int cell_id) const -> FacetsStatus
+template<int dim> auto UnfittedDomain<dim>::get_cell_facets_status(const std::int64_t cell_id) const -> FacetsStatus
 {
   return this->facets_status_.at(cell_id);
 }
 
 
 template<int dim>
-void UnfittedDomain<dim>::get_empty_facets(std::vector<int> &cell_ids, std::vector<int> &local_facets_ids) const
+void UnfittedDomain<dim>::get_empty_facets(std::vector<std::int64_t> &cell_ids,
+  std::vector<int> &local_facets_ids) const
 {
   const auto n_facets_estimate = (this->empty_cells_.size() + this->cut_cells_.size()) * n_facets_per_cell;
 
@@ -100,7 +101,7 @@ void UnfittedDomain<dim>::get_empty_facets(std::vector<int> &cell_ids, std::vect
 }
 
 template<int dim>
-void UnfittedDomain<dim>::get_full_facets(std::vector<int> &cell_ids, std::vector<int> &local_facets_ids) const
+void UnfittedDomain<dim>::get_full_facets(std::vector<std::int64_t> &cell_ids, std::vector<int> &local_facets_ids) const
 {
   const auto n_facets_estimate = (this->full_cells_.size() + this->cut_cells_.size()) * n_facets_per_cell;
 
@@ -139,7 +140,7 @@ void UnfittedDomain<dim>::get_full_facets(std::vector<int> &cell_ids, std::vecto
 
 
 template<int dim>
-void UnfittedDomain<dim>::get_cut_facets(std::vector<int> &cell_ids, std::vector<int> &local_facets_ids) const
+void UnfittedDomain<dim>::get_cut_facets(std::vector<std::int64_t> &cell_ids, std::vector<int> &local_facets_ids) const
 {
   const auto n_facets_estimate = this->cut_cells_.size() * n_facets_per_cell;
 
@@ -159,7 +160,8 @@ void UnfittedDomain<dim>::get_cut_facets(std::vector<int> &cell_ids, std::vector
 }
 
 template<int dim>
-void UnfittedDomain<dim>::get_full_unfitted_facets(std::vector<int> &cell_ids, std::vector<int> &local_facets_ids) const
+void UnfittedDomain<dim>::get_full_unfitted_facets(std::vector<std::int64_t> &cell_ids,
+  std::vector<int> &local_facets_ids) const
 {
   const auto n_facets_estimate = this->cut_cells_.size() * n_facets_per_cell;
 
@@ -193,7 +195,8 @@ void UnfittedDomain<dim>::get_full_unfitted_facets(std::vector<int> &cell_ids, s
 
 
 template<int dim>
-void UnfittedDomain<dim>::get_unfitted_facets(std::vector<int> &cell_ids, std::vector<int> &local_facets_ids) const
+void UnfittedDomain<dim>::get_unfitted_facets(std::vector<std::int64_t> &cell_ids,
+  std::vector<int> &local_facets_ids) const
 {
   const auto n_facets_estimate = this->cut_cells_.size() * n_facets_per_cell;
 
@@ -227,9 +230,9 @@ void UnfittedDomain<dim>::get_unfitted_facets(std::vector<int> &cell_ids, std::v
 }
 
 template<int dim>
-void UnfittedDomain<dim>::get_empty_facets(const std::vector<int> &target_cell_ids,
+void UnfittedDomain<dim>::get_empty_facets(const std::vector<std::int64_t> &target_cell_ids,
   const std::vector<int> &target_local_facets_ids,
-  std::vector<int> &cell_ids,
+  std::vector<std::int64_t> &cell_ids,
   std::vector<int> &local_facets_ids) const
 {
   assert(target_cell_ids.size() == target_local_facets_ids.size());
@@ -253,9 +256,9 @@ void UnfittedDomain<dim>::get_empty_facets(const std::vector<int> &target_cell_i
 }
 
 template<int dim>
-void UnfittedDomain<dim>::get_full_facets(const std::vector<int> &target_cell_ids,
+void UnfittedDomain<dim>::get_full_facets(const std::vector<std::int64_t> &target_cell_ids,
   const std::vector<int> &target_local_facets_ids,
-  std::vector<int> &cell_ids,
+  std::vector<std::int64_t> &cell_ids,
   std::vector<int> &local_facets_ids) const
 {
   assert(target_cell_ids.size() == target_local_facets_ids.size());
@@ -280,9 +283,9 @@ void UnfittedDomain<dim>::get_full_facets(const std::vector<int> &target_cell_id
 
 
 template<int dim>
-void UnfittedDomain<dim>::get_cut_facets(const std::vector<int> &target_cell_ids,
+void UnfittedDomain<dim>::get_cut_facets(const std::vector<std::int64_t> &target_cell_ids,
   const std::vector<int> &target_local_facets_ids,
-  std::vector<int> &cell_ids,
+  std::vector<std::int64_t> &cell_ids,
   std::vector<int> &local_facets_ids) const
 {
   assert(target_cell_ids.size() == target_local_facets_ids.size());
@@ -306,9 +309,9 @@ void UnfittedDomain<dim>::get_cut_facets(const std::vector<int> &target_cell_ids
 }
 
 template<int dim>
-void UnfittedDomain<dim>::get_full_unfitted_facets(const std::vector<int> &target_cell_ids,
+void UnfittedDomain<dim>::get_full_unfitted_facets(const std::vector<std::int64_t> &target_cell_ids,
   const std::vector<int> &target_local_facets_ids,
-  std::vector<int> &cell_ids,
+  std::vector<std::int64_t> &cell_ids,
   std::vector<int> &local_facets_ids) const
 {
   assert(target_cell_ids.size() == target_local_facets_ids.size());
@@ -333,9 +336,9 @@ void UnfittedDomain<dim>::get_full_unfitted_facets(const std::vector<int> &targe
 
 
 template<int dim>
-void UnfittedDomain<dim>::get_unfitted_facets(const std::vector<int> &target_cell_ids,
+void UnfittedDomain<dim>::get_unfitted_facets(const std::vector<std::int64_t> &target_cell_ids,
   const std::vector<int> &target_local_facets_ids,
-  std::vector<int> &cell_ids,
+  std::vector<std::int64_t> &cell_ids,
   std::vector<int> &local_facets_ids) const
 {
   assert(target_cell_ids.size() == target_local_facets_ids.size());
@@ -359,25 +362,25 @@ void UnfittedDomain<dim>::get_unfitted_facets(const std::vector<int> &target_cel
 }
 
 
-template<int dim> bool UnfittedDomain<dim>::is_full_cell(const int cell_id) const
+template<int dim> bool UnfittedDomain<dim>::is_full_cell(const std::int64_t cell_id) const
 {
   // NOLINTNEXTLINE (misc-include-cleaner) // <algorithm> should be enough.
   return std::ranges::binary_search(this->full_cells_, cell_id);
 }
 
-template<int dim> bool UnfittedDomain<dim>::is_empty_cell(const int cell_id) const
+template<int dim> bool UnfittedDomain<dim>::is_empty_cell(const std::int64_t cell_id) const
 {
   // NOLINTNEXTLINE (misc-include-cleaner) // <algorithm> should be enough.
   return std::ranges::binary_search(this->empty_cells_, cell_id);
 }
 
-template<int dim> bool UnfittedDomain<dim>::is_cut_cell(const int cell_id) const
+template<int dim> bool UnfittedDomain<dim>::is_cut_cell(const std::int64_t cell_id) const
 {
   // NOLINTNEXTLINE (misc-include-cleaner) // <algorithm> should be enough.
   return std::ranges::binary_search(this->cut_cells_, cell_id);
 }
 
-template<int dim> bool UnfittedDomain<dim>::is_full_facet(const int cell_id, const int local_facet_id) const
+template<int dim> bool UnfittedDomain<dim>::is_full_facet(const std::int64_t cell_id, const int local_facet_id) const
 {
   assert(0 <= local_facet_id && local_facet_id < static_cast<int>(n_facets_per_cell));
   const auto it = this->facets_status_.find(cell_id);
@@ -388,7 +391,7 @@ template<int dim> bool UnfittedDomain<dim>::is_full_facet(const int cell_id, con
   }
 }
 
-template<int dim> bool UnfittedDomain<dim>::is_empty_facet(const int cell_id, const int local_facet_id) const
+template<int dim> bool UnfittedDomain<dim>::is_empty_facet(const std::int64_t cell_id, const int local_facet_id) const
 {
   assert(0 <= local_facet_id && local_facet_id < static_cast<int>(n_facets_per_cell));
   const auto it = this->facets_status_.find(cell_id);
@@ -399,22 +402,25 @@ template<int dim> bool UnfittedDomain<dim>::is_empty_facet(const int cell_id, co
   }
 }
 
-template<int dim> bool UnfittedDomain<dim>::is_cut_facet(const int cell_id, const int local_facet_id) const
+template<int dim> bool UnfittedDomain<dim>::is_cut_facet(const std::int64_t cell_id, const int local_facet_id) const
 {
   return is_cut_facet(at(this->facets_status_.at(cell_id), local_facet_id));
 }
 
-template<int dim> bool UnfittedDomain<dim>::is_full_unfitted_facet(const int cell_id, const int local_facet_id) const
+template<int dim>
+bool UnfittedDomain<dim>::is_full_unfitted_facet(const std::int64_t cell_id, const int local_facet_id) const
 {
   return is_full_unfitted_facet(at(this->facets_status_.at(cell_id), local_facet_id));
 }
 
-template<int dim> bool UnfittedDomain<dim>::has_unfitted_boundary(const int cell_id, const int local_facet_id) const
+template<int dim>
+bool UnfittedDomain<dim>::has_unfitted_boundary(const std::int64_t cell_id, const int local_facet_id) const
 {
   return has_unfitted_boundary(at(this->facets_status_.at(cell_id), local_facet_id));
 }
 
-template<int dim> bool UnfittedDomain<dim>::has_external_boundary(const int cell_id, const int local_facet_id) const
+template<int dim>
+bool UnfittedDomain<dim>::has_external_boundary(const std::int64_t cell_id, const int local_facet_id) const
 {
   return has_external_boundary(at(this->facets_status_.at(cell_id), local_facet_id));
 }

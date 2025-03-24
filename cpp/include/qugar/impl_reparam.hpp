@@ -33,8 +33,10 @@ std::shared_ptr<const ImplReparamMesh<levelset ? dim - 1 : dim, dim>>
   create_reparameterization(const UnfittedImplDomain<dim> &unf_domain, int n_pts_dir);
 
 template<int dim, bool levelset>
-std::shared_ptr<const ImplReparamMesh<levelset ? dim - 1 : dim, dim>>
-  create_reparameterization(const UnfittedImplDomain<dim> &unf_domain, const std::vector<int> &cells, int n_pts_dir);
+std::shared_ptr<const ImplReparamMesh<levelset ? dim - 1 : dim, dim>> create_reparameterization(
+  const UnfittedImplDomain<dim> &unf_domain,
+  const std::vector<std::int64_t> &cells,
+  int n_pts_dir);
 
 
 }// namespace qugar::impl

@@ -103,7 +103,7 @@ template<int dim, int range> auto PolynomialTP<dim, range>::get_coef(const int i
 template<int dim, int range>
 auto PolynomialTP<dim, range>::get_coef(const TensorIndexTP<dim> &index) const -> const CoefsType &
 {
-  return this->get_coef(index.flat(this->order_));
+  return this->get_coef(static_cast<int>(index.flat(this->order_)));
 }
 
 template<int dim, int range> auto PolynomialTP<dim, range>::get_coef(const TensorIndexTP<dim> &index) -> CoefsType &

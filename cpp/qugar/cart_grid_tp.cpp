@@ -131,7 +131,7 @@ template<int dim> const BoundBox<dim> &CartGridTP<dim>::get_domain() const
   return domain_;
 }
 
-template<int dim> int CartGridTP<dim>::get_cell_id(const PointType &point, const Tolerance &tolerance) const
+template<int dim> std::int64_t CartGridTP<dim>::get_cell_id(const PointType &point, const Tolerance &tolerance) const
 {
   TensorIndexTP<dim> tid;
   for (int dir = 0; dir < dim; ++dir) {
@@ -185,7 +185,7 @@ std::optional<int> CartGridTP<dim>::at_cells_boundary(const PointType &point, co
 }
 
 // NOLINTNEXTLINE (bugprone-easily-swappable-parameters)
-template<int dim> bool CartGridTP<dim>::on_boundary(const int cell_id, const int local_facet_id) const
+template<int dim> bool CartGridTP<dim>::on_boundary(const std::int64_t cell_id, const int local_facet_id) const
 {
   // NOLINTNEXLINE (readability-simplify-boolean-expr)
   assert(0 <= local_facet_id && local_facet_id < dim * 2);
@@ -198,7 +198,7 @@ template<int dim> bool CartGridTP<dim>::on_boundary(const int cell_id, const int
   return cell_tid(const_dir) == (side == 0 ? 0 : n_cells_dir(const_dir) - 1);
 }
 
-template<int dim> std::vector<int> CartGridTP<dim>::get_boundary_cells(int facet_id) const
+template<int dim> std::vector<std::int64_t> CartGridTP<dim>::get_boundary_cells(int facet_id) const
 {
   assert(0 <= facet_id && facet_id < dim * 2);
 
@@ -213,23 +213,23 @@ template<int dim> std::vector<int> CartGridTP<dim>::get_boundary_cells(int facet
   tid_0(const_dir) = side == 0 ? 0 : n_cells_dir(const_dir) - 1;
   tid_1(const_dir) = side == 0 ? 1 : n_cells_dir(const_dir);
 
-  std::vector<int> cells;
+  std::vector<std::int64_t> cells;
   const auto n_cells_facet = remove_component(n_cells_dir.as_Vector(), const_dir);
   cells.reserve(static_cast<std::size_t>(prod(n_cells_facet)));
 
   for (const auto cell_tid : TensorIndexRangeTP<dim>(tid_0, tid_1)) {
-    cells.push_back(cell_tid.flat(n_cells_dir));
+    cells.push_back(static_cast<int>(cell_tid.flat(n_cells_dir)));
   }
 
   return cells;
 }
 
-template<int dim> int CartGridTP<dim>::to_flat(const TensorIndexTP<dim> &tid) const
+template<int dim> std::int64_t CartGridTP<dim>::to_flat(const TensorIndexTP<dim> &tid) const
 {
   return tid.flat(this->get_num_cells_dir());
 }
 
-template<int dim> TensorIndexTP<dim> CartGridTP<dim>::to_tensor(const int fid) const
+template<int dim> TensorIndexTP<dim> CartGridTP<dim>::to_tensor(const std::int64_t fid) const
 {
   return TensorIndexTP<dim>(fid, this->get_num_cells_dir());
 }
@@ -239,12 +239,12 @@ template<int dim> TensorSizeTP<dim> CartGridTP<dim>::get_num_cells_dir() const
   return this->range_.get_sizes();
 }
 
-template<int dim> int CartGridTP<dim>::get_num_cells() const
+template<int dim> std::size_t CartGridTP<dim>::get_num_cells() const
 {
   return this->get_num_cells_dir().size();
 }
 
-template<int dim> BoundBox<dim> CartGridTP<dim>::get_cell_domain(const int cell_fid) const
+template<int dim> BoundBox<dim> CartGridTP<dim>::get_cell_domain(const std::int64_t cell_fid) const
 {
   const auto tid = TensorIndexTP<dim>(cell_fid, this->get_num_cells_dir());
   BoundBox<dim> domain;
@@ -292,7 +292,7 @@ template<int dim> TensorSizeTP<dim> SubCartGridTP<dim>::get_num_cells_dir() cons
   return this->range_.get_sizes();
 }
 
-template<int dim> int SubCartGridTP<dim>::get_num_cells() const
+template<int dim> std::size_t SubCartGridTP<dim>::get_num_cells() const
 {
   return this->range_.size();
 }
@@ -340,13 +340,13 @@ template<int dim> const CartGridTP<dim> &SubCartGridTP<dim>::get_grid() const
   return this->grid_;
 }
 
-template<int dim> int SubCartGridTP<dim>::to_flat(const TensorIndexTP<dim> &tid) const
+template<int dim> std::int64_t SubCartGridTP<dim>::to_flat(const TensorIndexTP<dim> &tid) const
 {
   assert(range_.is_in_range(tid));
   return this->grid_.to_flat(tid);
 }
 
-template<int dim> int SubCartGridTP<dim>::get_single_cell() const
+template<int dim> std::int64_t SubCartGridTP<dim>::get_single_cell() const
 {
   assert(this->is_unique_cell());
   return this->to_flat(this->range_.get_lower_bound());

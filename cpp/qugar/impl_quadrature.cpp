@@ -239,7 +239,7 @@ namespace {
   // NOLINTBEGIN (bugprone-easily-swappable-parameters)
   void purge_facet_points(const ImplicitFunc<dim> &func,
     const UnfittedImplDomain<dim> &unf_domain,
-    const int cell_id,
+    const std::int64_t cell_id,
     const int local_facet_id,
     CutUnfBoundsQuad<dim> &quad)
   // NOLINTEND (bugprone-easily-swappable-parameters)
@@ -291,7 +291,7 @@ namespace {
   // NOLINTBEGIN (bugprone-easily-swappable-parameters)
   void purge_facet_points(const ImplicitFunc<dim> &func,
     const UnfittedImplDomain<dim> &unf_domain,
-    const int cell_id,
+    const std::int64_t cell_id,
     const int local_facet_id,
     bool purge_unf_bdry,
     bool purge_unf_ext_bdry,
@@ -350,7 +350,7 @@ namespace {
   // NOLINTBEGIN (bugprone-easily-swappable-parameters)
   void compute_facet_quadrature_with_algoim_general(const ImplicitFunc<dim> &phi,
     const UnfittedImplDomain<dim> &unf_domain,
-    const int cell_id,
+    const std::int64_t cell_id,
     const int local_facet_id,
     const int n_pts_dir,
     CutIsoBoundsQuad<dim - 1> &quad)
@@ -388,7 +388,7 @@ namespace {
   // NOLINTBEGIN (bugprone-easily-swappable-parameters)
   void compute_facet_quadrature_with_algoim_Bezier(const BezierTP<dim> &bezier,
     const UnfittedImplDomain<dim> &unf_domain,
-    const int cell_id,
+    const std::int64_t cell_id,
     const int local_facet_id,
     const int n_pts_dir,
     CutIsoBoundsQuad<dim - 1> &quad)
@@ -429,7 +429,7 @@ namespace {
   // NOLINTBEGIN (bugprone-easily-swappable-parameters)
   void compute_facet_quadrature_with_algoim(const ImplicitFunc<dim> &phi,
     const UnfittedImplDomain<dim> &unf_domain,
-    const int cell_id,
+    const std::int64_t cell_id,
     const int local_facet_id,
     const int n_pts_dir,
     CutIsoBoundsQuad<dim - 1> &quad)
@@ -449,7 +449,7 @@ namespace {
 // NOLINTBEGIN (bugprone-easily-swappable-parameters)
 template<int dim>
 void create_cell_quadrature(const UnfittedImplDomain<dim> &unf_domain,
-  const int cell_id,
+  const std::int64_t cell_id,
   const int n_pts_dir,
   const bool full_cells,
   CutCellsQuad<dim> &quad)
@@ -497,7 +497,7 @@ void create_cell_quadrature(const UnfittedImplDomain<dim> &unf_domain,
 // NOLINTBEGIN (bugprone-easily-swappable-parameters)
 template<int dim>
 void create_cell_unfitted_bound_quadrature(const UnfittedImplDomain<dim> &unf_domain,
-  const int cell_id,
+  const std::int64_t cell_id,
   const int n_pts_dir,
   CutUnfBoundsQuad<dim> &quad)
 // NOLINTEND (bugprone-easily-swappable-parameters)
@@ -531,7 +531,7 @@ void create_cell_unfitted_bound_quadrature(const UnfittedImplDomain<dim> &unf_do
 // NOLINTBEGIN (bugprone-easily-swappable-parameters)
 template<int dim>
 void create_facet_quadrature(const UnfittedImplDomain<dim> &unf_domain,
-  const int cell_id,
+  const std::int64_t cell_id,
   const int local_facet_id,
   const int n_pts_dir,
   const bool full_facets,
@@ -586,22 +586,28 @@ void create_facet_quadrature(const UnfittedImplDomain<dim> &unf_domain,
 
 // Instantiations
 
-template void
-  create_cell_quadrature<2>(const UnfittedImplDomain<2> &, const int, const int, const bool, CutCellsQuad<2> &);
-template void
-  create_cell_quadrature<3>(const UnfittedImplDomain<3> &, const int, const int, const bool, CutCellsQuad<3> &);
+template void create_cell_quadrature<2>(const UnfittedImplDomain<2> &,
+  const std::int64_t,
+  const int,
+  const bool,
+  CutCellsQuad<2> &);
+template void create_cell_quadrature<3>(const UnfittedImplDomain<3> &,
+  const std::int64_t,
+  const int,
+  const bool,
+  CutCellsQuad<3> &);
 
 template void create_cell_unfitted_bound_quadrature<2>(const UnfittedImplDomain<2> &unf_domain,
-  const int,
+  const std::int64_t,
   const int,
   CutUnfBoundsQuad<2> &);
 template void create_cell_unfitted_bound_quadrature<3>(const UnfittedImplDomain<3> &unf_domain,
-  const int,
+  const std::int64_t,
   const int,
   CutUnfBoundsQuad<3> &);
 
 template void create_facet_quadrature<2>(const UnfittedImplDomain<2> &,
-  const int,
+  const std::int64_t,
   const int,
   const int,
   const bool,
@@ -609,7 +615,7 @@ template void create_facet_quadrature<2>(const UnfittedImplDomain<2> &,
   const bool,
   CutIsoBoundsQuad<1> &);
 template void create_facet_quadrature<3>(const UnfittedImplDomain<3> &,
-  const int,
+  const std::int64_t,
   const int,
   const int,
   const bool,

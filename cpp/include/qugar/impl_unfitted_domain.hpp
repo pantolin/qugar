@@ -45,7 +45,7 @@ public:
 
   explicit UnfittedImplDomain(const FuncPtr phi, GridPtr grid);
 
-  explicit UnfittedImplDomain(const FuncPtr phi, GridPtr grid, const std::vector<int> &cells);
+  explicit UnfittedImplDomain(const FuncPtr phi, GridPtr grid, const std::vector<std::int64_t> &cells);
 
   [[nodiscard]] FuncPtr get_impl_func() const;
 
@@ -55,7 +55,7 @@ private:
   // NOLINTNEXTLINE (misc-no-recursion)
   void create_decomposition(const SubCartGridTP<dim> &subgrid,
     const std::function<FuncSign(const BoundBox<dim> &)> &func_sign,
-    const std::optional<std::vector<int>> &target_cells);
+    const std::optional<std::vector<std::int64_t>> &target_cells);
 
   void classify_undetermined_sign_cell(const SubCartGridTP<dim> &subgrid);
 };

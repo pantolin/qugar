@@ -19,6 +19,7 @@
 #include <qugar/impl_unfitted_domain.hpp>
 #include <qugar/unfitted_domain.hpp>
 
+#include <cstdint>
 #include <span>
 #include <string>
 #include <vector>
@@ -42,9 +43,10 @@ namespace {
   {
     using UnfDomain = UnfittedDomain<dim>;
 
-    const auto make_tuple = [](const std::vector<int> &cells, const std::vector<int> &facets) {
+    const auto make_tuple = [](const std::vector<std::int64_t> &cells, const std::vector<int> &facets) {
+      using Array64 = nb::ndarray<const std::int64_t, nb::numpy, nb::shape<-1>, nb::c_contig>;
       using Array = nb::ndarray<const int, nb::numpy, nb::shape<-1>, nb::c_contig>;
-      const auto cells_py = Array(cells.data(), { cells.size() }, nb::handle());
+      const auto cells_py = Array64(cells.data(), { cells.size() }, nb::handle());
       const auto facets_py = Array(facets.data(), { facets.size() }, nb::handle());
       return nb::make_tuple(cells_py, facets_py);
     };
@@ -52,19 +54,20 @@ namespace {
     const auto get_facets =
       [&make_tuple](const auto &accessor_0,
         const auto &accessor_1,
-        const std::optional<nb::ndarray<const int, nb::numpy, nb::shape<-1>>> &target_cell_ids_py,
+        const std::optional<nb::ndarray<const std::int64_t, nb::numpy, nb::shape<-1>>> &target_cell_ids_py,
         const std::optional<nb::ndarray<const int, nb::numpy, nb::shape<-1>>> &target_local_facet_ids_py) {
-        std::vector<int> cell_ids;
+        std::vector<std::int64_t> cell_ids;
         std::vector<int> local_facet_ids;
 
         if (target_cell_ids_py.has_value() && target_local_facet_ids_py.has_value()) {
           assert(target_local_facets_ids_py.has_value());
 
-          const std::span<const int> cells_span(target_cell_ids_py.value().data(), target_cell_ids_py.value().size());
+          const std::span<const std::int64_t> cells_span(
+            target_cell_ids_py.value().data(), target_cell_ids_py.value().size());
           const std::span<const int> local_facets_span(
             target_local_facet_ids_py.value().data(), target_local_facet_ids_py.value().size());
 
-          accessor_0(std::vector<int>(cells_span.begin(), cells_span.end()),
+          accessor_0(std::vector<std::int64_t>(cells_span.begin(), cells_span.end()),
             std::vector<int>(local_facets_span.begin(), local_facets_span.end()),
             cell_ids,
             local_facet_ids);
@@ -85,28 +88,28 @@ namespace {
       .def_prop_ro(
         "full_cells",
         [](UnfDomain &domain) {
-          using Array = nb::ndarray<const int, nb::numpy, nb::shape<-1>, nb::c_contig>;
+          using Array = nb::ndarray<const std::int64_t, nb::numpy, nb::shape<-1>, nb::c_contig>;
           return Array(domain.get_full_cells().data(), { domain.get_full_cells().size() }, nb::handle());
         },
         nb::rv_policy::reference_internal)
       .def_prop_ro(
         "empty_cells",
         [](UnfDomain &domain) {
-          using Array = nb::ndarray<const int, nb::numpy, nb::shape<-1>, nb::c_contig>;
+          using Array = nb::ndarray<const std::int64_t, nb::numpy, nb::shape<-1>, nb::c_contig>;
           return Array(domain.get_empty_cells().data(), { domain.get_empty_cells().size() }, nb::handle());
         },
         nb::rv_policy::reference_internal)
       .def_prop_ro(
         "cut_cells",
         [](UnfDomain &domain) {
-          using Array = nb::ndarray<const int, nb::numpy, nb::shape<-1>, nb::c_contig>;
+          using Array = nb::ndarray<const std::int64_t, nb::numpy, nb::shape<-1>, nb::c_contig>;
           return Array(domain.get_cut_cells().data(), { domain.get_cut_cells().size() }, nb::handle());
         },
         nb::rv_policy::reference_internal)
       .def(
         "get_empty_facets",
         [&get_facets](UnfDomain &domain,
-          const std::optional<nb::ndarray<const int, nb::numpy, nb::shape<-1>>> &target_cell_ids_py,
+          const std::optional<nb::ndarray<const std::int64_t, nb::numpy, nb::shape<-1>>> &target_cell_ids_py,
           const std::optional<nb::ndarray<const int, nb::numpy, nb::shape<-1>>> &target_local_facet_ids_py) {
           const auto accessor_0 =
             [&domain](
@@ -124,7 +127,7 @@ namespace {
       .def(
         "get_full_facets",
         [&get_facets](UnfDomain &domain,
-          const std::optional<nb::ndarray<const int, nb::numpy, nb::shape<-1>>> &target_cell_ids_py,
+          const std::optional<nb::ndarray<const std::int64_t, nb::numpy, nb::shape<-1>>> &target_cell_ids_py,
           const std::optional<nb::ndarray<const int, nb::numpy, nb::shape<-1>>> &target_local_facet_ids_py) {
           const auto accessor_0 =
             [&domain](
@@ -142,7 +145,7 @@ namespace {
       .def(
         "get_cut_facets",
         [&get_facets](UnfDomain &domain,
-          const std::optional<nb::ndarray<const int, nb::numpy, nb::shape<-1>>> &target_cell_ids_py,
+          const std::optional<nb::ndarray<const std::int64_t, nb::numpy, nb::shape<-1>>> &target_cell_ids_py,
           const std::optional<nb::ndarray<const int, nb::numpy, nb::shape<-1>>> &target_local_facet_ids_py) {
           const auto accessor_0 =
             [&domain](
@@ -160,7 +163,7 @@ namespace {
       .def(
         "get_unf_bdry_facets",
         [&get_facets](UnfDomain &domain,
-          const std::optional<nb::ndarray<const int, nb::numpy, nb::shape<-1>>> &target_cell_ids_py,
+          const std::optional<nb::ndarray<const std::int64_t, nb::numpy, nb::shape<-1>>> &target_cell_ids_py,
           const std::optional<nb::ndarray<const int, nb::numpy, nb::shape<-1>>> &target_local_facet_ids_py) {
           const auto accessor_0 =
             [&domain](
@@ -183,9 +186,10 @@ namespace {
     using UnfittedImplDomain = impl::UnfittedImplDomain<dim>;
     using UnfDomain = UnfittedDomain<dim>;
 
-    const auto make_tuple = [](const std::vector<int> &cells, const std::vector<int> &facets) {
+    const auto make_tuple = [](const std::vector<std::int64_t> &cells, const std::vector<int> &facets) {
+      using Array64 = nb::ndarray<const std::int64_t, nb::numpy, nb::shape<-1>, nb::c_contig>;
       using Array = nb::ndarray<const int, nb::numpy, nb::shape<-1>, nb::c_contig>;
-      const auto cells_py = Array(cells.data(), { cells.size() }, nb::handle());
+      const auto cells_py = Array64(cells.data(), { cells.size() }, nb::handle());
       const auto facets_py = Array(facets.data(), { facets.size() }, nb::handle());
       return nb::make_tuple(cells_py, facets_py);
     };
@@ -210,7 +214,7 @@ namespace {
       nb::arg("impl_func"),
       nb::arg("grid"));
 
-    using CellsArray = nb::ndarray<const int, nb::numpy, nb::shape<-1>>;
+    using CellsArray = nb::ndarray<const std::int64_t, nb::numpy, nb::shape<-1>>;
 
     module.def(
       "create_unfitted_impl_domain",
@@ -219,8 +223,8 @@ namespace {
         const CellsArray &cells_py) {
         assert(phi != nullptr);
         assert(grid != nullptr);
-        const std::span<const int> cells_span(cells_py.data(), cells_py.size());
-        const std::vector<int> cells(cells_span.begin(), cells_span.end());
+        const std::span<const std::int64_t> cells_span(cells_py.data(), cells_py.size());
+        const std::vector<std::int64_t> cells(cells_span.begin(), cells_span.end());
         return std::make_shared<impl::UnfittedImplDomain<dim>>(phi, grid, cells);
       },
       nb::arg("impl_func"),
@@ -231,7 +235,7 @@ namespace {
       "create_unfitted_impl_domain",
       [](const std::shared_ptr<const impl::ImplicitFunc<dim>> phi,
         const std::shared_ptr<const CartGridTP<dim>> grid,
-        const std::vector<int> &cells) {
+        const std::vector<std::int64_t> &cells) {
         assert(phi != nullptr);
         assert(grid != nullptr);
         return std::make_shared<impl::UnfittedImplDomain<dim>>(phi, grid, cells);

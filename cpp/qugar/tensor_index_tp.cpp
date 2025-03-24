@@ -22,6 +22,7 @@
 #include <array>
 #include <cassert>
 #include <cstddef>
+#include <cstdint>
 #include <functional>
 #include <string_view>
 
@@ -52,9 +53,13 @@ template<int dim> Vector<int, dim> &TensorSizeTP<dim>::as_Vector()
   return dynamic_cast<Vector<int, dim> &>(*this);
 }
 
-template<int dim> int TensorSizeTP<dim>::size() const
+template<int dim> std::size_t TensorSizeTP<dim>::size() const
 {
-  return prod(this->as_Vector());
+  std::size_t size_{ 1 };
+  for (int dir = 0; dir < dim; ++dir) {
+    size_ *= static_cast<std::size_t>(this->operator()(dir));
+  }
+  return size_;
 }
 
 
@@ -122,14 +127,14 @@ template<int dim> bool TensorIndexTP<dim>::operator<(const TensorIndexTP<dim> &r
   }
 };
 
-template<int dim> template<typename S> int TensorIndexTP<dim>::flat(const S &size) const
+template<int dim> template<typename S> std::int64_t TensorIndexTP<dim>::flat(const S &size) const
 {
-  int accum_size{ 1 };
+  std::int64_t accum_size{ 1 };
 
-  int flat_index{ 0 };
+  std::int64_t flat_index{ 0 };
   for (int dir = 0; dir < dim; ++dir) {
-    const auto index_dir = this->operator()(dir);
-    const auto size_dir = size(dir);
+    const auto index_dir = static_cast<std::int64_t>(this->operator()(dir));
+    const auto size_dir = static_cast<std::int64_t>(size(dir));
     assert(0 <= index_dir && index_dir < size_dir);
 
     flat_index += index_dir * accum_size;
@@ -197,7 +202,7 @@ template<int dim> TensorSizeTP<dim> TensorIndexRangeTP<dim>::get_sizes() const
   return TensorSizeTP<dim>(this->upper_bound_.as_Vector() - this->lower_bound_.as_Vector());
 }
 
-template<int dim> int TensorIndexRangeTP<dim>::size() const
+template<int dim> std::size_t TensorIndexRangeTP<dim>::size() const
 {
   return this->get_sizes().size();
 }
@@ -238,9 +243,10 @@ template<int dim> bool TensorIndexRangeTP<dim>::is_in_range(const TensorIndexTP<
          && all(index.as_Vector() < this->upper_bound_.as_Vector());
 }
 
-template<int dim> bool TensorIndexRangeTP<dim>::is_in_range(const int index) const
+template<int dim> bool TensorIndexRangeTP<dim>::is_in_range(const std::int64_t index) const
 {
-  if (index >= TensorSizeTP<dim>(this->upper_bound_).size()) {
+  assert(index >= 0);
+  if (static_cast<std::size_t>(index) >= TensorSizeTP<dim>(this->upper_bound_).size()) {
     return false;
   } else {
     return this->is_in_range(TensorIndexTP<dim>(index, this->upper_bound_));
@@ -291,7 +297,7 @@ template<int dim> const TensorIndexTP<dim> *TensorIndexRangeTP<dim>::Iterator::o
   return &index_;
 }
 
-template<int dim> int TensorIndexRangeTP<dim>::Iterator::flat() const
+template<int dim> std::int64_t TensorIndexRangeTP<dim>::Iterator::flat() const
 {
   return this->index_.flat(this->upper_bound_);
 }
@@ -343,12 +349,12 @@ template class TensorIndexTP<1>;
 template class TensorIndexTP<2>;
 template class TensorIndexTP<3>;
 
-template int TensorIndexTP<1>::flat<TensorIndexTP<1>>(const TensorIndexTP<1> &) const;
-template int TensorIndexTP<1>::flat<TensorSizeTP<1>>(const TensorSizeTP<1> &) const;
-template int TensorIndexTP<2>::flat<TensorIndexTP<2>>(const TensorIndexTP<2> &) const;
-template int TensorIndexTP<2>::flat<TensorSizeTP<2>>(const TensorSizeTP<2> &) const;
-template int TensorIndexTP<3>::flat<TensorIndexTP<3>>(const TensorIndexTP<3> &) const;
-template int TensorIndexTP<3>::flat<TensorSizeTP<3>>(const TensorSizeTP<3> &) const;
+template std::int64_t TensorIndexTP<1>::flat<TensorIndexTP<1>>(const TensorIndexTP<1> &) const;
+template std::int64_t TensorIndexTP<1>::flat<TensorSizeTP<1>>(const TensorSizeTP<1> &) const;
+template std::int64_t TensorIndexTP<2>::flat<TensorIndexTP<2>>(const TensorIndexTP<2> &) const;
+template std::int64_t TensorIndexTP<2>::flat<TensorSizeTP<2>>(const TensorSizeTP<2> &) const;
+template std::int64_t TensorIndexTP<3>::flat<TensorIndexTP<3>>(const TensorIndexTP<3> &) const;
+template std::int64_t TensorIndexTP<3>::flat<TensorSizeTP<3>>(const TensorSizeTP<3> &) const;
 
 template class TensorIndexRangeTP<1>;
 template class TensorIndexRangeTP<2>;

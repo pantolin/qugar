@@ -31,6 +31,7 @@
 
 #include <array>
 #include <cstddef>
+#include <cstdint>
 #include <memory>
 #include <vector>
 
@@ -54,15 +55,15 @@ TEST_CASE("Schoen Gyroid 2D function quadrature", "[impl]")
 
   const int n_pts_dir{ 3 };
 
-  std::vector<int> cut_facets_cells;
+  std::vector<std::int64_t> cut_facets_cells;
   std::vector<int> cut_facets_local_facets_ids;
-  std::vector<int> full_facets_cells;
+  std::vector<std::int64_t> full_facets_cells;
   std::vector<int> full_facets_local_facets_ids;
-  std::vector<int> empty_facets_cells;
+  std::vector<std::int64_t> empty_facets_cells;
   std::vector<int> empty_facets_local_facets_ids;
-  std::vector<int> full_unfitted_facets_cells;
+  std::vector<std::int64_t> full_unfitted_facets_cells;
   std::vector<int> full_unfitted_facets_local_facets_ids;
-  std::vector<int> unfitted_facets_cells;
+  std::vector<std::int64_t> unfitted_facets_cells;
   std::vector<int> unfitted_facets_local_facets_ids;
   unf_domain.get_empty_facets(empty_facets_cells, empty_facets_local_facets_ids);
   unf_domain.get_full_facets(full_facets_cells, full_facets_local_facets_ids);
@@ -130,11 +131,11 @@ TEST_CASE("General function quadrature", "[impl]")
 
   const int n_pts_dir{ 3 };
 
-  std::vector<int> cut_facets_cells;
+  std::vector<std::int64_t> cut_facets_cells;
   std::vector<int> cut_facets_local_facets_ids;
-  std::vector<int> full_facets_cells;
+  std::vector<std::int64_t> full_facets_cells;
   std::vector<int> full_facets_local_facets_ids;
-  std::vector<int> empty_facets_cells;
+  std::vector<std::int64_t> empty_facets_cells;
   std::vector<int> empty_facets_local_facets_ids;
   unf_domain.get_empty_facets(empty_facets_cells, empty_facets_local_facets_ids);
   unf_domain.get_full_facets(full_facets_cells, full_facets_local_facets_ids);

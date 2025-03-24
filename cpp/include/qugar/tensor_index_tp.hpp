@@ -18,12 +18,14 @@
 //!
 //! @copyright Copyright (c) 2025-present
 
+#include <limits>
 #include <qugar/vector.hpp>
 
 
 #include <array>
 #include <cassert>
 #include <cstddef>
+#include <cstdint>
 #include <functional>
 #include <type_traits>
 
@@ -72,7 +74,7 @@ public:
 
   //! @brief Gets the total number of entries (product of sizes along all directions).
   //! @return Total number of entries.
-  [[nodiscard]] int size() const;
+  [[nodiscard]] std::size_t size() const;
 
   //! @brief Checks if two tensor sizes are equal by comparing all its components. They are equal if all the
   //! components are equal.
@@ -133,17 +135,18 @@ public:
   //! @note Not available for 0-dimensional case.
   template<int aux_dim = dim>
     requires(aux_dim == dim && dim > 0)
-  TensorIndexTP(int flat_index, const TensorIndexTP<dim> &size)
+  TensorIndexTP(std::int64_t flat_index, const TensorIndexTP<dim> &size)
   {
-    int total_size = prod(size.as_Vector());
+    auto total_size = static_cast<std::int64_t>(prod(size.as_Vector()));
 
     // NOLINTNEXTLINE (readability-simplify-boolean-expr)
     assert(0 <= flat_index && flat_index < total_size);
 
     for (int dir = dim - 1; dir >= 0; --dir) {
       total_size /= size(dir);
-      const auto ind = flat_index / total_size;
-      this->operator()(dir) = ind;
+      const std::int64_t ind = flat_index / total_size;
+      assert(ind < std::numeric_limits<int>::max());
+      this->operator()(dir) = static_cast<int>(ind);
       flat_index -= ind * total_size;
     }
   }
@@ -157,7 +160,7 @@ public:
   //! @note Not available for 0-dimensional case.
   template<int aux_dim = dim>
     requires(aux_dim == dim && dim > 0)
-  TensorIndexTP(int flat_index, const TensorSizeTP<dim> &size) : TensorIndexTP(flat_index, TensorIndexTP(size))
+  TensorIndexTP(std::int64_t flat_index, const TensorSizeTP<dim> &size) : TensorIndexTP(flat_index, TensorIndexTP(size))
   {}
 
   //! @brief Constructs the tensor index from an argument list.
@@ -191,7 +194,7 @@ public:
   //! @param size Tensor size the current index is associated to.
   //! @return Computed flat index.
   //! @tparam S Size type.
-  template<typename S> [[nodiscard]] int flat(const S &size) const;
+  template<typename S> [[nodiscard]] std::int64_t flat(const S &size) const;
 
   //! @brief Checks if two tensor indices are equal by comparing all its components. They are equal if all the
   //! components are equal.
@@ -268,7 +271,7 @@ public:
 
   //! @brief returns the number of entries in the range.
   //! @return Number of entries in the range.
-  [[nodiscard]] int size() const;
+  [[nodiscard]] std::size_t size() const;
 
   //! @brief Splits the current range along the direction
   //! with a largest number of indices.
@@ -300,7 +303,7 @@ public:
     //! @brief Transforms the current tensor index into a flat one
     //! by considering the upper bound as associated size.
     //! @return Computed flat index.
-    [[nodiscard]] int flat() const;
+    [[nodiscard]] std::int64_t flat() const;
 
     //! @brief Pre increments the iterator.
     //! @return Updated iterator.
@@ -366,7 +369,7 @@ public:
   //! @brief Checks that the given @p index is contained in the range.
   //! @param index Index to be checked.
   //! @return Whether the index is contained in the range or not.
-  [[nodiscard]] bool is_in_range(int index) const;
+  [[nodiscard]] bool is_in_range(std::int64_t index) const;
 
 private:
   //! Lower bounds.
