@@ -626,7 +626,7 @@ class TensorProductMesh:
         else:
             # TODO: this is a temporary hack. All the nodes and cells
             # are created in rank 0, and then distributed. Better
-            # performance could by achieving by distributing nodes and
+            # performance could be achieved by distributing nodes and
             # cells since their creation.
             n_nodes_per_cell = 2**self.tdim
             conn = np.empty((0, n_nodes_per_cell), dtype=np.int64)
