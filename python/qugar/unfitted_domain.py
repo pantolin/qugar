@@ -78,70 +78,54 @@ class UnfittedDomain:
         """
         return self._cpp_object
 
-    def _transform_lexicg_cell_ids(
-        self, lex_cell_ids: npt.NDArray[np.int32], lexicg: bool
+    def _transform_lexicg_cell_ids_to_DOLFINx_local(
+        self, lex_cell_ids: npt.NDArray[np.int64]
     ) -> npt.NDArray[np.int32]:
-        """Transforms the given `lex_cell_ids` to either lexicographical
-        (if `lexicg` is `True`) or DOLFINx local numbering (otherwise).
+        """Transforms the given `lex_cell_ids` to  DOLFINx local numbering.
 
         Args:
             lex_cell_ids (npt.NDArray[np.int32]): Lexicographical cell
                 ids to transform.
-            lexicg (bool: If `True`, the returned indices follow the
-                lexicographical ordering of the Cartesian mesh.
-                Otherwise, they correspond to DOLFINx local numbering of
-                the current submesh.
 
         Returns:
-            npt.NDArray[np.int32]: Transformed indices.
+            npt.NDArray[np.int32]: Transformed indices following the
+            DOLFINx local numbering.
         """
 
-        if lexicg:
-            return lex_cell_ids
-        else:
-            return cast(
-                npt.NDArray[np.int32],
-                self.cart_mesh.get_DOLFINx_local_cell_ids(lex_cell_ids, lexicg=True),
-            )
+        return cast(
+            npt.NDArray[np.int32],
+            self.cart_mesh.get_DOLFINx_local_cell_ids(lex_cell_ids),
+        )
 
-    def _transform_dlf_cell_ids(
-        self, dlf_cell_ids: npt.NDArray[np.int32], lexicg: bool
+    def _transform_dlf_cell_ids_to_lexicg(
+        self, dlf_cell_ids: npt.NDArray[np.int32]
     ) -> npt.NDArray[np.int32]:
-        """Transforms the given `dlf_cell_ids` to either lexicographical
-        (if `lexicg` is `True`) or DOLFINx local numbering (otherwise).
+        """Transforms the given `dlf_cell_ids` to lexicographical numbering.
 
         Args:
             dlf_cell_ids (npt.NDArray[np.int32]): Local DOLFINx cell
                 ids to transform.
-            lexicg (bool: If `True`, the returned indices follow the
-                lexicographical ordering of the Cartesian mesh.
-                Otherwise, they correspond to DOLFINx local numbering of
-                the current submesh.
 
         Returns:
-            npt.NDArray[np.int32]: Transformed indices.
+            npt.NDArray[np.int32]: Transformed indices following the lexicographical
+            numbering.
         """
 
-        if lexicg:
-            return cast(
-                npt.NDArray[np.int32],
-                self.cart_mesh.get_lexicg_cell_ids(dlf_cell_ids, lexicg=False),
-            )
-        else:
-            return dlf_cell_ids
+        return cast(
+            npt.NDArray[np.int32],
+            self.cart_mesh.get_lexicg_cell_ids(dlf_cell_ids),
+        )
 
-    def _transform_lexicg_facet_ids(
+    def _transform_lexicg_facet_ids_to_DOLFINx_local(
         self,
-        lex_cells: npt.NDArray[np.int32],
+        lex_cells: npt.NDArray[np.int64],
         lex_facets: npt.NDArray[np.int32],
-        lexicg: bool = False,
     ) -> tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]:
         """Transforms the given lexicographical facets indices to
-        either lexicographical (if `lexicg` is `True`) or DOLFINx local
-        numbering (otherwise)
+        DOLFINx local numbering (otherwise)
 
         Args:
-            lex_cells (npt.NDArray[np.int32]): Indices of the facets
+            lex_cells (npt.NDArray[np.int64]): Indices of the facets
                 following the lexicographical ordering. All the cell
                 indices must be associated to the current process.
 
@@ -150,30 +134,17 @@ class UnfittedDomain:
                 the same length). The face ids follow the
                 lexicographical ordering.
 
-            lexicg (bool, optional): Describes the ordering for the
-                returned cells and local facets. If `lexicg` is set to
-                `True`, cell indices and local facets follow the
-                lexicographical ordering of the Cartesian mesh (i.e.,
-                they same as the input `lex_cells` and `lex_facets`)
-                Otherwise, they correspond to DOLFINx local numbering
-                of the current submesh.
-                Defaults to `False`.
-
         Returns:
             tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]:
             Transformed facets returned as one array of cells and another
             one of local facets referred to those cells. The indices of the cells
-            and local facets may follow the lexicographical ordering if
-            `lexicg` is set to `True`. Otherwise, they follow the
-            DOLFINx numbering.
+            and local facets follow the DOLFINx local numbering.
         """
-        if lexicg:
-            return lex_cells, lex_facets
 
         tdim = self._cart_mesh.tdim
         dlf_to_lex_facets = DOLFINx_to_lexicg_faces(tdim)
 
-        dlf_cells = self._transform_lexicg_cell_ids(lex_cells, lexicg=False)
+        dlf_cells = self._transform_lexicg_cell_ids_to_DOLFINx_local(lex_cells)
         dlf_facets = dlf_to_lex_facets[lex_facets]
         return dlf_cells, dlf_facets
 
@@ -204,7 +175,7 @@ class UnfittedDomain:
         tdim = self._cart_mesh.tdim
         lex_to_dlf_facets = lexicg_to_DOLFINx_faces(tdim)
 
-        lex_cells = self._transform_dlf_cell_ids(dlf_cells, lexicg=True)
+        lex_cells = self._transform_dlf_cell_ids_to_lexicg(dlf_cells)
         lex_facets = lex_to_dlf_facets[dlf_facets]
         return lex_cells, lex_facets
 
@@ -233,50 +204,33 @@ class UnfittedDomain:
         cells_to_facets = create_cells_to_facets_map(self._cart_mesh.dolfinx_mesh)
         return cells_to_facets[dlf_cells, dlf_facets]
 
-    def get_cut_cells(self, lexicg: bool = False) -> npt.NDArray[np.int32]:
+    def get_cut_cells(self) -> npt.NDArray[np.int32]:
         """Gets the ids of the cut cells.
-
-        Args:
-                follow the lexicographical ordering of the Cartesian
-                mesh. Otherwise, they correspond to DOLFINx local
-                numbering of the current submesh. Defaults to `False`.
 
         Returns:
             npt.NDArray[np.int32]: Array of cut cells associated to the
-            current process.
+            current process following the DOLFINx local numbering.
         """
 
-        return self._transform_lexicg_cell_ids(self._cpp_object.cut_cells, lexicg)
+        return self._transform_lexicg_cell_ids_to_DOLFINx_local(self._cpp_object.cut_cells)
 
-    def get_full_cells(self, lexicg: bool = False) -> npt.NDArray[np.int32]:
+    def get_full_cells(self) -> npt.NDArray[np.int32]:
         """Gets the ids of the full cells.
-
-        Args:
-            lexicg (bool, optional): If `True`, the returned indices
-                follow the lexicographical ordering of the Cartesian
-                mesh. Otherwise, they correspond to DOLFINx local
-                numbering of the current submesh. Defaults to `False`.
 
         Returns:
             npt.NDArray[np.int32]: Array of full cells associated to the
-            current process.
+            current process following the DOLFINx local numbering.
         """
-        return self._transform_lexicg_cell_ids(self._cpp_object.full_cells, lexicg)
+        return self._transform_lexicg_cell_ids_to_DOLFINx_local(self._cpp_object.full_cells)
 
-    def get_empty_cells(self, lexicg: bool = False) -> npt.NDArray[np.int32]:
+    def get_empty_cells(self) -> npt.NDArray[np.int32]:
         """Gets the ids of the empty cells.
 
-        Args:
-            lexicg (bool, optional): If `True`, the returned indices
-                follow the lexicographical ordering of the Cartesian
-                mesh. Otherwise, they correspond to DOLFINx local
-                numbering of the current submesh. Defaults to `False`.
-
         Returns:
-            npt.NDArray[np.int32]: Array of empty cells associated to
-            the current process.
+            npt.NDArray[np.int32]: Array of empty cells associated to the
+            current process following the DOLFINx local numbering.
         """
-        return self._transform_lexicg_cell_ids(self._cpp_object.empty_cells, lexicg)
+        return self._transform_lexicg_cell_ids_to_DOLFINx_local(self._cpp_object.empty_cells)
 
     def _get_exterior_facets(self) -> npt.NDArray[np.int32]:
         """Gets the exterior facets of the mesh.
@@ -293,7 +247,7 @@ class UnfittedDomain:
         self,
         facets_getter: Callable[
             [Optional[npt.NDArray[np.int32]], Optional[npt.NDArray[np.int32]]],
-            tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]],
+            tuple[npt.NDArray[np.int64], npt.NDArray[np.int32]],
         ],
         only_exterior: bool = False,
         only_interior: bool = False,
@@ -347,7 +301,7 @@ class UnfittedDomain:
         else:
             lex_cell_ids, lex_local_facet_ids = facets_getter(None, None)
 
-        return self._transform_lexicg_facet_ids(lex_cell_ids, lex_local_facet_ids, lexicg=False)
+        return self._transform_lexicg_facet_ids_to_DOLFINx_local(lex_cell_ids, lex_local_facet_ids)
 
     def get_cut_facets(
         self,
@@ -487,13 +441,13 @@ class UnfittedDomain:
                 subdomain_data[tag] = cells
 
         if cut_tag is not None:
-            add_cells(self.get_cut_cells(lexicg=False), cut_tag)
+            add_cells(self.get_cut_cells(), cut_tag)
 
         if full_tag is not None:
-            add_cells(self.get_full_cells(lexicg=False), full_tag)
+            add_cells(self.get_full_cells(), full_tag)
 
         if empty_tag is not None:
-            add_cells(self.get_empty_cells(lexicg=False), empty_tag)
+            add_cells(self.get_empty_cells(), empty_tag)
 
         return list((tag, np.sort(cells)) for tag, cells in subdomain_data.items())
 

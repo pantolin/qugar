@@ -391,15 +391,15 @@ if has_FEniCSx:
             AssertionError: If the number of global cells in the mesh does not match
             the number of local cells. This is not implemented yet.
         """
-        assert mesh.num_global_cells == mesh.num_local_cells, "Not implemented case."
+        assert mesh.num_cells_tp == mesh.num_local_cells, "Not implemented case."
 
         lex_cell_ids = grid.cell_data["Lexicographical cell ids"]
 
         dlf_local_cell_ids = cast(
             npt.NDArray[np.int32],
-            mesh.get_DOLFINx_local_cell_ids(lex_cell_ids, lexicg=True),
+            mesh.get_DOLFINx_local_cell_ids(lex_cell_ids),
         )
-        dlf_global_cell_ids = mesh.get_DOLFINx_global_cell_ids(dlf_local_cell_ids, lexicg=False)
+        dlf_global_cell_ids = mesh.get_DOLFINx_local_to_global_cell_ids(dlf_local_cell_ids)
 
         grid.cell_data["DOLFINx local cell ids"] = dlf_local_cell_ids
         grid.cell_data["DOLFINx global cell ids"] = dlf_global_cell_ids
