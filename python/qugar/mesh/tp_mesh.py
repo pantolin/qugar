@@ -213,7 +213,7 @@ def _create_mesh(
     conn: npt.NDArray[np.int64],
     degree: int,
     cell_type: Optional[str] = None,
-    ghost_mode: GhostMode = GhostMode.shared_facet,
+    ghost_mode: GhostMode = GhostMode.none,
 ) -> dolfinx.mesh.Mesh:
     """Creates a DOLFINx mesh of Lagrange elements.
 
@@ -239,7 +239,7 @@ def _create_mesh(
             `interval`, `quadrilateral`, or `hexahedron`, depending on
             the dimension `dim`.
         ghost_mode (GhostMode, optional): Ghost mode used for mesh
-            partitioning. Defaults to `shared_facet`.
+            partitioning. Defaults to `none`.
 
     Returns:
         dolfinx.mesh.Mesh: Generated mesh.
@@ -456,7 +456,7 @@ class TensorProductMesh:
         nodes_coords: npt.NDArray[np.float32 | np.float64],
         n_cells: npt.NDArray[np.int32] | list[np.int32] | list[int],
         degree: int = 1,
-        ghost_mode: GhostMode = GhostMode.shared_facet,
+        ghost_mode: GhostMode = GhostMode.none,
         merge_nodes: bool = False,
         merge_tol: Optional[type[np.float32 | np.float64]] = None,
     ) -> None:
@@ -473,7 +473,7 @@ class TensorProductMesh:
                 the coordinates of each point.
             degree (int): Degree of the mesh.
             ghost_mode (GhostMode, optional): Ghost mode used for mesh
-                partitioning. Defaults to `shared_facet`.
+                partitioning. Defaults to `none`.
             merge_nodes (bool, optional): If `True`, coincident nodes
                 will be merged together into a single one. Otherwise,
                 duplicated nodes will not be merged. Defaults to
@@ -595,7 +595,7 @@ class TensorProductMesh:
         nodes_coords: npt.NDArray[np.float32 | np.float64],
         merge_nodes: bool,
         merge_tol: Optional[type[np.float32 | np.float64]] = None,
-        ghost_mode=GhostMode.shared_facet,
+        ghost_mode=GhostMode.none,
     ) -> None:
         """Creates the underlying DOLFINx mesh and stores it in
         `self._mesh`.
@@ -608,7 +608,7 @@ class TensorProductMesh:
                 (following lexicographical ordering), and the columns to
                 the coordinates of each point.
             ghost_mode (GhostMode, optional): Ghost mode used for mesh
-                partitioning. Defaults to `shared_facet`.
+                partitioning. Defaults to `none`.
             merge_nodes (bool): If `True`, coincident nodes will be
                 merged together into a single one. Otherwise, duplicated
                 nodes will not be merged.
@@ -1145,7 +1145,7 @@ class CartesianMesh(TensorProductMesh):
         comm: MPI.Intracomm,
         grid_cpp: qugar.cpp.CartGridTP_2D | qugar.cpp.CartGridTP_3D,
         degree: int = 1,
-        ghost_mode: GhostMode = GhostMode.shared_facet,
+        ghost_mode: GhostMode = GhostMode.none,
         dtype: type[np.float32 | np.float64] = np.float64,
     ):
         """Constructor.
@@ -1162,7 +1162,7 @@ class CartesianMesh(TensorProductMesh):
             degree (int, optional): Degree of the mesh. Defaults to 1.
                 It must be greater than zero.
             ghost_mode (GhostMode, optional): Ghost mode used for mesh
-                partitioning. Defaults to `shared_facet`.
+                partitioning. Defaults to `none`.
             dtype (type[np.float32 | np.float64], optional): Type to
                 be used in the grid. Defaults to `np.float64`.
         """
@@ -1250,7 +1250,7 @@ def create_Cartesian_mesh(
     xmin: Optional[npt.NDArray[np.float32 | np.float64]] = None,
     xmax: Optional[npt.NDArray[np.float32 | np.float64]] = None,
     degree: int = 1,
-    ghost_mode: GhostMode = GhostMode.shared_facet,
+    ghost_mode: GhostMode = GhostMode.none,
 ) -> CartesianMesh:
     """Creates a Cartesian mesh from a bounding box and the number of
     cells per direction.
@@ -1267,7 +1267,7 @@ def create_Cartesian_mesh(
             of ones with double floating precision.
         degree (int, optional): Degree of the mesh. Defaults to 1.
         ghost_mode (GhostMode, optional): Ghost mode used for mesh
-            partitioning. Defaults to `shared_facet`.
+            partitioning. Defaults to `none`.
 
     Returns:
         CartesianMesh: Generated Cartesian mesh.
