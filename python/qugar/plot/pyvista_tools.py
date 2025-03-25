@@ -1,4 +1,4 @@
-# --------------------------------------------------------------------------
+#' --------------------------------------------------------------------------
 #
 # Copyright (C) 2025-present by Pablo Antolin
 #
@@ -370,9 +370,9 @@ def _create_quad_facet_points_grid(
 
 
 if has_FEniCSx:
-    from qugar.mesh import CartesianMesh
+    from qugar.mesh import TensorProductMesh
 
-    def _append_DOLFINx_cell_ids(grid: pv.UnstructuredGrid, mesh: CartesianMesh) -> None:
+    def _append_DOLFINx_cell_ids(grid: pv.UnstructuredGrid, mesh: TensorProductMesh) -> None:
         """
         Appends DOLFINx local and global cell IDs to the given PyVista UnstructuredGrid.
 
@@ -384,7 +384,7 @@ if has_FEniCSx:
         Args:
             grid (pv.UnstructuredGrid): The PyVista UnstructuredGrid to which the
                 DOLFINx cell IDs will be appended.
-            mesh (CartesianMesh): The CartesianMesh object containing the DOLFINx
+            mesh (TensorProductMesh): The TensorProductMesh object containing the DOLFINx
                 cell ID information.
 
         Raises:
@@ -453,7 +453,7 @@ def quadrature_to_PyVista(
     if is_cpp:
         domain_ = domain
     else:
-        assert has_FEniCSx, "FEniCSx is required to convert a CartesianMesh to PyVista."
+        assert has_FEniCSx, "FEniCSx is required to convert a TensorProductMesh to PyVista."
         from qugar.unfitted_domain import UnfittedDomain
 
         assert isinstance(domain, UnfittedDomain), "Invalid type."
@@ -491,9 +491,9 @@ def quadrature_to_PyVista(
     )
 
     if not is_cpp:
-        _append_DOLFINx_cell_ids(cells_points_set, domain.cart_mesh)
-        _append_DOLFINx_cell_ids(unf_bdry_points_set, domain.cart_mesh)
-        _append_DOLFINx_cell_ids(facets_points_set, domain.cart_mesh)
+        _append_DOLFINx_cell_ids(cells_points_set, domain.tp_mesh)
+        _append_DOLFINx_cell_ids(unf_bdry_points_set, domain.tp_mesh)
+        _append_DOLFINx_cell_ids(facets_points_set, domain.tp_mesh)
         _append_DOLFINx_facets_ids(facets_points_set, domain.dim)
 
     return pv.MultiBlock(
@@ -555,7 +555,7 @@ def unfitted_domain_facets_to_PyVista(
     if is_cpp:
         domain_ = domain
     else:
-        assert has_FEniCSx, "FEniCSx is required to convert a CartesianMesh to PyVista."
+        assert has_FEniCSx, "FEniCSx is required to convert a TensorProductMesh to PyVista."
         from qugar.unfitted_domain import UnfittedDomain
 
         assert isinstance(domain, UnfittedDomain), "Invalid type."
@@ -618,12 +618,12 @@ def unfitted_domain_to_PyVista(
         grid = cart_grid_tp_to_PyVista(domain.grid)
         domain_ = domain
     else:
-        assert has_FEniCSx, "FEniCSx is required to convert a CartesianMesh to PyVista."
+        assert has_FEniCSx, "FEniCSx is required to convert a TensorProductMesh to PyVista."
         from qugar.unfitted_domain import UnfittedDomain
 
         assert isinstance(domain, UnfittedDomain), "Invalid type."
 
-        grid = cart_grid_tp_to_PyVista(domain.cart_mesh)
+        grid = grid_tp_to_PyVista(domain.tp_mesh)
         domain_ = domain.cpp_object
 
     value = np.full(grid.n_cells, empty, dtype=bool)
@@ -654,7 +654,7 @@ def cart_grid_tp_to_PyVista(grid: Any) -> pv.RectilinearGrid:
         pv.RectilinearGrid: The converted PyVista `RectilinearGrid`.
 
     Raises:
-        AssertionError: If a CartesianMesh is passed as input and the number of global cells
+        AssertionError: If a TensorProductMesh is passed as input and the number of global cells
             does not match the number of local cells in the grid. This is not implemented yet.
     """
 
@@ -670,10 +670,34 @@ def cart_grid_tp_to_PyVista(grid: Any) -> pv.RectilinearGrid:
     pv_grid.cell_data["Lexicographical cell ids"] = lex_cell_ids
 
     if not is_cpp:
-        assert has_FEniCSx, "FEniCSx is required to convert a CartesianMesh to PyVista."
+        assert has_FEniCSx, "FEniCSx is required to convert a TensorProductMesh to PyVista."
         _append_DOLFINx_cell_ids(pv_grid, grid)
 
     return pv_grid
+
+
+def grid_tp_to_PyVista(grid: Any) -> pv.Grid:
+    """
+    Converts a tensor-product grid to a PyVista `Grid`.
+
+    Args:
+        grid (CartGridTP_2D | CartGridTP_3D | TensorProductMesh): The input grid, which can
+            be either a CartGridTP_2D, CartGridTP_3D, or TensorProductMesh (if FEniCSx is available).
+
+    Returns:
+        pv.Grid: The converted PyVista `Grid`.
+    """
+
+    if isinstance(grid, (CartGridTP_2D, CartGridTP_3D)):
+        return cart_grid_tp_to_PyVista(grid)
+    else:
+        assert has_FEniCSx, "FEniCSx is required to convert a TensorProductMesh to PyVista."
+        from qugar.mesh import CartesianMesh
+
+        if isinstance(grid, CartesianMesh):
+            return cart_grid_tp_to_PyVista(grid)
+        else:
+            assert False, "Not impleented yet."
 
 
 def reparam_mesh_to_PyVista(reparam: Any) -> pv.MultiBlock:
@@ -696,7 +720,7 @@ def reparam_mesh_to_PyVista(reparam: Any) -> pv.MultiBlock:
     if isinstance(reparam, (ReparamMesh_1_2 | ReparamMesh_2_2 | ReparamMesh_2_3 | ReparamMesh_3_3)):
         reparam_ = reparam
     else:
-        assert has_FEniCSx, "FEniCSx is required to convert a CartesianMesh to PyVista."
+        assert has_FEniCSx, "FEniCSx is required to convert a TensorProductMesh to PyVista."
         from qugar.reparam import UnfDomainReparamMesh
 
         assert isinstance(reparam, UnfDomainReparamMesh), "Invalid type."

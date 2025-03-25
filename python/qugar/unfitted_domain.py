@@ -20,7 +20,7 @@ import numpy as np
 import numpy.typing as npt
 
 from qugar.cpp import UnfittedDomain_2D, UnfittedDomain_3D
-from qugar.mesh import CartesianMesh
+from qugar.mesh import TensorProductMesh
 
 
 class UnfittedDomain:
@@ -30,23 +30,23 @@ class UnfittedDomain:
 
     def __init__(
         self,
-        cart_mesh: CartesianMesh,
+        tp_mesh: TensorProductMesh,
         cpp_object: UnfittedDomain_2D | UnfittedDomain_3D,
     ) -> None:
         """Constructor.
 
         Args:
-            cart_mesh (CartesianMesh): Cartesian tensor-product mesh
+            tp_mesh (TensorProductMesh): Tensor-product mesh
                 for which the cell decomposition is generated.
             cpp_object (UnfittedDomain_2D | UnfittedDomain_3D):
                 Already generated unfitted domain binary object.
         """
 
-        assert cpp_object.dim == cart_mesh.tdim, "Non-matching dimensions."
-        assert cart_mesh.tdim == cart_mesh.gdim, "Mesh must have co-dimension 0."
-        assert cart_mesh.cart_grid_tp_cpp_object == cpp_object.grid, "Non-matching grids."
+        assert cpp_object.dim == tp_mesh.tdim, "Non-matching dimensions."
+        assert tp_mesh.tdim == tp_mesh.gdim, "Mesh must have co-dimension 0."
+        # assert cart_mesh.cart_grid_tp_cpp_object == cpp_object.grid, "Non-matching grids."
 
-        self._cart_mesh = cart_mesh
+        self._tp_mesh = tp_mesh
         self._cpp_object = cpp_object
 
     @property
@@ -56,16 +56,16 @@ class UnfittedDomain:
         Returns:
             int: Mesh's topological dimension (2 or 3).
         """
-        return self.cart_mesh.tdim
+        return self.tp_mesh.tdim
 
     @property
-    def cart_mesh(self) -> CartesianMesh:
-        """Gets the stored Cartesian mesh.
+    def tp_mesh(self) -> TensorProductMesh:
+        """Gets the stored tensor-product mesh.
 
         Returns:
-            CartesianMesh: Stored Cartesian mesh.
+            TensorProductMesh: Stored tensor-product mesh.
         """
-        return self._cart_mesh
+        return self._tp_mesh
 
     @property
     def cpp_object(self) -> UnfittedDomain_2D | UnfittedDomain_3D:
@@ -85,7 +85,7 @@ class UnfittedDomain:
             current process following the DOLFINx local numbering.
         """
 
-        return self.cart_mesh.get_DOLFINx_local_cell_ids(self._cpp_object.cut_cells)
+        return self.tp_mesh.get_DOLFINx_local_cell_ids(self._cpp_object.cut_cells)
 
     def get_full_cells(self) -> npt.NDArray[np.int32]:
         """Gets the ids of the full cells.
@@ -94,7 +94,7 @@ class UnfittedDomain:
             npt.NDArray[np.int32]: Array of full cells associated to the
             current process following the DOLFINx local numbering.
         """
-        return self.cart_mesh.get_DOLFINx_local_cell_ids(self._cpp_object.full_cells)
+        return self.tp_mesh.get_DOLFINx_local_cell_ids(self._cpp_object.full_cells)
 
     def get_empty_cells(self) -> npt.NDArray[np.int32]:
         """Gets the ids of the empty cells.
@@ -103,7 +103,7 @@ class UnfittedDomain:
             npt.NDArray[np.int32]: Array of empty cells associated to the
             current process following the DOLFINx local numbering.
         """
-        return self.cart_mesh.get_DOLFINx_local_cell_ids(self._cpp_object.empty_cells)
+        return self.tp_mesh.get_DOLFINx_local_cell_ids(self._cpp_object.empty_cells)
 
     def _get_exterior_facets(self) -> npt.NDArray[np.int32]:
         """Gets the exterior facets of the mesh.
@@ -112,7 +112,7 @@ class UnfittedDomain:
             npt.NDArray[np.int32]: Sorted list of owned facet indices that are
             exterior facets of the mesh.
         """
-        msh = self._cart_mesh
+        msh = self._tp_mesh
         msh.topology.create_connectivity(msh.tdim - 1, msh.tdim)
         return dolfinx.mesh.exterior_facet_indices(msh.topology)
 
@@ -155,18 +155,16 @@ class UnfittedDomain:
             if only_exterior:
                 facets_ids = ext_facets_ids
             else:
-                topology = self.cart_mesh.topology
+                topology = self.tp_mesh.topology
                 imap = topology.index_map(topology.dim - 1)
                 all_facets = np.arange(imap.local_range[0], imap.local_range[1], dtype=np.int32)
                 facets_ids = np.setdiff1d(all_facets, ext_facets_ids, assume_unique=True)
 
             dlf_cell_ids, dlf_local_facet_ids = (
-                self.cart_mesh.transform_DOLFINx_local_facet_ids_to_cells_and_local_facets(
-                    facets_ids
-                )
+                self.tp_mesh.transform_DOLFINx_local_facet_ids_to_cells_and_local_facets(facets_ids)
             )
             lex_cell_ids, lex_local_facet_ids = (
-                self.cart_mesh.transform_DOLFINx_local_facet_ids_to_lexicg(
+                self.tp_mesh.transform_DOLFINx_local_facet_ids_to_lexicg(
                     dlf_cell_ids, dlf_local_facet_ids
                 )
             )
@@ -176,7 +174,7 @@ class UnfittedDomain:
         else:
             lex_cell_ids, lex_local_facet_ids = facets_getter(None, None)
 
-        return self.cart_mesh.transform_lexicg_facet_ids_to_DOLFINx_local(
+        return self.tp_mesh.transform_lexicg_facet_ids_to_DOLFINx_local(
             lex_cell_ids, lex_local_facet_ids
         )
 

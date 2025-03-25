@@ -72,7 +72,7 @@ def create_div_thm_volume_ufl_form(domain: UnfittedImplDomain, n_quad_pts: int):
     Returns:
         ufl.Form: The UFL form representing the volume integral of the divergence theorem.
     """
-    mesh = domain.cart_mesh
+    mesh = domain.tp_mesh
 
     full_tag = 1
     cut_tag = 0
@@ -109,7 +109,7 @@ def create_div_thm_surface_ufl_form(domain: UnfittedImplDomain, n_quad_pts: int)
     Returns:
         ufl.Form: The UFL form representing the surface integral of the divergence theorem.
     """
-    mesh = domain.cart_mesh
+    mesh = domain.tp_mesh
 
     cut_tag = 0
     full_tag = 1
