@@ -206,7 +206,7 @@ def _merge_coincident_points_in_mesh(
 
 
 def _create_mesh(
-    comm: MPI.Intracomm,
+    comm: MPI.Comm,
     dim: int,
     coords: npt.NDArray[np.float32 | np.float64],
     conn: npt.NDArray[np.int64],
@@ -220,7 +220,7 @@ def _create_mesh(
     hexahedra.
 
     Args:
-        comm (MPI.Intracomm): MPI communicator to be used for
+        comm (MPI.Comm): MPI communicator to be used for
             distributing the mesh. Right now, only the serial case is
             implemented.
         dim (int): Parametric dimension of the mesh.
@@ -451,7 +451,7 @@ class TensorProductMesh:
 
     def __init__(
         self,
-        comm: MPI.Intracomm,
+        comm: MPI.Comm,
         nodes_coords: npt.NDArray[np.float32 | np.float64],
         n_cells: npt.NDArray[np.int32] | list[np.int32] | list[int],
         degree: int = 1,
@@ -462,7 +462,7 @@ class TensorProductMesh:
         """Constructor.
 
         Args:
-            comm (MPI.Intracomm): MPI communicator to be used for
+            comm (MPI.Comm): MPI communicator to be used for
                 distributing the mesh.
             n_cells (npt.NDArray[np.int32] | list[np.int32] | list[int]):
                 Number of cells per direction in the mesh.
@@ -599,7 +599,7 @@ class TensorProductMesh:
 
     def _create_mesh(
         self,
-        comm: MPI.Intracomm,
+        comm: MPI.Comm,
         nodes_coords: npt.NDArray[np.float32 | np.float64],
         merge_nodes: bool,
         merge_tol: Optional[type[np.float32 | np.float64]] = None,
@@ -609,7 +609,7 @@ class TensorProductMesh:
         `self._mesh`.
 
         Args:
-            comm (MPI.Intracomm): MPI communicator to be used for
+            comm (MPI.Comm): MPI communicator to be used for
                 distributing the mesh.
             nodes_coords (npt.NDArray[np.float32 | np.float64]): Nodes
                 coordinates. The rows correspond to the different nodes
@@ -1037,7 +1037,7 @@ class CartesianMesh(TensorProductMesh):
 
     def __init__(
         self,
-        comm: MPI.Intracomm,
+        comm: MPI.Comm,
         grid_cpp: qugar.cpp.CartGridTP_2D | qugar.cpp.CartGridTP_3D,
         degree: int = 1,
         ghost_mode: GhostMode = GhostMode.none,
@@ -1050,7 +1050,7 @@ class CartesianMesh(TensorProductMesh):
             but rather use the function `create_Cartesian_mesh`.
 
         Args:
-            comm (MPI.Intracomm): MPI communicator to be used for
+            comm (MPI.Comm): MPI communicator to be used for
                 distributing the mesh.
             grid_cpp (qugar.cpp.CartGridTP_2D | qugar.cpp.CartGridTP_3D):
                 C++ Cartesian grid object.
@@ -1136,7 +1136,7 @@ class CartesianMesh(TensorProductMesh):
 
 
 def create_Cartesian_mesh(
-    comm: MPI.Intracomm,
+    comm: MPI.Comm,
     n_cells: npt.NDArray[np.int32] | list[np.int32] | list[int],
     xmin: Optional[npt.NDArray[np.float32 | np.float64]] = None,
     xmax: Optional[npt.NDArray[np.float32 | np.float64]] = None,
