@@ -74,7 +74,6 @@ public:
   [[nodiscard]] const std::vector<std::int64_t> &get_full_cells() const;
   [[nodiscard]] const std::vector<std::int64_t> &get_empty_cells() const;
   [[nodiscard]] const std::vector<std::int64_t> &get_cut_cells() const;
-  [[nodiscard]] FacetsStatus get_cell_facets_status(std::int64_t cell_id) const;
 
   void get_empty_facets(std::vector<std::int64_t> &cell_ids, std::vector<int> &local_facets_ids) const;
   void get_full_facets(std::vector<std::int64_t> &cell_ids, std::vector<int> &local_facets_ids) const;

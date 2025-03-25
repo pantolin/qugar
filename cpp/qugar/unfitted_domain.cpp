@@ -66,11 +66,6 @@ template<int dim> const std::vector<std::int64_t> &UnfittedDomain<dim>::get_cut_
   return this->cut_cells_;
 }
 
-template<int dim> auto UnfittedDomain<dim>::get_cell_facets_status(const std::int64_t cell_id) const -> FacetsStatus
-{
-  return this->facets_status_.at(cell_id);
-}
-
 
 template<int dim>
 void UnfittedDomain<dim>::get_empty_facets(std::vector<std::int64_t> &cell_ids,
