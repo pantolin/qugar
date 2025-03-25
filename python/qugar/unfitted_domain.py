@@ -146,7 +146,7 @@ class UnfittedDomain:
             Extracted facets. The facets are returned as one array of
             cells and another one of local facets referred to those
             cells both with the same length and both following (local) DOLFINx ordering.
-        """
+        """  # noqa: E501
 
         assert not (only_exterior and only_interior), "Cannot be both exterior and interior."
 
