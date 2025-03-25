@@ -442,6 +442,16 @@ class TensorProductMesh(dolfinx.mesh.Mesh):
         self._create_mesh(comm, nodes_coords, merge_nodes, merge_tol, ghost_mode)
 
     @property
+    def dtype(self) -> np.dtype[np.float32] | np.dtype[np.float64]:
+        """Gets the type associated to the breaks.
+
+        Returns:
+            np.dtype[np.float32] | np.dtype[np.float64]: Type associated to the
+            breaks.
+        """
+        return self.geometry.x.dtype
+
+    @property
     def degree(self) -> int:
         """Gets the mesh' degree.
 
@@ -1103,16 +1113,6 @@ class CartesianMesh(TensorProductMesh):
             along the parametric directions.
         """
         return self._cell_breaks
-
-    @property
-    def dtype(self) -> type[np.float32 | np.float64]:
-        """Gets the type associated to the breaks.
-
-        Returns:
-            type[np.float32 | np.float64]: Type associated to the
-            breaks.
-        """
-        return self._cell_breaks[0].dtype
 
     def get_cell_bbox(self, dlf_local_cell_id: np.int32) -> npt.NDArray[np.float32 | np.float64]:
         """Computes the bounding box of a single cell.
