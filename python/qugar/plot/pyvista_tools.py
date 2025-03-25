@@ -395,10 +395,7 @@ if has_FEniCSx:
 
         lex_cell_ids = grid.cell_data["Lexicographical cell ids"]
 
-        dlf_local_cell_ids = cast(
-            npt.NDArray[np.int32],
-            mesh.get_DOLFINx_local_cell_ids(lex_cell_ids),
-        )
+        dlf_local_cell_ids = mesh.get_DOLFINx_local_cell_ids(lex_cell_ids)
         dlf_global_cell_ids = mesh.get_DOLFINx_local_to_global_cell_ids(dlf_local_cell_ids)
 
         grid.cell_data["DOLFINx local cell ids"] = dlf_local_cell_ids

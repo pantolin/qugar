@@ -8,7 +8,7 @@
 #
 # --------------------------------------------------------------------------
 
-from typing import Callable, Optional, cast
+from typing import Callable, Optional
 
 from qugar import has_FEniCSx
 
@@ -20,8 +20,7 @@ import numpy as np
 import numpy.typing as npt
 
 from qugar.cpp import UnfittedDomain_2D, UnfittedDomain_3D
-from qugar.mesh import CartesianMesh, DOLFINx_to_lexicg_faces, lexicg_to_DOLFINx_faces
-from qugar.mesh.utils import create_cells_to_facets_map, map_facets_to_cells_and_local_facets
+from qugar.mesh import CartesianMesh
 
 
 class UnfittedDomain:
@@ -78,132 +77,6 @@ class UnfittedDomain:
         """
         return self._cpp_object
 
-    def _transform_lexicg_cell_ids_to_DOLFINx_local(
-        self, lex_cell_ids: npt.NDArray[np.int64]
-    ) -> npt.NDArray[np.int32]:
-        """Transforms the given `lex_cell_ids` to  DOLFINx local numbering.
-
-        Args:
-            lex_cell_ids (npt.NDArray[np.int32]): Lexicographical cell
-                ids to transform.
-
-        Returns:
-            npt.NDArray[np.int32]: Transformed indices following the
-            DOLFINx local numbering.
-        """
-
-        return cast(
-            npt.NDArray[np.int32],
-            self.cart_mesh.get_DOLFINx_local_cell_ids(lex_cell_ids),
-        )
-
-    def _transform_dlf_cell_ids_to_lexicg(
-        self, dlf_cell_ids: npt.NDArray[np.int32]
-    ) -> npt.NDArray[np.int32]:
-        """Transforms the given `dlf_cell_ids` to lexicographical numbering.
-
-        Args:
-            dlf_cell_ids (npt.NDArray[np.int32]): Local DOLFINx cell
-                ids to transform.
-
-        Returns:
-            npt.NDArray[np.int32]: Transformed indices following the lexicographical
-            numbering.
-        """
-
-        return cast(
-            npt.NDArray[np.int32],
-            self.cart_mesh.get_lexicg_cell_ids(dlf_cell_ids),
-        )
-
-    def _transform_lexicg_facet_ids_to_DOLFINx_local(
-        self,
-        lex_cells: npt.NDArray[np.int64],
-        lex_facets: npt.NDArray[np.int32],
-    ) -> tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]:
-        """Transforms the given lexicographical facets indices to
-        DOLFINx local numbering (otherwise)
-
-        Args:
-            lex_cells (npt.NDArray[np.int64]): Indices of the facets
-                following the lexicographical ordering. All the cell
-                indices must be associated to the current process.
-
-            lex_facets (npt.NDArray[np.int32]): Local indices of the
-                facets referred to `lex_cells` (both arrays should have
-                the same length). The face ids follow the
-                lexicographical ordering.
-
-        Returns:
-            tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]:
-            Transformed facets returned as one array of cells and another
-            one of local facets referred to those cells. The indices of the cells
-            and local facets follow the DOLFINx local numbering.
-        """
-
-        tdim = self._cart_mesh.tdim
-        dlf_to_lex_facets = DOLFINx_to_lexicg_faces(tdim)
-
-        dlf_cells = self._transform_lexicg_cell_ids_to_DOLFINx_local(lex_cells)
-        dlf_facets = dlf_to_lex_facets[lex_facets]
-        return dlf_cells, dlf_facets
-
-    def _transform_dlf_facet_ids(
-        self,
-        dlf_cells: npt.NDArray[np.int32],
-        dlf_facets: npt.NDArray[np.int32],
-    ) -> tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]:
-        """Transforms the given DOLFINx facets indices to
-        either lexicographical numbering (both for cells and local facet ids).
-
-        Args:
-            dlf_cells (npt.NDArray[np.int32]): Indices of the facets
-                following the DOLFINx local ordering.
-
-            dlf_facets (npt.NDArray[np.int32]): Local indices of the
-                facets referred to `dlf_cells` (both arrays should have
-                the same length). The face ids follow the
-                DOLFINx ordering.
-
-        Returns:
-            tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]:
-            Transformed facets returned as one array of cells and another
-            one of local facets referred to those cells. The indices of the cells
-            and local facets follow the DOLFINx (local) numbering.
-        """
-
-        tdim = self._cart_mesh.tdim
-        lex_to_dlf_facets = lexicg_to_DOLFINx_faces(tdim)
-
-        lex_cells = self._transform_dlf_cell_ids_to_lexicg(dlf_cells)
-        lex_facets = lex_to_dlf_facets[dlf_facets]
-        return lex_cells, lex_facets
-
-    def _transform_cell_facet_pairs_to_facet_ids(
-        self,
-        dlf_cells: npt.NDArray[np.int32],
-        dlf_facets: npt.NDArray[np.int32],
-    ) -> npt.NDArray[np.int32]:
-        """Transforms the given pairs of cells and local facets to
-        DOLFINx local facets indices.
-
-        Args:
-            dlf_cells (npt.NDArray[np.int32]): Indices of the cells
-                following the DOLFINx local ordering.
-
-            dlf_facets (npt.NDArray[np.int32]): Local indices of the
-                facets referred to `dlf_cells` (both arrays should have
-                the same length). The face ids follow the DOLFINx
-                ordering.
-
-        Returns:
-            npt.NDArray[np.int32]: DOLFINx (local) facet indices associated to
-            the current proces.
-        """
-
-        cells_to_facets = create_cells_to_facets_map(self._cart_mesh)
-        return cells_to_facets[dlf_cells, dlf_facets]
-
     def get_cut_cells(self) -> npt.NDArray[np.int32]:
         """Gets the ids of the cut cells.
 
@@ -212,7 +85,7 @@ class UnfittedDomain:
             current process following the DOLFINx local numbering.
         """
 
-        return self._transform_lexicg_cell_ids_to_DOLFINx_local(self._cpp_object.cut_cells)
+        return self.cart_mesh.get_DOLFINx_local_cell_ids(self._cpp_object.cut_cells)
 
     def get_full_cells(self) -> npt.NDArray[np.int32]:
         """Gets the ids of the full cells.
@@ -221,7 +94,7 @@ class UnfittedDomain:
             npt.NDArray[np.int32]: Array of full cells associated to the
             current process following the DOLFINx local numbering.
         """
-        return self._transform_lexicg_cell_ids_to_DOLFINx_local(self._cpp_object.full_cells)
+        return self.cart_mesh.get_DOLFINx_local_cell_ids(self._cpp_object.full_cells)
 
     def get_empty_cells(self) -> npt.NDArray[np.int32]:
         """Gets the ids of the empty cells.
@@ -230,7 +103,7 @@ class UnfittedDomain:
             npt.NDArray[np.int32]: Array of empty cells associated to the
             current process following the DOLFINx local numbering.
         """
-        return self._transform_lexicg_cell_ids_to_DOLFINx_local(self._cpp_object.empty_cells)
+        return self.cart_mesh.get_DOLFINx_local_cell_ids(self._cpp_object.empty_cells)
 
     def _get_exterior_facets(self) -> npt.NDArray[np.int32]:
         """Gets the exterior facets of the mesh.
@@ -246,7 +119,7 @@ class UnfittedDomain:
     def _get_facets(
         self,
         facets_getter: Callable[
-            [Optional[npt.NDArray[np.int32]], Optional[npt.NDArray[np.int32]]],
+            [Optional[npt.NDArray[np.int64]], Optional[npt.NDArray[np.int32]]],
             tuple[npt.NDArray[np.int64], npt.NDArray[np.int32]],
         ],
         only_exterior: bool = False,
@@ -257,7 +130,7 @@ class UnfittedDomain:
         The list of facets can be filtered to only exterior or interior facets.
 
         Args:
-            facets_getter (Callable[[Optional[npt.NDArray[np.int32]], Optional[npt.NDArray[np.int32]]],
+            facets_getter (Callable[[Optional[npt.NDArray[np.int64]], Optional[npt.NDArray[np.int32]]],
               tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]]): Function to
                 access the facets. It returns the facets as pairs of cells and local facets
                 following lexicographical ordering. Optionally, it can receive as arguments
@@ -287,11 +160,15 @@ class UnfittedDomain:
                 all_facets = np.arange(imap.local_range[0], imap.local_range[1], dtype=np.int32)
                 facets_ids = np.setdiff1d(all_facets, ext_facets_ids, assume_unique=True)
 
-            dlf_cell_ids, dlf_local_facet_ids = map_facets_to_cells_and_local_facets(
-                self.cart_mesh, facets_ids
+            dlf_cell_ids, dlf_local_facet_ids = (
+                self.cart_mesh.transform_DOLFINx_local_facet_ids_to_cells_and_local_facets(
+                    facets_ids
+                )
             )
-            lex_cell_ids, lex_local_facet_ids = self._transform_dlf_facet_ids(
-                dlf_cell_ids, dlf_local_facet_ids
+            lex_cell_ids, lex_local_facet_ids = (
+                self.cart_mesh.transform_DOLFINx_local_facet_ids_to_lexicg(
+                    dlf_cell_ids, dlf_local_facet_ids
+                )
             )
 
             lex_cell_ids, lex_local_facet_ids = facets_getter(lex_cell_ids, lex_local_facet_ids)
@@ -299,7 +176,9 @@ class UnfittedDomain:
         else:
             lex_cell_ids, lex_local_facet_ids = facets_getter(None, None)
 
-        return self._transform_lexicg_facet_ids_to_DOLFINx_local(lex_cell_ids, lex_local_facet_ids)
+        return self.cart_mesh.transform_lexicg_facet_ids_to_DOLFINx_local(
+            lex_cell_ids, lex_local_facet_ids
+        )
 
     def get_cut_facets(
         self,
