@@ -45,7 +45,7 @@ class UnfittedDomain:
 
         assert cpp_object.dim == cart_mesh.tdim, "Non-matching dimensions."
         assert cart_mesh.tdim == cart_mesh.gdim, "Mesh must have co-dimension 0."
-        assert cart_mesh.grid_cpp_object == cpp_object.grid, "Non-matching grids."
+        assert cart_mesh.cart_grid_tp_cpp_object == cpp_object.grid, "Non-matching grids."
 
         self._cart_mesh = cart_mesh
         self._cpp_object = cpp_object
@@ -201,7 +201,7 @@ class UnfittedDomain:
             the current proces.
         """
 
-        cells_to_facets = create_cells_to_facets_map(self._cart_mesh.dolfinx_mesh)
+        cells_to_facets = create_cells_to_facets_map(self._cart_mesh)
         return cells_to_facets[dlf_cells, dlf_facets]
 
     def get_cut_cells(self) -> npt.NDArray[np.int32]:
@@ -239,8 +239,8 @@ class UnfittedDomain:
             npt.NDArray[np.int32]: Sorted list of owned facet indices that are
             exterior facets of the mesh.
         """
-        msh = self._cart_mesh.dolfinx_mesh
-        msh.topology.create_connectivity(msh.topology.dim - 1, msh.topology.dim)
+        msh = self._cart_mesh
+        msh.topology.create_connectivity(msh.tdim - 1, msh.tdim)
         return dolfinx.mesh.exterior_facet_indices(msh.topology)
 
     def _get_facets(
@@ -277,20 +277,18 @@ class UnfittedDomain:
 
         assert not (only_exterior and only_interior), "Cannot be both exterior and interior."
 
-        mesh = self.cart_mesh.dolfinx_mesh
-
         if only_exterior or only_interior:
             ext_facets_ids = self._get_exterior_facets()
             if only_exterior:
                 facets_ids = ext_facets_ids
             else:
-                topology = mesh.topology
+                topology = self.cart_mesh.topology
                 imap = topology.index_map(topology.dim - 1)
                 all_facets = np.arange(imap.local_range[0], imap.local_range[1], dtype=np.int32)
                 facets_ids = np.setdiff1d(all_facets, ext_facets_ids, assume_unique=True)
 
             dlf_cell_ids, dlf_local_facet_ids = map_facets_to_cells_and_local_facets(
-                mesh, facets_ids
+                self.cart_mesh, facets_ids
             )
             lex_cell_ids, lex_local_facet_ids = self._transform_dlf_facet_ids(
                 dlf_cell_ids, dlf_local_facet_ids

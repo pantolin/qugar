@@ -27,6 +27,7 @@ import numpy as np
 import numpy.typing as npt
 import ufl
 from dolfinx.cpp.mesh import GhostMode
+from dolfinx.fem import coordinate_element as _coordinate_element
 
 import qugar.cpp
 from qugar.mesh.tp_index import TensorProdIndex
@@ -205,64 +206,6 @@ def _merge_coincident_points_in_mesh(
     return new_nodes, new_conn, old_to_new
 
 
-def _create_mesh(
-    comm: MPI.Comm,
-    dim: int,
-    coords: npt.NDArray[np.float32 | np.float64],
-    conn: npt.NDArray[np.int64],
-    degree: int,
-    cell_type: Optional[str] = None,
-    ghost_mode: GhostMode = GhostMode.none,
-) -> dolfinx.mesh.Mesh:
-    """Creates a DOLFINx mesh of Lagrange elements.
-
-    of intervals, quadrilaterals, or
-    hexahedra.
-
-    Args:
-        comm (MPI.Comm): MPI communicator to be used for
-            distributing the mesh. Right now, only the serial case is
-            implemented.
-        dim (int): Parametric dimension of the mesh.
-        coords (npt.NDArray[np.float32 | np.float64]): Coordinates of
-            the nodes stored in a 2D np.ndarray. The rows correspond to
-            the different points and columns to the coordinates.
-        conn (npt.NDArray[np.int64]): Generated connectivity. It is a
-            list, where every entry is a list of nodes ids. The
-            connectivity of each cells follows the DOLFINx convention.
-            See https://github.com/FEniCS/basix/#supported-elements
-        degree (int): Cells's degree. It must be greater than 0.
-        cell_type (Optional[str]): Cell type. It can be, `interval`,
-            `triangle`, `quadrilateral`, `tetrahedron`, or `hexahedron`.
-            It defaults to None, therefore, the type will be set to
-            `interval`, `quadrilateral`, or `hexahedron`, depending on
-            the dimension `dim`.
-        ghost_mode (GhostMode, optional): Ghost mode used for mesh
-            partitioning. Defaults to `none`.
-
-    Returns:
-        dolfinx.mesh.Mesh: Generated mesh.
-    """
-
-    assert 1 <= dim <= 3, "Invalid dimension."
-    assert degree >= 1, "Invalid degree."
-
-    if comm.rank > 1:
-        assert coords.shape[0] == 0 and conn.shape[0] == 0
-        partitioner = dlf_cpp.mesh.create_cell_partitioner(ghost_mode)
-    else:
-        partitioner = None
-
-    if cell_type is None:
-        cell_type = ["interval", "quadrilateral", "hexahedron"][dim - 1]
-
-    dtype = coords.dtype
-    gdim = coords.shape[1]
-    element = basix.ufl.element("Lagrange", cell_type, degree, shape=(gdim,), dtype=dtype)
-
-    return dolfinx.mesh.create_mesh(comm, conn, coords, ufl.Mesh(element), partitioner=partitioner)
-
-
 def _create_Cartesian_mesh_nodes_from_points(
     pts_1D: list[npt.NDArray[np.float32 | np.float64]],
 ) -> npt.NDArray[np.float32 | np.float64]:
@@ -408,11 +351,11 @@ def _find_in_array(values_to_search: npt.NDArray, all_values: npt.NDArray) -> np
     return np.ma.array(values_to_search_index, mask=mask).filled(-1)
 
 
-class TensorProductMesh:
+class TensorProductMesh(dolfinx.mesh.Mesh):
     """Tensor-product mesh data structure.
 
-    This class is a helper class to ease the management of structured
-    tensor-product meshes of intervals (1D), quadrangles (2D), or
+    This class derives from `dolfinx.mesh.Mesh`, easing the management of
+    structured tensor-product meshes of intervals (1D), quadrangles (2D), or
     hexahedra (3D). The geometric dimension can be arbitrarity according
     to the DOLFINx capabilities.
 
@@ -444,9 +387,11 @@ class TensorProductMesh:
     Note that after the mesh creation, DOLFINx renumbers and partitions
     the mesh, so, this numeration will be different. It is always
     possible to retrieve the original numbering using the maps
-    `self.dolfinx_to_lexicg_nodes` or `self.dolfinx_to_lexicg_cells`.
-    Or, from the lexicographical to the DOLFINx numbering using
-    `self.lexicg_to_dolfinx_nodes` or `self.lexicg_to_dolfinx_cells`.
+    `self.get_lexicg_node_ids` or `self.get_lexicg_cell_ids`.
+    Or, from the lexicographical to the local DOLFINx numbering using
+    `self.get_DOLFINx_local_node_ids` or `self.get_DOLFINx_local_cell_ids`,
+    or the global with `self.get_DOLFINx_global_node_ids` or
+    `self.get_DOLFINx_global_cell_ids`,
     """
 
     def __init__(
@@ -489,18 +434,9 @@ class TensorProductMesh:
         assert 1 <= self.tdim <= 3, "Invalid dimension."
 
         self._degree = degree
-        assert 1 <= degree, "Invalid degree."
+        assert 1 <= self.degree, "Invalid degree."
 
         self._create_mesh(comm, nodes_coords, merge_nodes, merge_tol, ghost_mode)
-
-    @property
-    def dolfinx_mesh(self) -> dolfinx.mesh.Mesh:
-        """Gets the underlying DOLFINx mesh.
-
-        Returns:
-            dolfinx.mesh.Mesh: Underlying DOLFINx mesh.
-        """
-        return self._mesh
 
     @property
     def degree(self) -> int:
@@ -547,7 +483,7 @@ class TensorProductMesh:
         Returns:
             int: Mesh's geometrical dimension.
         """
-        return self._mesh.geometry.dim
+        return self.geometry.dim
 
     @property
     def has_merged_nodes(self) -> bool:
@@ -576,7 +512,7 @@ class TensorProductMesh:
         Returns:
             np.int64: Number of global cells of the DOLFINx mesh.
         """
-        return np.int64(self._mesh.topology.index_map(self.tdim).size_global)
+        return np.int64(self.topology.index_map(self.tdim).size_global)
 
     @property
     def num_local_cells(self) -> np.int64:
@@ -586,7 +522,7 @@ class TensorProductMesh:
         Returns:
             np.int64: Number of local cells.
         """
-        return np.int64(self._mesh.topology.index_map(self.tdim).size_local)
+        return np.int64(self.topology.index_map(self.tdim).size_local)
 
     @property
     def num_cells_tp(self) -> np.int64:
@@ -605,8 +541,7 @@ class TensorProductMesh:
         merge_tol: Optional[type[np.float32 | np.float64]] = None,
         ghost_mode=GhostMode.none,
     ) -> None:
-        """Creates the underlying DOLFINx mesh and stores it in
-        `self._mesh`.
+        """Creates the base DOLFINx mesh.
 
         Args:
             comm (MPI.Comm): MPI communicator to be used for
@@ -630,6 +565,12 @@ class TensorProductMesh:
 
         self._merged_nodes_map = np.empty(0, dtype=np.int64)
 
+        nodes_coords = np.asarray(nodes_coords, order="C")
+        if nodes_coords.ndim == 1:
+            gdim = 1
+        else:
+            gdim = nodes_coords.shape[1]
+
         if comm.rank == 0:
             conn = _create_tensor_prod_mesh_conn(self.tdim, self.degree, self.num_cells_dir)
             assert nodes_coords.shape[0] == np.prod(self.num_pts_dir)
@@ -638,6 +579,7 @@ class TensorProductMesh:
                 nodes_coords, conn, self._merged_nodes_map = _merge_coincident_points_in_mesh(
                     nodes_coords, conn, merge_tol
                 )
+            conn = np.asarray(conn, dtype=np.int64, order="C")
 
         else:
             # TODO: this is a temporary hack. All the nodes and cells
@@ -649,11 +591,28 @@ class TensorProductMesh:
             assert nodes_coords.shape[0] == 0
 
             n_nodes_per_cell = 2**self.tdim
-            conn = np.empty((0, n_nodes_per_cell), dtype=np.int64)
+            conn = np.empty((0, n_nodes_per_cell), dtype=np.int64, order="C")
 
-        self._mesh = _create_mesh(
-            comm, self.tdim, nodes_coords, conn, self._degree, ghost_mode=ghost_mode
+        if comm.size > 1:
+            partitioner = dlf_cpp.mesh.create_cell_partitioner(ghost_mode)
+        else:
+            partitioner = None
+
+        cell_type = ["interval", "quadrilateral", "hexahedron"][self.tdim - 1]
+
+        element = basix.ufl.element(
+            "Lagrange", cell_type, self.degree, shape=(gdim,), dtype=nodes_coords.dtype
         )
+        domain = ufl.Mesh(element)
+
+        e_ufl = domain.ufl_coordinate_element()
+        cmap = _coordinate_element(e_ufl.basix_element)
+        # TODO: Resolve UFL vs Basix geometric dimension issue
+        # assert domain.geometric_dimension() == gdim
+
+        msh_cpp = dlf_cpp.mesh.create_mesh(comm, conn, cmap._cpp_object, nodes_coords, partitioner)
+
+        super().__init__(msh_cpp, domain)
 
     def get_DOLFINx_local_cell_ids(
         self,
@@ -684,7 +643,7 @@ class TensorProductMesh:
                 self.get_DOLFINx_local_cell_ids(lex_cell_ids),
             )[0]
         else:
-            dlf_to_lex = self.dolfinx_mesh.topology.original_cell_index
+            dlf_to_lex = self.topology.original_cell_index
             return _find_in_array(lex_cell_ids, dlf_to_lex).astype(np.int32)
 
     def get_DOLFINx_global_cell_ids(
@@ -735,7 +694,7 @@ class TensorProductMesh:
             npt.NDArray[np.int64]: Global indices of the DOLFINx cells.
         """
 
-        index_map = self.dolfinx_mesh.topology.index_map(self.tdim)
+        index_map = self.topology.index_map(self.tdim)
         return index_map.local_to_global(dlf_local_cell_ids)
 
     def get_lexicg_cell_ids(
@@ -764,7 +723,7 @@ class TensorProductMesh:
                 self.get_lexicg_cell_ids(dlf_local_cell_ids),
             )[0]
         else:
-            dlf_to_lex = self.dolfinx_mesh.topology.original_cell_index
+            dlf_to_lex = self.topology.original_cell_index
             n_local_cells = dlf_to_lex.size
             assert np.all(dlf_local_cell_ids < n_local_cells) and np.all(dlf_local_cell_ids >= 0), (
                 "Cells not contained in subdomain"
@@ -801,7 +760,7 @@ class TensorProductMesh:
                 self.get_DOLFINx_local_node_ids(lex_node_ids),
             )[0]
 
-        dlf_to_lex = self.dolfinx_mesh.geometry.input_global_indices
+        dlf_to_lex = self.geometry.input_global_indices
 
         if self.has_merged_nodes:
             # Mapping "old" to "new" ids.
@@ -830,7 +789,7 @@ class TensorProductMesh:
             dlf_local_node_ids = np.array(dlf_local_node_ids)
             return cast(npt.NDArray[np.int64], self.get_lexicg_node_ids(dlf_local_node_ids))[0]
 
-        dlf_to_lex = self.dolfinx_mesh.geometry.input_global_indices
+        dlf_to_lex = self.geometry.input_global_indices
         n_local_nodes = dlf_to_lex.size
         assert np.all(dlf_local_node_ids < n_local_nodes) and np.all(dlf_local_node_ids >= 0), (
             "Nodes not contained in subdomain."
@@ -870,7 +829,7 @@ class TensorProductMesh:
 
         facet_tdim = self.tdim - 1
         return dolfinx.mesh.meshtags(
-            self.dolfinx_mesh,
+            self,
             facet_tdim,
             faces_facets,
             faces_markers,
@@ -902,14 +861,13 @@ class TensorProductMesh:
             dlf_local_cell_ids = np.array(dlf_local_cell_ids)
             return self.get_cells_exterior_facets(dlf_local_cell_ids)
 
-        topology = self.dolfinx_mesh.topology
-        topology.create_connectivity(self.tdim - 1, self.tdim)
+        self.topology.create_connectivity(self.tdim - 1, self.tdim)
 
-        cells_to_facets = create_cells_to_facets_map(self.dolfinx_mesh)
+        cells_to_facets = create_cells_to_facets_map(self)
 
         facets_in_cells = np.sort(np.unique(cells_to_facets[dlf_local_cell_ids].ravel()))
 
-        exterior_facets = dolfinx.mesh.exterior_facet_indices(topology)
+        exterior_facets = dolfinx.mesh.exterior_facet_indices(self.topology)
         return np.setdiff1d(exterior_facets, facets_in_cells)
 
     def get_face_DOLFINx_local_node_ids(
@@ -977,11 +935,9 @@ class TensorProductMesh:
             current subdomain.
         """
 
-        topology = self.dolfinx_mesh.topology
-
         tdim = self.tdim
-        topology.create_connectivity(tdim, tdim - 1)
-        cell_to_facets = topology.connectivity(tdim, tdim - 1)
+        self.topology.create_connectivity(tdim, tdim - 1)
+        cell_to_facets = self.topology.connectivity(tdim, tdim - 1)
         cell_to_facets = cell_to_facets.array.reshape(cell_to_facets.num_nodes, -1)
 
         dlf_local_cells = self.get_face_DOLFINx_cells(face_id)
@@ -1003,9 +959,8 @@ class TensorProductMesh:
 
         tdim = self.tdim
 
-        topology = self.dolfinx_mesh.topology
-        topology.create_connectivity(tdim, tdim - 1)
-        cell_to_facets = self.dolfinx_mesh.topology.connectivity(tdim, tdim - 1)
+        self.topology.create_connectivity(tdim, tdim - 1)
+        cell_to_facets = self.topology.connectivity(tdim, tdim - 1)
 
         return cell_to_facets.links(dlf_local_cell_id)
 
@@ -1038,7 +993,7 @@ class CartesianMesh(TensorProductMesh):
     def __init__(
         self,
         comm: MPI.Comm,
-        grid_cpp: qugar.cpp.CartGridTP_2D | qugar.cpp.CartGridTP_3D,
+        cart_grid_tp_cpp: qugar.cpp.CartGridTP_2D | qugar.cpp.CartGridTP_3D,
         degree: int = 1,
         ghost_mode: GhostMode = GhostMode.none,
         dtype: type[np.float32 | np.float64] = np.float64,
@@ -1052,7 +1007,7 @@ class CartesianMesh(TensorProductMesh):
         Args:
             comm (MPI.Comm): MPI communicator to be used for
                 distributing the mesh.
-            grid_cpp (qugar.cpp.CartGridTP_2D | qugar.cpp.CartGridTP_3D):
+            cart_grid_tp_cpp (qugar.cpp.CartGridTP_2D | qugar.cpp.CartGridTP_3D):
                 C++ Cartesian grid object.
             degree (int, optional): Degree of the mesh. Defaults to 1.
                 It must be greater than zero.
@@ -1062,9 +1017,9 @@ class CartesianMesh(TensorProductMesh):
                 be used in the grid. Defaults to `np.float64`.
         """
 
-        dim = grid_cpp.dim
+        dim = cart_grid_tp_cpp.dim
         assert 2 <= dim <= 3, "Only implemented for 2D and 3D."
-        self._cell_breaks = [breaks.astype(dtype) for breaks in grid_cpp.cell_breaks]
+        self._cell_breaks = [breaks.astype(dtype) for breaks in cart_grid_tp_cpp.cell_breaks]
 
         if comm.rank == 0:
             nodes_coords = _create_Cartesian_mesh_nodes_from_cells(self._cell_breaks, degree)
@@ -1077,20 +1032,20 @@ class CartesianMesh(TensorProductMesh):
             # for further details.
             nodes_coords = np.empty((0, dim), dtype=dtype)
 
-        self._cpp_object = grid_cpp
-        n_cells = grid_cpp.num_cells_dir
+        self._cart_grid_tp_cpp_object = cart_grid_tp_cpp
+        n_cells = cart_grid_tp_cpp.num_cells_dir
 
         super().__init__(comm, nodes_coords, n_cells, degree, ghost_mode)
 
     @property
-    def grid_cpp_object(self) -> qugar.cpp.CartGridTP_2D | qugar.cpp.CartGridTP_2D:
+    def cart_grid_tp_cpp_object(self) -> qugar.cpp.CartGridTP_2D | qugar.cpp.CartGridTP_2D:
         """Returns the stored (C++) Cartesian grid object.
 
         Returns:
             qugar.cpp.CartGridTP_2D | qugar.cpp.CartGridTP_2D: Stored Cartesian
             grid object.
         """
-        return self._cpp_object
+        return self._cart_grid_tp_cpp_object
 
     @property
     def cell_breaks(self) -> list[npt.NDArray[np.float32 | np.float64]]:

@@ -72,7 +72,7 @@ def create_div_thm_volume_ufl_form(domain: UnfittedImplDomain, n_quad_pts: int):
     Returns:
         ufl.Form: The UFL form representing the volume integral of the divergence theorem.
     """
-    dlf_mesh = domain.cart_mesh.dolfinx_mesh
+    mesh = domain.cart_mesh
 
     full_tag = 1
     cut_tag = 0
@@ -80,7 +80,7 @@ def create_div_thm_volume_ufl_form(domain: UnfittedImplDomain, n_quad_pts: int):
 
     quad_degree = get_Gauss_quad_degree(n_quad_pts)
     dx_ = ufl.dx(
-        domain=dlf_mesh,
+        domain=mesh,
         subdomain_data=cell_tags,
     )
     dx = dx_(subdomain_id=cut_tag, degree=quad_degree) + dx_(full_tag)
@@ -89,7 +89,7 @@ def create_div_thm_volume_ufl_form(domain: UnfittedImplDomain, n_quad_pts: int):
     # it would be enough to use a single tag for both cut and full cells.
     # and invoke dx_ only once for that tag.
 
-    func = create_vector_func(dlf_mesh)
+    func = create_vector_func(mesh)
     div_func = ufl.div(func)
 
     ufl_form_vol = div_func * dx
@@ -109,7 +109,7 @@ def create_div_thm_surface_ufl_form(domain: UnfittedImplDomain, n_quad_pts: int)
     Returns:
         ufl.Form: The UFL form representing the surface integral of the divergence theorem.
     """
-    dlf_mesh = domain.cart_mesh.dolfinx_mesh
+    mesh = domain.cart_mesh
 
     cut_tag = 0
     full_tag = 1
@@ -122,22 +122,22 @@ def create_div_thm_surface_ufl_form(domain: UnfittedImplDomain, n_quad_pts: int)
     quad_degree = get_Gauss_quad_degree(n_quad_pts)
 
     ds_unf = dx_bdry_unf(
-        domain=dlf_mesh,
+        domain=mesh,
         subdomain_data=cell_subdomain_data,
         subdomain_id=cut_tag,
         degree=quad_degree,
     )
 
-    ds_ = ufl.ds(domain=dlf_mesh, subdomain_data=facet_tags)
+    ds_ = ufl.ds(domain=mesh, subdomain_data=facet_tags)
     ds = ds_(cut_tag, degree=quad_degree) + ds_((full_tag, unf_bdry_tag))
 
     # Note: if no specific number of quadrature points is set for the cut facets,
     # it would be enough to use a single tag for both cut and full facets.
     # and invoke ds_ only once for that tag.
 
-    bound_normal = mapped_normal(dlf_mesh)
-    facet_normal = ufl.FacetNormal(dlf_mesh)
-    func = create_vector_func(dlf_mesh)
+    bound_normal = mapped_normal(mesh)
+    facet_normal = ufl.FacetNormal(mesh)
+    func = create_vector_func(mesh)
 
     ufl_form_srf = ufl.inner(func, bound_normal) * ds_unf + ufl.inner(func, facet_normal) * ds
     return ufl_form_srf
