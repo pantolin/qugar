@@ -49,6 +49,10 @@ class UnfittedDomain:
         self._tp_mesh = tp_mesh
         self._cpp_object = cpp_object
 
+        self._full_cells = None
+        self._empty_cells = None
+        self._cut_cells = None
+
     @property
     def dim(self) -> int:
         """Gets the dimension of the mesh.
@@ -85,7 +89,16 @@ class UnfittedDomain:
             current process following the DOLFINx local numbering.
         """
 
-        return self.tp_mesh.get_DOLFINx_local_cell_ids(self._cpp_object.cut_cells)
+        if self._cut_cells is None:
+            if self._tp_mesh.num_local_cells != self._tp_mesh.num_cells_tp:
+                dlf_cell_ids = np.arange(self._tp_mesh.num_local_cells, dtype=np.int32)
+                lex_cell_ids = self._tp_mesh.get_lexicg_cell_ids(dlf_cell_ids)
+                lex_cut_cell_ids = self._cpp_object.get_cut_cells(lex_cell_ids)
+            else:
+                lex_cut_cell_ids = self._cpp_object.get_cut_cells()
+            self._cut_cells = self.tp_mesh.get_DOLFINx_local_cell_ids(lex_cut_cell_ids)
+
+        return self._cut_cells
 
     def get_full_cells(self) -> npt.NDArray[np.int32]:
         """Gets the ids of the full cells.
@@ -94,7 +107,17 @@ class UnfittedDomain:
             npt.NDArray[np.int32]: Array of full cells associated to the
             current process following the DOLFINx local numbering.
         """
-        return self.tp_mesh.get_DOLFINx_local_cell_ids(self._cpp_object.full_cells)
+
+        if self._full_cells is None:
+            if self._tp_mesh.num_local_cells != self._tp_mesh.num_cells_tp:
+                dlf_cell_ids = np.arange(self._tp_mesh.num_local_cells, dtype=np.int32)
+                lex_cell_ids = self._tp_mesh.get_lexicg_cell_ids(dlf_cell_ids)
+                lex_full_cell_ids = self._cpp_object.get_full_cells(lex_cell_ids)
+            else:
+                lex_full_cell_ids = self._cpp_object.get_full_cells()
+            self._full_cells = self.tp_mesh.get_DOLFINx_local_cell_ids(lex_full_cell_ids)
+
+        return self._full_cells
 
     def get_empty_cells(self) -> npt.NDArray[np.int32]:
         """Gets the ids of the empty cells.
@@ -103,7 +126,17 @@ class UnfittedDomain:
             npt.NDArray[np.int32]: Array of empty cells associated to the
             current process following the DOLFINx local numbering.
         """
-        return self.tp_mesh.get_DOLFINx_local_cell_ids(self._cpp_object.empty_cells)
+
+        if self._empty_cells is None:
+            if self._tp_mesh.num_local_cells != self._tp_mesh.num_cells_tp:
+                dlf_cell_ids = np.arange(self._tp_mesh.num_local_cells, dtype=np.int32)
+                lex_cell_ids = self._tp_mesh.get_lexicg_cell_ids(dlf_cell_ids)
+                lex_empty_cell_ids = self._cpp_object.get_empty_cells(lex_cell_ids)
+            else:
+                lex_empty_cell_ids = self._cpp_object.get_empty_cells()
+            self._empty_cells = self.tp_mesh.get_DOLFINx_local_cell_ids(lex_empty_cell_ids)
+
+        return self._empty_cells
 
     def _get_exterior_facets(self) -> npt.NDArray[np.int32]:
         """Gets the exterior facets of the mesh.

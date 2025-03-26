@@ -71,15 +71,25 @@ public:
   UnfittedDomain &operator=(UnfittedDomain &&other) noexcept = default;
 
   [[nodiscard]] GridPtr get_grid() const;
-  [[nodiscard]] const std::vector<std::int64_t> &get_full_cells() const;
-  [[nodiscard]] const std::vector<std::int64_t> &get_empty_cells() const;
-  [[nodiscard]] const std::vector<std::int64_t> &get_cut_cells() const;
+
+  [[nodiscard]] std::size_t get_num_full_cells() const;
+  [[nodiscard]] std::size_t get_num_empty_cells() const;
+  [[nodiscard]] std::size_t get_num_cut_cells() const;
+
+  void get_full_cells(std::vector<std::int64_t> &cell_ids) const;
+  void get_empty_cells(std::vector<std::int64_t> &cell_ids) const;
+  void get_cut_cells(std::vector<std::int64_t> &cell_ids) const;
 
   void get_empty_facets(std::vector<std::int64_t> &cell_ids, std::vector<int> &local_facets_ids) const;
   void get_full_facets(std::vector<std::int64_t> &cell_ids, std::vector<int> &local_facets_ids) const;
   void get_unfitted_facets(std::vector<std::int64_t> &cell_ids, std::vector<int> &local_facets_ids) const;
   void get_full_unfitted_facets(std::vector<std::int64_t> &cell_ids, std::vector<int> &local_facets_ids) const;
   void get_cut_facets(std::vector<std::int64_t> &cell_ids, std::vector<int> &local_facets_ids) const;
+
+  void get_full_cells(const std::vector<std::int64_t> &target_cell_ids, std::vector<std::int64_t> &cell_ids) const;
+  void get_empty_cells(const std::vector<std::int64_t> &target_cell_ids, std::vector<std::int64_t> &cell_ids) const;
+  void get_cut_cells(const std::vector<std::int64_t> &target_cell_ids, std::vector<std::int64_t> &cell_ids) const;
+
 
   void get_empty_facets(const std::vector<std::int64_t> &target_cell_ids,
     const std::vector<int> &target_local_facets_ids,

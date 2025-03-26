@@ -477,11 +477,11 @@ namespace {
 
 
 template<int dim>
-UnfittedImplDomain<dim>::UnfittedImplDomain(const FuncPtr phi, const GridPtr grid) : UnfittedDomain<dim>(grid)
+UnfittedImplDomain<dim>::UnfittedImplDomain(const FuncPtr phi, const GridPtr grid)
+  : UnfittedDomain<dim>(grid), phi_(phi)
 {
-  assert(phi != nullptr);
+  assert(this->phi != nullptr);
 
-  this->phi_ = phi;
   const std::optional<std::vector<std::int64_t>> cells;
   const auto compute_sign = create_compute_sign_function<dim>(*phi);
   this->create_decomposition(SubCartGridTP<dim>(*grid), compute_sign, cells);
@@ -493,11 +493,10 @@ template<int dim>
 UnfittedImplDomain<dim>::UnfittedImplDomain(const FuncPtr phi,
   const GridPtr grid,
   const std::vector<std::int64_t> &cells)
-  : UnfittedDomain<dim>(grid)
+  : UnfittedDomain<dim>(grid), phi_(phi)
 {
-  assert(phi != nullptr);
+  assert(this->phi != nullptr);
 
-  this->phi_ = phi;
   const auto compute_sign = create_compute_sign_function<dim>(*phi);
   this->create_decomposition(SubCartGridTP<dim>(*grid), compute_sign, cells);
   this->sort();

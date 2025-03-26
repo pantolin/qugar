@@ -51,19 +51,66 @@ template<int dim> auto UnfittedDomain<dim>::get_grid() const -> GridPtr
   return this->grid_;
 }
 
-template<int dim> const std::vector<std::int64_t> &UnfittedDomain<dim>::get_full_cells() const
+template<int dim> std::size_t UnfittedDomain<dim>::get_num_full_cells() const
 {
-  return this->full_cells_;
+  return this->full_cells_.size();
 }
 
-template<int dim> const std::vector<std::int64_t> &UnfittedDomain<dim>::get_empty_cells() const
+template<int dim> std::size_t UnfittedDomain<dim>::get_num_empty_cells() const
 {
-  return this->empty_cells_;
+  return this->empty_cells_.size();
 }
 
-template<int dim> const std::vector<std::int64_t> &UnfittedDomain<dim>::get_cut_cells() const
+template<int dim> std::size_t UnfittedDomain<dim>::get_num_cut_cells() const
 {
-  return this->cut_cells_;
+  return this->cut_cells_.size();
+}
+
+template<int dim> void UnfittedDomain<dim>::get_full_cells(std::vector<std::int64_t> &cell_ids) const
+{
+  cell_ids = this->full_cells_;
+}
+
+template<int dim> void UnfittedDomain<dim>::get_empty_cells(std::vector<std::int64_t> &cell_ids) const
+{
+  cell_ids = this->empty_cells_;
+}
+
+template<int dim> void UnfittedDomain<dim>::get_cut_cells(std::vector<std::int64_t> &cell_ids) const
+{
+  cell_ids = this->cut_cells_;
+}
+
+
+template<int dim>
+void UnfittedDomain<dim>::get_full_cells(const std::vector<std::int64_t> &target_cell_ids,
+  std::vector<std::int64_t> &cell_ids) const
+{
+  cell_ids.clear();
+  cell_ids.reserve(std::min(target_cell_ids.size(), this->get_num_full_cells()));
+  std::ranges::copy_if(
+    target_cell_ids, std::back_inserter(cell_ids), [this](const auto &cell_id) { return this->is_full_cell(cell_id); });
+}
+
+template<int dim>
+void UnfittedDomain<dim>::get_empty_cells(const std::vector<std::int64_t> &target_cell_ids,
+  std::vector<std::int64_t> &cell_ids) const
+{
+  cell_ids.clear();
+  cell_ids.reserve(std::min(target_cell_ids.size(), this->get_num_empty_cells()));
+  std::ranges::copy_if(target_cell_ids, std::back_inserter(cell_ids), [this](const auto &cell_id) {
+    return this->is_empty_cell(cell_id);
+  });
+}
+
+template<int dim>
+void UnfittedDomain<dim>::get_cut_cells(const std::vector<std::int64_t> &target_cell_ids,
+  std::vector<std::int64_t> &cell_ids) const
+{
+  cell_ids.clear();
+  cell_ids.reserve(std::min(target_cell_ids.size(), this->get_num_cut_cells()));
+  std::ranges::copy_if(
+    target_cell_ids, std::back_inserter(cell_ids), [this](const auto &cell_id) { return this->is_cut_cell(cell_id); });
 }
 
 

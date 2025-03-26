@@ -16,6 +16,8 @@
 //!
 //! @copyright Copyright (c) 2025-present
 
+#include "wrapper_utils.hpp"
+
 #include <qugar/impl_unfitted_domain.hpp>
 #include <qugar/unfitted_domain.hpp>
 
@@ -51,6 +53,26 @@ namespace {
       return nb::make_tuple(cells_py, facets_py);
     };
 
+    const auto get_cells =
+      [&make_tuple](const auto &accessor_0,
+        const auto &accessor_1,
+        const std::optional<nb::ndarray<const std::int64_t, nb::numpy, nb::shape<-1>>> &target_cell_ids_py) {
+        std::vector<std::int64_t> cell_ids;
+
+        if (target_cell_ids_py.has_value()) {
+
+          const std::span<const std::int64_t> cells_span(
+            target_cell_ids_py.value().data(), target_cell_ids_py.value().size());
+
+          // Is this copy avoidable?
+          accessor_0(std::vector<std::int64_t>(cells_span.begin(), cells_span.end()), cell_ids);
+        } else {
+          accessor_1(cell_ids);
+        }
+
+        return as_nbarray(std::move(cell_ids));
+      };
+
     const auto get_facets =
       [&make_tuple](const auto &accessor_0,
         const auto &accessor_1,
@@ -59,7 +81,7 @@ namespace {
         std::vector<std::int64_t> cell_ids;
         std::vector<int> local_facet_ids;
 
-        if (target_cell_ids_py.has_value() && target_local_facet_ids_py.has_value()) {
+        if (target_cell_ids_py.has_value()) {
           assert(target_local_facets_ids_py.has_value());
 
           const std::span<const std::int64_t> cells_span(
@@ -67,6 +89,7 @@ namespace {
           const std::span<const int> local_facets_span(
             target_local_facet_ids_py.value().data(), target_local_facet_ids_py.value().size());
 
+          // Is this copy avoidable?
           accessor_0(std::vector<std::int64_t>(cells_span.begin(), cells_span.end()),
             std::vector<int>(local_facets_span.begin(), local_facets_span.end()),
             cell_ids,
@@ -85,27 +108,42 @@ namespace {
         "dim", [](UnfDomain & /*domain*/) { return dim; }, nb::rv_policy::reference_internal)
       .def_prop_ro(
         "grid", [](UnfDomain &domain) { return domain.get_grid(); }, nb::rv_policy::reference_internal)
-      .def_prop_ro(
-        "full_cells",
-        [](UnfDomain &domain) {
-          using Array = nb::ndarray<const std::int64_t, nb::numpy, nb::shape<-1>, nb::c_contig>;
-          return Array(domain.get_full_cells().data(), { domain.get_full_cells().size() }, nb::handle());
+      .def(
+        "get_full_cells",
+        [&get_cells](UnfDomain &domain,
+          const std::optional<nb::ndarray<const std::int64_t, nb::numpy, nb::shape<-1>>> &target_cell_ids_py) {
+          const auto accessor_0 = [&domain](const auto &target_cell_ids, auto &cell_ids) {
+            domain.get_full_cells(target_cell_ids, cell_ids);
+          };
+          const auto accessor_1 = [&domain](auto &cell_ids) { domain.get_full_cells(cell_ids); };
+
+          return get_cells(accessor_0, accessor_1, target_cell_ids_py);
         },
-        nb::rv_policy::reference_internal)
-      .def_prop_ro(
-        "empty_cells",
-        [](UnfDomain &domain) {
-          using Array = nb::ndarray<const std::int64_t, nb::numpy, nb::shape<-1>, nb::c_contig>;
-          return Array(domain.get_empty_cells().data(), { domain.get_empty_cells().size() }, nb::handle());
+        nb::arg("target_cell_ids") = nb::none())
+      .def(
+        "get_empty_cells",
+        [&get_cells](UnfDomain &domain,
+          const std::optional<nb::ndarray<const std::int64_t, nb::numpy, nb::shape<-1>>> &target_cell_ids_py) {
+          const auto accessor_0 = [&domain](const auto &target_cell_ids, auto &cell_ids) {
+            domain.get_empty_cells(target_cell_ids, cell_ids);
+          };
+          const auto accessor_1 = [&domain](auto &cell_ids) { domain.get_empty_cells(cell_ids); };
+
+          return get_cells(accessor_0, accessor_1, target_cell_ids_py);
         },
-        nb::rv_policy::reference_internal)
-      .def_prop_ro(
-        "cut_cells",
-        [](UnfDomain &domain) {
-          using Array = nb::ndarray<const std::int64_t, nb::numpy, nb::shape<-1>, nb::c_contig>;
-          return Array(domain.get_cut_cells().data(), { domain.get_cut_cells().size() }, nb::handle());
+        nb::arg("target_cell_ids") = nb::none())
+      .def(
+        "get_cut_cells",
+        [&get_cells](UnfDomain &domain,
+          const std::optional<nb::ndarray<const std::int64_t, nb::numpy, nb::shape<-1>>> &target_cell_ids_py) {
+          const auto accessor_0 = [&domain](const auto &target_cell_ids, auto &cell_ids) {
+            domain.get_cut_cells(target_cell_ids, cell_ids);
+          };
+          const auto accessor_1 = [&domain](auto &cell_ids) { domain.get_cut_cells(cell_ids); };
+
+          return get_cells(accessor_0, accessor_1, target_cell_ids_py);
         },
-        nb::rv_policy::reference_internal)
+        nb::arg("target_cell_ids") = nb::none())
       .def(
         "get_empty_facets",
         [&get_facets](UnfDomain &domain,

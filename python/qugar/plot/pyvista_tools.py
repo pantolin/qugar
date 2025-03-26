@@ -460,13 +460,13 @@ def quadrature_to_PyVista(
         domain_ = domain.cpp_object
 
     cells_quad = qugar.cpp.create_quadrature(
-        domain_, domain_.cut_cells, n_pts_dir, full_cells=False
+        domain_, domain_.get_cut_cells(), n_pts_dir, full_cells=False
     )
 
     cells_points_set = _cut_quad_to_PyVista(domain_.grid, cells_quad)
 
     unf_bdry_quad = qugar.cpp.create_unfitted_bound_quadrature(
-        domain_, domain_.cut_cells, n_pts_dir
+        domain_, domain_.get_cut_cells(), n_pts_dir
     )
     unf_bdry_points_set = _cut_quad_to_PyVista(domain_.grid, unf_bdry_quad)
 
@@ -628,10 +628,12 @@ def unfitted_domain_to_PyVista(
 
     value = np.full(grid.n_cells, empty, dtype=bool)
     status = np.full(grid.n_cells, 2, dtype=np.uint8)
-    value[domain_.cut_cells] = cut
-    status[domain_.cut_cells] = 1
-    value[domain_.full_cells] = full
-    status[domain_.full_cells] = 0
+    cut_cells = domain_.get_cut_cells()
+    full_cells = domain_.get_full_cells()
+    value[cut_cells] = cut
+    status[cut_cells] = 1
+    value[full_cells] = full
+    status[full_cells] = 0
 
     grid.cell_data["value"] = value
     grid.cell_data["Cell status (0: full, 1: cut, 2: empty)"] = status

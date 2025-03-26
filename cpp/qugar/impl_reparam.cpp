@@ -27,27 +27,12 @@
 
 #include <algorithm>
 #include <cassert>
-#include <iterator>
 #include <memory>
 #include <ranges>
 #include <vector>
 
 
 namespace qugar::impl {
-
-namespace {
-
-  void intersection(const std::vector<std::int64_t> &sorted_lhs,
-    const std::vector<std::int64_t> &sorted_rhs,
-    std::vector<std::int64_t> &intersection)
-  {
-    intersection.clear();
-    intersection.reserve(std::max(sorted_lhs.size(), sorted_rhs.size()));
-
-    std::ranges::set_intersection(sorted_lhs, sorted_rhs, std::back_inserter(intersection));
-  }
-
-}// namespace
 
 template<int dim, bool levelset>
 std::shared_ptr<const ImplReparamMesh<levelset ? dim - 1 : dim, dim>>
@@ -73,7 +58,7 @@ std::shared_ptr<const ImplReparamMesh<levelset ? dim - 1 : dim, dim>> create_rep
   std::ranges::sort(sorted_cells);
 
   std::vector<std::int64_t> cut_cells;
-  intersection(unf_domain.get_cut_cells(), sorted_cells, cut_cells);
+  unf_domain.get_cut_cells(sorted_cells, cut_cells);
 
   const auto grid = unf_domain.get_grid();
 
@@ -81,7 +66,7 @@ std::shared_ptr<const ImplReparamMesh<levelset ? dim - 1 : dim, dim>> create_rep
   const auto reparam = std::make_shared<ImplReparamMesh<param_dim, dim>>(n_pts_dir);
 
   const auto n_reparam_tiles_per_cell = param_dim == 2 ? 3 : 13;// Estimation
-  const auto n_cells_est = cut_cells.size() * n_reparam_tiles_per_cell + unf_domain.get_full_cells().size();
+  const auto n_cells_est = (cut_cells.size() * n_reparam_tiles_per_cell) + unf_domain.get_num_full_cells();
   reparam->reserve_cells(n_cells_est);
 
   const auto phi = unf_domain.get_impl_func();
@@ -104,7 +89,7 @@ std::shared_ptr<const ImplReparamMesh<levelset ? dim - 1 : dim, dim>> create_rep
 
   if constexpr (!levelset) {
     std::vector<std::int64_t> full_cells;
-    intersection(unf_domain.get_full_cells(), sorted_cells, full_cells);
+    unf_domain.get_full_cells(sorted_cells, full_cells);
 
     constexpr bool wirebasket = true;
     reparam->add_full_cells(*grid, full_cells, wirebasket);
