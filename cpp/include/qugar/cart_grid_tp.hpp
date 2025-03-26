@@ -156,31 +156,31 @@ private:
 template<int dim> class SubCartGridTP
 {
 public:
+  //! Shared-pointer to Cartesian grid type.
+  using GridPtr = std::shared_ptr<const CartGridTP<dim>>;
+
   //! @brief Constructor.
   //!
   //! @param grid Parent grid.
   //! @param indices_start Start indices of the coordinates of the parent grid.
   //! @param indices_end End indices of the coordinates of the parent grid.
-  SubCartGridTP(const CartGridTP<dim> &grid,
-    const TensorIndexTP<dim> &indices_start,
-    const TensorIndexTP<dim> &indices_end);
+  SubCartGridTP(const GridPtr grid, const TensorIndexTP<dim> &indices_start, const TensorIndexTP<dim> &indices_end);
 
   //! @brief Constructor.
   //!
   //! @param grid Parent grid.
   //! @param indices_range Indices range.
-  SubCartGridTP(const CartGridTP<dim> &grid, const TensorIndexRangeTP<dim> &indices_range);
+  SubCartGridTP(const GridPtr grid, const TensorIndexRangeTP<dim> &indices_range);
 
   //! @brief Constructor.
   //! Creates a subgrid containing the full grid.
   //!
   //! @param grid Parent grid.
-  explicit SubCartGridTP(const CartGridTP<dim> &grid);
+  explicit SubCartGridTP(const GridPtr grid);
 
 private:
   //! Parent grid.
-  // NOLINTNEXTLINE (cppcoreguidelines-avoid-const-or-ref-data-members)
-  const CartGridTP<dim> &grid_;
+  GridPtr grid_;
   //! Indices range.
   TensorIndexRangeTP<dim> range_;
 
@@ -227,8 +227,8 @@ public:
 
   //! @brief Gets the parent grid.
   //!
-  //! @return Constant reference to the parent grid.
-  [[nodiscard]] const CartGridTP<dim> &get_grid() const;
+  //! @return Parent Cartesian grid.
+  [[nodiscard]] GridPtr get_grid() const;
 
   //! @brief Gets the single cell in the subgrid.
   //!

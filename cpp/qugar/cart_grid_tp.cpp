@@ -267,7 +267,7 @@ template<int dim> BoundBox<dim> CartGridTP<dim>::get_cell_domain(const std::int6
 
 template<int dim>
 // NOLINTBEGIN (bugprone-easily-swappable-parameters)
-SubCartGridTP<dim>::SubCartGridTP(const CartGridTP<dim> &grid,
+SubCartGridTP<dim>::SubCartGridTP(const GridPtr grid,
   const TensorIndexTP<dim> &indices_start,
   const TensorIndexTP<dim> &indices_end)
   // NOLINTEND (bugprone-easily-swappable-parameters)
@@ -275,16 +275,17 @@ SubCartGridTP<dim>::SubCartGridTP(const CartGridTP<dim> &grid,
 {}
 
 template<int dim>
-SubCartGridTP<dim>::SubCartGridTP(const CartGridTP<dim> &grid, const TensorIndexRangeTP<dim> &indices_range)
+SubCartGridTP<dim>::SubCartGridTP(const GridPtr grid, const TensorIndexRangeTP<dim> &indices_range)
   : grid_(grid), range_(indices_range)
 {
+  assert(grid != nullptr);
   assert(0 < this->get_num_cells());
 }
 
 template<int dim>
 
-SubCartGridTP<dim>::SubCartGridTP(const CartGridTP<dim> &grid)
-  : SubCartGridTP(grid, TensorIndexTP<dim>{}, TensorIndexTP<dim>(grid.get_num_cells_dir()))
+SubCartGridTP<dim>::SubCartGridTP(const GridPtr grid)
+  : SubCartGridTP(grid, TensorIndexTP<dim>{}, TensorIndexTP<dim>(grid->get_num_cells_dir()))
 {}
 
 template<int dim> TensorSizeTP<dim> SubCartGridTP<dim>::get_num_cells_dir() const
@@ -328,14 +329,14 @@ template<int dim> BoundBox<dim> SubCartGridTP<dim>::get_domain() const
   const auto &upper = this->range_.get_upper_bound();
 
   for (int dir = 0; dir < dim; ++dir) {
-    const auto &breaks = this->grid_.get_breaks(dir);
+    const auto &breaks = this->grid_->get_breaks(dir);
     min(dir) = at(breaks, lower(dir));
     max(dir) = at(breaks, upper(dir));
   }
 
   return BoundBox<dim>(min, max);
 }
-template<int dim> const CartGridTP<dim> &SubCartGridTP<dim>::get_grid() const
+template<int dim> auto SubCartGridTP<dim>::get_grid() const -> GridPtr
 {
   return this->grid_;
 }
@@ -343,7 +344,7 @@ template<int dim> const CartGridTP<dim> &SubCartGridTP<dim>::get_grid() const
 template<int dim> std::int64_t SubCartGridTP<dim>::to_flat(const TensorIndexTP<dim> &tid) const
 {
   assert(range_.is_in_range(tid));
-  return this->grid_.to_flat(tid);
+  return this->grid_->to_flat(tid);
 }
 
 template<int dim> std::int64_t SubCartGridTP<dim>::get_single_cell() const
