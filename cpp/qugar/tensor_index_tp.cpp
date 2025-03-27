@@ -243,13 +243,14 @@ template<int dim> bool TensorIndexRangeTP<dim>::is_in_range(const TensorIndexTP<
          && all(index.as_Vector() < this->upper_bound_.as_Vector());
 }
 
-template<int dim> bool TensorIndexRangeTP<dim>::is_in_range(const std::int64_t index) const
+template<int dim>
+bool TensorIndexRangeTP<dim>::is_in_range(const std::int64_t index, const TensorSizeTP<dim> &total_size) const
 {
   assert(index >= 0);
-  if (static_cast<std::size_t>(index) >= TensorSizeTP<dim>(this->upper_bound_).size()) {
+  if (static_cast<std::size_t>(index) >= total_size.size()) {
     return false;
   } else {
-    return this->is_in_range(TensorIndexTP<dim>(index, this->upper_bound_));
+    return this->is_in_range(TensorIndexTP<dim>(index, total_size));
   }
 }
 

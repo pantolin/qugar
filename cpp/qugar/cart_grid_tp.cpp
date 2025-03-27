@@ -298,6 +298,11 @@ template<int dim> std::size_t SubCartGridTP<dim>::get_num_cells() const
   return this->range_.size();
 }
 
+template<int dim> bool SubCartGridTP<dim>::is_full() const
+{
+  return this->get_num_cells_dir() == this->grid_->get_num_cells_dir();
+}
+
 template<int dim> bool SubCartGridTP<dim>::is_unique_cell() const
 {
   return this->get_num_cells() == 1;

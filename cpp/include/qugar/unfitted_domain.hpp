@@ -20,11 +20,13 @@
 //! @copyright Copyright (c) 2025-present
 
 #include <qugar/cart_grid_tp.hpp>
+#include <qugar/unfitted_domain_kd_tree.hpp>
 
 #include <array>
 #include <cassert>
 #include <cstddef>
 #include <cstdint>
+#include <functional>
 #include <memory>
 #include <unordered_map>
 #include <vector>
@@ -51,6 +53,7 @@ public:
   static const std::size_t n_facets_per_cell = static_cast<std::size_t>(dim) * 2;
   using FacetsStatus = std::array<ImmersedFacetStatus, n_facets_per_cell>;
   using GridPtr = std::shared_ptr<const CartGridTP<dim>>;
+  using KDTreePtr = std::shared_ptr<UnfittedKDTree<dim>>;
 
 protected:
   explicit UnfittedDomain(const GridPtr &grid);
@@ -113,6 +116,7 @@ public:
     std::vector<int> &local_facets_ids) const;
 
   [[nodiscard]] bool is_full_cell(std::int64_t cell_id) const;
+  [[nodiscard]] bool is_full_with_unf_bdry_cell(std::int64_t cell_id) const;
   [[nodiscard]] bool is_empty_cell(std::int64_t cell_id) const;
   [[nodiscard]] bool is_cut_cell(std::int64_t cell_id) const;
 
@@ -137,12 +141,16 @@ public:
 
 protected:
   GridPtr grid_;
-  std::vector<std::int64_t> full_cells_;
-  std::vector<std::int64_t> empty_cells_;
-  std::vector<std::int64_t> cut_cells_;
+  KDTreePtr kd_tree_;
+
   std::unordered_map<std::int64_t, FacetsStatus> facets_status_;
 
-  void sort();
+private:
+  static void get_facets_target(const std::vector<std::int64_t> &target_cell_ids,
+    const std::vector<int> &target_local_facets_ids,
+    std::vector<std::int64_t> &cell_ids,
+    std::vector<int> &local_facets_ids,
+    const std::function<bool(std::int64_t, int)> &func);
 };
 
 

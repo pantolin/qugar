@@ -368,8 +368,9 @@ public:
 
   //! @brief Checks that the given @p index is contained in the range.
   //! @param index Index to be checked.
+  //! @param total_size Total size respect to which the tensor-index of @p index will be computed.
   //! @return Whether the index is contained in the range or not.
-  [[nodiscard]] bool is_in_range(std::int64_t index) const;
+  [[nodiscard]] bool is_in_range(std::int64_t index, const TensorSizeTP<dim> &total_size) const;
 
 private:
   //! Lower bounds.

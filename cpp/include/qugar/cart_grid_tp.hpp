@@ -205,6 +205,11 @@ public:
   //! @return Total number of cells.
   [[nodiscard]] std::size_t get_num_cells() const;
 
+  //! @brief Checks if the subgrid corresponds to the total grid.
+  //!
+  //! @return True if the subgrid corresponds to the total grid, false otherwise.
+  [[nodiscard]] bool is_full() const;
+
   //! @brief Checks if the subgrid has only one cell.
   //!
   //! @return True if it has only one cell, false otherwise.
