@@ -55,23 +55,22 @@ def compute_volume(
     Returns:
         np.float32 | np.float64: The computed volume of the domain.
     """
-    cart_mesh = domain.cart_mesh
-    dlf_mesh = cart_mesh.dolfinx_mesh
+    mesh = domain.tp_mesh
 
     cut_tag = 0
     full_tag = 1
     cell_subdomain_data = domain.create_cell_subdomain_data(cut_tag=cut_tag, full_tag=full_tag)
 
-    one = dolfinx.fem.Constant(dlf_mesh, dtype(1.0))
+    one = dolfinx.fem.Constant(mesh, dtype(1.0))
 
     quad_degree = get_Gauss_quad_degree(n_quad_pts)
     dx_cut = ufl.dx(
-        domain=dlf_mesh,
+        domain=mesh,
         subdomain_data=cell_subdomain_data,
         subdomain_id=cut_tag,
         degree=quad_degree,
     )
-    dx = ufl.dx(domain=dlf_mesh, subdomain_data=cell_subdomain_data, subdomain_id=full_tag)
+    dx = ufl.dx(domain=mesh, subdomain_data=cell_subdomain_data, subdomain_id=full_tag)
     ufl_form = one * (dx + dx_cut)
 
     custom_form = form_custom(ufl_form, dtype=dtype)
@@ -98,17 +97,15 @@ def compute_boundary_area(
     Returns:
         np.float32 | np.float64: The computed area of the domain's boundary.
     """
-    cart_mesh = domain.cart_mesh
-    dlf_mesh = cart_mesh.dolfinx_mesh
 
     bdry_tag = 0
     cell_subdomain_data = domain.create_cell_subdomain_data(cut_tag=bdry_tag)
 
-    one = dolfinx.fem.Constant(dlf_mesh, dtype(1.0))
+    one = dolfinx.fem.Constant(domain.tp_mesh, dtype(1.0))
 
     quad_degree = get_Gauss_quad_degree(n_quad_pts)
     ds = dx_bdry_unf(
-        domain=dlf_mesh,
+        domain=domain.tp_mesh,
         subdomain_data=cell_subdomain_data,
         subdomain_id=bdry_tag,
         degree=quad_degree,

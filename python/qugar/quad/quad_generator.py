@@ -20,7 +20,7 @@ import numpy.typing as npt
 
 import qugar.cpp
 from qugar.mesh import (
-    CartesianMesh,
+    TensorProductMesh,
     lexicg_to_DOLFINx_faces,
 )
 from qugar.quad.quad_data import (
@@ -48,13 +48,13 @@ class QuadGenerator:
         self._unf_domain = unf_domain
 
     @property
-    def cart_mesh(self) -> CartesianMesh:
-        """Gets the domain's Cartesian mesh.
+    def tp_mesh(self) -> TensorProductMesh:
+        """Gets the domain's tensor-product mesh.
 
         Returns:
-            CartesianMesh: Domain's Cartesian mesh.
+            TensorProductMesh: Domain's tensor-product mesh.
         """
-        return self._unf_domain.cart_mesh
+        return self._unf_domain.tp_mesh
 
     @property
     def unfitted_domain(self) -> UnfittedDomain:
@@ -129,7 +129,7 @@ class QuadGenerator:
 
         n_pts_dir = QuadGenerator.get_num_points(degree)
 
-        lex_cells = self.cart_mesh.get_lexicg_cell_ids(dlf_cells, lexicg=False)
+        lex_cells = self.tp_mesh.get_lexicg_cell_ids(dlf_cells)
 
         quad = qugar.cpp.create_quadrature(
             self._unf_domain.cpp_object, lex_cells, n_pts_dir, full_cells=False
@@ -174,13 +174,13 @@ class QuadGenerator:
         """
         n_pts_dir = QuadGenerator.get_num_points(degree)
 
-        if not np.all(np.isin(dlf_cells, self._unf_domain.get_cut_cells(lexicg=False))):
+        if not np.all(np.isin(dlf_cells, self._unf_domain.get_cut_cells())):
             raise ValueError(
                 "Unfitted boundary quadratures can only be generated for cells "
                 "containing unfitted boundaries"
             )
 
-        lex_cells = self.cart_mesh.get_lexicg_cell_ids(dlf_cells, lexicg=False)
+        lex_cells = self.tp_mesh.get_lexicg_cell_ids(dlf_cells)
 
         quad = qugar.cpp.create_unfitted_bound_quadrature(
             self._unf_domain._cpp_object, lex_cells, n_pts_dir
@@ -253,9 +253,9 @@ class QuadGenerator:
 
         n_pts_dir = QuadGenerator.get_num_points(degree)
 
-        lex_cells = self.cart_mesh.get_lexicg_cell_ids(dlf_cells, lexicg=False)
+        lex_cells = self.tp_mesh.get_lexicg_cell_ids(dlf_cells)
 
-        lex_to_dlf_faces = lexicg_to_DOLFINx_faces(self.cart_mesh.tdim)
+        lex_to_dlf_faces = lexicg_to_DOLFINx_faces(self.tp_mesh.tdim)
         lex_local_facets = lex_to_dlf_faces[dlf_local_facets]
 
         if integral_type == "interior_facet":

@@ -28,6 +28,7 @@
 
 #include <array>
 #include <cstddef>
+#include <cstdint>
 #include <memory>
 #include <vector>
 
@@ -45,13 +46,21 @@ void horizontal_Bezier_test()
 
   const qugar::impl::UnfittedImplDomain<2> unf_domain(bezier, grid);
 
-  for (const auto &cell_id : unf_domain.get_full_cells()) {
+  std::vector<std::int64_t> full_cells;
+  unf_domain.get_full_cells(full_cells);
+  for (const auto &cell_id : full_cells) {
     REQUIRE((0 <= cell_id && cell_id < 10));
   }
-  for (const auto &cell_id : unf_domain.get_empty_cells()) {
+
+  std::vector<std::int64_t> empty_cells;
+  unf_domain.get_empty_cells(empty_cells);
+  for (const auto &cell_id : empty_cells) {
     REQUIRE((10 <= cell_id));
   }
-  REQUIRE((unf_domain.get_cut_cells().empty()));
+
+  std::vector<std::int64_t> cut_cells;
+  unf_domain.get_cut_cells(cut_cells);
+  REQUIRE((cut_cells.empty()));
 }
 
 
@@ -68,13 +77,21 @@ void vertical_Bezier_test()
 
   const qugar::impl::UnfittedImplDomain<2> unf_domain(bezier, grid);
 
-  for (const auto &cell_id : unf_domain.get_full_cells()) {
+  std::vector<std::int64_t> full_cells;
+  unf_domain.get_full_cells(full_cells);
+  for (const auto &cell_id : full_cells) {
     REQUIRE((cell_id % 4 < 2));
   }
-  for (const auto &cell_id : unf_domain.get_empty_cells()) {
+
+  std::vector<std::int64_t> empty_cells;
+  unf_domain.get_empty_cells(empty_cells);
+  for (const auto &cell_id : empty_cells) {
     REQUIRE(((cell_id % 4) >= 2));
   }
-  REQUIRE((unf_domain.get_cut_cells().empty()));
+
+  std::vector<std::int64_t> cut_cells;
+  unf_domain.get_cut_cells(cut_cells);
+  REQUIRE((cut_cells.empty()));
 }
 
 void horizontal_general_test()
@@ -90,13 +107,21 @@ void horizontal_general_test()
 
   const qugar::impl::UnfittedImplDomain<2> unf_domain(plane, grid);
 
-  for (const auto &cell_id : unf_domain.get_full_cells()) {
+  std::vector<std::int64_t> full_cells;
+  unf_domain.get_full_cells(full_cells);
+  for (const auto &cell_id : full_cells) {
     REQUIRE((0 <= cell_id && cell_id < 10));
   }
-  for (const auto &cell_id : unf_domain.get_empty_cells()) {
+
+  std::vector<std::int64_t> empty_cells;
+  unf_domain.get_empty_cells(empty_cells);
+  for (const auto &cell_id : empty_cells) {
     REQUIRE((10 <= cell_id));
   }
-  REQUIRE((unf_domain.get_cut_cells().empty()));
+
+  std::vector<std::int64_t> cut_cells;
+  unf_domain.get_cut_cells(cut_cells);
+  REQUIRE((cut_cells.empty()));
 }
 
 
@@ -113,13 +138,21 @@ void vertical_general_test()
 
   const qugar::impl::UnfittedImplDomain<2> unf_domain(plane, grid);
 
-  for (const auto &cell_id : unf_domain.get_full_cells()) {
+  std::vector<std::int64_t> full_cells;
+  unf_domain.get_full_cells(full_cells);
+  for (const auto &cell_id : full_cells) {
     REQUIRE((cell_id % 4 < 2));
   }
-  for (const auto &cell_id : unf_domain.get_empty_cells()) {
+
+  std::vector<std::int64_t> empty_cells;
+  unf_domain.get_empty_cells(empty_cells);
+  for (const auto &cell_id : empty_cells) {
     REQUIRE(((cell_id % 4) >= 2));
   }
-  REQUIRE((unf_domain.get_cut_cells().empty()));
+
+  std::vector<std::int64_t> cut_cells;
+  unf_domain.get_cut_cells(cut_cells);
+  REQUIRE((cut_cells.empty()));
 }
 
 }// namespace

@@ -319,7 +319,7 @@ template<int dim, int range, typename R, bool S, bool T = true> struct ImplicitG
       this->cells_indices_map_.emplace(cell_tid, cell_id);
     }
 
-    const auto pt_id = pt_tid.flat(TensorSizeTP<dim_aux>(this->order_));
+    const auto pt_id = static_cast<int>(pt_tid.flat(TensorSizeTP<dim_aux>(this->order_)));
 
     this->reparam_.insert_cell_point(point, cell_id, pt_id);
   }

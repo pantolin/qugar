@@ -24,6 +24,7 @@
 #include <qugar/unfitted_domain.hpp>
 
 #include <cstddef>
+#include <cstdint>
 #include <memory>
 #include <vector>
 
@@ -35,7 +36,7 @@ enum ImmersedStatus : std::uint8_t { cut, full, empty };
 template<int dim> struct CutCellsQuad
 {
   //! @brief List of cut cells.
-  std::vector<int> cells;
+  std::vector<std::int64_t> cells;
   //! @brief List of number of quadrature points per cut cell.
   std::vector<int> n_pts_per_cell;
 
@@ -50,7 +51,7 @@ template<int dim> struct CutCellsQuad
 template<int dim> struct CutIsoBoundsQuad
 {
   //! @brief List of cut cells.
-  std::vector<int> cells;
+  std::vector<std::int64_t> cells;
   //! @brief List of (local) facet ids associated to the vector cells.
   std::vector<int> local_facet_ids;
   //! @brief List of number of quadrature points per cut facet.
@@ -67,7 +68,7 @@ template<int dim> struct CutIsoBoundsQuad
 template<int dim> struct CutUnfBoundsQuad
 {
   //! @brief List of cut cells.
-  std::vector<int> cells;
+  std::vector<std::int64_t> cells;
   //! @brief List of number of quadrature points per cut cell.
   std::vector<int> n_pts_per_cell;
 
@@ -83,18 +84,19 @@ template<int dim> struct CutUnfBoundsQuad
 
 template<int dim>
 std::shared_ptr<const CutCellsQuad<dim>> create_quadrature(const UnfittedDomain<dim> &unf_domain,
-  const std::vector<int> &cells,
+  const std::vector<std::int64_t> &cells,
   int n_pts_dir,
   bool full_cells);
 
 template<int dim>
-std::shared_ptr<const CutUnfBoundsQuad<dim>>
-  create_unfitted_bound_quadrature(const UnfittedDomain<dim> &unf_domain, const std::vector<int> &cells, int n_pts_dir);
+std::shared_ptr<const CutUnfBoundsQuad<dim>> create_unfitted_bound_quadrature(const UnfittedDomain<dim> &unf_domain,
+  const std::vector<std::int64_t> &cells,
+  int n_pts_dir);
 
 template<int dim>
 std::shared_ptr<const CutIsoBoundsQuad<dim - 1>> create_interior_facets_quadrature(
   const UnfittedDomain<dim> &unf_domain,
-  const std::vector<int> &cells,
+  const std::vector<std::int64_t> &cells,
   const std::vector<int> &facets,
   int n_pts_dir,
   bool full_facets);
@@ -102,7 +104,7 @@ std::shared_ptr<const CutIsoBoundsQuad<dim - 1>> create_interior_facets_quadratu
 template<int dim>
 std::shared_ptr<const CutIsoBoundsQuad<dim - 1>> create_exterior_facets_quadrature(
   const UnfittedDomain<dim> &unf_domain,
-  const std::vector<int> &cells,
+  const std::vector<std::int64_t> &cells,
   const std::vector<int> &facets,
   int n_pts_dir,
   bool full_facets);

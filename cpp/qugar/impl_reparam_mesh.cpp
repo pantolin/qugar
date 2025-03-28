@@ -199,12 +199,12 @@ void ImplReparamMesh<dim, range>::orient_cells_positively(const std::vector<int>
     const auto cell_points = std::span(this->connectivity_).subspan(offset, this->get_num_points_per_cell());
 
     std::array<Point<dim>, dim> jacobian;
-    for (int i = 0; i < order.size(); ++i) {
-      const auto pt_id = at(cell_points, i);
+    for (std::size_t i = 0; i < order.size(); ++i) {
+      const auto pt_id = cell_points[i];
       const auto &point = at(this->points_, static_cast<int>(pt_id));
 
       for (int dir = 0; dir < dim; ++dir) {
-        at(jacobian, dir) += point * at(derivatives(dir), i);
+        at(jacobian, dir) += point * derivatives(dir)[i];
       }
     }
     if (compute_determinant<dim>(jacobian) < 0) {
@@ -250,14 +250,14 @@ void ImplReparamMesh<dim, range>::orient_levelset_cells_positively(const std::ve
     Point<range> eval_point;
 
     std::array<Point<range>, dim> jacobian;
-    for (int i = 0; i < order.size(); ++i) {
-      const auto pt_id = at(cell_points, i);
+    for (std::size_t i = 0; i < order.size(); ++i) {
+      const auto pt_id = cell_points[i];
       const auto &point = at(this->points_, static_cast<int>(pt_id));
 
       for (int dir = 0; dir < dim; ++dir) {
-        at(jacobian, dir) += point * at(derivatives(dir), i);
+        at(jacobian, dir) += point * derivatives(dir)[i];
       }
-      eval_point += point * at(basis, i);
+      eval_point += point * basis[i];
     }
 
     Point<range> normal;

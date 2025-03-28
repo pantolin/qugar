@@ -27,6 +27,7 @@ import numpy as np
 import numpy.typing as npt
 import ufl
 from dolfinx.cpp.mesh import GhostMode
+from dolfinx.fem import coordinate_element as _coordinate_element
 
 import qugar.cpp
 from qugar.mesh.tp_index import TensorProdIndex
@@ -34,6 +35,8 @@ from qugar.mesh.utils import (
     DOLFINx_to_lexicg_faces,
     DOLFINx_to_lexicg_nodes,
     create_cells_to_facets_map,
+    lexicg_to_DOLFINx_faces,
+    map_facets_to_cells_and_local_facets,
 )
 
 
@@ -206,64 +209,6 @@ def _merge_coincident_points_in_mesh(
     return new_nodes, new_conn, old_to_new
 
 
-def _create_mesh(
-    comm: MPI.Intracomm,
-    dim: int,
-    coords: npt.NDArray[np.float32 | np.float64],
-    conn: npt.NDArray[np.int64],
-    degree: int,
-    cell_type: Optional[str] = None,
-    ghost_mode: GhostMode = GhostMode.shared_facet,
-) -> dolfinx.mesh.Mesh:
-    """Creates a DOLFINx mesh of Lagrange elements.
-
-    of intervals, quadrilaterals, or
-    hexahedra.
-
-    Args:
-        comm (MPI.Intracomm): MPI communicator to be used for
-            distributing the mesh. Right now, only the serial case is
-            implemented.
-        dim (int): Parametric dimension of the mesh.
-        coords (npt.NDArray[np.float32 | np.float64]): Coordinates of
-            the nodes stored in a 2D np.ndarray. The rows correspond to
-            the different points and columns to the coordinates.
-        conn (npt.NDArray[np.int64]): Generated connectivity. It is a
-            list, where every entry is a list of nodes ids. The
-            connectivity of each cells follows the DOLFINx convention.
-            See https://github.com/FEniCS/basix/#supported-elements
-        degree (int): Cells's degree. It must be greater than 0.
-        cell_type (Optional[str]): Cell type. It can be, `interval`,
-            `triangle`, `quadrilateral`, `tetrahedron`, or `hexahedron`.
-            It defaults to None, therefore, the type will be set to
-            `interval`, `quadrilateral`, or `hexahedron`, depending on
-            the dimension `dim`.
-        ghost_mode (GhostMode, optional): Ghost mode used for mesh
-            partitioning. Defaults to `shared_facet`.
-
-    Returns:
-        dolfinx.mesh.Mesh: Generated mesh.
-    """
-
-    assert 1 <= dim <= 3, "Invalid dimension."
-    assert degree >= 1, "Invalid degree."
-
-    if comm.rank > 1:
-        assert coords.shape[0] == 0 and conn.shape[0] == 0
-        partitioner = dlf_cpp.mesh.create_cell_partitioner(ghost_mode)
-    else:
-        partitioner = None
-
-    if cell_type is None:
-        cell_type = ["interval", "quadrilateral", "hexahedron"][dim - 1]
-
-    dtype = coords.dtype
-    gdim = coords.shape[1]
-    element = basix.ufl.element("Lagrange", cell_type, degree, shape=(gdim,), dtype=dtype)
-
-    return dolfinx.mesh.create_mesh(comm, conn, coords, ufl.Mesh(element), partitioner=partitioner)
-
-
 def _create_Cartesian_mesh_nodes_from_points(
     pts_1D: list[npt.NDArray[np.float32 | np.float64]],
 ) -> npt.NDArray[np.float32 | np.float64]:
@@ -409,11 +354,11 @@ def _find_in_array(values_to_search: npt.NDArray, all_values: npt.NDArray) -> np
     return np.ma.array(values_to_search_index, mask=mask).filled(-1)
 
 
-class TensorProductMesh:
+class TensorProductMesh(dolfinx.mesh.Mesh):
     """Tensor-product mesh data structure.
 
-    This class is a helper class to ease the management of structured
-    tensor-product meshes of intervals (1D), quadrangles (2D), or
+    This class derives from `dolfinx.mesh.Mesh`, easing the management of
+    structured tensor-product meshes of intervals (1D), quadrangles (2D), or
     hexahedra (3D). The geometric dimension can be arbitrarity according
     to the DOLFINx capabilities.
 
@@ -445,25 +390,27 @@ class TensorProductMesh:
     Note that after the mesh creation, DOLFINx renumbers and partitions
     the mesh, so, this numeration will be different. It is always
     possible to retrieve the original numbering using the maps
-    `self.dolfinx_to_lexicg_nodes` or `self.dolfinx_to_lexicg_cells`.
-    Or, from the lexicographical to the DOLFINx numbering using
-    `self.lexicg_to_dolfinx_nodes` or `self.lexicg_to_dolfinx_cells`.
+    `self.get_lexicg_node_ids` or `self.get_lexicg_cell_ids`.
+    Or, from the lexicographical to the local DOLFINx numbering using
+    `self.get_DOLFINx_local_node_ids` or `self.get_DOLFINx_local_cell_ids`,
+    or the global with `self.get_DOLFINx_global_node_ids` or
+    `self.get_DOLFINx_global_cell_ids`,
     """
 
     def __init__(
         self,
-        comm: MPI.Intracomm,
+        comm: MPI.Comm,
         nodes_coords: npt.NDArray[np.float32 | np.float64],
         n_cells: npt.NDArray[np.int32] | list[np.int32] | list[int],
         degree: int = 1,
-        ghost_mode: GhostMode = GhostMode.shared_facet,
+        ghost_mode: GhostMode = GhostMode.none,
         merge_nodes: bool = False,
         merge_tol: Optional[type[np.float32 | np.float64]] = None,
     ) -> None:
         """Constructor.
 
         Args:
-            comm (MPI.Intracomm): MPI communicator to be used for
+            comm (MPI.Comm): MPI communicator to be used for
                 distributing the mesh.
             n_cells (npt.NDArray[np.int32] | list[np.int32] | list[int]):
                 Number of cells per direction in the mesh.
@@ -473,7 +420,7 @@ class TensorProductMesh:
                 the coordinates of each point.
             degree (int): Degree of the mesh.
             ghost_mode (GhostMode, optional): Ghost mode used for mesh
-                partitioning. Defaults to `shared_facet`.
+                partitioning. Defaults to `none`.
             merge_nodes (bool, optional): If `True`, coincident nodes
                 will be merged together into a single one. Otherwise,
                 duplicated nodes will not be merged. Defaults to
@@ -490,18 +437,19 @@ class TensorProductMesh:
         assert 1 <= self.tdim <= 3, "Invalid dimension."
 
         self._degree = degree
-        assert 1 <= degree, "Invalid degree."
+        assert 1 <= self.degree, "Invalid degree."
 
         self._create_mesh(comm, nodes_coords, merge_nodes, merge_tol, ghost_mode)
 
     @property
-    def dolfinx_mesh(self) -> dolfinx.mesh.Mesh:
-        """Gets the underlying DOLFINx mesh.
+    def dtype(self) -> np.dtype[np.float32] | np.dtype[np.float64]:
+        """Gets the type associated to the breaks.
 
         Returns:
-            dolfinx.mesh.Mesh: Underlying DOLFINx mesh.
+            np.dtype[np.float32] | np.dtype[np.float64]: Type associated to the
+            breaks.
         """
-        return self._mesh
+        return self.geometry.x.dtype
 
     @property
     def degree(self) -> int:
@@ -548,7 +496,7 @@ class TensorProductMesh:
         Returns:
             int: Mesh's geometrical dimension.
         """
-        return self._mesh.geometry.dim
+        return self.geometry.dim
 
     @property
     def has_merged_nodes(self) -> bool:
@@ -572,12 +520,12 @@ class TensorProductMesh:
 
     @property
     def num_global_cells(self) -> np.int64:
-        """Gets the total (global) number of cells.
+        """Gets the total (global) number of cells of the DOLFINx mesh.
 
         Returns:
-            np.int64: Number of global cells.
+            np.int64: Number of global cells of the DOLFINx mesh.
         """
-        return np.prod(self._n_cells, dtype=np.int64)
+        return np.int64(self.topology.index_map(self.tdim).size_global)
 
     @property
     def num_local_cells(self) -> np.int64:
@@ -587,28 +535,36 @@ class TensorProductMesh:
         Returns:
             np.int64: Number of local cells.
         """
-        return np.int64(self._mesh.topology.original_cell_index.size)
+        return np.int64(self.topology.index_map(self.tdim).size_local)
+
+    @property
+    def num_cells_tp(self) -> np.int64:
+        """Gets the total number of cells of the underlying tensor-product mesh.
+
+        Returns:
+            np.int64: Number of cells of the tensor-product mesh.
+        """
+        return np.prod(self._n_cells, dtype=np.int64)
 
     def _create_mesh(
         self,
-        comm: MPI.Intracomm,
+        comm: MPI.Comm,
         nodes_coords: npt.NDArray[np.float32 | np.float64],
         merge_nodes: bool,
         merge_tol: Optional[type[np.float32 | np.float64]] = None,
-        ghost_mode=GhostMode.shared_facet,
+        ghost_mode=GhostMode.none,
     ) -> None:
-        """Creates the underlying DOLFINx mesh and stores it in
-        `self._mesh`.
+        """Creates the base DOLFINx mesh.
 
         Args:
-            comm (MPI.Intracomm): MPI communicator to be used for
+            comm (MPI.Comm): MPI communicator to be used for
                 distributing the mesh.
             nodes_coords (npt.NDArray[np.float32 | np.float64]): Nodes
                 coordinates. The rows correspond to the different nodes
                 (following lexicographical ordering), and the columns to
                 the coordinates of each point.
             ghost_mode (GhostMode, optional): Ghost mode used for mesh
-                partitioning. Defaults to `shared_facet`.
+                partitioning. Defaults to `none`.
             merge_nodes (bool): If `True`, coincident nodes will be
                 merged together into a single one. Otherwise, duplicated
                 nodes will not be merged.
@@ -620,187 +576,165 @@ class TensorProductMesh:
                 None.
         """
 
+        self._merged_nodes_map = np.empty(0, dtype=np.int64)
+
+        nodes_coords = np.asarray(nodes_coords, order="C")
+        if nodes_coords.ndim == 1:
+            gdim = 1
+        else:
+            gdim = nodes_coords.shape[1]
+
         if comm.rank == 0:
             conn = _create_tensor_prod_mesh_conn(self.tdim, self.degree, self.num_cells_dir)
             assert nodes_coords.shape[0] == np.prod(self.num_pts_dir)
+
+            if merge_nodes:
+                nodes_coords, conn, self._merged_nodes_map = _merge_coincident_points_in_mesh(
+                    nodes_coords, conn, merge_tol
+                )
+            conn = np.asarray(conn, dtype=np.int64, order="C")
+
         else:
             # TODO: this is a temporary hack. All the nodes and cells
             # are created in rank 0, and then distributed. Better
-            # performance could by achieving by distributing nodes and
+            # performance could be achieved by distributing nodes and
             # cells since their creation.
-            n_nodes_per_cell = 2**self.tdim
-            conn = np.empty((0, n_nodes_per_cell), dtype=np.int64)
+            # See https://jsdokken.com/dolfinx_docs/meshes.html#mpi-communication
+            # for further details.
             assert nodes_coords.shape[0] == 0
 
-        self._merged_nodes_map = np.empty(0, dtype=np.int64)
-        if comm.rank == 0 and merge_nodes:
-            nodes_coords, conn, self._merged_nodes_map = _merge_coincident_points_in_mesh(
-                nodes_coords, conn, merge_tol
-            )
+            n_nodes_per_cell = 2**self.tdim
+            conn = np.empty((0, n_nodes_per_cell), dtype=np.int64, order="C")
 
-        self._mesh = _create_mesh(
-            comm, self.tdim, nodes_coords, conn, self._degree, ghost_mode=ghost_mode
+        if comm.size > 1:
+            partitioner = dlf_cpp.mesh.create_cell_partitioner(ghost_mode)
+        else:
+            partitioner = None
+
+        cell_type = ["interval", "quadrilateral", "hexahedron"][self.tdim - 1]
+
+        element = basix.ufl.element(
+            "Lagrange", cell_type, self.degree, shape=(gdim,), dtype=nodes_coords.dtype
         )
+        domain = ufl.Mesh(element)
+
+        e_ufl = domain.ufl_coordinate_element()
+        cmap = _coordinate_element(e_ufl.basix_element)
+        # TODO: Resolve UFL vs Basix geometric dimension issue
+        # assert domain.geometric_dimension() == gdim
+
+        msh_cpp = dlf_cpp.mesh.create_mesh(comm, conn, cmap._cpp_object, nodes_coords, partitioner)
+
+        super().__init__(msh_cpp, domain)
 
     def get_DOLFINx_local_cell_ids(
         self,
-        cell_ids: npt.NDArray[np.int32 | np.int64] | np.int32 | np.int64,
-        lexicg: bool = True,
-    ) -> npt.NDArray[np.int32] | np.int32:
-        """Transforms the given `cell_ids` from the tensor-product mesh
+        lex_cell_ids: npt.NDArray[np.int64],
+    ) -> npt.NDArray[np.int32]:
+        """Transforms the given `lex_cell_ids` from the lexicographical tensor-product mesh
         into the corresponding local ids of the underlying DOLFINx mesh.
 
         Args:
-            cell_ids (npt.NDArray[np.int32 | np.int64] | np.int32 | np.int64):
-                Cell indices to be transformed. They may be local
-                indices referred to the underlying DOLFINx mesh (if
-                `lexicg` is set to `False`) or lexicographical indices
-                (if `lexicg` is `True`). If `lexicg` is set to `False`,
-                all the local DOLFINx indices must belong to the current
-                subdomain (process).
-            lexicg (bool, optional): Whether `cell_ids` follow the
-                tensor-product lexicographical numbering or the DOLFINx
-                one. Defaults to `True`.
+            lex_cell_ids (npt.NDArray[np.int64]):
+                Cell indices to be transformed. They are lexicographical indices
+                referred to the tensor-product mesh.
 
         Returns:
-            npt.NDArray[np.int32] | np.int32: Indices of the cells in
+            npt.NDArray[np.int32]: Indices of the cells in
             the underlying DOLFINx mesh. These indices correspond to the
             local numbering associated to the current subdomain
             (process). Note that some indices may be set to -1 in the
-            case the input indices are lexicographical and some of them
-            are not contained in the subdomain. The length of the output
+            case the associated input lexicographical indices are not contained
+            in the subdomain. The length of the output
             array is the same as the input.
         """
 
-        if not isinstance(cell_ids, np.ndarray):
-            cell_ids = np.array(cell_ids)
-            return cast(
-                npt.NDArray[np.int32],
-                self.get_DOLFINx_local_cell_ids(cell_ids, lexicg),
-            )
-
-        dlf_to_lex = self.dolfinx_mesh.topology.original_cell_index
-
-        if lexicg:
-            lex_ids = np.array(cell_ids, dtype=np.int64)
-            return _find_in_array(lex_ids, dlf_to_lex).astype(np.int32)
-        else:
-            n_local_cells = dlf_to_lex.size
-            assert np.all(cell_ids < n_local_cells) and np.all(cell_ids >= 0), (
-                "Cells not contained in subdomain"
-            )
-
-            return cell_ids.astype(np.int32)
+        dlf_to_lex = self.topology.original_cell_index
+        return _find_in_array(lex_cell_ids, dlf_to_lex).astype(np.int32)
 
     def get_DOLFINx_global_cell_ids(
         self,
-        cell_ids: npt.NDArray[np.int32 | np.int64] | np.int32 | np.int64,
-        lexicg: bool = True,
-    ) -> npt.NDArray[np.int32]:
-        """Transforms the given local `cell_ids` into the corresponding global ids
+        lex_cell_ids: npt.NDArray[np.int64],
+    ) -> npt.NDArray[np.int64]:
+        """Transforms the given local `lex_cell_ids` into the corresponding global ids
         of the underlying DOLFINx mesh.
 
         Args:
-            cell_ids (npt.NDArray[np.int32 | np.int64] | np.int32 | np.int64):
-                Cell indices to be transformed. They may be local
-                indices referred to the underlying DOLFINx mesh (if
-                `lexicg` is set to `False`) or lexicographical indices
-                (if `lexicg` is `True`). If `lexicg` is set to `False`,
-                all the local DOLFINx indices must belong to the current
-                subdomain (process).
-            lexicg (bool, optional): Whether `cell_ids` follow the
-                tensor-product lexicographical numbering or the DOLFINx
-                one. Defaults to `True`.
+            lex_cell_ids (npt.NDArray[np.int64]):
+                Cell indices to be transformed. They are lexicographical indices
 
         Note:
-            All the indices in `cell_ids` must be contained in the
+            All the indices in `lex_cell_ids` must be contained in the
             current subdomain.
 
         Returns:
-            npt.NDArray[np.int32]: Indices of the cells in the underlying DOLFINx mesh.
-            These indices correspond to the global numbering associated to the
+            npt.NDArray[np.int64]: Indices of the cells in the underlying DOLFINx mesh.
+            These indices correspond to the global indices belonging to the
             current subdomain (process).
         """
 
-        dlf_cell_ids = self.get_DOLFINx_local_cell_ids(cell_ids, lexicg)
-        index_map = self.dolfinx_mesh.topology.index_map(self.tdim)
-        return index_map.local_to_global(dlf_cell_ids)
+        dlf_local_cell_ids = self.get_DOLFINx_local_cell_ids(lex_cell_ids)
+        return self.get_DOLFINx_local_to_global_cell_ids(dlf_local_cell_ids)
+
+    def get_DOLFINx_local_to_global_cell_ids(
+        self,
+        dlf_local_cell_ids: npt.NDArray[np.int32],
+    ) -> npt.NDArray[np.int64]:
+        """Transforms the given local `dlf_local_cell_ids` (DOLFINx) local
+        cell ids into the corresponding global ones associated to the current process.
+
+        Args:
+            dlf_local_cell_ids (npt.NDArray[np.int32]): DOLFINx local cell indices
+                to be transformed.
+
+        Returns:
+            npt.NDArray[np.int64]: Global indices of the DOLFINx cells.
+        """
+
+        index_map = self.topology.index_map(self.tdim)
+        return index_map.local_to_global(dlf_local_cell_ids)
 
     def get_lexicg_cell_ids(
         self,
-        cell_ids: npt.NDArray[np.int32 | np.int64] | np.int32 | np.int64,
-        lexicg: bool = False,
-    ) -> npt.NDArray[np.int64] | np.int64:
-        """Transforms given `cell_ids` from the tensor-product mesh into
+        dlf_local_cell_ids: npt.NDArray[np.int32],
+    ) -> npt.NDArray[np.int64]:
+        """Transforms given `dlf_local_cell_ids` into
         the tensor-product mesh numbering, that follows a lexicographical
         indexing.
 
         Args:
-            cell_ids (npt.NDArray[np.int32 | np.int64] | np.int32 | np.int64):
-                Cell indices to be transformed. They may be local
-                indices referred to the underlying DOLFINx mesh (if
-                `lexicg` is set to `False`) or lexicographical indices
-                (if `lexicg` is `True`). If `lexicg` is set to `False`,
-                all the local DOLFINx indices must belong to the current
-                subdomain (process).
-            lexicg (bool, optional): Whether `cell_ids` follow the
-                tensor-product lexicographical numbering or the DOLFINx
-                one. Defaults to `True`.
+            dlf_local_cell_ids (npt.NDArray[np.int32]):
+                Cell indices to be transformed. They arelocal
+                indices referred to the underlying DOLFINx mesh.
 
         Returns:
-            npt.NDArray[np.int64] | np.int64: Ids of the cells in the
-            tensor-product lexicographical indexing. Note that some
-            indices may be set to -1 if their associated cells do not
-            belong to current subdomain. The length of the output array
+            npt.NDArray[np.int64]: Ids of the cells in the
+            tensor-product lexicographical indexing. The length of the output array
             is the same as the input.
         """
 
-        if not isinstance(cell_ids, np.ndarray):
-            cell_ids = np.array(cell_ids)
-            return cast(
-                npt.NDArray[np.int64],
-                self.get_lexicg_cell_ids(cell_ids, lexicg),
-            )
+        dlf_to_lex = self.topology.original_cell_index
+        n_local_cells = dlf_to_lex.size
+        assert np.all(dlf_local_cell_ids < n_local_cells) and np.all(dlf_local_cell_ids >= 0), (
+            "Cells not contained in subdomain"
+        )
 
-        dlf_to_lex = self.dolfinx_mesh.topology.original_cell_index
+        return dlf_to_lex[dlf_local_cell_ids]
 
-        if lexicg:
-            lex_ids = cell_ids.astype(np.int64, copy=True)
-            # Getting cells that don't belong to the subdomain.
-            not_in_subdomain = np.logical_not(np.isin(lex_ids, dlf_to_lex))
-
-            return np.ma.array(lex_ids, mask=not_in_subdomain).filled(-1)
-
-        else:
-            n_local_cells = dlf_to_lex.size
-            assert np.all(cell_ids < n_local_cells) and np.all(cell_ids >= 0), (
-                "Cells not contained in subdomain"
-            )
-
-            return dlf_to_lex[cell_ids]
-
-    def get_DOLFINx_node_ids(
+    def get_DOLFINx_local_node_ids(
         self,
-        node_ids: npt.NDArray[np.int32 | np.int64] | np.int32 | np.int64,
-        lexicg: bool = True,
-    ) -> npt.NDArray[np.int32] | np.int32:
-        """Transforms the given `node_ids` from the tensor-product mesh
+        lex_node_ids: npt.NDArray[np.int64],
+    ) -> npt.NDArray[np.int32]:
+        """Transforms the given `lx_node_ids` from the tensor-product mesh
         into the corresponding local ids of the underlying DOLFINx mesh.
 
         Args:
-            node_ids (npt.NDArray[np.int32 | np.int64] | np.int32 | np.int64):
-                Node indices to be transformed. They may be local
-                indices referred to the underlying DOLFINx mesh (if
-                `lexicg` is set to `False`) or lexicographical indices
-                (if `lexicg` is `True`). If `lexicg` is set to `False`,
-                all the local DOLFINx indices must belong to the current
-                subdomain (process).
-            lexicg (bool, optional): Whether `node_ids` follow the
-                tensor-product lexicographical numbering or the DOLFINx
-                one. Defaults to `True`.
+            lex_node_ids (npt.NDArray[np.int64]):
+                Node indices to be transformed. They are lexicographical
+                indices referred to the tensor-product mesh.
 
         Returns:
-            npt.NDArray[np.int32] | np.int32: Indices of the nodes in
+            npt.NDArray[np.int32]: Indices of the nodes in
             the underlying DOLFINx mesh. These indices correspond to the
             local numbering associated to the current subdomain
             (process). Note that some indices may be set to -1 in the
@@ -809,102 +743,51 @@ class TensorProductMesh:
             array is the same as the input.
         """
 
-        if not isinstance(node_ids, np.ndarray):
-            node_ids = np.array(node_ids)
-            return cast(
-                npt.NDArray[np.int32],
-                self.get_DOLFINx_node_ids(node_ids, lexicg),
-            )
+        dlf_to_lex = self.geometry.input_global_indices
 
-        dlf_to_lex = self.dolfinx_mesh.geometry.input_global_indices
+        if self.has_merged_nodes:
+            # Mapping "old" to "new" ids.
+            lex_node_ids = self.merged_nodes_map[lex_node_ids]
 
-        if lexicg:
-            lex_ids = np.array(node_ids, dtype=np.int64)
-            if self.has_merged_nodes:
-                # Mapping "old" to "new" ids.
-                lex_ids = self.merged_nodes_map[lex_ids]
-
-            return _find_in_array(lex_ids, dlf_to_lex).astype(np.int32)
-
-        else:
-            n_local_nodes = dlf_to_lex.size
-            assert np.all(node_ids < n_local_nodes) and np.all(node_ids >= 0), (
-                "Cells not contained in subdomain"
-            )
-
-            return node_ids.astype(np.int32)
+        return _find_in_array(lex_node_ids, dlf_to_lex).astype(np.int32)
 
     def get_lexicg_node_ids(
         self,
-        node_ids: npt.NDArray[np.int32] | np.int32,
-        lexicg: bool = False,
-    ) -> npt.NDArray[np.int64] | np.int64:
-        """Transforms given `node_ids` from the tensor-product mesh into
-        the tensor-product mesh numbering, that follows a lexicographical
-        indexing.
+        dlf_local_node_ids: npt.NDArray[np.int32],
+    ) -> npt.NDArray[np.int64]:
+        """Transforms given `dlf_local_node_ids` from the (local) DOLFINx
+        mesh numbering to the lexicographical (tensor-product mesh) one.
 
         Args:
-            node_ids (npt.NDArray[np.int32 | np.int64] | np.int32 | np.int64):
-                Node indices to be transformed. They may be local
-                indices referred to the underlying DOLFINx mesh (if
-                `lexicg` is set to `False`) or lexicographical indices
-                (if `lexicg` is `True`). If `lexicg` is set to `False`,
-                all the local DOLFINx indices must belong to the current
-                subdomain (process).
-            lexicg (bool, optional): Whether `node_ids` follow the
-                tensor-product lexicographical numbering or the DOLFINx
-                one. Defaults to `True`.
+            dlf_local_node_ids (npt.NDArray[np.int32]):
+                Node indices to be transformed. They are referred to the
+                underlying (local) DOLFINx mesh.
 
         Returns:
-            npt.NDArray[np.int64] | np.int64: Ids of the nodes in the
-            tensor-product lexicographical indexing. Note that some
-            indices may be set to -1 if their associated cells do not
-            belong to current subdomain. The length of the output array
-            is the same as the input.
+            npt.NDArray[np.int64]: Ids of the nodes in the
+            tensor-product lexicographical indexing.
         """
 
-        if not isinstance(node_ids, np.ndarray):
-            node_ids = np.array(node_ids)
-            return cast(
-                npt.NDArray[np.int64],
-                self.get_DOLFINx_node_ids(node_ids, lexicg),
-            )
+        dlf_to_lex = self.geometry.input_global_indices
+        n_local_nodes = dlf_to_lex.size
+        assert np.all(dlf_local_node_ids < n_local_nodes) and np.all(dlf_local_node_ids >= 0), (
+            "Nodes not contained in subdomain."
+        )
 
-        dlf_to_lex = self.dolfinx_mesh.geometry.input_global_indices
-
-        if lexicg:
-            lex_ids = node_ids.astype(np.int64, copy=True)
-            # Getting nodes that don't belong to the subdomain.
-            not_in_subdomain = np.logical_not(np.isin(lex_ids, dlf_to_lex))
-
-            return np.ma.array(lex_ids, mask=not_in_subdomain).filled(-1)
+        lex_nodes = dlf_to_lex[dlf_local_node_ids]
+        if self.has_merged_nodes:
+            return _find_in_array(lex_nodes, self.merged_nodes_map)
         else:
-            n_local_nodes = dlf_to_lex.size
-            assert np.all(node_ids < n_local_nodes) and np.all(node_ids >= 0), (
-                "Nodes not contained in subdomain."
-            )
+            return lex_nodes
 
-            lex_nodes = dlf_to_lex[node_ids]
-            if self.has_merged_nodes:
-                return _find_in_array(lex_nodes, self.merged_nodes_map)
-            else:
-                return lex_nodes
-
-    def create_facet_bdry_tags(self, lexicg: bool = False) -> dolfinx.mesh.MeshTags:
+    def create_facet_bdry_tags(self) -> dolfinx.mesh.MeshTags:
         """Creates face facet tags for the tensor product mesh.
 
         It creates the tags for the facets of the underlying DOLFINx mesh,
         setting a different tag for each boundary face of the domain.
 
-        Args:
-            lexicg (bool, optional): Defines how the tag values for the
-                different boundary facets are set. It set to `True`, the
-                lexicographical ordering is used (i.e., umin:0, umax:1,
-                vmin:2, vmax:3, ...). Otherwise, the faces correspond to the
-                FEniCSx cell faces ordering, but applied to the full
-                hypercube. See
-                https://github.com/FEniCS/basix/#supported-elements
-                It defaults to `False`.
+        The created tags follow the lexicographical ordering of the
+        tensor-product mesh. I.e., umin:0, umax:1, vmin:2, vmax:3, ...
 
         Returns:
             dolfinx.mesh.MeshTags: Generated tags.
@@ -913,7 +796,7 @@ class TensorProductMesh:
         faces_facets, faces_markers = [], []
         n_faces = 2 * self.tdim
         for face_id in range(n_faces):
-            facets = self.get_face_facets(face_id, lexicg)
+            facets = self.get_face_facets(face_id)
             faces_facets.append(facets)
             faces_markers.append(np.full_like(facets, face_id))
 
@@ -925,7 +808,7 @@ class TensorProductMesh:
 
         facet_tdim = self.tdim - 1
         return dolfinx.mesh.meshtags(
-            self.dolfinx_mesh,
+            self,
             facet_tdim,
             faces_facets,
             faces_markers,
@@ -933,71 +816,45 @@ class TensorProductMesh:
 
     def get_cells_exterior_facets(
         self,
-        cell_ids: npt.NDArray[np.int32 | np.int64] | np.int32 | np.int64,
-        lexicg: bool = False,
+        dlf_local_cell_ids: npt.NDArray[np.int32],
     ) -> npt.NDArray[np.int32]:
-        """Extracts the exterior facets of associated to a list of cells for
-        the tensor-product mesh.
+        """Extracts the exterior facets of associated to a list of
+        (local) DOLFINx cell ids.
 
         The exterior facets are those that belong to one single cell
         (they are not at the interface between two cells, but on the
         mesh boundary).
 
         Args:
-            cell_ids (npt.NDArray[np.int32 | np.int64] | np.int32 | np.int64):
+            dlf_local_cell_ids (npt.NDArray[np.int32] | np.int32):
                 Array of cells whose exterior facets are extracted.
-                They must be all contained in the subdomain (process).
-            lexicg (bool, optional): Whether `cell_ids` follow
-                the tensor-product lexicographical numbering or the one
-                associated to the DOLINFx mesh. Defaults to `False`.
+                They are (local to the current subdomain) DOLFINx cell
+                indices.
 
         Returns:
             npt.NDArray[np.int32]: Sorted unique array of exterior
             facets present in the current subdomain.
         """
 
-        if cell_ids.size == 0:
-            return np.empty(0, dtype=np.int32)
+        self.topology.create_connectivity(self.tdim - 1, self.tdim)
 
-        if not isinstance(cell_ids, np.ndarray):
-            cell_ids = np.array(cell_ids)
-            return self.get_cells_exterior_facets(cell_ids, lexicg)
+        cells_to_facets = create_cells_to_facets_map(self)
 
-        dolfinx_cell_ids = self.get_DOLFINx_local_cell_ids(cell_ids, lexicg)
-        assert np.all(dolfinx_cell_ids >= 0), "Cells out of the subdomain."
+        facets_in_cells = np.sort(np.unique(cells_to_facets[dlf_local_cell_ids].ravel()))
 
-        topology = self.dolfinx_mesh.topology
-
-        cell_dim = self.tdim
-        facet_dim = cell_dim - 1
-
-        cells_to_facets = create_cells_to_facets_map(self.dolfinx_mesh)
-
-        facets_in_cells = np.sort(np.unique(cells_to_facets[dolfinx_cell_ids].ravel()))
-
-        topology.create_connectivity(facet_dim, cell_dim)
-        exterior_facets = dolfinx.mesh.exterior_facet_indices(topology)
+        exterior_facets = dolfinx.mesh.exterior_facet_indices(self.topology)
         return np.setdiff1d(exterior_facets, facets_in_cells)
 
-    def get_face_DOLFINx_nodes(
+    def get_face_DOLFINx_local_node_ids(
         self,
         face_id: int,
-        face_lexicg: bool = False,
     ) -> npt.NDArray[np.int32]:
         """Extracts the nodes of a given boundary face that belong to
         the subdomain of the tensor-product mesh.
 
         Args:
             face_id (int): Id of the face whose nodes are extracted.
-            face_lexicg (bool, optional): Whether `face_id` follows the
-                tensor-product lexicographical numbering or the
-                FEniCSx one. See
-                https://github.com/FEniCS/basix/#supported-elements
-                Defaults to `False`.
-            nodes_lexicg (bool, optional): Whether the returned nodes
-                indices must follow the tensor-product lexicographical
-                numbering or the one associated to the underlying
-                DOLINFx mesh. Defaults to `False`.
+                This id follows the lexicographical ordering.
 
         Returns:
             npt.NDArray[np.int32]: Sorted unique array of local DOLFINx
@@ -1005,25 +862,18 @@ class TensorProductMesh:
             (process).
         """
 
-        all_lex_bndry_nodes = TensorProdIndex.get_face(self.num_pts_dir, face_id, face_lexicg)
+        all_lex_bndry_nodes = TensorProdIndex.get_face(self.num_pts_dir, face_id, lexicg=True)
 
-        bndry_nodes = cast(
-            npt.NDArray[np.int32],
-            self.get_DOLFINx_node_ids(all_lex_bndry_nodes, lexicg=True),
-        )
+        bndry_nodes = self.get_DOLFINx_local_node_ids(all_lex_bndry_nodes)
         return np.sort(bndry_nodes[bndry_nodes >= 0])  # Removing nodes out of the mesh domain.
 
-    def get_face_DOLFINx_cells(self, face_id: int, lexicg: bool = False) -> npt.NDArray[np.int32]:
-        """Extracts the DOLFINx indices of the cells touching the given face
+    def get_face_DOLFINx_cells(self, tp_face_id: int) -> npt.NDArray[np.int32]:
+        """Extracts the (local) DOLFINx indices of the cells touching the given face
         of the tensor-product mesh.
 
         Args:
-            face_id (int): Id of the face whose cells are extracted.
-            lexicg (bool, optional): Whether `face_id` follows the
-                tensor-product lexicographical ordering or the FEniCSx
-                one. See
-                https://github.com/FEniCS/basix/#supported-elements
-                Defaults to `False`.
+            tp_face_id (int): Id of the face whose cells are extracted.
+                This id follows the lexicographical ordering.
 
         Returns:
             npt.NDArray[np.int32]: Array storing the local cells indices
@@ -1034,24 +884,17 @@ class TensorProductMesh:
             current subdomain.
         """
 
-        lex_cells = TensorProdIndex.get_face(self.num_cells_dir, face_id, lexicg=lexicg)
-        cells = cast(
-            npt.NDArray[np.int32],
-            self.get_DOLFINx_local_cell_ids(lex_cells, lexicg=True),
-        )
+        lex_cells = TensorProdIndex.get_face(self.num_cells_dir, tp_face_id, lexicg=True)
+        cells = self.get_DOLFINx_local_cell_ids(lex_cells)
         return np.sort(cells[cells >= 0])  # Removing cells out of the mesh domain.
 
-    def get_face_facets(self, face_id: int, lexicg: bool = False) -> npt.NDArray[np.int32]:
+    def get_face_facets(self, face_id: int) -> npt.NDArray[np.int32]:
         """Extracts the facets indices of the given face of the tensor-product
         mesh.
 
         Args:
             face_id (int): Id of the face whose facets are extracted.
-            lexicg (bool, optional): Whether `face_id` follows the
-                tensor-product lexicographical ordering or the FEniCSx
-                one. See
-                https://github.com/FEniCS/basix/#supported-elements
-                Defaults to `False`.
+                This id follows the lexicographical ordering.
 
         Returns:
             npt.NDArray[np.int32]: Array storing the facets indices
@@ -1061,72 +904,136 @@ class TensorProductMesh:
             current subdomain.
         """
 
-        topology = self.dolfinx_mesh.topology
-
         tdim = self.tdim
-        topology.create_connectivity(tdim, tdim - 1)
-        cell_to_facets = topology.connectivity(tdim, tdim - 1)
+        self.topology.create_connectivity(tdim, tdim - 1)
+        cell_to_facets = self.topology.connectivity(tdim, tdim - 1)
         cell_to_facets = cell_to_facets.array.reshape(cell_to_facets.num_nodes, -1)
 
-        cells = self.get_face_DOLFINx_cells(face_id, lexicg)
-        return np.sort(np.unique(cell_to_facets[cells, face_id]))
+        dlf_local_cells = self.get_face_DOLFINx_cells(face_id)
+        return np.sort(np.unique(cell_to_facets[dlf_local_cells, face_id]))
 
     def get_cell_facets(
         self,
-        cell_id: np.int32,
-        out_lexicg: bool = False,
+        dlf_local_cell_id: np.int32,
     ) -> npt.NDArray[np.int32]:
         """Extracts the facet ids of the given cell.
 
         Args:
-            cell_id (np.int32): Id of the queried cell. It is a DOLFINx
-                (local) cell id. It must be contained in the subdomain.
-            out_lexicg (bool, optional): Whether the returned facet ids
-                are reordered according to the lexicographical ordering
-                of the cell's bounding box. I.e., according to the
-                directions umin, umax, vmin, vmax, ... Otherwise, they
-                follow the FEniCSx convention. See
-                https://github.com/FEniCS/basix/#supported-elements
-                Defaults to `False`.
+            dlf_local_cell_id (np.int32): Id of the queried cell. It is a DOLFINx
+                (local) cell id.
 
         Returns:
-            npt.NDArray[np.int32]: Array of cell facets.
+            npt.NDArray[np.int32]: Array of DOLFINx cell facets.
         """
 
         tdim = self.tdim
 
-        topology = self.dolfinx_mesh.topology
-        topology.create_connectivity(tdim, tdim - 1)
-        cell_to_facets = self.dolfinx_mesh.topology.connectivity(tdim, tdim - 1)
+        self.topology.create_connectivity(tdim, tdim - 1)
+        cell_to_facets = self.topology.connectivity(tdim, tdim - 1)
 
-        facets = cell_to_facets.links(cell_id)
+        return cell_to_facets.links(dlf_local_cell_id)
 
-        if out_lexicg:
-            mask = DOLFINx_to_lexicg_faces(tdim)
-            facets = facets[mask]
-
-        return facets
-
-    def get_cell_tensor_index(
-        self, cell_id: np.int64 | np.int32, lexicg: bool = False
-    ) -> npt.NDArray[np.int32]:
+    def get_cell_tensor_index(self, dlf_local_cell_id: np.int32) -> npt.NDArray[np.int32]:
         """Computes the tensor index referred to the tensor-product mesh
-        of a given cell index.
+        of a given (local) DOLFINx cell index.
 
         Args:
-            cell_id (np.int64 | np.int32): Cell index to be transformed.
-                It must be contained in the subdomain (process).
-            lexicg (bool, optional): Whether `cell_id` follows
-                the tensor-product lexicographical numbering or the one
-                associated to the DOLINFx mesh. Defaults to `False`.
+            dlf_local_cell_id (np.int32): Local DOLFINx cell index to be transformed.
 
         Returns:
             npt.NDArray[np.int32]: Cell tensor index
         """
 
-        lex_cell_id = cast(np.int64, self.get_lexicg_cell_ids(cell_id, lexicg))
-        assert lex_cell_id >= 0, "Cell out of the subdomain."
+        lex_cell_id = self.get_lexicg_cell_ids(np.array(dlf_local_cell_id, dtype=np.int32))[0]
         return TensorProdIndex.get_tensor_index(self.num_cells_dir, lex_cell_id)
+
+    def transform_lexicg_facet_ids_to_DOLFINx_local(
+        self,
+        lex_cell_ids: npt.NDArray[np.int64],
+        lex_facet_ids: npt.NDArray[np.int32],
+    ) -> tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]:
+        """Transforms the given lexicographical facets indices to
+        DOLFINx local numbering (otherwise)
+
+        Args:
+            lex_cell_ids (npt.NDArray[np.int64]): Indices of the facets
+                following the lexicographical ordering. All the cell
+                indices must be associated to the current process.
+
+            lex_facet_ids (npt.NDArray[np.int32]): Local indices of the
+                facets referred to `lex_cell_ids` (both arrays should have
+                the same length). The face ids follow the
+                lexicographical ordering.
+
+        Returns:
+            tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]:
+            Transformed facets returned as one array of cells and another
+            one of local facets referred to those cells. The indices of the cells
+            and local facets follow the DOLFINx local numbering.
+        """
+
+        dlf_cells = self.get_DOLFINx_local_cell_ids(lex_cell_ids)
+
+        dlf_to_lex_facets = DOLFINx_to_lexicg_faces(self.tdim)
+        dlf_facets = dlf_to_lex_facets[lex_facet_ids]
+        return dlf_cells, dlf_facets
+
+    def transform_DOLFINx_local_facet_ids_to_lexicg(
+        self,
+        dlf_local_cell_ids: npt.NDArray[np.int32],
+        dlf_local_facet_ids: npt.NDArray[np.int32],
+    ) -> tuple[npt.NDArray[np.int64], npt.NDArray[np.int32]]:
+        """Transforms the given local DOLFINx facets indices to
+        either lexicographical numbering (both for cells and local facet ids).
+
+        Args:
+            dlf_local_cell_ids (npt.NDArray[np.int32]): Indices of the facets
+                following the DOLFINx local ordering.
+
+            dlf_local_facet_ids (npt.NDArray[np.int32]): Local indices of the
+                facets referred to `dlf_local_cell_ids` (both arrays should have
+                the same length). The face ids follow the
+                DOLFINx ordering.
+
+        Returns:
+            tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]:
+            Transformed facets returned as one array of cells and another
+            one of local facets referred to those cells. The indices of the cells
+            and local facets follow the DOLFINx (local) numbering.
+        """
+
+        lex_cell_ids = self.get_lexicg_cell_ids(dlf_local_cell_ids)
+        lex_to_dlf_facets = lexicg_to_DOLFINx_faces(self.tdim)
+        lex_facet_is = lex_to_dlf_facets[dlf_local_facet_ids]
+        return lex_cell_ids, lex_facet_is
+
+    def transform_DOLFINx_local_facet_ids_to_cells_and_local_facets(
+        self,
+        dlf_local_facet_ids: npt.NDArray[np.int32],
+    ) -> tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]:
+        """Given the ids of (local) DOLFINx facets, returns the DOLFINx
+        cells and local facet ids corresponding to those facets.
+
+        Note:
+            Interior facets belong to more whan one cell, in those cases
+            only one cell (and local facet) is returned for that
+            particular facet. The one chosen depends on the way in which
+            that information is stored in the mesh connectivity.
+
+        Args:
+            dlf_local_facet_ids (npt.NDArray[np.int32]): Array of DOLFINx facets
+                (local to the current process) to be transformed.
+
+        Returns:
+            tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]: DOLFINx cells
+                and local facet ids the associated to the facets. The first
+                entry of the tuple corresponds to the cells and the second
+                to the the local facets.
+
+                The local facets indices follow the FEniCSx convention. See
+                https://github.com/FEniCS/basix/#supported-elements
+        """
+        return map_facets_to_cells_and_local_facets(self, dlf_local_facet_ids)
 
 
 class CartesianMesh(TensorProductMesh):
@@ -1142,10 +1049,10 @@ class CartesianMesh(TensorProductMesh):
 
     def __init__(
         self,
-        comm: MPI.Intracomm,
-        grid_cpp: qugar.cpp.CartGridTP_2D | qugar.cpp.CartGridTP_3D,
+        comm: MPI.Comm,
+        cart_grid_tp_cpp: qugar.cpp.CartGridTP_2D | qugar.cpp.CartGridTP_3D,
         degree: int = 1,
-        ghost_mode: GhostMode = GhostMode.shared_facet,
+        ghost_mode: GhostMode = GhostMode.none,
         dtype: type[np.float32 | np.float64] = np.float64,
     ):
         """Constructor.
@@ -1155,21 +1062,21 @@ class CartesianMesh(TensorProductMesh):
             but rather use the function `create_Cartesian_mesh`.
 
         Args:
-            comm (MPI.Intracomm): MPI communicator to be used for
+            comm (MPI.Comm): MPI communicator to be used for
                 distributing the mesh.
-            grid_cpp (qugar.cpp.CartGridTP_2D | qugar.cpp.CartGridTP_3D):
+            cart_grid_tp_cpp (qugar.cpp.CartGridTP_2D | qugar.cpp.CartGridTP_3D):
                 C++ Cartesian grid object.
             degree (int, optional): Degree of the mesh. Defaults to 1.
                 It must be greater than zero.
             ghost_mode (GhostMode, optional): Ghost mode used for mesh
-                partitioning. Defaults to `shared_facet`.
+                partitioning. Defaults to `none`.
             dtype (type[np.float32 | np.float64], optional): Type to
                 be used in the grid. Defaults to `np.float64`.
         """
 
-        dim = grid_cpp.dim
+        dim = cart_grid_tp_cpp.dim
         assert 2 <= dim <= 3, "Only implemented for 2D and 3D."
-        self._cell_breaks = [breaks.astype(dtype) for breaks in grid_cpp.cell_breaks]
+        self._cell_breaks = [breaks.astype(dtype) for breaks in cart_grid_tp_cpp.cell_breaks]
 
         if comm.rank == 0:
             nodes_coords = _create_Cartesian_mesh_nodes_from_cells(self._cell_breaks, degree)
@@ -1178,22 +1085,24 @@ class CartesianMesh(TensorProductMesh):
             # are created in rank 0, and then distributed. Better
             # performance could by achieving by distributing nodes and
             # cells since their creation.
+            # See https://jsdokken.com/dolfinx_docs/meshes.html#mpi-communication
+            # for further details.
             nodes_coords = np.empty((0, dim), dtype=dtype)
 
-        self._cpp_object = grid_cpp
-        n_cells = grid_cpp.num_cells_dir
+        self._cart_grid_tp_cpp_object = cart_grid_tp_cpp
+        n_cells = cart_grid_tp_cpp.num_cells_dir
 
         super().__init__(comm, nodes_coords, n_cells, degree, ghost_mode)
 
     @property
-    def cpp_object(self) -> qugar.cpp.CartGridTP_2D | qugar.cpp.CartGridTP_2D:
+    def cart_grid_tp_cpp_object(self) -> qugar.cpp.CartGridTP_2D | qugar.cpp.CartGridTP_2D:
         """Returns the stored (C++) Cartesian grid object.
 
         Returns:
             qugar.cpp.CartGridTP_2D | qugar.cpp.CartGridTP_2D: Stored Cartesian
             grid object.
         """
-        return self._cpp_object
+        return self._cart_grid_tp_cpp_object
 
     @property
     def cell_breaks(self) -> list[npt.NDArray[np.float32 | np.float64]]:
@@ -1205,27 +1114,11 @@ class CartesianMesh(TensorProductMesh):
         """
         return self._cell_breaks
 
-    @property
-    def dtype(self) -> type[np.float32 | np.float64]:
-        """Gets the type associated to the breaks.
-
-        Returns:
-            type[np.float32 | np.float64]: Type associated to the
-            breaks.
-        """
-        return self._cell_breaks[0].dtype
-
-    def get_cell_bbox(
-        self, cell_id: np.int32, lexicg: bool = False
-    ) -> npt.NDArray[np.float32 | np.float64]:
+    def get_cell_bbox(self, dlf_local_cell_id: np.int32) -> npt.NDArray[np.float32 | np.float64]:
         """Computes the bounding box of a single cell.
 
         Arguments:
-            cell_id (np.int32): Cell whose bounding box is created.
-            lexicg (bool, optional): If `True`, the given `cell_id` is
-                assumed to be referred to the lexicographical mesh
-                numbering convention. Otherwise, if `False`, `cell_id`
-                follows the numbering of the underlying DOLFINx mesh.
+            dlf_local_cell_id (np.int32): Local DOLFINx cell whose bounding box is created.
 
         Returns:
             npt.NDArray[np.float32 | np.float64]: Computed bounding box
@@ -1236,21 +1129,21 @@ class CartesianMesh(TensorProductMesh):
 
         bbox = np.empty((2, self.gdim), dtype=self.dtype)
 
-        cart_cell_tid = self.get_cell_tensor_index(cell_id, lexicg)
+        lex_cell_tid = self.get_cell_tensor_index(dlf_local_cell_id)
         for dir in range(self.tdim):
-            bbox[0, dir] = self._cell_breaks[dir][cart_cell_tid[dir]]
-            bbox[1, dir] = self._cell_breaks[dir][cart_cell_tid[dir] + 1]
+            bbox[0, dir] = self._cell_breaks[dir][lex_cell_tid[dir]]
+            bbox[1, dir] = self._cell_breaks[dir][lex_cell_tid[dir] + 1]
 
         return bbox
 
 
 def create_Cartesian_mesh(
-    comm: MPI.Intracomm,
+    comm: MPI.Comm,
     n_cells: npt.NDArray[np.int32] | list[np.int32] | list[int],
     xmin: Optional[npt.NDArray[np.float32 | np.float64]] = None,
     xmax: Optional[npt.NDArray[np.float32 | np.float64]] = None,
     degree: int = 1,
-    ghost_mode: GhostMode = GhostMode.shared_facet,
+    ghost_mode: GhostMode = GhostMode.none,
 ) -> CartesianMesh:
     """Creates a Cartesian mesh from a bounding box and the number of
     cells per direction.
@@ -1267,7 +1160,7 @@ def create_Cartesian_mesh(
             of ones with double floating precision.
         degree (int, optional): Degree of the mesh. Defaults to 1.
         ghost_mode (GhostMode, optional): Ghost mode used for mesh
-            partitioning. Defaults to `shared_facet`.
+            partitioning. Defaults to `none`.
 
     Returns:
         CartesianMesh: Generated Cartesian mesh.

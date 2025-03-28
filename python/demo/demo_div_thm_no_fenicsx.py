@@ -336,7 +336,7 @@ def create_full_facet_quadrature(
 # So, first, we create a custom quadrature for the cut cells.
 
 cut_cells_quad = qugar.cpp.create_quadrature(
-    unf_domain, unf_domain.cut_cells, n_quad_pts, full_cells=False
+    unf_domain, unf_domain.get_cut_cells(), n_quad_pts, full_cells=False
 )
 
 # and for the full cells.
@@ -358,7 +358,7 @@ def compute_cell_integr(points, weights, cell_id):
 # Loop over the full cells and compute their contributions
 
 vol_intgr = dtype(0.0)
-for cell_id in unf_domain.full_cells:
+for cell_id in unf_domain.get_full_cells():
     vol_intgr += compute_cell_integr(quad_01.points, quad_01.weights, cell_id)
 
 # and the same of the cut cells (retrieving the associated custom quadrature points
@@ -435,7 +435,7 @@ for facet_id in range(dim * 2):
 
 int_bnd_quad = qugar.cpp.create_unfitted_bound_quadrature(
     unf_domain,
-    unf_domain.cut_cells,
+    unf_domain.get_cut_cells(),
     n_quad_pts,
 )
 

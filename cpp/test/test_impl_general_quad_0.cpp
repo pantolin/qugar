@@ -18,6 +18,7 @@
 #include <catch2/catch_test_macros.hpp>
 
 #include "quadrature_test_utils.hpp"
+#include "qugar/unfitted_domain.hpp"
 
 #include <qugar/cart_grid_tp.hpp>
 #include <qugar/cut_quadrature.hpp>
@@ -31,8 +32,30 @@
 
 #include <array>
 #include <cstddef>
+#include <cstdint>
 #include <memory>
 #include <vector>
+
+template<int dim>
+void check_num_cells(const qugar::UnfittedDomain<dim> &domain,
+  const std::size_t n_full_cells,
+  const std::size_t n_empty_cells,
+  const std::size_t n_cut_cells)
+{
+  // NOLINTBEGIN (bugprone-chained-comparison)
+  std::vector<std::int64_t> full_cells;
+  domain.get_full_cells(full_cells);
+  REQUIRE(full_cells.size() == n_full_cells);
+
+  std::vector<std::int64_t> empty_cells;
+  domain.get_empty_cells(empty_cells);
+  REQUIRE(empty_cells.size() == n_empty_cells);
+
+  std::vector<std::int64_t> cut_cells;
+  domain.get_cut_cells(cut_cells);
+  REQUIRE(cut_cells.size() == n_cut_cells);
+  // NOLINTEND (bugprone-chained-comparison)
+}
 
 
 // NOLINTNEXTLINE(misc-use-anonymous-namespace,readability-function-cognitive-complexity)
@@ -46,23 +69,19 @@ TEST_CASE("Schoen Gyroid 2D function quadrature", "[impl]")
 
   const UnfittedImplDomain<2> unf_domain(func, grid);
 
-  // NOLINTBEGIN (bugprone-chained-comparison)
-  REQUIRE(unf_domain.get_cut_cells().size() == 8);
-  REQUIRE(unf_domain.get_empty_cells().size() == 4);
-  REQUIRE(unf_domain.get_full_cells().size() == 4);
-  // NOLINTEND (bugprone-chained-comparison)
+  check_num_cells(unf_domain, 4, 4, 8);
 
   const int n_pts_dir{ 3 };
 
-  std::vector<int> cut_facets_cells;
+  std::vector<std::int64_t> cut_facets_cells;
   std::vector<int> cut_facets_local_facets_ids;
-  std::vector<int> full_facets_cells;
+  std::vector<std::int64_t> full_facets_cells;
   std::vector<int> full_facets_local_facets_ids;
-  std::vector<int> empty_facets_cells;
+  std::vector<std::int64_t> empty_facets_cells;
   std::vector<int> empty_facets_local_facets_ids;
-  std::vector<int> full_unfitted_facets_cells;
+  std::vector<std::int64_t> full_unfitted_facets_cells;
   std::vector<int> full_unfitted_facets_local_facets_ids;
-  std::vector<int> unfitted_facets_cells;
+  std::vector<std::int64_t> unfitted_facets_cells;
   std::vector<int> unfitted_facets_local_facets_ids;
   unf_domain.get_empty_facets(empty_facets_cells, empty_facets_local_facets_ids);
   unf_domain.get_full_facets(full_facets_cells, full_facets_local_facets_ids);
@@ -86,7 +105,10 @@ TEST_CASE("Schoen Gyroid 2D function quadrature", "[impl]")
   // NOLINTNEXTLINE (cppcoreguidelines-avoid-magic-numbers)
   const Tolerance tol(1.0e-6);
 
-  const auto quad = create_quadrature<2>(unf_domain, unf_domain.get_cut_cells(), n_pts_dir, true);
+  std::vector<std::int64_t> cut_cells;
+  unf_domain.get_cut_cells(cut_cells);
+
+  const auto quad = create_quadrature<2>(unf_domain, cut_cells, n_pts_dir, true);
   // NOLINTNEXTLINE (bugprone-chained-comparison)
   REQUIRE(quad->points.size() == 213);
 
@@ -95,7 +117,7 @@ TEST_CASE("Schoen Gyroid 2D function quadrature", "[impl]")
   // NOLINTNEXTLINE (cppcoreguidelines-avoid-do-while)
   REQUIRE(tol.coincident(centroid, target_centroid));
 
-  const auto unf_bound_quad = create_unfitted_bound_quadrature<2>(unf_domain, unf_domain.get_cut_cells(), n_pts_dir);
+  const auto unf_bound_quad = create_unfitted_bound_quadrature<2>(unf_domain, cut_cells, n_pts_dir);
   // NOLINTNEXTLINE (bugprone-chained-comparison)
   REQUIRE(unf_bound_quad->points.size() == 60);
 
@@ -122,19 +144,16 @@ TEST_CASE("General function quadrature", "[impl]")
 
   const UnfittedImplDomain<3> unf_domain(func, grid);
 
-  // NOLINTBEGIN (bugprone-chained-comparison)
-  REQUIRE(unf_domain.get_cut_cells().size() == 2304);
-  REQUIRE(unf_domain.get_empty_cells().size() == 896);
-  REQUIRE(unf_domain.get_full_cells().size() == 896);
-  // NOLINTEND (bugprone-chained-comparison)
+  // NOLINTNEXTLINE (cppcoreguidelines-avoid-magic-numbers)
+  check_num_cells(unf_domain, 896, 896, 2304);
 
   const int n_pts_dir{ 3 };
 
-  std::vector<int> cut_facets_cells;
+  std::vector<std::int64_t> cut_facets_cells;
   std::vector<int> cut_facets_local_facets_ids;
-  std::vector<int> full_facets_cells;
+  std::vector<std::int64_t> full_facets_cells;
   std::vector<int> full_facets_local_facets_ids;
-  std::vector<int> empty_facets_cells;
+  std::vector<std::int64_t> empty_facets_cells;
   std::vector<int> empty_facets_local_facets_ids;
   unf_domain.get_empty_facets(empty_facets_cells, empty_facets_local_facets_ids);
   unf_domain.get_full_facets(full_facets_cells, full_facets_local_facets_ids);
@@ -152,7 +171,10 @@ TEST_CASE("General function quadrature", "[impl]")
   // NOLINTNEXTLINE (cppcoreguidelines-avoid-magic-numbers)
   const Tolerance tol(1.0e-6);
 
-  const auto quad = create_quadrature<3>(unf_domain, unf_domain.get_cut_cells(), n_pts_dir, true);
+  std::vector<std::int64_t> cut_cells;
+  unf_domain.get_cut_cells(cut_cells);
+
+  const auto quad = create_quadrature<3>(unf_domain, cut_cells, n_pts_dir, true);
   // NOLINTNEXTLINE (bugprone-chained-comparison)
   REQUIRE(quad->points.size() == 795837);
 
@@ -161,7 +183,7 @@ TEST_CASE("General function quadrature", "[impl]")
   // NOLINTNEXTLINE (cppcoreguidelines-avoid-do-while)
   REQUIRE(tol.coincident(centroid, target_centroid));
 
-  const auto unf_bound_quad = create_unfitted_bound_quadrature<3>(unf_domain, unf_domain.get_cut_cells(), n_pts_dir);
+  const auto unf_bound_quad = create_unfitted_bound_quadrature<3>(unf_domain, cut_cells, n_pts_dir);
   // NOLINTNEXTLINE (bugprone-chained-comparison)
   REQUIRE(unf_bound_quad->points.size() == 177421);
 

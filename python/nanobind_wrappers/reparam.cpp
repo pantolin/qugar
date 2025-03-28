@@ -96,13 +96,13 @@ namespace {
 
   template<int dim> void create_reparam(nb::module_ &module)
   {
-    using CellsArray = nb::ndarray<const int, nb::numpy, nb::shape<-1>>;
+    using CellsArray = nb::ndarray<const std::int64_t, nb::numpy, nb::shape<-1>>;
 
     module.def(
       "create_reparameterization",
       [](const qugar::UnfittedDomain<dim> &unf_domain, const CellsArray &cells_py, const int n_pts_dir) {
-        const std::span<const int> cells_span(cells_py.data(), cells_py.size());
-        const std::vector<int> cells(cells_span.begin(), cells_span.end());
+        const std::span<const std::int64_t> cells_span(cells_py.data(), cells_py.size());
+        const std::vector<std::int64_t> cells(cells_span.begin(), cells_span.end());
 
         return qugar::create_reparameterization<dim, false>(unf_domain, cells, n_pts_dir);
       },
@@ -113,8 +113,8 @@ namespace {
     module.def(
       "create_reparameterization_levelset",
       [](const qugar::UnfittedDomain<dim> &unf_domain, const CellsArray &cells_py, const int n_pts_dir) {
-        const std::span<const int> cells_span(cells_py.data(), cells_py.size());
-        const std::vector<int> cells(cells_span.begin(), cells_span.end());
+        const std::span<const std::int64_t> cells_span(cells_py.data(), cells_py.size());
+        const std::vector<std::int64_t> cells(cells_span.begin(), cells_span.end());
 
         return qugar::create_reparameterization<dim, true>(unf_domain, cells, n_pts_dir);
       },

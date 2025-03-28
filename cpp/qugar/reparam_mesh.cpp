@@ -393,7 +393,7 @@ template<int dim, int range>
 template<int aux_dim>
   requires(aux_dim == dim && dim == range)
 void ReparamMesh<dim, range>::add_full_cells(const CartGridTP<dim> &grid,
-  const std::vector<int> &cell_ids,
+  const std::vector<std::int64_t> &cell_ids,
   const bool wirebasket)
 {
   static_assert(dim == 2 || dim == 3, "Invalid dimension.");
@@ -794,8 +794,10 @@ std::shared_ptr<const ReparamMesh<levelset ? dim - 1 : dim, dim>>
 }
 
 template<int dim, bool levelset>
-std::shared_ptr<const ReparamMesh<levelset ? dim - 1 : dim, dim>>
-  create_reparameterization(const UnfittedDomain<dim> &unf_domain, const std::vector<int> &cells, const int n_pts_dir)
+std::shared_ptr<const ReparamMesh<levelset ? dim - 1 : dim, dim>> create_reparameterization(
+  const UnfittedDomain<dim> &unf_domain,
+  const std::vector<std::int64_t> &cells,
+  const int n_pts_dir)
 {
   const auto *unf_impl_domain = dynamic_cast<const impl::UnfittedImplDomain<dim> *>(&unf_domain);
   assert(unf_impl_domain != nullptr);
@@ -813,8 +815,10 @@ template class ReparamMesh<3, 3>;
 template void ReparamMesh<2, 2>::add_full_cell<2>(const BoundBox<2> &, const bool);
 template void ReparamMesh<3, 3>::add_full_cell<3>(const BoundBox<3> &, const bool);
 
-template void ReparamMesh<2, 2>::add_full_cells<2>(const CartGridTP<2> &, const std::vector<int> &, const bool);
-template void ReparamMesh<3, 3>::add_full_cells<3>(const CartGridTP<3> &, const std::vector<int> &, const bool);
+template void
+  ReparamMesh<2, 2>::add_full_cells<2>(const CartGridTP<2> &, const std::vector<std::int64_t> &, const bool);
+template void
+  ReparamMesh<3, 3>::add_full_cells<3>(const CartGridTP<3> &, const std::vector<std::int64_t> &, const bool);
 
 template bool ReparamMesh<2, 2>::check_edge_in_subdomain<1>(const std::vector<std::size_t> &,
   const BoundBox<2> &,
@@ -848,13 +852,13 @@ template std::shared_ptr<const ReparamMesh<3, 3>> create_reparameterization<3, f
   const int);
 
 template std::shared_ptr<const ReparamMesh<1, 2>>
-  create_reparameterization<2, true>(const UnfittedDomain<2> &, const std::vector<int> &, const int);
+  create_reparameterization<2, true>(const UnfittedDomain<2> &, const std::vector<std::int64_t> &, const int);
 template std::shared_ptr<const ReparamMesh<2, 3>>
-  create_reparameterization<3, true>(const UnfittedDomain<3> &, const std::vector<int> &, const int);
+  create_reparameterization<3, true>(const UnfittedDomain<3> &, const std::vector<std::int64_t> &, const int);
 
 template std::shared_ptr<const ReparamMesh<2, 2>>
-  create_reparameterization<2, false>(const UnfittedDomain<2> &, const std::vector<int> &, const int);
+  create_reparameterization<2, false>(const UnfittedDomain<2> &, const std::vector<std::int64_t> &, const int);
 template std::shared_ptr<const ReparamMesh<3, 3>>
-  create_reparameterization<3, false>(const UnfittedDomain<3> &, const std::vector<int> &, const int);
+  create_reparameterization<3, false>(const UnfittedDomain<3> &, const std::vector<std::int64_t> &, const int);
 
 }// namespace qugar

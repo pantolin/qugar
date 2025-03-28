@@ -545,7 +545,7 @@ namespace {
         this->cells_indices_map_.emplace(cell_tid, cell_id);
       }
 
-      const auto pt_id = pt_tid.flat(TensorSizeTP<reparam_dim>(this->order_));
+      const auto pt_id = static_cast<int>(pt_tid.flat(TensorSizeTP<reparam_dim>(this->order_)));
 
       // Permutation needed due to different ordering in QUGaR and Algoim.
       this->reparam_.insert_cell_point(permute_vector_directions(perm_point), cell_id, pt_id);
