@@ -244,7 +244,7 @@ class TensorProductMesh(Mesh):
     Note that after the mesh creation, DOLFINx renumbers and partitions
     the mesh, so, this numeration will be different. It is always
     possible to retrieve the original numbering using the maps
-    `self.get_lexicg_node_ids` or `self.get_lexicg_cell_ids`.
+    `self.get_original_node_ids` or `self.get_original_cell_ids`.
     Or, from the lexicographical to the local DOLFINx numbering using
     `self.get_DOLFINx_local_node_ids` or `self.get_DOLFINx_local_cell_ids`,
     or the global with `self.get_DOLFINx_global_node_ids` or
@@ -435,7 +435,7 @@ class TensorProductMesh(Mesh):
             npt.NDArray[np.int32]: Cell tensor index
         """
 
-        lex_cell_id = self.get_lexicg_cell_ids(np.array(dlf_local_cell_id, dtype=np.int32))[0]
+        lex_cell_id = self.get_original_cell_ids(np.array(dlf_local_cell_id, dtype=np.int32))[0]
         return TensorProdIndex.get_tensor_index(self.num_cells_dir, lex_cell_id)
 
 

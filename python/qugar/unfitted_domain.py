@@ -92,11 +92,11 @@ class UnfittedDomain:
         if self._cut_cells is None:
             if self._tp_mesh.num_local_cells != self._tp_mesh.num_cells_tp:
                 dlf_cell_ids = np.arange(self._tp_mesh.num_local_cells, dtype=np.int32)
-                lex_cell_ids = self._tp_mesh.get_lexicg_cell_ids(dlf_cell_ids)
-                lex_cut_cell_ids = self._cpp_object.get_cut_cells(lex_cell_ids)
+                orig_cell_ids = self._tp_mesh.get_original_cell_ids(dlf_cell_ids)
+                orig_cut_cell_ids = self._cpp_object.get_cut_cells(orig_cell_ids)
             else:
-                lex_cut_cell_ids = self._cpp_object.get_cut_cells()
-            self._cut_cells = self.tp_mesh.get_DOLFINx_local_cell_ids(lex_cut_cell_ids)
+                orig_cut_cell_ids = self._cpp_object.get_cut_cells()
+            self._cut_cells = self.tp_mesh.get_DOLFINx_local_cell_ids(orig_cut_cell_ids)
 
         return self._cut_cells
 
@@ -111,11 +111,11 @@ class UnfittedDomain:
         if self._full_cells is None:
             if self._tp_mesh.num_local_cells != self._tp_mesh.num_cells_tp:
                 dlf_cell_ids = np.arange(self._tp_mesh.num_local_cells, dtype=np.int32)
-                lex_cell_ids = self._tp_mesh.get_lexicg_cell_ids(dlf_cell_ids)
-                lex_full_cell_ids = self._cpp_object.get_full_cells(lex_cell_ids)
+                orig_cell_ids = self._tp_mesh.get_original_cell_ids(dlf_cell_ids)
+                orig_full_cell_ids = self._cpp_object.get_full_cells(orig_cell_ids)
             else:
-                lex_full_cell_ids = self._cpp_object.get_full_cells()
-            self._full_cells = self.tp_mesh.get_DOLFINx_local_cell_ids(lex_full_cell_ids)
+                orig_full_cell_ids = self._cpp_object.get_full_cells()
+            self._full_cells = self.tp_mesh.get_DOLFINx_local_cell_ids(orig_full_cell_ids)
 
         return self._full_cells
 
@@ -130,11 +130,11 @@ class UnfittedDomain:
         if self._empty_cells is None:
             if self._tp_mesh.num_local_cells != self._tp_mesh.num_cells_tp:
                 dlf_cell_ids = np.arange(self._tp_mesh.num_local_cells, dtype=np.int32)
-                lex_cell_ids = self._tp_mesh.get_lexicg_cell_ids(dlf_cell_ids)
-                lex_empty_cell_ids = self._cpp_object.get_empty_cells(lex_cell_ids)
+                orig_cell_ids = self._tp_mesh.get_original_cell_ids(dlf_cell_ids)
+                orig_empty_cell_ids = self._cpp_object.get_empty_cells(orig_cell_ids)
             else:
-                lex_empty_cell_ids = self._cpp_object.get_empty_cells()
-            self._empty_cells = self.tp_mesh.get_DOLFINx_local_cell_ids(lex_empty_cell_ids)
+                orig_empty_cell_ids = self._cpp_object.get_empty_cells()
+            self._empty_cells = self.tp_mesh.get_DOLFINx_local_cell_ids(orig_empty_cell_ids)
 
         return self._empty_cells
 
@@ -196,19 +196,19 @@ class UnfittedDomain:
             dlf_cell_ids, dlf_local_facet_ids = (
                 self.tp_mesh.transform_DOLFINx_local_facet_ids_to_cells_and_local_facets(facets_ids)
             )
-            lex_cell_ids, lex_local_facet_ids = (
-                self.tp_mesh.transform_DOLFINx_local_facet_ids_to_lexicg(
+            orig_cell_ids, orig_local_facet_ids = (
+                self.tp_mesh.transform_DOLFINx_local_facet_ids_to_original(
                     dlf_cell_ids, dlf_local_facet_ids
                 )
             )
 
-            lex_cell_ids, lex_local_facet_ids = facets_getter(lex_cell_ids, lex_local_facet_ids)
+            orig_cell_ids, orig_local_facet_ids = facets_getter(orig_cell_ids, orig_local_facet_ids)
 
         else:
-            lex_cell_ids, lex_local_facet_ids = facets_getter(None, None)
+            orig_cell_ids, orig_local_facet_ids = facets_getter(None, None)
 
-        return self.tp_mesh.transform_lexicg_facet_ids_to_DOLFINx_local(
-            lex_cell_ids, lex_local_facet_ids
+        return self.tp_mesh.transform_original_facet_ids_to_DOLFINx_local(
+            orig_cell_ids, orig_local_facet_ids
         )
 
     def get_cut_facets(

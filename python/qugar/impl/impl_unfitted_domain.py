@@ -69,7 +69,7 @@ def create_unfitted_impl_domain(
         )
     else:
         dlf_cells = np.arange(n_local_cells, dtype=np.int32)
-        lex_cells = cart_mesh.get_lexicg_cell_ids(dlf_cells)
+        lex_cells = cart_mesh.get_original_cell_ids(dlf_cells)
         unf_domain = qugar.cpp.create_unfitted_impl_domain(
             impl_func.cpp_object, cart_mesh.cart_grid_tp_cpp_object, lex_cells
         )

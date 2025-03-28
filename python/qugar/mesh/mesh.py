@@ -158,11 +158,11 @@ class Mesh(dolfinx.mesh.Mesh):
     Note that after the mesh creation, DOLFINx renumbers and partitions
     the mesh, so, this numeration will be different. It is always
     possible to retrieve the original numbering using the maps
-    `self.get_lexicg_node_ids` or `self.get_lexicg_cell_ids`.
-    Or, from the lexicographical to the local DOLFINx numbering using
-    `self.get_DOLFINx_local_node_ids` or `self.get_DOLFINx_local_cell_ids`,
-    or the global with `self.get_DOLFINx_global_node_ids` or
-    `self.get_DOLFINx_global_cell_ids`,
+    `self.get_original_node_ids` or `self.get_original_cell_ids`.
+    Or, from the original numbering used to create the mesh to the local
+    DOLFINx numbering using `self.get_DOLFINx_local_node_ids` or
+    `self.get_DOLFINx_local_cell_ids`, or the global with
+    `self.get_DOLFINx_global_node_ids` or self.get_DOLFINx_global_cell_ids`,
     """
 
     def __init__(
@@ -183,8 +183,7 @@ class Mesh(dolfinx.mesh.Mesh):
                 distributing the mesh.
             nodes_coords (npt.NDArray[np.float32 | np.float64]): Nodes
                 coordinates. The rows correspond to the different nodes
-                (following lexicographical ordering), and the columns to
-                the coordinates of each point.
+                and the columns to the coordinates of each point.
             conn (npt.NDArray[np.int64]): Connectivity of the mesh.
             cell_type (CellType): Type of the mesh cell.
             degree (int): Degree of the mesh.
@@ -254,12 +253,11 @@ class Mesh(dolfinx.mesh.Mesh):
 
     @property
     def merged_nodes_map(self) -> npt.NDArray[np.int64]:
-        """Gets the map of lexicographical merged nodes: from original
+        """Gets the map of original merged nodes: from original
         ids to unique ones.
 
         Returns:
-            npt.NDArray[np.int64]: Map from old to new lexicographical
-            nodes.
+            npt.NDArray[np.int64]: Map from old to new nodes.
         """
         return self._merged_nodes_map
 
@@ -298,9 +296,8 @@ class Mesh(dolfinx.mesh.Mesh):
             comm (MPI.Comm): MPI communicator to be used for
                 distributing the mesh.
             nodes_coords (npt.NDArray[np.float32 | np.float64]): Nodes
-                coordinates. The rows correspond to the different nodes
-                (following lexicographical ordering), and the columns to
-                the coordinates of each point.
+                coordinates. The rows correspond to the different nodes,
+                and the columns to the coordinates of each point.
             conn (npt.NDArray[np.int64]): Connectivity of the mesh.
             cell_type (CellType): Type of the mesh cell.
             ghost_mode (GhostMode, optional): Ghost mode used for mesh
@@ -362,42 +359,41 @@ class Mesh(dolfinx.mesh.Mesh):
 
     def get_DOLFINx_local_cell_ids(
         self,
-        lex_cell_ids: npt.NDArray[np.int64],
+        orig_cell_ids: npt.NDArray[np.int64],
     ) -> npt.NDArray[np.int32]:
-        """Transforms the given `lex_cell_ids` from the lexicographical tensor-product mesh
+        """Transforms the given `orig_cell_ids` from the original numbering
         into the corresponding local ids of the underlying DOLFINx mesh.
 
         Args:
-            lex_cell_ids (npt.NDArray[np.int64]):
-                Cell indices to be transformed. They are lexicographical indices
-                referred to the tensor-product mesh.
+            orig_cell_ids (npt.NDArray[np.int64]): Cell indices to be transformed.
+                They are the original indices used to create the mesh.
 
         Returns:
             npt.NDArray[np.int32]: Indices of the cells in
             the underlying DOLFINx mesh. These indices correspond to the
             local numbering associated to the current subdomain
             (process). Note that some indices may be set to -1 in the
-            case the associated input lexicographical indices are not contained
+            case the associated input original indices are not contained
             in the subdomain. The length of the output
             array is the same as the input.
         """
 
-        dlf_to_lex = self.topology.original_cell_index
-        return _find_in_array(lex_cell_ids, dlf_to_lex).astype(np.int32)
+        dlf_to_orig = self.topology.original_cell_index
+        return _find_in_array(orig_cell_ids, dlf_to_orig).astype(np.int32)
 
     def get_DOLFINx_global_cell_ids(
         self,
-        lex_cell_ids: npt.NDArray[np.int64],
+        orig_cell_ids: npt.NDArray[np.int64],
     ) -> npt.NDArray[np.int64]:
-        """Transforms the given local `lex_cell_ids` into the corresponding global ids
+        """Transforms the given local `orig_cell_ids` into the corresponding global ids
         of the underlying DOLFINx mesh.
 
         Args:
-            lex_cell_ids (npt.NDArray[np.int64]):
-                Cell indices to be transformed. They are lexicographical indices
+            orig_cell_ids (npt.NDArray[np.int64]): Cell indices to be transformed.
+                They are the original indices used to create the mesh.
 
         Note:
-            All the indices in `lex_cell_ids` must be contained in the
+            All the indices in `orig_cell_ids` must be contained in the
             current subdomain.
 
         Returns:
@@ -406,7 +402,7 @@ class Mesh(dolfinx.mesh.Mesh):
             current subdomain (process).
         """
 
-        dlf_local_cell_ids = self.get_DOLFINx_local_cell_ids(lex_cell_ids)
+        dlf_local_cell_ids = self.get_DOLFINx_local_cell_ids(orig_cell_ids)
         return self.get_DOLFINx_local_to_global_cell_ids(dlf_local_cell_ids)
 
     def get_DOLFINx_local_to_global_cell_ids(
@@ -427,13 +423,12 @@ class Mesh(dolfinx.mesh.Mesh):
         index_map = self.topology.index_map(self.tdim)
         return index_map.local_to_global(dlf_local_cell_ids)
 
-    def get_lexicg_cell_ids(
+    def get_original_cell_ids(
         self,
         dlf_local_cell_ids: npt.NDArray[np.int32],
     ) -> npt.NDArray[np.int64]:
         """Transforms given `dlf_local_cell_ids` into
-        the tensor-product mesh numbering, that follows a lexicographical
-        indexing.
+        the original numbering used to create the mesh.
 
         Args:
             dlf_local_cell_ids (npt.NDArray[np.int32]):
@@ -441,55 +436,54 @@ class Mesh(dolfinx.mesh.Mesh):
                 indices referred to the underlying DOLFINx mesh.
 
         Returns:
-            npt.NDArray[np.int64]: Ids of the cells in the
-            tensor-product lexicographical indexing. The length of the output array
-            is the same as the input.
+            npt.NDArray[np.int64]: Ids of the cells in the original
+            numbering. The length of the output array is the same as the input.
         """
 
-        dlf_to_lex = self.topology.original_cell_index
-        n_local_cells = dlf_to_lex.size
+        dlf_to_orig = self.topology.original_cell_index
+        n_local_cells = dlf_to_orig.size
         assert np.all(dlf_local_cell_ids < n_local_cells) and np.all(dlf_local_cell_ids >= 0), (
             "Cells not contained in subdomain"
         )
 
-        return dlf_to_lex[dlf_local_cell_ids]
+        return dlf_to_orig[dlf_local_cell_ids]
 
     def get_DOLFINx_local_node_ids(
         self,
-        lex_node_ids: npt.NDArray[np.int64],
+        orig_node_ids: npt.NDArray[np.int64],
     ) -> npt.NDArray[np.int32]:
-        """Transforms the given `lx_node_ids` from the tensor-product mesh
-        into the corresponding local ids of the underlying DOLFINx mesh.
+        """Transforms the given `orig_node_ids` from the original
+        numbering into the corresponding local ids of the underlying
+        DOLFINx mesh.
 
         Args:
-            lex_node_ids (npt.NDArray[np.int64]):
-                Node indices to be transformed. They are lexicographical
-                indices referred to the tensor-product mesh.
+            orig_node_ids (npt.NDArray[np.int64]): Node indices to be transformed.
+                They are referred to the original numbering used to create the mesh.
 
         Returns:
             npt.NDArray[np.int32]: Indices of the nodes in
             the underlying DOLFINx mesh. These indices correspond to the
             local numbering associated to the current subdomain
             (process). Note that some indices may be set to -1 in the
-            case the input indices are lexicographical and some of them
+            case the input indices are original and some of them
             are not contained in the subdomain. The length of the output
             array is the same as the input.
         """
 
-        dlf_to_lex = self.geometry.input_global_indices
+        dlf_to_orig = self.geometry.input_global_indices
 
         if self.has_merged_nodes:
             # Mapping "old" to "new" ids.
-            lex_node_ids = self.merged_nodes_map[lex_node_ids]
+            orig_node_ids = self.merged_nodes_map[orig_node_ids]
 
-        return _find_in_array(lex_node_ids, dlf_to_lex).astype(np.int32)
+        return _find_in_array(orig_node_ids, dlf_to_orig).astype(np.int32)
 
-    def get_lexicg_node_ids(
+    def get_original_node_ids(
         self,
         dlf_local_node_ids: npt.NDArray[np.int32],
     ) -> npt.NDArray[np.int64]:
         """Transforms given `dlf_local_node_ids` from the (local) DOLFINx
-        mesh numbering to the lexicographical (tensor-product mesh) one.
+        mesh numbering to original numbering used to create the mesh.
 
         Args:
             dlf_local_node_ids (npt.NDArray[np.int32]):
@@ -497,21 +491,21 @@ class Mesh(dolfinx.mesh.Mesh):
                 underlying (local) DOLFINx mesh.
 
         Returns:
-            npt.NDArray[np.int64]: Ids of the nodes in the
-            tensor-product lexicographical indexing.
+            npt.NDArray[np.int64]: Ids of the nodes in the original
+            numbering.
         """
 
-        dlf_to_lex = self.geometry.input_global_indices
-        n_local_nodes = dlf_to_lex.size
+        dlf_to_orig = self.geometry.input_global_indices
+        n_local_nodes = dlf_to_orig.size
         assert np.all(dlf_local_node_ids < n_local_nodes) and np.all(dlf_local_node_ids >= 0), (
             "Nodes not contained in subdomain."
         )
 
-        lex_nodes = dlf_to_lex[dlf_local_node_ids]
+        orig_nodes = dlf_to_orig[dlf_local_node_ids]
         if self.has_merged_nodes:
-            return _find_in_array(lex_nodes, self.merged_nodes_map)
+            return _find_in_array(orig_nodes, self.merged_nodes_map)
         else:
-            return lex_nodes
+            return orig_nodes
 
     def get_cells_exterior_facets(
         self,
@@ -565,21 +559,21 @@ class Mesh(dolfinx.mesh.Mesh):
 
         return cell_to_facets.links(dlf_local_cell_id)
 
-    def transform_lexicg_facet_ids_to_DOLFINx_local(
+    def transform_original_facet_ids_to_DOLFINx_local(
         self,
-        lex_cell_ids: npt.NDArray[np.int64],
+        orig_cell_ids: npt.NDArray[np.int64],
         lex_facet_ids: npt.NDArray[np.int32],
     ) -> tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]:
-        """Transforms the given lexicographical facets indices to
+        """Transforms the given original facets indices to
         DOLFINx local numbering (otherwise)
 
         Args:
-            lex_cell_ids (npt.NDArray[np.int64]): Indices of the facets
-                following the lexicographical ordering. All the cell
-                indices must be associated to the current process.
+            orig_cell_ids (npt.NDArray[np.int64]): Indices of the cell
+                ids referred to the original numbering used to create the
+                mesh. All the cell indices must be associated to the current process.
 
             lex_facet_ids (npt.NDArray[np.int32]): Local indices of the
-                facets referred to `lex_cell_ids` (both arrays should have
+                facets referred to `orig_cell_ids` (both arrays should have
                 the same length). The face ids follow the
                 lexicographical ordering.
 
@@ -590,19 +584,20 @@ class Mesh(dolfinx.mesh.Mesh):
             and local facets follow the DOLFINx local numbering.
         """
 
-        dlf_cells = self.get_DOLFINx_local_cell_ids(lex_cell_ids)
+        dlf_cells = self.get_DOLFINx_local_cell_ids(orig_cell_ids)
 
-        dlf_to_lex_facets = DOLFINx_to_lexicg_faces(self.tdim)
-        dlf_facets = dlf_to_lex_facets[lex_facet_ids]
+        dlf_to_orig_facets = DOLFINx_to_lexicg_faces(self.tdim)
+        dlf_facets = dlf_to_orig_facets[lex_facet_ids]
         return dlf_cells, dlf_facets
 
-    def transform_DOLFINx_local_facet_ids_to_lexicg(
+    def transform_DOLFINx_local_facet_ids_to_original(
         self,
         dlf_local_cell_ids: npt.NDArray[np.int32],
         dlf_local_facet_ids: npt.NDArray[np.int32],
     ) -> tuple[npt.NDArray[np.int64], npt.NDArray[np.int32]]:
         """Transforms the given local DOLFINx facets indices to
-        either lexicographical numbering (both for cells and local facet ids).
+        either original numbering for cells and lexicographical one
+        for local facet ids.
 
         Args:
             dlf_local_cell_ids (npt.NDArray[np.int32]): Indices of the facets
@@ -617,13 +612,14 @@ class Mesh(dolfinx.mesh.Mesh):
             tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]:
             Transformed facets returned as one array of cells and another
             one of local facets referred to those cells. The indices of the cells
-            and local facets follow the DOLFINx (local) numbering.
+            follow the original numbering (used to create the mesh) and
+            the local facets follow the lexicographical ordering.
         """
 
-        lex_cell_ids = self.get_lexicg_cell_ids(dlf_local_cell_ids)
+        orig_cell_ids = self.get_original_cell_ids(dlf_local_cell_ids)
         lex_to_dlf_facets = lexicg_to_DOLFINx_faces(self.tdim)
-        lex_facet_is = lex_to_dlf_facets[dlf_local_facet_ids]
-        return lex_cell_ids, lex_facet_is
+        lex_facet_ids = lex_to_dlf_facets[dlf_local_facet_ids]
+        return orig_cell_ids, lex_facet_ids
 
     def transform_DOLFINx_local_facet_ids_to_cells_and_local_facets(
         self,

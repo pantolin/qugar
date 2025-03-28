@@ -129,10 +129,10 @@ class QuadGenerator:
 
         n_pts_dir = QuadGenerator.get_num_points(degree)
 
-        lex_cells = self.tp_mesh.get_lexicg_cell_ids(dlf_cells)
+        orig_cells = self.tp_mesh.get_original_cell_ids(dlf_cells)
 
         quad = qugar.cpp.create_quadrature(
-            self._unf_domain.cpp_object, lex_cells, n_pts_dir, full_cells=False
+            self._unf_domain.cpp_object, orig_cells, n_pts_dir, full_cells=False
         )
 
         return CustomQuad(dlf_cells, quad.n_pts_per_entity, quad.points, quad.weights)
@@ -180,10 +180,10 @@ class QuadGenerator:
                 "containing unfitted boundaries"
             )
 
-        lex_cells = self.tp_mesh.get_lexicg_cell_ids(dlf_cells)
+        orig_cells = self.tp_mesh.get_original_cell_ids(dlf_cells)
 
         quad = qugar.cpp.create_unfitted_bound_quadrature(
-            self._unf_domain._cpp_object, lex_cells, n_pts_dir
+            self._unf_domain._cpp_object, orig_cells, n_pts_dir
         )
 
         return CustomQuadUnfBoundary(
@@ -253,7 +253,7 @@ class QuadGenerator:
 
         n_pts_dir = QuadGenerator.get_num_points(degree)
 
-        lex_cells = self.tp_mesh.get_lexicg_cell_ids(dlf_cells)
+        orig_cells = self.tp_mesh.get_original_cell_ids(dlf_cells)
 
         lex_to_dlf_faces = lexicg_to_DOLFINx_faces(self.tp_mesh.tdim)
         lex_local_facets = lex_to_dlf_faces[dlf_local_facets]
@@ -265,7 +265,7 @@ class QuadGenerator:
 
         quad = quad_func(
             self._unf_domain._cpp_object,
-            lex_cells,
+            orig_cells,
             lex_local_facets,
             n_pts_dir,
             full_facets=False,
