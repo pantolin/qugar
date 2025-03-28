@@ -173,12 +173,7 @@ def check_div_thm(
     n_cells = [n_cells_dir] * dim
     xmin = np.zeros(dim, dtype)
     xmax = np.ones(dim, dtype)
-    cart_mesh = create_Cartesian_mesh(
-        comm,
-        n_cells,
-        xmin,
-        xmax,
-    )
+    cart_mesh = create_Cartesian_mesh(comm, n_cells, xmin, xmax)
     domain = qugar.impl.create_unfitted_impl_domain(dom_func, cart_mesh)
 
     ufl_form_vol = create_div_thm_volume_ufl_form(domain, n_quad_pts)
