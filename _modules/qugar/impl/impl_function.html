@@ -91,14 +91,9 @@
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">numpy.typing</span> <span class="k">as</span> <span class="nn">npt</span>
 
-<span class="kn">import</span> <span class="nn">qugar.utils</span>
-
-<span class="k">if</span> <span class="ow">not</span> <span class="n">qugar</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">has_FEniCSx</span><span class="p">:</span>
-    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;FEniCSx installation not found is required.&quot;</span><span class="p">)</span>
-
-
 <span class="kn">import</span> <span class="nn">qugar.cpp</span>
 <span class="kn">import</span> <span class="nn">qugar.impl</span>
+<span class="kn">import</span> <span class="nn">qugar.utils</span>
 <span class="kn">from</span> <span class="nn">qugar.cpp</span> <span class="kn">import</span> <span class="n">ImplicitFunc_2D</span><span class="p">,</span> <span class="n">ImplicitFunc_3D</span>
 
 
