@@ -1,5 +1,8 @@
 var searchData=
 [
-  ['tensor_0',['Tensor',['../d0/dbc/classqugar_1_1impl_1_1AffineTransf.html#af6159328f13f22b0fa431f80622badf2',1,'qugar::impl::AffineTransf']]],
-  ['type_1',['type',['../dd/d0d/structqugar_1_1impl_1_1funcs_1_1__impl_1_1NewVector_3_01Vector_3_01T_00_01dim_01_4_00_01new__dim_01_4.html#ac0319d35c77e7a142472e7351e8a7abf',1,'qugar::impl::funcs::_impl::NewVector&lt; Vector&lt; T, dim &gt;, new_dim &gt;::type'],['../d5/df2/structqugar_1_1impl_1_1funcs_1_1__impl_1_1NewVector_3_01Point_3_01dim_01_4_00_01new__dim_01_4.html#a7fe5ed5b2e46dec3f31ba9516386293a',1,'qugar::impl::funcs::_impl::NewVector&lt; Point&lt; dim &gt;, new_dim &gt;::type'],['../d6/d2b/structqugar_1_1impl_1_1funcs_1_1__impl_1_1VectorType_3_01Vector_3_01T_00_01dim_01_4_01_4.html#a9aaead9aae384a808eae1e67c99e7ec3',1,'qugar::impl::funcs::_impl::VectorType&lt; Vector&lt; T, dim &gt; &gt;::type'],['../d2/d3f/structqugar_1_1impl_1_1funcs_1_1__impl_1_1VectorType_3_01Point_3_01dim_01_4_01_4.html#a5e63f718f319abf3a3ce88e095a0a0fc',1,'qugar::impl::funcs::_impl::VectorType&lt; Point&lt; dim &gt; &gt;::type']]]
+  ['scalarfunc_0',['ScalarFunc',['../d2/d5e/namespacequgar_1_1impl.html#a4eb0b10808db422fc21d669b326b8174',1,'qugar::impl']]],
+  ['self_1',['Self',['../d9/df1/classqugar_1_1UnfittedKDTree.html#a842f6aaa97e9da17b2fc0dccb00e0a75',1,'qugar::UnfittedKDTree']]],
+  ['selfconstptr_2',['SelfConstPtr',['../d9/df1/classqugar_1_1UnfittedKDTree.html#a72183dffaa451b3ebbd40f163910793a',1,'qugar::UnfittedKDTree']]],
+  ['selfptr_3',['SelfPtr',['../d9/df1/classqugar_1_1UnfittedKDTree.html#a875640bcb04a732dbd89a28e2533647b',1,'qugar::UnfittedKDTree']]],
+  ['subgridptr_4',['SubGridPtr',['../d9/df1/classqugar_1_1UnfittedKDTree.html#af4486e35e973cc42a92b1340921d15d3',1,'qugar::UnfittedKDTree']]]
 ];

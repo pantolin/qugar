@@ -136,33 +136,33 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:ac8bb4f7b7ba58a09c9a8dbdec66d8677" id="r_ac8bb4f7b7ba58a09c9a8dbdec66d8677"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="../../d2/dfe/classqugar_1_1BoundBox.html">BoundBox</a>&lt; dim &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ac8bb4f7b7ba58a09c9a8dbdec66d8677">get_domain</a> () const</td></tr>
 <tr class="memdesc:ac8bb4f7b7ba58a09c9a8dbdec66d8677"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the grid's domain.  <br /></td></tr>
 <tr class="separator:ac8bb4f7b7ba58a09c9a8dbdec66d8677"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab9a2164b40d7f9bad9ec0b84dbd42bc1" id="r_ab9a2164b40d7f9bad9ec0b84dbd42bc1"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ab9a2164b40d7f9bad9ec0b84dbd42bc1">get_cell_id</a> (const <a class="el" href="#ad2145ee34a2052fc25e12019ef88e2b7">PointType</a> &amp;point, const <a class="el" href="../../db/d28/classqugar_1_1Tolerance.html">Tolerance</a> &amp;tolerance=<a class="el" href="../../db/d28/classqugar_1_1Tolerance.html">Tolerance</a>()) const</td></tr>
-<tr class="memdesc:ab9a2164b40d7f9bad9ec0b84dbd42bc1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the id of the cell the given <code>point</code> belongs to.  <br /></td></tr>
-<tr class="separator:ab9a2164b40d7f9bad9ec0b84dbd42bc1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa88df9dba1aaced5ed5224e6da90df64" id="r_aa88df9dba1aaced5ed5224e6da90df64"><td class="memItemLeft" align="right" valign="top">std::int64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa88df9dba1aaced5ed5224e6da90df64">get_cell_id</a> (const <a class="el" href="#ad2145ee34a2052fc25e12019ef88e2b7">PointType</a> &amp;point, const <a class="el" href="../../db/d28/classqugar_1_1Tolerance.html">Tolerance</a> &amp;tolerance=<a class="el" href="../../db/d28/classqugar_1_1Tolerance.html">Tolerance</a>()) const</td></tr>
+<tr class="memdesc:aa88df9dba1aaced5ed5224e6da90df64"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the id of the cell the given <code>point</code> belongs to.  <br /></td></tr>
+<tr class="separator:aa88df9dba1aaced5ed5224e6da90df64"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa127460328225c1ada961a04dabeb327" id="r_aa127460328225c1ada961a04dabeb327"><td class="memItemLeft" align="right" valign="top">std::optional&lt; int &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa127460328225c1ada961a04dabeb327">at_cells_boundary</a> (const <a class="el" href="#ad2145ee34a2052fc25e12019ef88e2b7">PointType</a> &amp;point, const <a class="el" href="../../db/d28/classqugar_1_1Tolerance.html">Tolerance</a> &amp;tolerance=<a class="el" href="../../db/d28/classqugar_1_1Tolerance.html">Tolerance</a>()) const</td></tr>
 <tr class="memdesc:aa127460328225c1ada961a04dabeb327"><td class="mdescLeft">&#160;</td><td class="mdescRight">Checks if the given <code>point</code> is on the boundary of two cells (up to <code>tolerance</code>).  <br /></td></tr>
 <tr class="separator:aa127460328225c1ada961a04dabeb327"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa63ada71dfcde268cdad2be83ba0eaf3" id="r_aa63ada71dfcde268cdad2be83ba0eaf3"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa63ada71dfcde268cdad2be83ba0eaf3">on_boundary</a> (int cell_id, int local_facet_id) const</td></tr>
-<tr class="memdesc:aa63ada71dfcde268cdad2be83ba0eaf3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Checks if a cell's facet is on the grids boundary.  <br /></td></tr>
-<tr class="separator:aa63ada71dfcde268cdad2be83ba0eaf3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a988f3278558446111a41ad891ecbfbc8" id="r_a988f3278558446111a41ad891ecbfbc8"><td class="memItemLeft" align="right" valign="top">std::vector&lt; int &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a988f3278558446111a41ad891ecbfbc8">get_boundary_cells</a> (int facet_id) const</td></tr>
-<tr class="memdesc:a988f3278558446111a41ad891ecbfbc8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the list of cells belonging to given facet of the grid.  <br /></td></tr>
-<tr class="separator:a988f3278558446111a41ad891ecbfbc8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ace0e2d7f5e0897029a305adbb8523b37" id="r_ace0e2d7f5e0897029a305adbb8523b37"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ace0e2d7f5e0897029a305adbb8523b37">to_flat</a> (const <a class="el" href="../../de/d1b/classqugar_1_1TensorIndexTP.html">TensorIndexTP</a>&lt; dim &gt; &amp;tid) const</td></tr>
-<tr class="memdesc:ace0e2d7f5e0897029a305adbb8523b37"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the flat index of a grid cell from the tensor index.  <br /></td></tr>
-<tr class="separator:ace0e2d7f5e0897029a305adbb8523b37"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aed82ec0119a09a66d16bff3d216b16fa" id="r_aed82ec0119a09a66d16bff3d216b16fa"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../de/d1b/classqugar_1_1TensorIndexTP.html">TensorIndexTP</a>&lt; dim &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aed82ec0119a09a66d16bff3d216b16fa">to_tensor</a> (int fid) const</td></tr>
-<tr class="memdesc:aed82ec0119a09a66d16bff3d216b16fa"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the tensor index of a grid cell from the flat index.  <br /></td></tr>
-<tr class="separator:aed82ec0119a09a66d16bff3d216b16fa"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a84b27bcbc8d34c25bc621f313402abc5" id="r_a84b27bcbc8d34c25bc621f313402abc5"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a84b27bcbc8d34c25bc621f313402abc5">on_boundary</a> (std::int64_t cell_id, int local_facet_id) const</td></tr>
+<tr class="memdesc:a84b27bcbc8d34c25bc621f313402abc5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Checks if a cell's facet is on the grids boundary.  <br /></td></tr>
+<tr class="separator:a84b27bcbc8d34c25bc621f313402abc5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a54948d2ee89b7ab20a38ac354c2935a5" id="r_a54948d2ee89b7ab20a38ac354c2935a5"><td class="memItemLeft" align="right" valign="top">std::vector&lt; std::int64_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a54948d2ee89b7ab20a38ac354c2935a5">get_boundary_cells</a> (int facet_id) const</td></tr>
+<tr class="memdesc:a54948d2ee89b7ab20a38ac354c2935a5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the list of cells belonging to given facet of the grid.  <br /></td></tr>
+<tr class="separator:a54948d2ee89b7ab20a38ac354c2935a5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acf7309372d22d0e58620036ca745c320" id="r_acf7309372d22d0e58620036ca745c320"><td class="memItemLeft" align="right" valign="top">std::int64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#acf7309372d22d0e58620036ca745c320">to_flat</a> (const <a class="el" href="../../de/d1b/classqugar_1_1TensorIndexTP.html">TensorIndexTP</a>&lt; dim &gt; &amp;tid) const</td></tr>
+<tr class="memdesc:acf7309372d22d0e58620036ca745c320"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the flat index of a grid cell from the tensor index.  <br /></td></tr>
+<tr class="separator:acf7309372d22d0e58620036ca745c320"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1d7cd1dcd550f73ee47665698d4b65c8" id="r_a1d7cd1dcd550f73ee47665698d4b65c8"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../de/d1b/classqugar_1_1TensorIndexTP.html">TensorIndexTP</a>&lt; dim &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a1d7cd1dcd550f73ee47665698d4b65c8">to_tensor</a> (std::int64_t fid) const</td></tr>
+<tr class="memdesc:a1d7cd1dcd550f73ee47665698d4b65c8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the tensor index of a grid cell from the flat index.  <br /></td></tr>
+<tr class="separator:a1d7cd1dcd550f73ee47665698d4b65c8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aaa1c07ab3e5d25a7495e82d929939f18" id="r_aaa1c07ab3e5d25a7495e82d929939f18"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d3/d39/classqugar_1_1TensorSizeTP.html">TensorSizeTP</a>&lt; dim &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aaa1c07ab3e5d25a7495e82d929939f18">get_num_cells_dir</a> () const</td></tr>
 <tr class="memdesc:aaa1c07ab3e5d25a7495e82d929939f18"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the number of cells per direction.  <br /></td></tr>
 <tr class="separator:aaa1c07ab3e5d25a7495e82d929939f18"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9785dda1099e40024e8f011ffaa7115e" id="r_a9785dda1099e40024e8f011ffaa7115e"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a9785dda1099e40024e8f011ffaa7115e">get_num_cells</a> () const</td></tr>
-<tr class="memdesc:a9785dda1099e40024e8f011ffaa7115e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the total number of cell.  <br /></td></tr>
-<tr class="separator:a9785dda1099e40024e8f011ffaa7115e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:adb7fa593b5b02083d174fe7fa592294a" id="r_adb7fa593b5b02083d174fe7fa592294a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d2/dfe/classqugar_1_1BoundBox.html">BoundBox</a>&lt; dim &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#adb7fa593b5b02083d174fe7fa592294a">get_cell_domain</a> (int cell_fid) const</td></tr>
-<tr class="memdesc:adb7fa593b5b02083d174fe7fa592294a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets an cell's domain.  <br /></td></tr>
-<tr class="separator:adb7fa593b5b02083d174fe7fa592294a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a05dc586a38f347b4edf6b611fc4a4d0b" id="r_a05dc586a38f347b4edf6b611fc4a4d0b"><td class="memItemLeft" align="right" valign="top">std::size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a05dc586a38f347b4edf6b611fc4a4d0b">get_num_cells</a> () const</td></tr>
+<tr class="memdesc:a05dc586a38f347b4edf6b611fc4a4d0b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the total number of cell.  <br /></td></tr>
+<tr class="separator:a05dc586a38f347b4edf6b611fc4a4d0b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7bd16a5b57b0622aae08cf3a021245fa" id="r_a7bd16a5b57b0622aae08cf3a021245fa"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d2/dfe/classqugar_1_1BoundBox.html">BoundBox</a>&lt; dim &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a7bd16a5b57b0622aae08cf3a021245fa">get_cell_domain</a> (std::int64_t cell_fid) const</td></tr>
+<tr class="memdesc:a7bd16a5b57b0622aae08cf3a021245fa"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets an cell's domain.  <br /></td></tr>
+<tr class="separator:a7bd16a5b57b0622aae08cf3a021245fa"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pri-types" name="pri-types"></a>
 Private Types</h2></td></tr>
@@ -364,8 +364,8 @@ template&lt;int dim&gt; </div>
 
 </div>
 </div>
-<a id="a988f3278558446111a41ad891ecbfbc8" name="a988f3278558446111a41ad891ecbfbc8"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a988f3278558446111a41ad891ecbfbc8">&#9670;&#160;</a></span>get_boundary_cells()</h2>
+<a id="a54948d2ee89b7ab20a38ac354c2935a5" name="a54948d2ee89b7ab20a38ac354c2935a5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a54948d2ee89b7ab20a38ac354c2935a5">&#9670;&#160;</a></span>get_boundary_cells()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -376,7 +376,7 @@ template&lt;int dim&gt; </div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">std::vector&lt; int &gt; <a class="el" href="../../d1/d84/classqugar_1_1CartGridTP.html">qugar::CartGridTP</a>&lt; dim &gt;::get_boundary_cells </td>
+          <td class="memname">std::vector&lt; std::int64_t &gt; <a class="el" href="../../d1/d84/classqugar_1_1CartGridTP.html">qugar::CartGridTP</a>&lt; dim &gt;::get_boundary_cells </td>
           <td>(</td>
           <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>facet_id</em></span></td><td>)</td>
           <td> const</td>
@@ -436,8 +436,8 @@ template&lt;int dim&gt; </div>
 
 </div>
 </div>
-<a id="adb7fa593b5b02083d174fe7fa592294a" name="adb7fa593b5b02083d174fe7fa592294a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#adb7fa593b5b02083d174fe7fa592294a">&#9670;&#160;</a></span>get_cell_domain()</h2>
+<a id="a7bd16a5b57b0622aae08cf3a021245fa" name="a7bd16a5b57b0622aae08cf3a021245fa"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7bd16a5b57b0622aae08cf3a021245fa">&#9670;&#160;</a></span>get_cell_domain()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -450,7 +450,7 @@ template&lt;int dim&gt; </div>
         <tr>
           <td class="memname"><a class="el" href="../../d2/dfe/classqugar_1_1BoundBox.html">BoundBox</a>&lt; dim &gt; <a class="el" href="../../d1/d84/classqugar_1_1CartGridTP.html">qugar::CartGridTP</a>&lt; dim &gt;::get_cell_domain </td>
           <td>(</td>
-          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>cell_fid</em></span></td><td>)</td>
+          <td class="paramtype">std::int64_t</td>          <td class="paramname"><span class="paramname"><em>cell_fid</em></span></td><td>)</td>
           <td> const</td>
         </tr>
       </table>
@@ -472,8 +472,8 @@ template&lt;int dim&gt; </div>
 
 </div>
 </div>
-<a id="ab9a2164b40d7f9bad9ec0b84dbd42bc1" name="ab9a2164b40d7f9bad9ec0b84dbd42bc1"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab9a2164b40d7f9bad9ec0b84dbd42bc1">&#9670;&#160;</a></span>get_cell_id()</h2>
+<a id="aa88df9dba1aaced5ed5224e6da90df64" name="aa88df9dba1aaced5ed5224e6da90df64"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa88df9dba1aaced5ed5224e6da90df64">&#9670;&#160;</a></span>get_cell_id()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -484,7 +484,7 @@ template&lt;int dim&gt; </div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">int <a class="el" href="../../d1/d84/classqugar_1_1CartGridTP.html">qugar::CartGridTP</a>&lt; dim &gt;::get_cell_id </td>
+          <td class="memname">std::int64_t <a class="el" href="../../d1/d84/classqugar_1_1CartGridTP.html">qugar::CartGridTP</a>&lt; dim &gt;::get_cell_id </td>
           <td>(</td>
           <td class="paramtype">const <a class="el" href="#ad2145ee34a2052fc25e12019ef88e2b7">PointType</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>point</em></span>, </td>
         </tr>
@@ -543,8 +543,8 @@ template&lt;int dim&gt; </div>
 
 </div>
 </div>
-<a id="a9785dda1099e40024e8f011ffaa7115e" name="a9785dda1099e40024e8f011ffaa7115e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a9785dda1099e40024e8f011ffaa7115e">&#9670;&#160;</a></span>get_num_cells()</h2>
+<a id="a05dc586a38f347b4edf6b611fc4a4d0b" name="a05dc586a38f347b4edf6b611fc4a4d0b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a05dc586a38f347b4edf6b611fc4a4d0b">&#9670;&#160;</a></span>get_num_cells()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -555,7 +555,7 @@ template&lt;int dim&gt; </div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">int <a class="el" href="../../d1/d84/classqugar_1_1CartGridTP.html">qugar::CartGridTP</a>&lt; dim &gt;::get_num_cells </td>
+          <td class="memname">std::size_t <a class="el" href="../../d1/d84/classqugar_1_1CartGridTP.html">qugar::CartGridTP</a>&lt; dim &gt;::get_num_cells </td>
           <td>(</td>
           <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
           <td> const</td>
@@ -603,8 +603,8 @@ template&lt;int dim&gt; </div>
 
 </div>
 </div>
-<a id="aa63ada71dfcde268cdad2be83ba0eaf3" name="aa63ada71dfcde268cdad2be83ba0eaf3"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa63ada71dfcde268cdad2be83ba0eaf3">&#9670;&#160;</a></span>on_boundary()</h2>
+<a id="a84b27bcbc8d34c25bc621f313402abc5" name="a84b27bcbc8d34c25bc621f313402abc5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a84b27bcbc8d34c25bc621f313402abc5">&#9670;&#160;</a></span>on_boundary()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -617,7 +617,7 @@ template&lt;int dim&gt; </div>
         <tr>
           <td class="memname">bool <a class="el" href="../../d1/d84/classqugar_1_1CartGridTP.html">qugar::CartGridTP</a>&lt; dim &gt;::on_boundary </td>
           <td>(</td>
-          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>cell_id</em></span>, </td>
+          <td class="paramtype">std::int64_t</td>          <td class="paramname"><span class="paramname"><em>cell_id</em></span>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -644,8 +644,8 @@ template&lt;int dim&gt; </div>
 
 </div>
 </div>
-<a id="ace0e2d7f5e0897029a305adbb8523b37" name="ace0e2d7f5e0897029a305adbb8523b37"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ace0e2d7f5e0897029a305adbb8523b37">&#9670;&#160;</a></span>to_flat()</h2>
+<a id="acf7309372d22d0e58620036ca745c320" name="acf7309372d22d0e58620036ca745c320"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#acf7309372d22d0e58620036ca745c320">&#9670;&#160;</a></span>to_flat()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -656,7 +656,7 @@ template&lt;int dim&gt; </div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">int <a class="el" href="../../d1/d84/classqugar_1_1CartGridTP.html">qugar::CartGridTP</a>&lt; dim &gt;::to_flat </td>
+          <td class="memname">std::int64_t <a class="el" href="../../d1/d84/classqugar_1_1CartGridTP.html">qugar::CartGridTP</a>&lt; dim &gt;::to_flat </td>
           <td>(</td>
           <td class="paramtype">const <a class="el" href="../../de/d1b/classqugar_1_1TensorIndexTP.html">TensorIndexTP</a>&lt; dim &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>tid</em></span></td><td>)</td>
           <td> const</td>
@@ -680,8 +680,8 @@ template&lt;int dim&gt; </div>
 
 </div>
 </div>
-<a id="aed82ec0119a09a66d16bff3d216b16fa" name="aed82ec0119a09a66d16bff3d216b16fa"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aed82ec0119a09a66d16bff3d216b16fa">&#9670;&#160;</a></span>to_tensor()</h2>
+<a id="a1d7cd1dcd550f73ee47665698d4b65c8" name="a1d7cd1dcd550f73ee47665698d4b65c8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1d7cd1dcd550f73ee47665698d4b65c8">&#9670;&#160;</a></span>to_tensor()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -694,7 +694,7 @@ template&lt;int dim&gt; </div>
         <tr>
           <td class="memname"><a class="el" href="../../de/d1b/classqugar_1_1TensorIndexTP.html">TensorIndexTP</a>&lt; dim &gt; <a class="el" href="../../d1/d84/classqugar_1_1CartGridTP.html">qugar::CartGridTP</a>&lt; dim &gt;::to_tensor </td>
           <td>(</td>
-          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>fid</em></span></td><td>)</td>
+          <td class="paramtype">std::int64_t</td>          <td class="paramname"><span class="paramname"><em>fid</em></span></td><td>)</td>
           <td> const</td>
         </tr>
       </table>

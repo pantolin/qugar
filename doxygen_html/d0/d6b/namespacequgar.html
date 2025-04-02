@@ -171,6 +171,8 @@ Classes</h2></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/d58/classqugar_1_1UnfittedDomain.html">UnfittedDomain</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d9/df1/classqugar_1_1UnfittedKDTree.html">UnfittedKDTree</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="concepts" name="concepts"></a>
 Concepts</h2></td></tr>
@@ -223,21 +225,26 @@ Enumerations</h2></td></tr>
 <br />
  }</td></tr>
 <tr class="separator:a2a8e94584d3f66820b45e705a99aa8ba"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8d29996537c43e2b4e3773030bcf1eef" id="r_a8d29996537c43e2b4e3773030bcf1eef"><td class="memItemLeft" align="right" valign="top">enum class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a8d29996537c43e2b4e3773030bcf1eef">ImmersedCellStatus</a> : std::uint8_t { <a class="el" href="#a8d29996537c43e2b4e3773030bcf1eefafe47aa7c733c490d36e80508d5dc4019">cut</a>
+, <a class="el" href="#a8d29996537c43e2b4e3773030bcf1eefae9dc924f238fa6cc29465942875fe8f0">full</a>
+, <a class="el" href="#a8d29996537c43e2b4e3773030bcf1eefaa2e4822a98337283e39f7b60acf85ec9">empty</a>
+ }</td></tr>
+<tr class="separator:a8d29996537c43e2b4e3773030bcf1eef"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:a278123c4be055875c8a95c2a680cf6b2" id="r_a278123c4be055875c8a95c2a680cf6b2"><td class="memTemplParams" colspan="2">template&lt;int dim&gt; </td></tr>
-<tr class="memitem:a278123c4be055875c8a95c2a680cf6b2"><td class="memTemplItemLeft" align="right" valign="top">std::shared_ptr&lt; const <a class="el" href="../../d8/dd5/structqugar_1_1CutCellsQuad.html">CutCellsQuad</a>&lt; dim &gt; &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#a278123c4be055875c8a95c2a680cf6b2">create_quadrature</a> (const <a class="el" href="../../df/d58/classqugar_1_1UnfittedDomain.html">UnfittedDomain</a>&lt; dim &gt; &amp;unf_domain, const std::vector&lt; int &gt; &amp;cells, int n_pts_dir, bool full_cells)</td></tr>
-<tr class="separator:a278123c4be055875c8a95c2a680cf6b2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5f637d6a93679ad8b021497f1b3354b3" id="r_a5f637d6a93679ad8b021497f1b3354b3"><td class="memTemplParams" colspan="2">template&lt;int dim&gt; </td></tr>
-<tr class="memitem:a5f637d6a93679ad8b021497f1b3354b3"><td class="memTemplItemLeft" align="right" valign="top">std::shared_ptr&lt; const <a class="el" href="../../d2/d41/structqugar_1_1CutUnfBoundsQuad.html">CutUnfBoundsQuad</a>&lt; dim &gt; &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#a5f637d6a93679ad8b021497f1b3354b3">create_unfitted_bound_quadrature</a> (const <a class="el" href="../../df/d58/classqugar_1_1UnfittedDomain.html">UnfittedDomain</a>&lt; dim &gt; &amp;unf_domain, const std::vector&lt; int &gt; &amp;cells, int n_pts_dir)</td></tr>
-<tr class="separator:a5f637d6a93679ad8b021497f1b3354b3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae9199da21f848df62d5f97a88af178ea" id="r_ae9199da21f848df62d5f97a88af178ea"><td class="memTemplParams" colspan="2">template&lt;int dim&gt; </td></tr>
-<tr class="memitem:ae9199da21f848df62d5f97a88af178ea"><td class="memTemplItemLeft" align="right" valign="top">std::shared_ptr&lt; const <a class="el" href="../../df/d6d/structqugar_1_1CutIsoBoundsQuad.html">CutIsoBoundsQuad</a>&lt; dim - 1 &gt; &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#ae9199da21f848df62d5f97a88af178ea">create_interior_facets_quadrature</a> (const <a class="el" href="../../df/d58/classqugar_1_1UnfittedDomain.html">UnfittedDomain</a>&lt; dim &gt; &amp;unf_domain, const std::vector&lt; int &gt; &amp;cells, const std::vector&lt; int &gt; &amp;facets, int n_pts_dir, bool full_facets)</td></tr>
-<tr class="separator:ae9199da21f848df62d5f97a88af178ea"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a989e79754e706a0ea29c90f61ef312dc" id="r_a989e79754e706a0ea29c90f61ef312dc"><td class="memTemplParams" colspan="2">template&lt;int dim&gt; </td></tr>
-<tr class="memitem:a989e79754e706a0ea29c90f61ef312dc"><td class="memTemplItemLeft" align="right" valign="top">std::shared_ptr&lt; const <a class="el" href="../../df/d6d/structqugar_1_1CutIsoBoundsQuad.html">CutIsoBoundsQuad</a>&lt; dim - 1 &gt; &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#a989e79754e706a0ea29c90f61ef312dc">create_exterior_facets_quadrature</a> (const <a class="el" href="../../df/d58/classqugar_1_1UnfittedDomain.html">UnfittedDomain</a>&lt; dim &gt; &amp;unf_domain, const std::vector&lt; int &gt; &amp;cells, const std::vector&lt; int &gt; &amp;facets, int n_pts_dir, bool full_facets)</td></tr>
-<tr class="separator:a989e79754e706a0ea29c90f61ef312dc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad445be012c036b0ba21f2ea3ef1d4b2a" id="r_ad445be012c036b0ba21f2ea3ef1d4b2a"><td class="memTemplParams" colspan="2">template&lt;int dim&gt; </td></tr>
+<tr class="memitem:ad445be012c036b0ba21f2ea3ef1d4b2a"><td class="memTemplItemLeft" align="right" valign="top">std::shared_ptr&lt; const <a class="el" href="../../d8/dd5/structqugar_1_1CutCellsQuad.html">CutCellsQuad</a>&lt; dim &gt; &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#ad445be012c036b0ba21f2ea3ef1d4b2a">create_quadrature</a> (const <a class="el" href="../../df/d58/classqugar_1_1UnfittedDomain.html">UnfittedDomain</a>&lt; dim &gt; &amp;unf_domain, const std::vector&lt; std::int64_t &gt; &amp;cells, int n_pts_dir, bool full_cells)</td></tr>
+<tr class="separator:ad445be012c036b0ba21f2ea3ef1d4b2a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7bf54140d30528eb2a67aac55bb762cf" id="r_a7bf54140d30528eb2a67aac55bb762cf"><td class="memTemplParams" colspan="2">template&lt;int dim&gt; </td></tr>
+<tr class="memitem:a7bf54140d30528eb2a67aac55bb762cf"><td class="memTemplItemLeft" align="right" valign="top">std::shared_ptr&lt; const <a class="el" href="../../d2/d41/structqugar_1_1CutUnfBoundsQuad.html">CutUnfBoundsQuad</a>&lt; dim &gt; &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#a7bf54140d30528eb2a67aac55bb762cf">create_unfitted_bound_quadrature</a> (const <a class="el" href="../../df/d58/classqugar_1_1UnfittedDomain.html">UnfittedDomain</a>&lt; dim &gt; &amp;unf_domain, const std::vector&lt; std::int64_t &gt; &amp;cells, int n_pts_dir)</td></tr>
+<tr class="separator:a7bf54140d30528eb2a67aac55bb762cf"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2995f6066adc73cefa196180757123eb" id="r_a2995f6066adc73cefa196180757123eb"><td class="memTemplParams" colspan="2">template&lt;int dim&gt; </td></tr>
+<tr class="memitem:a2995f6066adc73cefa196180757123eb"><td class="memTemplItemLeft" align="right" valign="top">std::shared_ptr&lt; const <a class="el" href="../../df/d6d/structqugar_1_1CutIsoBoundsQuad.html">CutIsoBoundsQuad</a>&lt; dim - 1 &gt; &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#a2995f6066adc73cefa196180757123eb">create_interior_facets_quadrature</a> (const <a class="el" href="../../df/d58/classqugar_1_1UnfittedDomain.html">UnfittedDomain</a>&lt; dim &gt; &amp;unf_domain, const std::vector&lt; std::int64_t &gt; &amp;cells, const std::vector&lt; int &gt; &amp;facets, int n_pts_dir, bool full_facets)</td></tr>
+<tr class="separator:a2995f6066adc73cefa196180757123eb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a63b121a771c6741d21cf9c0af1e9f5b0" id="r_a63b121a771c6741d21cf9c0af1e9f5b0"><td class="memTemplParams" colspan="2">template&lt;int dim&gt; </td></tr>
+<tr class="memitem:a63b121a771c6741d21cf9c0af1e9f5b0"><td class="memTemplItemLeft" align="right" valign="top">std::shared_ptr&lt; const <a class="el" href="../../df/d6d/structqugar_1_1CutIsoBoundsQuad.html">CutIsoBoundsQuad</a>&lt; dim - 1 &gt; &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#a63b121a771c6741d21cf9c0af1e9f5b0">create_exterior_facets_quadrature</a> (const <a class="el" href="../../df/d58/classqugar_1_1UnfittedDomain.html">UnfittedDomain</a>&lt; dim &gt; &amp;unf_domain, const std::vector&lt; std::int64_t &gt; &amp;cells, const std::vector&lt; int &gt; &amp;facets, int n_pts_dir, bool full_facets)</td></tr>
+<tr class="separator:a63b121a771c6741d21cf9c0af1e9f5b0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a810f1ea11af7a4d73dc7071cad604b4c" id="r_a810f1ea11af7a4d73dc7071cad604b4c"><td class="memTemplParams" colspan="2">template&lt;int dim&gt; </td></tr>
 <tr class="memitem:a810f1ea11af7a4d73dc7071cad604b4c"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#a810f1ea11af7a4d73dc7071cad604b4c">find_coincident_points</a> (const std::vector&lt; <a class="el" href="#acedd2a0f9db919d923f32babff4d7b1f">Point</a>&lt; dim &gt; &gt; &amp;points, const <a class="el" href="../../db/d28/classqugar_1_1Tolerance.html">Tolerance</a> &amp;tol, std::vector&lt; std::size_t &gt; &amp;points_map)</td></tr>
 <tr class="memdesc:a810f1ea11af7a4d73dc7071cad604b4c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Finds coincident points in a given set of points.  <br /></td></tr>
@@ -249,9 +256,9 @@ Functions</h2></td></tr>
 <tr class="memitem:a285022e9ee78a68f4023bc3469e303b9" id="r_a285022e9ee78a68f4023bc3469e303b9"><td class="memTemplParams" colspan="2">template&lt;int dim, bool levelset&gt; </td></tr>
 <tr class="memitem:a285022e9ee78a68f4023bc3469e303b9"><td class="memTemplItemLeft" align="right" valign="top">std::shared_ptr&lt; const <a class="el" href="../../d8/d99/classqugar_1_1ReparamMesh.html">ReparamMesh</a>&lt; levelset ? dim - 1 :dim, dim &gt; &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#a285022e9ee78a68f4023bc3469e303b9">create_reparameterization</a> (const <a class="el" href="../../df/d58/classqugar_1_1UnfittedDomain.html">UnfittedDomain</a>&lt; dim &gt; &amp;unf_domain, int n_pts_dir)</td></tr>
 <tr class="separator:a285022e9ee78a68f4023bc3469e303b9"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7a17f4f38e27283b0180028a8d0fbc8d" id="r_a7a17f4f38e27283b0180028a8d0fbc8d"><td class="memTemplParams" colspan="2">template&lt;int dim, bool levelset&gt; </td></tr>
-<tr class="memitem:a7a17f4f38e27283b0180028a8d0fbc8d"><td class="memTemplItemLeft" align="right" valign="top">std::shared_ptr&lt; const <a class="el" href="../../d8/d99/classqugar_1_1ReparamMesh.html">ReparamMesh</a>&lt; levelset ? dim - 1 :dim, dim &gt; &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#a7a17f4f38e27283b0180028a8d0fbc8d">create_reparameterization</a> (const <a class="el" href="../../df/d58/classqugar_1_1UnfittedDomain.html">UnfittedDomain</a>&lt; dim &gt; &amp;unf_domain, const std::vector&lt; int &gt; &amp;cells, int n_pts_dir)</td></tr>
-<tr class="separator:a7a17f4f38e27283b0180028a8d0fbc8d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a05706e926bcfa699a97cb65d91b29319" id="r_a05706e926bcfa699a97cb65d91b29319"><td class="memTemplParams" colspan="2">template&lt;int dim, bool levelset&gt; </td></tr>
+<tr class="memitem:a05706e926bcfa699a97cb65d91b29319"><td class="memTemplItemLeft" align="right" valign="top">std::shared_ptr&lt; const <a class="el" href="../../d8/d99/classqugar_1_1ReparamMesh.html">ReparamMesh</a>&lt; levelset ? dim - 1 :dim, dim &gt; &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#a05706e926bcfa699a97cb65d91b29319">create_reparameterization</a> (const <a class="el" href="../../df/d58/classqugar_1_1UnfittedDomain.html">UnfittedDomain</a>&lt; dim &gt; &amp;unf_domain, const std::vector&lt; std::int64_t &gt; &amp;cells, int n_pts_dir)</td></tr>
+<tr class="separator:a05706e926bcfa699a97cb65d91b29319"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aeb632759e5ce6b58f6b5b29435e0700a" id="r_aeb632759e5ce6b58f6b5b29435e0700a"><td class="memTemplParams" colspan="2">template&lt;class T , class V &gt; </td></tr>
 <tr class="memitem:aeb632759e5ce6b58f6b5b29435e0700a"><td class="memTemplItemLeft" align="right" valign="top">constexpr T&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#aeb632759e5ce6b58f6b5b29435e0700a">narrow_cast</a> (V &amp;&amp;val) noexcept</td></tr>
 <tr class="separator:aeb632759e5ce6b58f6b5b29435e0700a"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -283,7 +290,7 @@ Variables</h2></td></tr>
 <tr class="separator:a58ece4b1c5493114dd7270510a7691c8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a85a4c442d6bdd85da55d060b96064a75" id="r_a85a4c442d6bdd85da55d060b96064a75"><td class="memItemLeft" align="right" valign="top">constexpr std::string_view&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a85a4c442d6bdd85da55d060b96064a75">QUGAR_VERSION_STRING</a> { &quot;0.0.4&quot; }</td></tr>
 <tr class="separator:a85a4c442d6bdd85da55d060b96064a75"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a60fbd9fef129212a8ae43f10567722e5" id="r_a60fbd9fef129212a8ae43f10567722e5"><td class="memItemLeft" align="right" valign="top">constexpr std::string_view&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a60fbd9fef129212a8ae43f10567722e5">QUGAR_VERSION_GIT</a> { &quot;5edaa19&quot; }</td></tr>
+<tr class="memitem:a60fbd9fef129212a8ae43f10567722e5" id="r_a60fbd9fef129212a8ae43f10567722e5"><td class="memItemLeft" align="right" valign="top">constexpr std::string_view&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a60fbd9fef129212a8ae43f10567722e5">QUGAR_VERSION_GIT</a> { &quot;04d2c53&quot; }</td></tr>
 <tr class="separator:a60fbd9fef129212a8ae43f10567722e5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
@@ -383,6 +390,33 @@ template&lt;typename T , int dim&gt; </div>
 </div>
 </div>
 <h2 class="groupheader">Enumeration Type Documentation</h2>
+<a id="a8d29996537c43e2b4e3773030bcf1eef" name="a8d29996537c43e2b4e3773030bcf1eef"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8d29996537c43e2b4e3773030bcf1eef">&#9670;&#160;</a></span>ImmersedCellStatus</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">enum class <a class="el" href="#a8d29996537c43e2b4e3773030bcf1eef">qugar::ImmersedCellStatus</a> : std::uint8_t</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">strong</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<table class="fieldtable">
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a8d29996537c43e2b4e3773030bcf1eefafe47aa7c733c490d36e80508d5dc4019" name="a8d29996537c43e2b4e3773030bcf1eefafe47aa7c733c490d36e80508d5dc4019"></a>cut&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a8d29996537c43e2b4e3773030bcf1eefae9dc924f238fa6cc29465942875fe8f0" name="a8d29996537c43e2b4e3773030bcf1eefae9dc924f238fa6cc29465942875fe8f0"></a>full&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a8d29996537c43e2b4e3773030bcf1eefaa2e4822a98337283e39f7b60acf85ec9" name="a8d29996537c43e2b4e3773030bcf1eefaa2e4822a98337283e39f7b60acf85ec9"></a>empty&#160;</td><td class="fielddoc"></td></tr>
+</table>
+
+</div>
+</div>
 <a id="a2a8e94584d3f66820b45e705a99aa8ba" name="a2a8e94584d3f66820b45e705a99aa8ba"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a2a8e94584d3f66820b45e705a99aa8ba">&#9670;&#160;</a></span>ImmersedFacetStatus</h2>
 
@@ -584,8 +618,8 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
-<a id="a989e79754e706a0ea29c90f61ef312dc" name="a989e79754e706a0ea29c90f61ef312dc"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a989e79754e706a0ea29c90f61ef312dc">&#9670;&#160;</a></span>create_exterior_facets_quadrature()</h2>
+<a id="a63b121a771c6741d21cf9c0af1e9f5b0" name="a63b121a771c6741d21cf9c0af1e9f5b0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a63b121a771c6741d21cf9c0af1e9f5b0">&#9670;&#160;</a></span>create_exterior_facets_quadrature()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -600,7 +634,7 @@ template&lt;int dim&gt; </div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const std::vector&lt; int &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>cells</em></span>, </td>
+          <td class="paramtype">const std::vector&lt; std::int64_t &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>cells</em></span>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -622,8 +656,8 @@ template&lt;int dim&gt; </div>
 
 </div>
 </div>
-<a id="ae9199da21f848df62d5f97a88af178ea" name="ae9199da21f848df62d5f97a88af178ea"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ae9199da21f848df62d5f97a88af178ea">&#9670;&#160;</a></span>create_interior_facets_quadrature()</h2>
+<a id="a2995f6066adc73cefa196180757123eb" name="a2995f6066adc73cefa196180757123eb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2995f6066adc73cefa196180757123eb">&#9670;&#160;</a></span>create_interior_facets_quadrature()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -638,7 +672,7 @@ template&lt;int dim&gt; </div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const std::vector&lt; int &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>cells</em></span>, </td>
+          <td class="paramtype">const std::vector&lt; std::int64_t &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>cells</em></span>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -660,8 +694,8 @@ template&lt;int dim&gt; </div>
 
 </div>
 </div>
-<a id="a278123c4be055875c8a95c2a680cf6b2" name="a278123c4be055875c8a95c2a680cf6b2"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a278123c4be055875c8a95c2a680cf6b2">&#9670;&#160;</a></span>create_quadrature()</h2>
+<a id="ad445be012c036b0ba21f2ea3ef1d4b2a" name="ad445be012c036b0ba21f2ea3ef1d4b2a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad445be012c036b0ba21f2ea3ef1d4b2a">&#9670;&#160;</a></span>create_quadrature()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -676,7 +710,7 @@ template&lt;int dim&gt; </div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const std::vector&lt; int &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>cells</em></span>, </td>
+          <td class="paramtype">const std::vector&lt; std::int64_t &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>cells</em></span>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -693,13 +727,13 @@ template&lt;int dim&gt; </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="../../d0/d6b/namespacequgar_a278123c4be055875c8a95c2a680cf6b2_icgraph.svg" width="300" height="36"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="../../d0/d6b/namespacequgar_ad445be012c036b0ba21f2ea3ef1d4b2a_icgraph.svg" width="300" height="36"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
 </div>
-<a id="a7a17f4f38e27283b0180028a8d0fbc8d" name="a7a17f4f38e27283b0180028a8d0fbc8d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a7a17f4f38e27283b0180028a8d0fbc8d">&#9670;&#160;</a></span>create_reparameterization() <span class="overload">[1/2]</span></h2>
+<a id="a05706e926bcfa699a97cb65d91b29319" name="a05706e926bcfa699a97cb65d91b29319"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a05706e926bcfa699a97cb65d91b29319">&#9670;&#160;</a></span>create_reparameterization() <span class="overload">[1/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -714,7 +748,7 @@ template&lt;int dim, bool levelset&gt; </div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const std::vector&lt; int &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>cells</em></span>, </td>
+          <td class="paramtype">const std::vector&lt; std::int64_t &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>cells</em></span>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -749,8 +783,8 @@ template&lt;int dim, bool levelset&gt; </div>
 
 </div>
 </div>
-<a id="a5f637d6a93679ad8b021497f1b3354b3" name="a5f637d6a93679ad8b021497f1b3354b3"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a5f637d6a93679ad8b021497f1b3354b3">&#9670;&#160;</a></span>create_unfitted_bound_quadrature()</h2>
+<a id="a7bf54140d30528eb2a67aac55bb762cf" name="a7bf54140d30528eb2a67aac55bb762cf"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7bf54140d30528eb2a67aac55bb762cf">&#9670;&#160;</a></span>create_unfitted_bound_quadrature()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -765,7 +799,7 @@ template&lt;int dim&gt; </div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const std::vector&lt; int &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>cells</em></span>, </td>
+          <td class="paramtype">const std::vector&lt; std::int64_t &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>cells</em></span>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -777,7 +811,7 @@ template&lt;int dim&gt; </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="../../d0/d6b/namespacequgar_a5f637d6a93679ad8b021497f1b3354b3_icgraph.svg" width="279" height="51"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="../../d0/d6b/namespacequgar_a7bf54140d30528eb2a67aac55bb762cf_icgraph.svg" width="279" height="51"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -950,7 +984,7 @@ template&lt;typename T , int dim&gt; </div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">std::string_view qugar::QUGAR_VERSION_GIT { &quot;5edaa19&quot; }</td>
+          <td class="memname">std::string_view qugar::QUGAR_VERSION_GIT { &quot;04d2c53&quot; }</td>
         </tr>
       </table>
   </td>

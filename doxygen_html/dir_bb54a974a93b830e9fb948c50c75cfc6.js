@@ -33,6 +33,7 @@ var dir_bb54a974a93b830e9fb948c50c75cfc6 =
     [ "tpms_lib.hpp", "d4/d7f/tpms__lib_8hpp.html", "d4/d7f/tpms__lib_8hpp" ],
     [ "types.hpp", "dd/de3/types_8hpp.html", "dd/de3/types_8hpp" ],
     [ "unfitted_domain.hpp", "d2/dfd/unfitted__domain_8hpp.html", "d2/dfd/unfitted__domain_8hpp" ],
+    [ "unfitted_domain_kd_tree.hpp", "d8/d90/unfitted__domain__kd__tree_8hpp.html", "d8/d90/unfitted__domain__kd__tree_8hpp" ],
     [ "utils.hpp", "df/d93/utils_8hpp.html", "df/d93/utils_8hpp" ],
     [ "vector.hpp", "da/d16/vector_8hpp.html", "da/d16/vector_8hpp" ],
     [ "version.hpp", "d7/dad/version_8hpp.html", "d7/dad/version_8hpp" ]

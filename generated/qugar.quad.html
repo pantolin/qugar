@@ -364,20 +364,6 @@ the array must be the same as <cite>points</cite>.</p></li>
 whose quadratures are generated.</p>
 </dd>
 </dl>
-<dl class="py property">
-<dt class="sig sig-object py" id="qugar.quad.QuadGenerator.cart_mesh">
-<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">cart_mesh</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="qugar.mesh.html#qugar.mesh.CartesianMesh" title="qugar.mesh.tp_mesh.CartesianMesh"><span class="pre">CartesianMesh</span></a></em><a class="headerlink" href="#qugar.quad.QuadGenerator.cart_mesh" title="Link to this definition"></a></dt>
-<dd><p>Gets the domain’s Cartesian mesh.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Domain’s Cartesian mesh.</p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><a class="reference internal" href="qugar.mesh.html#qugar.mesh.CartesianMesh" title="qugar.mesh.CartesianMesh">CartesianMesh</a></p>
-</dd>
-</dl>
-</dd></dl>
-
 <dl class="py method">
 <dt class="sig sig-object py" id="qugar.quad.QuadGenerator.create_quad_custom_cells">
 <span class="sig-name descname"><span class="pre">create_quad_custom_cells</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">degree</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dlf_cells</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">int32</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tag</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#qugar.quad.CustomQuad" title="qugar.quad.quad_data.CustomQuad"><span class="pre">CustomQuad</span></a></span></span><a class="reference internal" href="../_modules/qugar/quad/quad_generator.html#QuadGenerator.create_quad_custom_cells"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qugar.quad.QuadGenerator.create_quad_custom_cells" title="Link to this definition"></a></dt>
@@ -534,6 +520,20 @@ Computer Methods in Applied Mechanics and Engineering, 395, p.114948.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="qugar.quad.QuadGenerator.tp_mesh">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">tp_mesh</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="qugar.mesh.html#qugar.mesh.TensorProductMesh" title="qugar.mesh.tp_mesh.TensorProductMesh"><span class="pre">TensorProductMesh</span></a></em><a class="headerlink" href="#qugar.quad.QuadGenerator.tp_mesh" title="Link to this definition"></a></dt>
+<dd><p>Gets the domain’s tensor-product mesh.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Domain’s tensor-product mesh.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="qugar.mesh.html#qugar.mesh.TensorProductMesh" title="qugar.mesh.TensorProductMesh">TensorProductMesh</a></p>
 </dd>
 </dl>
 </dd></dl>

@@ -8,5 +8,5 @@ var classqugar_1_1TensorSizeTP =
     [ "as_Vector", "d3/d39/classqugar_1_1TensorSizeTP.html#a7ddd330f400d55f3b351cf3a39420920", null ],
     [ "operator+", "d3/d39/classqugar_1_1TensorSizeTP.html#a1f947628a8946db24ee296154591c506", null ],
     [ "operator==", "d3/d39/classqugar_1_1TensorSizeTP.html#ada391e037cd56f112900a4053f3808fa", null ],
-    [ "size", "d3/d39/classqugar_1_1TensorSizeTP.html#a467b22728ff52424460f45a072b65f5d", null ]
+    [ "size", "d3/d39/classqugar_1_1TensorSizeTP.html#a7705ecba088a4cfc11c9eb566bd22f71", null ]
 ];

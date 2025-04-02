@@ -59,6 +59,9 @@ var hierarchy =
       [ "qugar::impl::funcs::Ellipsoid< dim >", "d7/d1f/classqugar_1_1impl_1_1funcs_1_1Ellipsoid.html", null ],
       [ "qugar::impl::funcs::EllipsoidBzr< dim >", "d6/d06/classqugar_1_1impl_1_1funcs_1_1EllipsoidBzr.html", null ]
     ] ],
+    [ "std::enable_shared_from_this", null, [
+      [ "qugar::UnfittedKDTree< dim >", "d9/df1/classqugar_1_1UnfittedKDTree.html", null ]
+    ] ],
     [ "qugar::Gauss", "d0/d92/classqugar_1_1Gauss.html", null ],
     [ "std::hash< qugar::TensorIndexTP< dim > >", "d6/dc2/structstd_1_1hash_3_01qugar_1_1TensorIndexTP_3_01dim_01_4_01_4.html", null ],
     [ "qugar::impl::funcs::_impl::IsAlgoimVector< V >", "da/dec/structqugar_1_1impl_1_1funcs_1_1__impl_1_1IsAlgoimVector.html", null ],

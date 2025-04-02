@@ -1,9 +1,9 @@
 var searchData=
 [
-  ['three_0',['three',['../dd/dcc/namespacequgar_1_1numbers.html#a195ccb6a1e5d7dcd20311bcff2611e0c',1,'qugar::numbers']]],
-  ['three_5fquarters_1',['three_quarters',['../dd/dcc/namespacequgar_1_1numbers.html#a0e18932c5f58f8e3403ceefa6b4805b8',1,'qugar::numbers']]],
-  ['tolerance_5f_2',['tolerance_',['../db/d28/classqugar_1_1Tolerance.html#a35b377274c0a242922c52b724a485a4f',1,'qugar::Tolerance']]],
-  ['transf_5f_3',['transf_',['../d0/de9/classqugar_1_1impl_1_1funcs_1_1FuncWithAffineTransf.html#abfd3cc8eba284778b53ebb313008ca67',1,'qugar::impl::funcs::FuncWithAffineTransf']]],
-  ['two_4',['two',['../dd/dcc/namespacequgar_1_1numbers.html#a0134aa2bc2dac6f59a218bd3cd089c7d',1,'qugar::numbers']]],
-  ['two_5fthirds_5',['two_thirds',['../dd/dcc/namespacequgar_1_1numbers.html#af6da50b9837bcfcbe0b2e1e3c2865b05',1,'qugar::numbers']]]
+  ['semi_5faxes_5f_0',['semi_axes_',['../d9/d7e/classqugar_1_1impl_1_1funcs_1_1EllipsoidBase.html#ae2b181e2ee13d4c7a0e8a56da1d837d3',1,'qugar::impl::funcs::EllipsoidBase']]],
+  ['seven_1',['seven',['../dd/dcc/namespacequgar_1_1numbers.html#ae43fad541bdf97a7ce5031f94242aff2',1,'qugar::numbers']]],
+  ['six_2',['six',['../dd/dcc/namespacequgar_1_1numbers.html#aba2caad423faef23d7b4e3b5db2c3a35',1,'qugar::numbers']]],
+  ['status_5f_3',['status_',['../d9/df1/classqugar_1_1UnfittedKDTree.html#ab49c434129e8d17901eef08e84c09a7a',1,'qugar::UnfittedKDTree']]],
+  ['subgrid_5f_4',['subgrid_',['../d9/df1/classqugar_1_1UnfittedKDTree.html#a6f442ac46807a79118e4b303c756009e',1,'qugar::UnfittedKDTree']]],
+  ['system_5f_5',['system_',['../d9/d7e/classqugar_1_1impl_1_1funcs_1_1EllipsoidBase.html#a121222b74cb65735aed8bd4d9b652c3d',1,'qugar::impl::funcs::EllipsoidBase']]]
 ];

@@ -177,7 +177,7 @@
 <p class="rubric">Classes</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#qugar.impl.UnfittedImplDomain" title="qugar.impl.UnfittedImplDomain"><code class="xref py py-obj docutils literal notranslate"><span class="pre">UnfittedImplDomain</span></code></a>(cart_mesh, cpp_object)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#qugar.impl.UnfittedImplDomain" title="qugar.impl.UnfittedImplDomain"><code class="xref py py-obj docutils literal notranslate"><span class="pre">UnfittedImplDomain</span></code></a>(tp_mesh, cpp_object)</p></td>
 <td><p>Class for storing an unfitted implicit domain and access its cut, full, and empty cells and facets.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#qugar.impl.ImplicitFunc" title="qugar.impl.ImplicitFunc"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ImplicitFunc</span></code></a>(cpp_object)</p></td>
@@ -228,7 +228,7 @@
 
 <dl class="py class">
 <dt class="sig sig-object py" id="qugar.impl.UnfittedImplDomain">
-<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qugar.impl.</span></span><span class="sig-name descname"><span class="pre">UnfittedImplDomain</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cart_mesh</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="qugar.mesh.html#qugar.mesh.CartesianMesh" title="qugar.mesh.tp_mesh.CartesianMesh"><span class="pre">CartesianMesh</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cpp_object</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="qugar.cpp.html#qugar.cpp.UnfittedImplDomain_2D" title="qugar.cpp.UnfittedImplDomain_2D"><span class="pre">UnfittedImplDomain_2D</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="qugar.cpp.html#qugar.cpp.UnfittedImplDomain_3D" title="qugar.cpp.UnfittedImplDomain_3D"><span class="pre">UnfittedImplDomain_3D</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qugar/impl/impl_unfitted_domain.html#UnfittedImplDomain"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qugar.impl.UnfittedImplDomain" title="Link to this definition"></a></dt>
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qugar.impl.</span></span><span class="sig-name descname"><span class="pre">UnfittedImplDomain</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tp_mesh</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="qugar.mesh.html#qugar.mesh.TensorProductMesh" title="qugar.mesh.tp_mesh.TensorProductMesh"><span class="pre">TensorProductMesh</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cpp_object</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="qugar.cpp.html#qugar.cpp.UnfittedImplDomain_2D" title="qugar.cpp.UnfittedImplDomain_2D"><span class="pre">UnfittedImplDomain_2D</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="qugar.cpp.html#qugar.cpp.UnfittedImplDomain_3D" title="qugar.cpp.UnfittedImplDomain_3D"><span class="pre">UnfittedImplDomain_3D</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qugar/impl/impl_unfitted_domain.html#UnfittedImplDomain"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qugar.impl.UnfittedImplDomain" title="Link to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">UnfittedDomain</span></code></p>
 <p>Class for storing an unfitted implicit domain
 and access its cut, full, and empty cells and facets.</p>
@@ -236,7 +236,7 @@ and access its cut, full, and empty cells and facets.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>cart_mesh</strong> (<a class="reference internal" href="qugar.mesh.html#qugar.mesh.CartesianMesh" title="qugar.mesh.CartesianMesh"><em>CartesianMesh</em></a>) – Cartesian tensor-product mesh
+<li><p><strong>tp_mesh</strong> (<a class="reference internal" href="qugar.mesh.html#qugar.mesh.TensorProductMesh" title="qugar.mesh.TensorProductMesh"><em>TensorProductMesh</em></a>) – Tensor-product mesh
 for which the cell decomposition is generated.</p></li>
 <li><p><strong>cpp_object</strong> (<a class="reference internal" href="qugar.cpp.html#qugar.cpp.UnfittedImplDomain_2D" title="qugar.cpp.UnfittedImplDomain_2D"><em>UnfittedImplDomain_2D</em></a><em> | </em><a class="reference internal" href="qugar.cpp.html#qugar.cpp.UnfittedImplDomain_3D" title="qugar.cpp.UnfittedImplDomain_3D"><em>UnfittedImplDomain_3D</em></a>) – Already generated unfitted implicit domain binary object.</p></li>
 </ul>
@@ -824,7 +824,7 @@ Defaults to None.</p></li>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>impl_func</strong> (<a class="reference internal" href="qugar.cpp.html#qugar.cpp.ImplicitFunc_2D" title="qugar.cpp.ImplicitFunc_2D"><em>ImplicitFunc_2D</em></a><em> | </em><a class="reference internal" href="qugar.cpp.html#qugar.cpp.ImplicitFunc_3D" title="qugar.cpp.ImplicitFunc_3D"><em>ImplicitFunc_3D</em></a>) – Implicit function
 that describes the domain.</p></li>
-<li><p><strong>cart_mesh</strong> (<a class="reference internal" href="qugar.mesh.html#qugar.mesh.CartesianMesh" title="qugar.mesh.CartesianMesh"><em>CartesianMesh</em></a>) – Cartesian tensor-product mesh for
+<li><p><strong>cart_mesh</strong> (<a class="reference internal" href="qugar.mesh.html#qugar.mesh.CartesianMesh" title="qugar.mesh.CartesianMesh"><em>CartesianMesh</em></a>) – Tensor-product mesh for
 which the unfitted domain is generated.</p></li>
 </ul>
 </dd>

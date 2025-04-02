@@ -206,7 +206,6 @@ cart_mesh = create_Cartesian_mesh(
     xmin,
     xmax,
 )
-dlf_mesh = cart_mesh.dolfinx_mesh
 
 # and then we create an unfitted domain that stores the partition
 # $\mathcal{T}=\mathcal{T}_{\text{cut}}\cup\mathcal{T}_{\text{full}}\cup\mathcal{T}_{\text{empty}}$.
@@ -216,7 +215,7 @@ unf_domain = qugar.impl.create_unfitted_impl_domain(impl_func, cart_mesh)
 # We create the vector function $\mathbf{F}$ and its divergence.
 
 # +
-x = ufl.SpatialCoordinate(dlf_mesh)
+x = ufl.SpatialCoordinate(cart_mesh)
 if dim == 2:
     F = ufl.as_vector([ufl.sin(x[0]), ufl.cos(x[1])])  # type: ignore
 else:
@@ -239,7 +238,7 @@ facet_tags = unf_domain.create_exterior_facet_subdomain_data(cut_tag=0, full_tag
 
 dx = ufl.dx(
     subdomain_id=(0, 1),
-    domain=dlf_mesh,
+    domain=cart_mesh,
     subdomain_data=cell_subdomain_data,
 )
 ufl_form_vol = div_F * dx
@@ -249,20 +248,20 @@ ufl_form_vol = div_F * dx
 # {py:class}`dx_bdry_unf<qugar.dolfinx.dx_bdry_unf>` measure introduced in QUGaR
 # (note that we integrate over the cut cells only)
 
-ds_int = dx_bdry_unf(subdomain_id=0, domain=dlf_mesh, subdomain_data=cell_subdomain_data)
+ds_int = dx_bdry_unf(subdomain_id=0, domain=cart_mesh, subdomain_data=cell_subdomain_data)
 
 # and the standard UFL external facet measure for (both parts of) $\Gamma_{\text{ext}}$.
 
-ds = ufl.ds(subdomain_id=0, domain=dlf_mesh, subdomain_data=facet_tags)
+ds = ufl.ds(subdomain_id=0, domain=cart_mesh, subdomain_data=facet_tags)
 
 # In the same way, the unit outward normal vector at the boundary $\Gamma_{\text{int}}$  requires
 # the {py:class}`mapped_normal<qugar.dolfinx.mapped_normal>` function introduced in QUGaR.
 
-bound_normal = mapped_normal(dlf_mesh)
+bound_normal = mapped_normal(cart_mesh)
 
 # while the normal at the external facets is defined using the standard UFL function.
 
-facet_normal = ufl.FacetNormal(dlf_mesh)
+facet_normal = ufl.FacetNormal(cart_mesh)
 
 # Using these measures and normals we define the integrals over the surface as
 

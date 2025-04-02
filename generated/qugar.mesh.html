@@ -156,7 +156,7 @@
 <p class="rubric">Classes</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#qugar.mesh.CartesianMesh" title="qugar.mesh.CartesianMesh"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CartesianMesh</span></code></a>(comm, grid_cpp, degree, ...)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#qugar.mesh.CartesianMesh" title="qugar.mesh.CartesianMesh"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CartesianMesh</span></code></a>(comm, cart_grid_tp_cpp, ...)</p></td>
 <td><p>Cartesian mesh data structure.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#qugar.mesh.TensorProductMesh" title="qugar.mesh.TensorProductMesh"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TensorProductMesh</span></code></a>(comm, nodes_coords, n_cells)</p></td>
@@ -169,7 +169,7 @@
 </table>
 <dl class="py class">
 <dt class="sig sig-object py" id="qugar.mesh.CartesianMesh">
-<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qugar.mesh.</span></span><span class="sig-name descname"><span class="pre">CartesianMesh</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">comm:</span> <span class="pre">~mpi4py.MPI.Intracomm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid_cpp:</span> <span class="pre">~qugar.cpp.CartGridTP_2D</span> <span class="pre">|</span> <span class="pre">~qugar.cpp.CartGridTP_3D</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">degree:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ghost_mode:</span> <span class="pre">~dolfinx.cpp.mesh.GhostMode</span> <span class="pre">=</span> <span class="pre">GhostMode.shared_facet</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype:</span> <span class="pre">type[~numpy.float32</span> <span class="pre">|</span> <span class="pre">~numpy.float64]</span> <span class="pre">=</span> <span class="pre">&lt;class</span> <span class="pre">'numpy.float64'&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qugar/mesh/tp_mesh.html#CartesianMesh"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qugar.mesh.CartesianMesh" title="Link to this definition"></a></dt>
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qugar.mesh.</span></span><span class="sig-name descname"><span class="pre">CartesianMesh</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">comm:</span> <span class="pre">~mpi4py.MPI.Comm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cart_grid_tp_cpp:</span> <span class="pre">~qugar.cpp.CartGridTP_2D</span> <span class="pre">|</span> <span class="pre">~qugar.cpp.CartGridTP_3D</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">degree:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ghost_mode:</span> <span class="pre">~dolfinx.cpp.mesh.GhostMode</span> <span class="pre">=</span> <span class="pre">GhostMode.none</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype:</span> <span class="pre">type[~numpy.float32</span> <span class="pre">|</span> <span class="pre">~numpy.float64]</span> <span class="pre">=</span> <span class="pre">&lt;class</span> <span class="pre">'numpy.float64'&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qugar/mesh/tp_mesh.html#CartesianMesh"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qugar.mesh.CartesianMesh" title="Link to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#qugar.mesh.TensorProductMesh" title="qugar.mesh.tp_mesh.TensorProductMesh"><code class="xref py py-class docutils literal notranslate"><span class="pre">TensorProductMesh</span></code></a></p>
 <p>Cartesian mesh data structure. This class is a helper class to
 ease the construction and management of tensor-product (hypercube)
@@ -186,18 +186,33 @@ but rather use the function <cite>create_Cartesian_mesh</cite>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>comm</strong> (<em>MPI.Intracomm</em>) – MPI communicator to be used for
+<li><p><strong>comm</strong> (<em>MPI.Comm</em>) – MPI communicator to be used for
 distributing the mesh.</p></li>
-<li><p><strong>grid_cpp</strong> (<a class="reference internal" href="qugar.cpp.html#qugar.cpp.CartGridTP_2D" title="qugar.cpp.CartGridTP_2D"><em>qugar.cpp.CartGridTP_2D</em></a><em> | </em><a class="reference internal" href="qugar.cpp.html#qugar.cpp.CartGridTP_3D" title="qugar.cpp.CartGridTP_3D"><em>qugar.cpp.CartGridTP_3D</em></a>) – C++ Cartesian grid object.</p></li>
+<li><p><strong>cart_grid_tp_cpp</strong> (<a class="reference internal" href="qugar.cpp.html#qugar.cpp.CartGridTP_2D" title="qugar.cpp.CartGridTP_2D"><em>qugar.cpp.CartGridTP_2D</em></a><em> | </em><a class="reference internal" href="qugar.cpp.html#qugar.cpp.CartGridTP_3D" title="qugar.cpp.CartGridTP_3D"><em>qugar.cpp.CartGridTP_3D</em></a>) – C++ Cartesian grid object.</p></li>
 <li><p><strong>degree</strong> (<em>int</em><em>, </em><em>optional</em>) – Degree of the mesh. Defaults to 1.
 It must be greater than zero.</p></li>
 <li><p><strong>ghost_mode</strong> (<em>GhostMode</em><em>, </em><em>optional</em>) – Ghost mode used for mesh
-partitioning. Defaults to <cite>shared_facet</cite>.</p></li>
+partitioning. Defaults to <cite>none</cite>.</p></li>
 <li><p><strong>dtype</strong> (<em>type</em><em>[</em><em>np.float32</em><em> | </em><em>np.float64</em><em>]</em><em>, </em><em>optional</em>) – Type to
 be used in the grid. Defaults to <cite>np.float64</cite>.</p></li>
 </ul>
 </dd>
 </dl>
+<dl class="py property">
+<dt class="sig sig-object py" id="qugar.mesh.CartesianMesh.cart_grid_tp_cpp_object">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">cart_grid_tp_cpp_object</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="qugar.cpp.html#qugar.cpp.CartGridTP_2D" title="qugar.cpp.CartGridTP_2D"><span class="pre">CartGridTP_2D</span></a></em><a class="headerlink" href="#qugar.mesh.CartesianMesh.cart_grid_tp_cpp_object" title="Link to this definition"></a></dt>
+<dd><p>Returns the stored (C++) Cartesian grid object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Stored Cartesian
+grid object.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="qugar.cpp.html#qugar.cpp.CartGridTP_2D" title="qugar.cpp.CartGridTP_2D">qugar.cpp.CartGridTP_2D</a> | <a class="reference internal" href="qugar.cpp.html#qugar.cpp.CartGridTP_2D" title="qugar.cpp.CartGridTP_2D">qugar.cpp.CartGridTP_2D</a></p>
+</dd>
+</dl>
+</dd></dl>
+
 <dl class="py property">
 <dt class="sig sig-object py" id="qugar.mesh.CartesianMesh.cell_breaks">
 <em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">cell_breaks</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">float32</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float64</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#qugar.mesh.CartesianMesh.cell_breaks" title="Link to this definition"></a></dt>
@@ -213,49 +228,13 @@ along the parametric directions.</p>
 </dl>
 </dd></dl>
 
-<dl class="py property">
-<dt class="sig sig-object py" id="qugar.mesh.CartesianMesh.cpp_object">
-<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">cpp_object</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="qugar.cpp.html#qugar.cpp.CartGridTP_2D" title="qugar.cpp.CartGridTP_2D"><span class="pre">CartGridTP_2D</span></a></em><a class="headerlink" href="#qugar.mesh.CartesianMesh.cpp_object" title="Link to this definition"></a></dt>
-<dd><p>Returns the stored (C++) Cartesian grid object.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Stored Cartesian
-grid object.</p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><a class="reference internal" href="qugar.cpp.html#qugar.cpp.CartGridTP_2D" title="qugar.cpp.CartGridTP_2D">qugar.cpp.CartGridTP_2D</a> | <a class="reference internal" href="qugar.cpp.html#qugar.cpp.CartGridTP_2D" title="qugar.cpp.CartGridTP_2D">qugar.cpp.CartGridTP_2D</a></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py property">
-<dt class="sig sig-object py" id="qugar.mesh.CartesianMesh.dtype">
-<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">dtype</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">type</span><span class="p"><span class="pre">[</span></span><span class="pre">float32</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float64</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#qugar.mesh.CartesianMesh.dtype" title="Link to this definition"></a></dt>
-<dd><p>Gets the type associated to the breaks.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Type associated to the
-breaks.</p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>type[np.float32 | np.float64]</p>
-</dd>
-</dl>
-</dd></dl>
-
 <dl class="py method">
 <dt class="sig sig-object py" id="qugar.mesh.CartesianMesh.get_cell_bbox">
-<span class="sig-name descname"><span class="pre">get_cell_bbox</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cell_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int32</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lexicg</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">float32</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float64</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/qugar/mesh/tp_mesh.html#CartesianMesh.get_cell_bbox"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qugar.mesh.CartesianMesh.get_cell_bbox" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_cell_bbox</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dlf_local_cell_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int32</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">float32</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float64</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/qugar/mesh/tp_mesh.html#CartesianMesh.get_cell_bbox"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qugar.mesh.CartesianMesh.get_cell_bbox" title="Link to this definition"></a></dt>
 <dd><p>Computes the bounding box of a single cell.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>cell_id</strong> (<em>np.int32</em>) – Cell whose bounding box is created.</p></li>
-<li><p><strong>lexicg</strong> (<em>bool</em><em>, </em><em>optional</em>) – If <cite>True</cite>, the given <cite>cell_id</cite> is
-assumed to be referred to the lexicographical mesh
-numbering convention. Otherwise, if <cite>False</cite>, <cite>cell_id</cite>
-follows the numbering of the underlying DOLFINx mesh.</p></li>
-</ul>
+<dd class="field-odd"><p><strong>dlf_local_cell_id</strong> (<em>np.int32</em>) – Local DOLFINx cell whose bounding box is created.</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p><dl class="simple">
@@ -626,11 +605,11 @@ transformed.</p></li>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="qugar.mesh.TensorProductMesh">
-<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qugar.mesh.</span></span><span class="sig-name descname"><span class="pre">TensorProductMesh</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">comm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Intracomm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nodes_coords</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">float32</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float64</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_cells</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">int32</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">int32</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">degree</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ghost_mode</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">GhostMode</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">GhostMode.shared_facet</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">merge_nodes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">merge_tol</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">type</span><span class="p"><span class="pre">[</span></span><span class="pre">float32</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float64</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qugar/mesh/tp_mesh.html#TensorProductMesh"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qugar.mesh.TensorProductMesh" title="Link to this definition"></a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qugar.mesh.</span></span><span class="sig-name descname"><span class="pre">TensorProductMesh</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">comm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Comm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nodes_coords</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">float32</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float64</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_cells</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">int32</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">int32</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">degree</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ghost_mode</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">GhostMode</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">GhostMode.none</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">merge_nodes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">merge_tol</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">type</span><span class="p"><span class="pre">[</span></span><span class="pre">float32</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float64</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qugar/mesh/tp_mesh.html#TensorProductMesh"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qugar.mesh.TensorProductMesh" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Mesh</span></code></p>
 <p>Tensor-product mesh data structure.</p>
-<p>This class is a helper class to ease the management of structured
-tensor-product meshes of intervals (1D), quadrangles (2D), or
+<p>This class derives from <cite>dolfinx.mesh.Mesh</cite>, easing the management of
+structured tensor-product meshes of intervals (1D), quadrangles (2D), or
 hexahedra (3D). The geometric dimension can be arbitrarity according
 to the DOLFINx capabilities.</p>
 <p>The class provides methods for easily quering the id of a cell in
@@ -658,14 +637,16 @@ outer-most. The nodes and cells numbering for a  2D case would be:</p>
 <p>Note that after the mesh creation, DOLFINx renumbers and partitions
 the mesh, so, this numeration will be different. It is always
 possible to retrieve the original numbering using the maps
-<cite>self.dolfinx_to_lexicg_nodes</cite> or <cite>self.dolfinx_to_lexicg_cells</cite>.
-Or, from the lexicographical to the DOLFINx numbering using
-<cite>self.lexicg_to_dolfinx_nodes</cite> or <cite>self.lexicg_to_dolfinx_cells</cite>.</p>
+<cite>self.get_lexicg_node_ids</cite> or <cite>self.get_lexicg_cell_ids</cite>.
+Or, from the lexicographical to the local DOLFINx numbering using
+<cite>self.get_DOLFINx_local_node_ids</cite> or <cite>self.get_DOLFINx_local_cell_ids</cite>,
+or the global with <cite>self.get_DOLFINx_global_node_ids</cite> or
+<cite>self.get_DOLFINx_global_cell_ids</cite>,</p>
 <p>Constructor.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>comm</strong> (<em>MPI.Intracomm</em>) – MPI communicator to be used for
+<li><p><strong>comm</strong> (<em>MPI.Comm</em>) – MPI communicator to be used for
 distributing the mesh.</p></li>
 <li><p><strong>n_cells</strong> (<em>npt.NDArray</em><em>[</em><em>np.int32</em><em>] </em><em>| </em><em>list</em><em>[</em><em>np.int32</em><em>] </em><em>| </em><em>list</em><em>[</em><em>int</em><em>]</em>) – Number of cells per direction in the mesh.</p></li>
 <li><p><strong>nodes_coords</strong> (<em>npt.NDArray</em><em>[</em><em>np.float32</em><em> | </em><em>np.float64</em><em>]</em>) – Nodes
@@ -674,7 +655,7 @@ coordinates. The rows correspond to the different nodes
 the coordinates of each point.</p></li>
 <li><p><strong>degree</strong> (<em>int</em>) – Degree of the mesh.</p></li>
 <li><p><strong>ghost_mode</strong> (<em>GhostMode</em><em>, </em><em>optional</em>) – Ghost mode used for mesh
-partitioning. Defaults to <cite>shared_facet</cite>.</p></li>
+partitioning. Defaults to <cite>none</cite>.</p></li>
 <li><p><strong>merge_nodes</strong> (<em>bool</em><em>, </em><em>optional</em>) – If <cite>True</cite>, coincident nodes
 will be merged together into a single one. Otherwise,
 duplicated nodes will not be merged. Defaults to
@@ -689,26 +670,18 @@ function <cite>merge_coincident_points_in_mesh</cite>.</p></li>
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="qugar.mesh.TensorProductMesh.create_facet_bdry_tags">
-<span class="sig-name descname"><span class="pre">create_facet_bdry_tags</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lexicg</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">MeshTags</span></span></span><a class="reference internal" href="../_modules/qugar/mesh/tp_mesh.html#TensorProductMesh.create_facet_bdry_tags"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qugar.mesh.TensorProductMesh.create_facet_bdry_tags" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">create_facet_bdry_tags</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">MeshTags</span></span></span><a class="reference internal" href="../_modules/qugar/mesh/tp_mesh.html#TensorProductMesh.create_facet_bdry_tags"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qugar.mesh.TensorProductMesh.create_facet_bdry_tags" title="Link to this definition"></a></dt>
 <dd><p>Creates face facet tags for the tensor product mesh.</p>
 <p>It creates the tags for the facets of the underlying DOLFINx mesh,
 setting a different tag for each boundary face of the domain.</p>
+<p>The created tags follow the lexicographical ordering of the
+tensor-product mesh. I.e., umin:0, umax:1, vmin:2, vmax:3, …</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>lexicg</strong> (<em>bool</em><em>, </em><em>optional</em>) – Defines how the tag values for the
-different boundary facets are set. It set to <cite>True</cite>, the
-lexicographical ordering is used (i.e., umin:0, umax:1,
-vmin:2, vmax:3, …). Otherwise, the faces correspond to the
-FEniCSx cell faces ordering, but applied to the full
-hypercube. See
-https://github.com/FEniCS/basix/#supported-elements
-It defaults to <cite>False</cite>.</p>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Generated tags.</p>
 </dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Generated tags.</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>dolfinx.mesh.MeshTags</p>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>dolfinx.mesh.MeshTags</p>
 </dd>
 </dl>
 </dd></dl>
@@ -728,15 +701,16 @@ It defaults to <cite>False</cite>.</p>
 </dd></dl>
 
 <dl class="py property">
-<dt class="sig sig-object py" id="qugar.mesh.TensorProductMesh.dolfinx_mesh">
-<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">dolfinx_mesh</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Mesh</span></em><a class="headerlink" href="#qugar.mesh.TensorProductMesh.dolfinx_mesh" title="Link to this definition"></a></dt>
-<dd><p>Gets the underlying DOLFINx mesh.</p>
+<dt class="sig sig-object py" id="qugar.mesh.TensorProductMesh.dtype">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">dtype</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">float32</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">float64</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#qugar.mesh.TensorProductMesh.dtype" title="Link to this definition"></a></dt>
+<dd><p>Gets the type associated to the breaks.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Underlying DOLFINx mesh.</p>
+<dd class="field-odd"><p>Type associated to the
+breaks.</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>dolfinx.mesh.Mesh</p>
+<dd class="field-even"><p>np.dtype[np.float32] | np.dtype[np.float64]</p>
 </dd>
 </dl>
 </dd></dl>
@@ -757,93 +731,65 @@ It defaults to <cite>False</cite>.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="qugar.mesh.TensorProductMesh.get_DOLFINx_global_cell_ids">
-<span class="sig-name descname"><span class="pre">get_DOLFINx_global_cell_ids</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cell_ids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">int32</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int64</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int32</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int64</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lexicg</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">int32</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/qugar/mesh/tp_mesh.html#TensorProductMesh.get_DOLFINx_global_cell_ids"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qugar.mesh.TensorProductMesh.get_DOLFINx_global_cell_ids" title="Link to this definition"></a></dt>
-<dd><p>Transforms the given local <cite>cell_ids</cite> into the corresponding global ids
+<span class="sig-name descname"><span class="pre">get_DOLFINx_global_cell_ids</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lex_cell_ids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">int64</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">int64</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/qugar/mesh/tp_mesh.html#TensorProductMesh.get_DOLFINx_global_cell_ids"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qugar.mesh.TensorProductMesh.get_DOLFINx_global_cell_ids" title="Link to this definition"></a></dt>
+<dd><p>Transforms the given local <cite>lex_cell_ids</cite> into the corresponding global ids
 of the underlying DOLFINx mesh.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>cell_ids</strong> (<em>npt.NDArray</em><em>[</em><em>np.int32</em><em> | </em><em>np.int64</em><em>] </em><em>| </em><em>np.int32</em><em> | </em><em>np.int64</em>) – Cell indices to be transformed. They may be local
-indices referred to the underlying DOLFINx mesh (if
-<cite>lexicg</cite> is set to <cite>False</cite>) or lexicographical indices
-(if <cite>lexicg</cite> is <cite>True</cite>). If <cite>lexicg</cite> is set to <cite>False</cite>,
-all the local DOLFINx indices must belong to the current
-subdomain (process).</p></li>
-<li><p><strong>lexicg</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether <cite>cell_ids</cite> follow the
-tensor-product lexicographical numbering or the DOLFINx
-one. Defaults to <cite>True</cite>.</p></li>
-</ul>
+<dd class="field-odd"><p><strong>lex_cell_ids</strong> (<em>npt.NDArray</em><em>[</em><em>np.int64</em><em>]</em>) – Cell indices to be transformed. They are lexicographical indices</p>
 </dd>
 </dl>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>All the indices in <cite>cell_ids</cite> must be contained in the
+<p>All the indices in <cite>lex_cell_ids</cite> must be contained in the
 current subdomain.</p>
 </div>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>Indices of the cells in the underlying DOLFINx mesh.
-These indices correspond to the global numbering associated to the
+These indices correspond to the global indices belonging to the
 current subdomain (process).</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>npt.NDArray[np.int32]</p>
+<dd class="field-even"><p>npt.NDArray[np.int64]</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="qugar.mesh.TensorProductMesh.get_DOLFINx_local_cell_ids">
-<span class="sig-name descname"><span class="pre">get_DOLFINx_local_cell_ids</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cell_ids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">int32</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int64</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int32</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int64</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lexicg</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">int32</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int32</span></span></span><a class="reference internal" href="../_modules/qugar/mesh/tp_mesh.html#TensorProductMesh.get_DOLFINx_local_cell_ids"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qugar.mesh.TensorProductMesh.get_DOLFINx_local_cell_ids" title="Link to this definition"></a></dt>
-<dd><p>Transforms the given <cite>cell_ids</cite> from the tensor-product mesh
+<span class="sig-name descname"><span class="pre">get_DOLFINx_local_cell_ids</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lex_cell_ids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">int64</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">int32</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/qugar/mesh/tp_mesh.html#TensorProductMesh.get_DOLFINx_local_cell_ids"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qugar.mesh.TensorProductMesh.get_DOLFINx_local_cell_ids" title="Link to this definition"></a></dt>
+<dd><p>Transforms the given <cite>lex_cell_ids</cite> from the lexicographical tensor-product mesh
 into the corresponding local ids of the underlying DOLFINx mesh.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>cell_ids</strong> (<em>npt.NDArray</em><em>[</em><em>np.int32</em><em> | </em><em>np.int64</em><em>] </em><em>| </em><em>np.int32</em><em> | </em><em>np.int64</em>) – Cell indices to be transformed. They may be local
-indices referred to the underlying DOLFINx mesh (if
-<cite>lexicg</cite> is set to <cite>False</cite>) or lexicographical indices
-(if <cite>lexicg</cite> is <cite>True</cite>). If <cite>lexicg</cite> is set to <cite>False</cite>,
-all the local DOLFINx indices must belong to the current
-subdomain (process).</p></li>
-<li><p><strong>lexicg</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether <cite>cell_ids</cite> follow the
-tensor-product lexicographical numbering or the DOLFINx
-one. Defaults to <cite>True</cite>.</p></li>
-</ul>
+<dd class="field-odd"><p><strong>lex_cell_ids</strong> (<em>npt.NDArray</em><em>[</em><em>np.int64</em><em>]</em>) – Cell indices to be transformed. They are lexicographical indices
+referred to the tensor-product mesh.</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>Indices of the cells in
 the underlying DOLFINx mesh. These indices correspond to the
 local numbering associated to the current subdomain
 (process). Note that some indices may be set to -1 in the
-case the input indices are lexicographical and some of them
-are not contained in the subdomain. The length of the output
+case the associated input lexicographical indices are not contained
+in the subdomain. The length of the output
 array is the same as the input.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>npt.NDArray[np.int32] | np.int32</p>
+<dd class="field-odd"><p>npt.NDArray[np.int32]</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="qugar.mesh.TensorProductMesh.get_DOLFINx_node_ids">
-<span class="sig-name descname"><span class="pre">get_DOLFINx_node_ids</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node_ids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">int32</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int64</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int32</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int64</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lexicg</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">int32</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int32</span></span></span><a class="reference internal" href="../_modules/qugar/mesh/tp_mesh.html#TensorProductMesh.get_DOLFINx_node_ids"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qugar.mesh.TensorProductMesh.get_DOLFINx_node_ids" title="Link to this definition"></a></dt>
-<dd><p>Transforms the given <cite>node_ids</cite> from the tensor-product mesh
+<dt class="sig sig-object py" id="qugar.mesh.TensorProductMesh.get_DOLFINx_local_node_ids">
+<span class="sig-name descname"><span class="pre">get_DOLFINx_local_node_ids</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lex_node_ids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">int64</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">int32</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/qugar/mesh/tp_mesh.html#TensorProductMesh.get_DOLFINx_local_node_ids"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qugar.mesh.TensorProductMesh.get_DOLFINx_local_node_ids" title="Link to this definition"></a></dt>
+<dd><p>Transforms the given <cite>lx_node_ids</cite> from the tensor-product mesh
 into the corresponding local ids of the underlying DOLFINx mesh.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>node_ids</strong> (<em>npt.NDArray</em><em>[</em><em>np.int32</em><em> | </em><em>np.int64</em><em>] </em><em>| </em><em>np.int32</em><em> | </em><em>np.int64</em>) – Node indices to be transformed. They may be local
-indices referred to the underlying DOLFINx mesh (if
-<cite>lexicg</cite> is set to <cite>False</cite>) or lexicographical indices
-(if <cite>lexicg</cite> is <cite>True</cite>). If <cite>lexicg</cite> is set to <cite>False</cite>,
-all the local DOLFINx indices must belong to the current
-subdomain (process).</p></li>
-<li><p><strong>lexicg</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether <cite>node_ids</cite> follow the
-tensor-product lexicographical numbering or the DOLFINx
-one. Defaults to <cite>True</cite>.</p></li>
-</ul>
+<dd class="field-odd"><p><strong>lex_node_ids</strong> (<em>npt.NDArray</em><em>[</em><em>np.int64</em><em>]</em>) – Node indices to be transformed. They are lexicographical
+indices referred to the tensor-product mesh.</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>Indices of the nodes in
@@ -855,31 +801,41 @@ are not contained in the subdomain. The length of the output
 array is the same as the input.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>npt.NDArray[np.int32] | np.int32</p>
+<dd class="field-odd"><p>npt.NDArray[np.int32]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qugar.mesh.TensorProductMesh.get_DOLFINx_local_to_global_cell_ids">
+<span class="sig-name descname"><span class="pre">get_DOLFINx_local_to_global_cell_ids</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dlf_local_cell_ids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">int32</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">int64</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/qugar/mesh/tp_mesh.html#TensorProductMesh.get_DOLFINx_local_to_global_cell_ids"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qugar.mesh.TensorProductMesh.get_DOLFINx_local_to_global_cell_ids" title="Link to this definition"></a></dt>
+<dd><p>Transforms the given local <cite>dlf_local_cell_ids</cite> (DOLFINx) local
+cell ids into the corresponding global ones associated to the current process.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>dlf_local_cell_ids</strong> (<em>npt.NDArray</em><em>[</em><em>np.int32</em><em>]</em>) – DOLFINx local cell indices
+to be transformed.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Global indices of the DOLFINx cells.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>npt.NDArray[np.int64]</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="qugar.mesh.TensorProductMesh.get_cell_facets">
-<span class="sig-name descname"><span class="pre">get_cell_facets</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cell_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int32</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_lexicg</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">int32</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/qugar/mesh/tp_mesh.html#TensorProductMesh.get_cell_facets"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qugar.mesh.TensorProductMesh.get_cell_facets" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_cell_facets</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dlf_local_cell_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int32</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">int32</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/qugar/mesh/tp_mesh.html#TensorProductMesh.get_cell_facets"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qugar.mesh.TensorProductMesh.get_cell_facets" title="Link to this definition"></a></dt>
 <dd><p>Extracts the facet ids of the given cell.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>cell_id</strong> (<em>np.int32</em>) – Id of the queried cell. It is a DOLFINx
-(local) cell id. It must be contained in the subdomain.</p></li>
-<li><p><strong>out_lexicg</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether the returned facet ids
-are reordered according to the lexicographical ordering
-of the cell’s bounding box. I.e., according to the
-directions umin, umax, vmin, vmax, … Otherwise, they
-follow the FEniCSx convention. See
-<a class="reference external" href="https://github.com/FEniCS/basix/#supported-elements">https://github.com/FEniCS/basix/#supported-elements</a>
-Defaults to <cite>False</cite>.</p></li>
-</ul>
+<dd class="field-odd"><p><strong>dlf_local_cell_id</strong> (<em>np.int32</em>) – Id of the queried cell. It is a DOLFINx
+(local) cell id.</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Array of cell facets.</p>
+<dd class="field-even"><p>Array of DOLFINx cell facets.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>npt.NDArray[np.int32]</p>
@@ -889,18 +845,12 @@ Defaults to <cite>False</cite>.</p></li>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="qugar.mesh.TensorProductMesh.get_cell_tensor_index">
-<span class="sig-name descname"><span class="pre">get_cell_tensor_index</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cell_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int64</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int32</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lexicg</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">int32</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/qugar/mesh/tp_mesh.html#TensorProductMesh.get_cell_tensor_index"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qugar.mesh.TensorProductMesh.get_cell_tensor_index" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_cell_tensor_index</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dlf_local_cell_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int32</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">int32</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/qugar/mesh/tp_mesh.html#TensorProductMesh.get_cell_tensor_index"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qugar.mesh.TensorProductMesh.get_cell_tensor_index" title="Link to this definition"></a></dt>
 <dd><p>Computes the tensor index referred to the tensor-product mesh
-of a given cell index.</p>
+of a given (local) DOLFINx cell index.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>cell_id</strong> (<em>np.int64</em><em> | </em><em>np.int32</em>) – Cell index to be transformed.
-It must be contained in the subdomain (process).</p></li>
-<li><p><strong>lexicg</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether <cite>cell_id</cite> follows
-the tensor-product lexicographical numbering or the one
-associated to the DOLINFx mesh. Defaults to <cite>False</cite>.</p></li>
-</ul>
+<dd class="field-odd"><p><strong>dlf_local_cell_id</strong> (<em>np.int32</em>) – Local DOLFINx cell index to be transformed.</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>Cell tensor index</p>
@@ -913,21 +863,17 @@ associated to the DOLINFx mesh. Defaults to <cite>False</cite>.</p></li>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="qugar.mesh.TensorProductMesh.get_cells_exterior_facets">
-<span class="sig-name descname"><span class="pre">get_cells_exterior_facets</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cell_ids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">int32</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int64</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int32</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int64</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lexicg</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">int32</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/qugar/mesh/tp_mesh.html#TensorProductMesh.get_cells_exterior_facets"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qugar.mesh.TensorProductMesh.get_cells_exterior_facets" title="Link to this definition"></a></dt>
-<dd><p>Extracts the exterior facets of associated to a list of cells for
-the tensor-product mesh.</p>
+<span class="sig-name descname"><span class="pre">get_cells_exterior_facets</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dlf_local_cell_ids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">int32</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">int32</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/qugar/mesh/tp_mesh.html#TensorProductMesh.get_cells_exterior_facets"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qugar.mesh.TensorProductMesh.get_cells_exterior_facets" title="Link to this definition"></a></dt>
+<dd><p>Extracts the exterior facets of associated to a list of
+(local) DOLFINx cell ids.</p>
 <p>The exterior facets are those that belong to one single cell
 (they are not at the interface between two cells, but on the
 mesh boundary).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>cell_ids</strong> (<em>npt.NDArray</em><em>[</em><em>np.int32</em><em> | </em><em>np.int64</em><em>] </em><em>| </em><em>np.int32</em><em> | </em><em>np.int64</em>) – Array of cells whose exterior facets are extracted.
-They must be all contained in the subdomain (process).</p></li>
-<li><p><strong>lexicg</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether <cite>cell_ids</cite> follow
-the tensor-product lexicographical numbering or the one
-associated to the DOLINFx mesh. Defaults to <cite>False</cite>.</p></li>
-</ul>
+<dd class="field-odd"><p><strong>dlf_local_cell_ids</strong> (<em>npt.NDArray</em><em>[</em><em>np.int32</em><em>] </em><em>| </em><em>np.int32</em>) – Array of cells whose exterior facets are extracted.
+They are (local to the current subdomain) DOLFINx cell
+indices.</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>Sorted unique array of exterior
@@ -941,19 +887,13 @@ facets present in the current subdomain.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="qugar.mesh.TensorProductMesh.get_face_DOLFINx_cells">
-<span class="sig-name descname"><span class="pre">get_face_DOLFINx_cells</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">face_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lexicg</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">int32</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/qugar/mesh/tp_mesh.html#TensorProductMesh.get_face_DOLFINx_cells"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qugar.mesh.TensorProductMesh.get_face_DOLFINx_cells" title="Link to this definition"></a></dt>
-<dd><p>Extracts the DOLFINx indices of the cells touching the given face
+<span class="sig-name descname"><span class="pre">get_face_DOLFINx_cells</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tp_face_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">int32</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/qugar/mesh/tp_mesh.html#TensorProductMesh.get_face_DOLFINx_cells"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qugar.mesh.TensorProductMesh.get_face_DOLFINx_cells" title="Link to this definition"></a></dt>
+<dd><p>Extracts the (local) DOLFINx indices of the cells touching the given face
 of the tensor-product mesh.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>face_id</strong> (<em>int</em>) – Id of the face whose cells are extracted.</p></li>
-<li><p><strong>lexicg</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether <cite>face_id</cite> follows the
-tensor-product lexicographical ordering or the FEniCSx
-one. See
-<a class="reference external" href="https://github.com/FEniCS/basix/#supported-elements">https://github.com/FEniCS/basix/#supported-elements</a>
-Defaults to <cite>False</cite>.</p></li>
-</ul>
+<dd class="field-odd"><p><strong>tp_face_id</strong> (<em>int</em>) – Id of the face whose cells are extracted.
+This id follows the lexicographical ordering.</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>Array storing the local cells indices
@@ -970,24 +910,14 @@ current subdomain.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="qugar.mesh.TensorProductMesh.get_face_DOLFINx_nodes">
-<span class="sig-name descname"><span class="pre">get_face_DOLFINx_nodes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">face_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">face_lexicg</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">int32</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/qugar/mesh/tp_mesh.html#TensorProductMesh.get_face_DOLFINx_nodes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qugar.mesh.TensorProductMesh.get_face_DOLFINx_nodes" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="qugar.mesh.TensorProductMesh.get_face_DOLFINx_local_node_ids">
+<span class="sig-name descname"><span class="pre">get_face_DOLFINx_local_node_ids</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">face_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">int32</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/qugar/mesh/tp_mesh.html#TensorProductMesh.get_face_DOLFINx_local_node_ids"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qugar.mesh.TensorProductMesh.get_face_DOLFINx_local_node_ids" title="Link to this definition"></a></dt>
 <dd><p>Extracts the nodes of a given boundary face that belong to
 the subdomain of the tensor-product mesh.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>face_id</strong> (<em>int</em>) – Id of the face whose nodes are extracted.</p></li>
-<li><p><strong>face_lexicg</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether <cite>face_id</cite> follows the
-tensor-product lexicographical numbering or the
-FEniCSx one. See
-<a class="reference external" href="https://github.com/FEniCS/basix/#supported-elements">https://github.com/FEniCS/basix/#supported-elements</a>
-Defaults to <cite>False</cite>.</p></li>
-<li><p><strong>nodes_lexicg</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether the returned nodes
-indices must follow the tensor-product lexicographical
-numbering or the one associated to the underlying
-DOLINFx mesh. Defaults to <cite>False</cite>.</p></li>
-</ul>
+<dd class="field-odd"><p><strong>face_id</strong> (<em>int</em>) – Id of the face whose nodes are extracted.
+This id follows the lexicographical ordering.</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>Sorted unique array of local DOLFINx
@@ -1002,19 +932,13 @@ nodes of the boundary face that belong to the current subdomain
 
 <dl class="py method">
 <dt class="sig sig-object py" id="qugar.mesh.TensorProductMesh.get_face_facets">
-<span class="sig-name descname"><span class="pre">get_face_facets</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">face_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lexicg</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">int32</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/qugar/mesh/tp_mesh.html#TensorProductMesh.get_face_facets"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qugar.mesh.TensorProductMesh.get_face_facets" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_face_facets</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">face_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">int32</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/qugar/mesh/tp_mesh.html#TensorProductMesh.get_face_facets"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qugar.mesh.TensorProductMesh.get_face_facets" title="Link to this definition"></a></dt>
 <dd><p>Extracts the facets indices of the given face of the tensor-product
 mesh.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>face_id</strong> (<em>int</em>) – Id of the face whose facets are extracted.</p></li>
-<li><p><strong>lexicg</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether <cite>face_id</cite> follows the
-tensor-product lexicographical ordering or the FEniCSx
-one. See
-<a class="reference external" href="https://github.com/FEniCS/basix/#supported-elements">https://github.com/FEniCS/basix/#supported-elements</a>
-Defaults to <cite>False</cite>.</p></li>
-</ul>
+<dd class="field-odd"><p><strong>face_id</strong> (<em>int</em>) – Id of the face whose facets are extracted.
+This id follows the lexicographical ordering.</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>Array storing the facets indices
@@ -1031,66 +955,42 @@ current subdomain.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="qugar.mesh.TensorProductMesh.get_lexicg_cell_ids">
-<span class="sig-name descname"><span class="pre">get_lexicg_cell_ids</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cell_ids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">int32</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int64</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int32</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int64</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lexicg</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">int64</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int64</span></span></span><a class="reference internal" href="../_modules/qugar/mesh/tp_mesh.html#TensorProductMesh.get_lexicg_cell_ids"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qugar.mesh.TensorProductMesh.get_lexicg_cell_ids" title="Link to this definition"></a></dt>
-<dd><p>Transforms given <cite>cell_ids</cite> from the tensor-product mesh into
+<span class="sig-name descname"><span class="pre">get_lexicg_cell_ids</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dlf_local_cell_ids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">int32</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">int64</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/qugar/mesh/tp_mesh.html#TensorProductMesh.get_lexicg_cell_ids"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qugar.mesh.TensorProductMesh.get_lexicg_cell_ids" title="Link to this definition"></a></dt>
+<dd><p>Transforms given <cite>dlf_local_cell_ids</cite> into
 the tensor-product mesh numbering, that follows a lexicographical
 indexing.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>cell_ids</strong> (<em>npt.NDArray</em><em>[</em><em>np.int32</em><em> | </em><em>np.int64</em><em>] </em><em>| </em><em>np.int32</em><em> | </em><em>np.int64</em>) – Cell indices to be transformed. They may be local
-indices referred to the underlying DOLFINx mesh (if
-<cite>lexicg</cite> is set to <cite>False</cite>) or lexicographical indices
-(if <cite>lexicg</cite> is <cite>True</cite>). If <cite>lexicg</cite> is set to <cite>False</cite>,
-all the local DOLFINx indices must belong to the current
-subdomain (process).</p></li>
-<li><p><strong>lexicg</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether <cite>cell_ids</cite> follow the
-tensor-product lexicographical numbering or the DOLFINx
-one. Defaults to <cite>True</cite>.</p></li>
-</ul>
+<dd class="field-odd"><p><strong>dlf_local_cell_ids</strong> (<em>npt.NDArray</em><em>[</em><em>np.int32</em><em>]</em>) – Cell indices to be transformed. They arelocal
+indices referred to the underlying DOLFINx mesh.</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>Ids of the cells in the
-tensor-product lexicographical indexing. Note that some
-indices may be set to -1 if their associated cells do not
-belong to current subdomain. The length of the output array
+tensor-product lexicographical indexing. The length of the output array
 is the same as the input.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>npt.NDArray[np.int64] | np.int64</p>
+<dd class="field-odd"><p>npt.NDArray[np.int64]</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="qugar.mesh.TensorProductMesh.get_lexicg_node_ids">
-<span class="sig-name descname"><span class="pre">get_lexicg_node_ids</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node_ids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">int32</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int32</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lexicg</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">int64</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int64</span></span></span><a class="reference internal" href="../_modules/qugar/mesh/tp_mesh.html#TensorProductMesh.get_lexicg_node_ids"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qugar.mesh.TensorProductMesh.get_lexicg_node_ids" title="Link to this definition"></a></dt>
-<dd><p>Transforms given <cite>node_ids</cite> from the tensor-product mesh into
-the tensor-product mesh numbering, that follows a lexicographical
-indexing.</p>
+<span class="sig-name descname"><span class="pre">get_lexicg_node_ids</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dlf_local_node_ids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">int32</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">int64</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/qugar/mesh/tp_mesh.html#TensorProductMesh.get_lexicg_node_ids"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qugar.mesh.TensorProductMesh.get_lexicg_node_ids" title="Link to this definition"></a></dt>
+<dd><p>Transforms given <cite>dlf_local_node_ids</cite> from the (local) DOLFINx
+mesh numbering to the lexicographical (tensor-product mesh) one.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>node_ids</strong> (<em>npt.NDArray</em><em>[</em><em>np.int32</em><em> | </em><em>np.int64</em><em>] </em><em>| </em><em>np.int32</em><em> | </em><em>np.int64</em>) – Node indices to be transformed. They may be local
-indices referred to the underlying DOLFINx mesh (if
-<cite>lexicg</cite> is set to <cite>False</cite>) or lexicographical indices
-(if <cite>lexicg</cite> is <cite>True</cite>). If <cite>lexicg</cite> is set to <cite>False</cite>,
-all the local DOLFINx indices must belong to the current
-subdomain (process).</p></li>
-<li><p><strong>lexicg</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether <cite>node_ids</cite> follow the
-tensor-product lexicographical numbering or the DOLFINx
-one. Defaults to <cite>True</cite>.</p></li>
-</ul>
+<dd class="field-odd"><p><strong>dlf_local_node_ids</strong> (<em>npt.NDArray</em><em>[</em><em>np.int32</em><em>]</em>) – Node indices to be transformed. They are referred to the
+underlying (local) DOLFINx mesh.</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>Ids of the nodes in the
-tensor-product lexicographical indexing. Note that some
-indices may be set to -1 if their associated cells do not
-belong to current subdomain. The length of the output array
-is the same as the input.</p>
+tensor-product lexicographical indexing.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>npt.NDArray[np.int64] | np.int64</p>
+<dd class="field-odd"><p>npt.NDArray[np.int64]</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1143,12 +1043,26 @@ nodes.</p>
 </dd></dl>
 
 <dl class="py property">
-<dt class="sig sig-object py" id="qugar.mesh.TensorProductMesh.num_global_cells">
-<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">num_global_cells</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int64</span></em><a class="headerlink" href="#qugar.mesh.TensorProductMesh.num_global_cells" title="Link to this definition"></a></dt>
-<dd><p>Gets the total (global) number of cells.</p>
+<dt class="sig sig-object py" id="qugar.mesh.TensorProductMesh.num_cells_tp">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">num_cells_tp</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int64</span></em><a class="headerlink" href="#qugar.mesh.TensorProductMesh.num_cells_tp" title="Link to this definition"></a></dt>
+<dd><p>Gets the total number of cells of the underlying tensor-product mesh.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Number of global cells.</p>
+<dd class="field-odd"><p>Number of cells of the tensor-product mesh.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>np.int64</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="qugar.mesh.TensorProductMesh.num_global_cells">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">num_global_cells</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int64</span></em><a class="headerlink" href="#qugar.mesh.TensorProductMesh.num_global_cells" title="Link to this definition"></a></dt>
+<dd><p>Gets the total (global) number of cells of the DOLFINx mesh.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Number of global cells of the DOLFINx mesh.</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p>np.int64</p>
@@ -1197,6 +1111,95 @@ the mesh’s degree.</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qugar.mesh.TensorProductMesh.transform_DOLFINx_local_facet_ids_to_cells_and_local_facets">
+<span class="sig-name descname"><span class="pre">transform_DOLFINx_local_facet_ids_to_cells_and_local_facets</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dlf_local_facet_ids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">int32</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">int32</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">int32</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/qugar/mesh/tp_mesh.html#TensorProductMesh.transform_DOLFINx_local_facet_ids_to_cells_and_local_facets"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qugar.mesh.TensorProductMesh.transform_DOLFINx_local_facet_ids_to_cells_and_local_facets" title="Link to this definition"></a></dt>
+<dd><p>Given the ids of (local) DOLFINx facets, returns the DOLFINx
+cells and local facet ids corresponding to those facets.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Interior facets belong to more whan one cell, in those cases
+only one cell (and local facet) is returned for that
+particular facet. The one chosen depends on the way in which
+that information is stored in the mesh connectivity.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>dlf_local_facet_ids</strong> (<em>npt.NDArray</em><em>[</em><em>np.int32</em><em>]</em>) – Array of DOLFINx facets
+(local to the current process) to be transformed.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><dl>
+<dt>DOLFINx cells</dt><dd><p>and local facet ids the associated to the facets. The first
+entry of the tuple corresponds to the cells and the second
+to the the local facets.</p>
+<p>The local facets indices follow the FEniCSx convention. See
+<a class="reference external" href="https://github.com/FEniCS/basix/#supported-elements">https://github.com/FEniCS/basix/#supported-elements</a></p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qugar.mesh.TensorProductMesh.transform_DOLFINx_local_facet_ids_to_lexicg">
+<span class="sig-name descname"><span class="pre">transform_DOLFINx_local_facet_ids_to_lexicg</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dlf_local_cell_ids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">int32</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dlf_local_facet_ids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">int32</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">int64</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">int32</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/qugar/mesh/tp_mesh.html#TensorProductMesh.transform_DOLFINx_local_facet_ids_to_lexicg"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qugar.mesh.TensorProductMesh.transform_DOLFINx_local_facet_ids_to_lexicg" title="Link to this definition"></a></dt>
+<dd><p>Transforms the given local DOLFINx facets indices to
+either lexicographical numbering (both for cells and local facet ids).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dlf_local_cell_ids</strong> (<em>npt.NDArray</em><em>[</em><em>np.int32</em><em>]</em>) – Indices of the facets
+following the DOLFINx local ordering.</p></li>
+<li><p><strong>dlf_local_facet_ids</strong> (<em>npt.NDArray</em><em>[</em><em>np.int32</em><em>]</em>) – Local indices of the
+facets referred to <cite>dlf_local_cell_ids</cite> (both arrays should have
+the same length). The face ids follow the
+DOLFINx ordering.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Transformed facets returned as one array of cells and another
+one of local facets referred to those cells. The indices of the cells
+and local facets follow the DOLFINx (local) numbering.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qugar.mesh.TensorProductMesh.transform_lexicg_facet_ids_to_DOLFINx_local">
+<span class="sig-name descname"><span class="pre">transform_lexicg_facet_ids_to_DOLFINx_local</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lex_cell_ids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">int64</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lex_facet_ids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">int32</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">int32</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">int32</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/qugar/mesh/tp_mesh.html#TensorProductMesh.transform_lexicg_facet_ids_to_DOLFINx_local"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qugar.mesh.TensorProductMesh.transform_lexicg_facet_ids_to_DOLFINx_local" title="Link to this definition"></a></dt>
+<dd><p>Transforms the given lexicographical facets indices to
+DOLFINx local numbering (otherwise)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>lex_cell_ids</strong> (<em>npt.NDArray</em><em>[</em><em>np.int64</em><em>]</em>) – Indices of the facets
+following the lexicographical ordering. All the cell
+indices must be associated to the current process.</p></li>
+<li><p><strong>lex_facet_ids</strong> (<em>npt.NDArray</em><em>[</em><em>np.int32</em><em>]</em>) – Local indices of the
+facets referred to <cite>lex_cell_ids</cite> (both arrays should have
+the same length). The face ids follow the
+lexicographical ordering.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Transformed facets returned as one array of cells and another
+one of local facets referred to those cells. The indices of the cells
+and local facets follow the DOLFINx local numbering.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1297,7 +1300,7 @@ and not the linear ones (3, 9, 12, respec.) or quadratic (21,
 
 <dl class="py function">
 <dt class="sig sig-object py" id="qugar.mesh.create_Cartesian_mesh">
-<span class="sig-prename descclassname"><span class="pre">qugar.mesh.</span></span><span class="sig-name descname"><span class="pre">create_Cartesian_mesh</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">comm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Intracomm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_cells</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">int32</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">int32</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xmin</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">float32</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float64</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xmax</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">float32</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float64</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">degree</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ghost_mode</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">GhostMode</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">GhostMode.shared_facet</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#qugar.mesh.CartesianMesh" title="qugar.mesh.tp_mesh.CartesianMesh"><span class="pre">CartesianMesh</span></a></span></span><a class="reference internal" href="../_modules/qugar/mesh/tp_mesh.html#create_Cartesian_mesh"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qugar.mesh.create_Cartesian_mesh" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">qugar.mesh.</span></span><span class="sig-name descname"><span class="pre">create_Cartesian_mesh</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">comm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Comm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_cells</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">int32</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">int32</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xmin</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">float32</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float64</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xmax</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">float32</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float64</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">degree</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ghost_mode</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">GhostMode</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">GhostMode.none</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#qugar.mesh.CartesianMesh" title="qugar.mesh.tp_mesh.CartesianMesh"><span class="pre">CartesianMesh</span></a></span></span><a class="reference internal" href="../_modules/qugar/mesh/tp_mesh.html#create_Cartesian_mesh"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qugar.mesh.create_Cartesian_mesh" title="Link to this definition"></a></dt>
 <dd><p>Creates a Cartesian mesh from a bounding box and the number of
 cells per direction.</p>
 <dl class="field-list simple">
@@ -1313,7 +1316,7 @@ coordinates of the mesh’s bounding box. Defaults to a vector
 of ones with double floating precision.</p></li>
 <li><p><strong>degree</strong> (<em>int</em><em>, </em><em>optional</em>) – Degree of the mesh. Defaults to 1.</p></li>
 <li><p><strong>ghost_mode</strong> (<em>GhostMode</em><em>, </em><em>optional</em>) – Ghost mode used for mesh
-partitioning. Defaults to <cite>shared_facet</cite>.</p></li>
+partitioning. Defaults to <cite>none</cite>.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>

@@ -132,7 +132,7 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:ad7e73a37eff7357cbeeedd25633ec912" id="r_ad7e73a37eff7357cbeeedd25633ec912"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad7e73a37eff7357cbeeedd25633ec912">TensorSizeTP</a> ()</td></tr>
 <tr class="memdesc:ad7e73a37eff7357cbeeedd25633ec912"><td class="mdescLeft">&#160;</td><td class="mdescRight">Default constructor. Initializes indices to zero.  <br /></td></tr>
 <tr class="separator:ad7e73a37eff7357cbeeedd25633ec912"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:adc97121e59d8ac6b1218258c1449c08a" id="r_adc97121e59d8ac6b1218258c1449c08a"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#adc97121e59d8ac6b1218258c1449c08a">TensorSizeTP</a> (const int <a class="el" href="#a467b22728ff52424460f45a072b65f5d">size</a>)</td></tr>
+<tr class="memitem:adc97121e59d8ac6b1218258c1449c08a" id="r_adc97121e59d8ac6b1218258c1449c08a"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#adc97121e59d8ac6b1218258c1449c08a">TensorSizeTP</a> (const int <a class="el" href="#a7705ecba088a4cfc11c9eb566bd22f71">size</a>)</td></tr>
 <tr class="memdesc:adc97121e59d8ac6b1218258c1449c08a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Construct a new <a class="el" href="../../d3/d39/classqugar_1_1TensorSizeTP.html">TensorSizeTP</a> object from size along directions.  <br /></td></tr>
 <tr class="separator:adc97121e59d8ac6b1218258c1449c08a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:adc63843c8b870f597c61dab2aa2e082f" id="r_adc63843c8b870f597c61dab2aa2e082f"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#adc63843c8b870f597c61dab2aa2e082f">TensorSizeTP</a> (const <a class="el" href="../../d0/d6b/namespacequgar.html#a8f52d9219f5b006c008b0511ce6c1743">Vector</a>&lt; int, dim &gt; &amp;sizes)</td></tr>
@@ -147,9 +147,9 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:ad2500b10a43228a1c44047df229a136e" id="r_ad2500b10a43228a1c44047df229a136e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d0/d6b/namespacequgar.html#a8f52d9219f5b006c008b0511ce6c1743">Vector</a>&lt; int, dim &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad2500b10a43228a1c44047df229a136e">as_Vector</a> ()</td></tr>
 <tr class="memdesc:ad2500b10a43228a1c44047df229a136e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the tensor size casted as a Vector.  <br /></td></tr>
 <tr class="separator:ad2500b10a43228a1c44047df229a136e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a467b22728ff52424460f45a072b65f5d" id="r_a467b22728ff52424460f45a072b65f5d"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a467b22728ff52424460f45a072b65f5d">size</a> () const</td></tr>
-<tr class="memdesc:a467b22728ff52424460f45a072b65f5d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the total number of entries (product of sizes along all directions).  <br /></td></tr>
-<tr class="separator:a467b22728ff52424460f45a072b65f5d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7705ecba088a4cfc11c9eb566bd22f71" id="r_a7705ecba088a4cfc11c9eb566bd22f71"><td class="memItemLeft" align="right" valign="top">std::size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a7705ecba088a4cfc11c9eb566bd22f71">size</a> () const</td></tr>
+<tr class="memdesc:a7705ecba088a4cfc11c9eb566bd22f71"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets the total number of entries (product of sizes along all directions).  <br /></td></tr>
+<tr class="separator:a7705ecba088a4cfc11c9eb566bd22f71"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ada391e037cd56f112900a4053f3808fa" id="r_ada391e037cd56f112900a4053f3808fa"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ada391e037cd56f112900a4053f3808fa">operator==</a> (const <a class="el" href="../../d3/d39/classqugar_1_1TensorSizeTP.html">TensorSizeTP</a>&lt; dim &gt; &amp;rhs) const</td></tr>
 <tr class="memdesc:ada391e037cd56f112900a4053f3808fa"><td class="mdescLeft">&#160;</td><td class="mdescRight">Checks if two tensor sizes are equal by comparing all its components. They are equal if all the components are equal.  <br /></td></tr>
 <tr class="separator:ada391e037cd56f112900a4053f3808fa"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -407,8 +407,8 @@ template&lt;int dim&gt; </div>
 
 </div>
 </div>
-<a id="a467b22728ff52424460f45a072b65f5d" name="a467b22728ff52424460f45a072b65f5d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a467b22728ff52424460f45a072b65f5d">&#9670;&#160;</a></span>size()</h2>
+<a id="a7705ecba088a4cfc11c9eb566bd22f71" name="a7705ecba088a4cfc11c9eb566bd22f71"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7705ecba088a4cfc11c9eb566bd22f71">&#9670;&#160;</a></span>size()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -419,7 +419,7 @@ template&lt;int dim&gt; </div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">int <a class="el" href="../../d3/d39/classqugar_1_1TensorSizeTP.html">qugar::TensorSizeTP</a>&lt; dim &gt;::size </td>
+          <td class="memname">std::size_t <a class="el" href="../../d3/d39/classqugar_1_1TensorSizeTP.html">qugar::TensorSizeTP</a>&lt; dim &gt;::size </td>
           <td>(</td>
           <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
           <td> const</td>

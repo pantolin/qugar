@@ -98,7 +98,7 @@
 
 <span class="kn">import</span> <span class="nn">qugar.cpp</span>
 <span class="kn">from</span> <span class="nn">qugar.mesh</span> <span class="kn">import</span> <span class="p">(</span>
-    <span class="n">CartesianMesh</span><span class="p">,</span>
+    <span class="n">TensorProductMesh</span><span class="p">,</span>
     <span class="n">lexicg_to_DOLFINx_faces</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="kn">from</span> <span class="nn">qugar.quad.quad_data</span> <span class="kn">import</span> <span class="p">(</span>
@@ -128,13 +128,13 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_unf_domain</span> <span class="o">=</span> <span class="n">unf_domain</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">cart_mesh</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">CartesianMesh</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Gets the domain&#39;s Cartesian mesh.</span>
+    <span class="k">def</span> <span class="nf">tp_mesh</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TensorProductMesh</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Gets the domain&#39;s tensor-product mesh.</span>
 
 <span class="sd">        Returns:</span>
-<span class="sd">            CartesianMesh: Domain&#39;s Cartesian mesh.</span>
+<span class="sd">            TensorProductMesh: Domain&#39;s tensor-product mesh.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unf_domain</span><span class="o">.</span><span class="n">cart_mesh</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unf_domain</span><span class="o">.</span><span class="n">tp_mesh</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">unfitted_domain</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">UnfittedDomain</span><span class="p">:</span>
@@ -214,7 +214,7 @@
 
         <span class="n">n_pts_dir</span> <span class="o">=</span> <span class="n">QuadGenerator</span><span class="o">.</span><span class="n">get_num_points</span><span class="p">(</span><span class="n">degree</span><span class="p">)</span>
 
-        <span class="n">lex_cells</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cart_mesh</span><span class="o">.</span><span class="n">get_lexicg_cell_ids</span><span class="p">(</span><span class="n">dlf_cells</span><span class="p">,</span> <span class="n">lexicg</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">lex_cells</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tp_mesh</span><span class="o">.</span><span class="n">get_lexicg_cell_ids</span><span class="p">(</span><span class="n">dlf_cells</span><span class="p">)</span>
 
         <span class="n">quad</span> <span class="o">=</span> <span class="n">qugar</span><span class="o">.</span><span class="n">cpp</span><span class="o">.</span><span class="n">create_quadrature</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_unf_domain</span><span class="o">.</span><span class="n">cpp_object</span><span class="p">,</span> <span class="n">lex_cells</span><span class="p">,</span> <span class="n">n_pts_dir</span><span class="p">,</span> <span class="n">full_cells</span><span class="o">=</span><span class="kc">False</span>
@@ -262,13 +262,13 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">n_pts_dir</span> <span class="o">=</span> <span class="n">QuadGenerator</span><span class="o">.</span><span class="n">get_num_points</span><span class="p">(</span><span class="n">degree</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">dlf_cells</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unf_domain</span><span class="o">.</span><span class="n">get_cut_cells</span><span class="p">(</span><span class="n">lexicg</span><span class="o">=</span><span class="kc">False</span><span class="p">))):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">dlf_cells</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unf_domain</span><span class="o">.</span><span class="n">get_cut_cells</span><span class="p">())):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
                 <span class="s2">&quot;Unfitted boundary quadratures can only be generated for cells &quot;</span>
                 <span class="s2">&quot;containing unfitted boundaries&quot;</span>
             <span class="p">)</span>
 
-        <span class="n">lex_cells</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cart_mesh</span><span class="o">.</span><span class="n">get_lexicg_cell_ids</span><span class="p">(</span><span class="n">dlf_cells</span><span class="p">,</span> <span class="n">lexicg</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">lex_cells</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tp_mesh</span><span class="o">.</span><span class="n">get_lexicg_cell_ids</span><span class="p">(</span><span class="n">dlf_cells</span><span class="p">)</span>
 
         <span class="n">quad</span> <span class="o">=</span> <span class="n">qugar</span><span class="o">.</span><span class="n">cpp</span><span class="o">.</span><span class="n">create_unfitted_bound_quadrature</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_unf_domain</span><span class="o">.</span><span class="n">_cpp_object</span><span class="p">,</span> <span class="n">lex_cells</span><span class="p">,</span> <span class="n">n_pts_dir</span>
@@ -344,9 +344,9 @@
 
         <span class="n">n_pts_dir</span> <span class="o">=</span> <span class="n">QuadGenerator</span><span class="o">.</span><span class="n">get_num_points</span><span class="p">(</span><span class="n">degree</span><span class="p">)</span>
 
-        <span class="n">lex_cells</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cart_mesh</span><span class="o">.</span><span class="n">get_lexicg_cell_ids</span><span class="p">(</span><span class="n">dlf_cells</span><span class="p">,</span> <span class="n">lexicg</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">lex_cells</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tp_mesh</span><span class="o">.</span><span class="n">get_lexicg_cell_ids</span><span class="p">(</span><span class="n">dlf_cells</span><span class="p">)</span>
 
-        <span class="n">lex_to_dlf_faces</span> <span class="o">=</span> <span class="n">lexicg_to_DOLFINx_faces</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cart_mesh</span><span class="o">.</span><span class="n">tdim</span><span class="p">)</span>
+        <span class="n">lex_to_dlf_faces</span> <span class="o">=</span> <span class="n">lexicg_to_DOLFINx_faces</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tp_mesh</span><span class="o">.</span><span class="n">tdim</span><span class="p">)</span>
         <span class="n">lex_local_facets</span> <span class="o">=</span> <span class="n">lex_to_dlf_faces</span><span class="p">[</span><span class="n">dlf_local_facets</span><span class="p">]</span>
 
         <span class="k">if</span> <span class="n">integral_type</span> <span class="o">==</span> <span class="s2">&quot;interior_facet&quot;</span><span class="p">:</span>

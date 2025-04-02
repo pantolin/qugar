@@ -20,7 +20,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="../../d0/d6b/namespacequgar.html#a278123c4be055875c8a95c2a680cf6b2" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="../../d0/d6b/namespacequgar.html#ad445be012c036b0ba21f2ea3ef1d4b2a" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="#666666" points="217,-115.5 77,-115.5 77,-96.5 217,-96.5 217,-115.5"/>
 <text text-anchor="middle" x="147" y="-103.5" font-family="Helvetica,sans-Serif" font-size="10.00">qugar::create_quadrature</text>
 </a>
@@ -38,7 +38,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="../../d0/d6b/namespacequgar.html#a5f637d6a93679ad8b021497f1b3354b3" target="_top" xlink:title=" ">
+<g id="a_Node000003"><a xlink:href="../../d0/d6b/namespacequgar.html#a7bf54140d30528eb2a67aac55bb762cf" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="#666666" points="209,-78 85,-78 85,-48 209,-48 209,-78"/>
 <text text-anchor="start" x="93" y="-66" font-family="Helvetica,sans-Serif" font-size="10.00">qugar::create_unfitted</text>
 <text text-anchor="middle" x="147" y="-55" font-family="Helvetica,sans-Serif" font-size="10.00">_bound_quadrature</text>
@@ -57,7 +57,7 @@
 <!-- Node4 -->
 <g id="Node000004" class="node">
 <title>Node4</title>
-<g id="a_Node000004"><a xlink:href="../../df/d58/classqugar_1_1UnfittedDomain.html#a8a55ae8d412e4b104629b03945fa3477" target="_top" xlink:title=" ">
+<g id="a_Node000004"><a xlink:href="../../df/d58/classqugar_1_1UnfittedDomain.html#a067552ebee9e21562fa7d464a51c4678" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="#666666" points="211,-30 83,-30 83,0 211,0 211,-30"/>
 <text text-anchor="start" x="91" y="-18" font-family="Helvetica,sans-Serif" font-size="10.00">qugar::UnfittedDomain</text>
 <text text-anchor="middle" x="147" y="-7" font-family="Helvetica,sans-Serif" font-size="10.00">::get_cut_cells</text>

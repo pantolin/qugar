@@ -142,11 +142,11 @@ requires (aux_dim == dim &amp;&amp; dim == range)</td></tr>
 <tr class="memitem:a1d7578cf3f64a200b938d338dff33081"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#a1d7578cf3f64a200b938d338dff33081">add_full_cell</a> (const <a class="el" href="../../d2/dfe/classqugar_1_1BoundBox.html">BoundBox</a>&lt; dim &gt; &amp;domain, bool wirebasket)</td></tr>
 <tr class="memdesc:a1d7578cf3f64a200b938d338dff33081"><td class="mdescLeft">&#160;</td><td class="mdescRight">Adds a full cell to the mesh corresponding to the given domain.  <br /></td></tr>
 <tr class="separator:a1d7578cf3f64a200b938d338dff33081"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1e54f725ebc7d72826a213ff57e6b54f" id="r_a1e54f725ebc7d72826a213ff57e6b54f"><td class="memTemplParams" colspan="2">template&lt;int aux_dim = dim&gt; <br />
+<tr class="memitem:adb9670d7d85475186ff156f0b0a6f23e" id="r_adb9670d7d85475186ff156f0b0a6f23e"><td class="memTemplParams" colspan="2">template&lt;int aux_dim = dim&gt; <br />
 requires (aux_dim == dim &amp;&amp; dim == range)</td></tr>
-<tr class="memitem:a1e54f725ebc7d72826a213ff57e6b54f"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#a1e54f725ebc7d72826a213ff57e6b54f">add_full_cells</a> (const <a class="el" href="../../d1/d84/classqugar_1_1CartGridTP.html">CartGridTP</a>&lt; dim &gt; &amp;grid, const std::vector&lt; int &gt; &amp;cell_ids, bool wirebasket)</td></tr>
-<tr class="memdesc:a1e54f725ebc7d72826a213ff57e6b54f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Adds full cells to the mesh corresponding to the grid.  <br /></td></tr>
-<tr class="separator:a1e54f725ebc7d72826a213ff57e6b54f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adb9670d7d85475186ff156f0b0a6f23e"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#adb9670d7d85475186ff156f0b0a6f23e">add_full_cells</a> (const <a class="el" href="../../d1/d84/classqugar_1_1CartGridTP.html">CartGridTP</a>&lt; dim &gt; &amp;grid, const std::vector&lt; std::int64_t &gt; &amp;cell_ids, bool wirebasket)</td></tr>
+<tr class="memdesc:adb9670d7d85475186ff156f0b0a6f23e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Adds full cells to the mesh corresponding to the grid.  <br /></td></tr>
+<tr class="separator:adb9670d7d85475186ff156f0b0a6f23e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a91e4402baac2d766110df74349e35b2d" id="r_a91e4402baac2d766110df74349e35b2d"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a91e4402baac2d766110df74349e35b2d">use_Chebyshev</a> () const</td></tr>
 <tr class="memdesc:a91e4402baac2d766110df74349e35b2d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Determines whether the Chebyshev nodes are used, or equally spaced nodes.  <br /></td></tr>
 <tr class="separator:a91e4402baac2d766110df74349e35b2d"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -357,8 +357,8 @@ requires (aux_dim == dim &amp;&amp; dim == range)</div>
 
 </div>
 </div>
-<a id="a1e54f725ebc7d72826a213ff57e6b54f" name="a1e54f725ebc7d72826a213ff57e6b54f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a1e54f725ebc7d72826a213ff57e6b54f">&#9670;&#160;</a></span>add_full_cells()</h2>
+<a id="adb9670d7d85475186ff156f0b0a6f23e" name="adb9670d7d85475186ff156f0b0a6f23e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adb9670d7d85475186ff156f0b0a6f23e">&#9670;&#160;</a></span>add_full_cells()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -376,7 +376,7 @@ requires (aux_dim == dim &amp;&amp; dim == range)</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const std::vector&lt; int &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>cell_ids</em></span>, </td>
+          <td class="paramtype">const std::vector&lt; std::int64_t &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>cell_ids</em></span>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>

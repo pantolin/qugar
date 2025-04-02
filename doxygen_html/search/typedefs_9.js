@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['scalarfunc_0',['ScalarFunc',['../d2/d5e/namespacequgar_1_1impl.html#a4eb0b10808db422fc21d669b326b8174',1,'qugar::impl']]]
+  ['real_0',['real',['../d0/d6b/namespacequgar.html#a3b2859ebd1b264581cf555ba539903a3',1,'qugar']]]
 ];

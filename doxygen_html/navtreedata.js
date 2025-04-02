@@ -62,12 +62,12 @@ var NAVTREE =
 var NAVTREEINDEX =
 [
 "annotated.html",
-"d1/def/classqugar_1_1impl_1_1funcs_1_1Sphere.html#a3198a1ecdab2a350d0a2ab8422c9196f",
-"d2/dfe/classqugar_1_1BoundBox.html#a9d62b83005f71342d673418514af4dd7",
-"d7/d46/structqugar_1_1impl_1_1RootsIntervals.html#a75cc3500a10e87d95dc2aa76570f64f6",
-"da/de2/classqugar_1_1impl_1_1UnfittedImplDomain.html#ac6242e68f32795f6bd428e507b855292",
-"dd/d80/classqugar_1_1impl_1_1DomainFunc.html#aaae9b9c195a2ef2d74e29e9b57b5338d",
-"df/d6d/structqugar_1_1CutIsoBoundsQuad.html#aa671f821a34403e2f9ec664ac00208d3"
+"d1/dca/qugar__export_8hpp.html#aead1f0d3e26efb0ea4271e01b15a3e3b",
+"d2/dfe/classqugar_1_1BoundBox.html#a891ccbb7739da530693125bf6681e0a6",
+"d7/d46/structqugar_1_1impl_1_1RootsIntervals.html#a477820803397a48fc4dafb001cb626bf",
+"d9/df1/classqugar_1_1UnfittedKDTree.html#a72183dffaa451b3ebbd40f163910793a",
+"dc/d7b/classqugar_1_1impl_1_1RefSystem.html#a625ec6532d7d8d8d15aebad5fbadae11",
+"df/d58/classqugar_1_1UnfittedDomain.html#a2efccd3fe5e3585b9e513b388d3a910b"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

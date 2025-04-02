@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['newvector_5ft_0',['NewVector_t',['../d1/d03/namespacequgar_1_1impl_1_1funcs_1_1__impl.html#adc04d4bb00e1faf9bee1bbecc7988531',1,'qugar::impl::funcs::_impl']]]
+  ['kdtree_0',['KDTree',['../da/de2/classqugar_1_1impl_1_1UnfittedImplDomain.html#a941056d812cea80993711648fc9b9614',1,'qugar::impl::UnfittedImplDomain']]],
+  ['kdtreeptr_1',['KDTreePtr',['../da/de2/classqugar_1_1impl_1_1UnfittedImplDomain.html#a18a61d9279882626b3c4abe620bd1cbe',1,'qugar::impl::UnfittedImplDomain::KDTreePtr'],['../df/d58/classqugar_1_1UnfittedDomain.html#ac42cfd1c53e2d40140123ec1b1edcee3',1,'qugar::UnfittedDomain::KDTreePtr']]]
 ];

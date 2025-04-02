@@ -329,7 +329,7 @@ So, first, we create a custom quadrature for the cut cells.
 
 ```python
 cut_cells_quad = qugar.cpp.create_quadrature(
-    unf_domain, unf_domain.cut_cells, n_quad_pts, full_cells=False
+    unf_domain, unf_domain.get_cut_cells(), n_quad_pts, full_cells=False
 )
 ```
 
@@ -354,7 +354,7 @@ Loop over the full cells and compute their contributions
 
 ```python
 vol_intgr = dtype(0.0)
-for cell_id in unf_domain.full_cells:
+for cell_id in unf_domain.get_full_cells():
     vol_intgr += compute_cell_integr(quad_01.points, quad_01.weights, cell_id)
 ```
 
@@ -440,7 +440,7 @@ We compute the needed custom quadrature.
 ```python
 int_bnd_quad = qugar.cpp.create_unfitted_bound_quadrature(
     unf_domain,
-    unf_domain.cut_cells,
+    unf_domain.get_cut_cells(),
     n_quad_pts,
 )
 ```
