@@ -44,13 +44,13 @@ from dolfinx.fem.forms import (
     _ufl_to_dolfinx_domain,
     form_cpp_class,
     form_cpp_creator,
-    get_integration_domains,
 )
+from dolfinx.mesh import MeshTags
 
 from qugar.dolfinx.custom_coefficients import CustomCoeffsPacker
 from qugar.dolfinx.integral_data import IntegralData
 from qugar.dolfinx.jit import ffcx_jit
-from qugar.quad import QuadGenerator
+from qugar.mesh.unfitted_domain_abc import UnfittedDomainABC
 
 if typing.TYPE_CHECKING:
     from mpi4py import MPI
@@ -76,6 +76,7 @@ class CustomForm(Form):
             _cpp.fem.Form_float32,
             _cpp.fem.Form_float64,
         ],
+        domain: UnfittedDomainABC,
         itg_data: list[IntegralData],
         ufcx_form=None,
         code: str | None = None,
@@ -96,10 +97,10 @@ class CustomForm(Form):
             module: CFFI module.
         """
         super().__init__(form, ufcx_form, code, module)
-        self._coeffs_packer = CustomCoeffsPacker(self, itg_data)
+        self._coeffs_packer = CustomCoeffsPacker(self, domain, itg_data)
 
     def pack_coefficients(
-        self, quad_gen: QuadGenerator
+        self,
     ) -> dict[
         tuple[IntegralType, int],
         npt.NDArray[np.float32 | np.float64 | np.complex64 | np.complex128],
@@ -111,19 +112,71 @@ class CustomForm(Form):
             This function mimics the behaviour of
             ``dolfinx.cpp.fem.pack_coefficients``.
 
-        Args:
-            quad_gen (QuadGenerator): Custom quadrature generator.
-
         Returns:
             dict[ tuple[IntegralType, int], npt.NDArray[np.float32 |
             np.float64 | np.complex64 | np.complex128]]:
             Generated custom coefficients.
         """
-        return self._coeffs_packer.pack_coefficients(quad_gen)
+        return self._coeffs_packer.pack_coefficients()
+
+
+def _get_custom_integration_domains(
+    domain: UnfittedDomainABC,
+    integral_type: IntegralType,
+    subdomain: typing.Optional[typing.Union[MeshTags, list[tuple[int, np.ndarray]]]],
+    subdomain_ids: list[int],
+) -> list[tuple[int, np.ndarray]]:
+    """Get custom integration domains from subdomain data.
+
+    The subdomain data is a meshtags object consisting of markers, or a
+    None object. If it is a None object we do not pack any integration
+    entities. Integration domains are defined as a list of tuples, where
+    each input `subdomain_ids` is mapped to an array of integration
+    entities, where an integration entity for a cell integral is the
+    list of cells. For an exterior facet integral each integration
+    entity is a tuple (cell_index, local_facet_index). For an interior
+    facet integral each integration entity is a uple (cell_index0,
+    local_facet_index0, cell_index1, local_facet_index1). Where the
+    first cell-facet pair is the '+' restriction, the second the '-'
+    restriction.
+
+    Args:
+        integral_type: The type of integral to pack integration
+            entities for.
+        domain (UnfittedDomainABC): The unfitted domain to integrate over.
+        subdomain: A meshtag with markers or manually specified
+            integration domains.
+        subdomain_ids: List of ids to integrate over.
+    """
+    if subdomain is None:
+        return []
+    else:
+        domains = []
+        try:
+            if integral_type in (IntegralType.exterior_facet, IntegralType.interior_facet):
+                tdim = subdomain.topology.dim  # type: ignore
+                subdomain._cpp_object.topology.create_connectivity(tdim - 1, tdim)  # type: ignore
+                subdomain._cpp_object.topology.create_connectivity(tdim, tdim - 1)  # type: ignore
+            # Compute integration domains only for each subdomain id in
+            # the integrals
+            # If a process has no integral entities, insert an empty
+            # array
+            for id in subdomain_ids:
+                integration_entities = _cpp.fem.compute_integration_domains(
+                    integral_type,
+                    subdomain._cpp_object.topology,  # type: ignore
+                    subdomain.find(id),  # type: ignore
+                    subdomain.dim,  # type: ignore
+                )
+                domains.append((id, integration_entities))
+            return [(s[0], np.array(s[1])) for s in domains]
+        except AttributeError:
+            return [(s[0], np.array(s[1])) for s in subdomain]  # type: ignore
 
 
 def form_custom(
     form: typing.Union[ufl.Form, typing.Iterable[ufl.Form]],
+    domain: UnfittedDomainABC,
     dtype: npt.DTypeLike = default_scalar_type,
     form_compiler_options: typing.Optional[dict] = None,
     jit_options: typing.Optional[dict] = None,
@@ -145,6 +198,7 @@ def form_custom(
 
     Args:
         form: A UFL form or list(s) of UFL forms.
+        domain (UnfittedDomainABC): The unfitted domain to integrate over.
         dtype: Scalar type to use for the compiled form.
         form_compiler_options: See :func:`ffcx_jit <dolfinx.jit.ffcx_jit>`
         jit_options: See :func:`ffcx_jit <dolfinx.jit.ffcx_jit>`.
@@ -175,7 +229,7 @@ def form_custom(
     form_compiler_options["scalar_type"] = dtype
     ftype = form_cpp_class(dtype)
 
-    def _form(form) -> CustomForm:
+    def _form(form, unf_domain: UnfittedDomainABC) -> CustomForm:
         """Compile a single UFL form."""
         # Extract subdomain data from UFL form
         sd = form.subdomain_data()
@@ -232,8 +286,8 @@ def form_custom(
         # Subdomain markers (possibly empty list for some integral
         # types)
         subdomains = {
-            _ufl_to_dolfinx_domain[key]: get_integration_domains(
-                _ufl_to_dolfinx_domain[key], subdomain_data[0], subdomain_ids[key]
+            _ufl_to_dolfinx_domain[key]: _get_custom_integration_domains(
+                domain, _ufl_to_dolfinx_domain[key], subdomain_data[0], subdomain_ids[key]
             )
             for (key, subdomain_data) in sd.get(domain).items()
         }
@@ -252,7 +306,7 @@ def form_custom(
             _entity_maps,
             mesh,
         )
-        return CustomForm(f, itg_data, ufcx_form, code, module)
+        return CustomForm(f, unf_domain, itg_data, ufcx_form, code, module)
 
     def _flatten_list(lst):
         new_lst = []
@@ -261,7 +315,9 @@ def form_custom(
                 new_lst.extend(_flatten_list(i))
         return new_lst
 
-    def _create_form(form) -> CustomForm | None | list[CustomForm | None]:
+    def _create_form(
+        form, domain: UnfittedDomainABC
+    ) -> CustomForm | None | list[CustomForm | None]:
         """Recursively convert ufl.Forms to dolfinx.fem.Form.
 
         Args:
@@ -275,14 +331,14 @@ def form_custom(
             if form.empty():
                 return None
             else:
-                return _form(form)
+                return _form(form, domain)
         elif isinstance(form, collections.abc.Iterable):
-            forms = _flatten_list(list(map(lambda sub_form: _create_form(sub_form), form)))
+            forms = _flatten_list(list(map(lambda sub_form: _create_form(sub_form, domain), form)))
             return forms
         else:
             raise ValueError("Not implemented case.")
 
-    return _create_form(form)
+    return _create_form(form, domain)
 
 
 @dataclass

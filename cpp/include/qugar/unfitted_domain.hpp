@@ -75,6 +75,7 @@ public:
 
   [[nodiscard]] GridPtr get_grid() const;
 
+  [[nodiscard]] std::size_t get_num_total_cells() const;
   [[nodiscard]] std::size_t get_num_full_cells() const;
   [[nodiscard]] std::size_t get_num_empty_cells() const;
   [[nodiscard]] std::size_t get_num_cut_cells() const;

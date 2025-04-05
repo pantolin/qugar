@@ -22,7 +22,7 @@ import dolfinx.mesh
 import numpy as np
 import pytest
 import ufl
-from mock_quad_generator import MockQuadGenerator
+from mock_unf_domain import MockUnfittedDomain
 from utils import clean_cache, create_mesh, dtypes, run_matrix_check  # type: ignore
 
 
@@ -84,9 +84,9 @@ def test_grad_grad(
     ufl_form_0 = e * ufl.inner(ufl.grad(u), ufl.grad(v)) * dx(domain=mesh)  # type: ignore
     ufl_form = ufl_form_0
 
-    quad_gen = MockQuadGenerator(mesh=mesh, nnz=nnz, max_quad_sets=max_quad_sets)
+    unf_domain = MockUnfittedDomain(mesh=mesh, nnz=nnz, max_quad_sets=max_quad_sets)
 
-    run_matrix_check(ufl_form, quad_gen)
+    run_matrix_check(ufl_form, unf_domain)
 
 
 @pytest.mark.parametrize("max_quad_sets", [3])
@@ -157,9 +157,9 @@ def test_elasticity(
 
     ufl_form = ufl_form_0
 
-    quad_gen = MockQuadGenerator(mesh=mesh, nnz=nnz, max_quad_sets=max_quad_sets)
+    unf_domain = MockUnfittedDomain(mesh=mesh, nnz=nnz, max_quad_sets=max_quad_sets)
 
-    run_matrix_check(ufl_form, quad_gen)
+    run_matrix_check(ufl_form, unf_domain)
 
 
 @pytest.mark.parametrize("max_quad_sets", [3])
@@ -250,9 +250,9 @@ def test_grad_grad_surface(
         else:
             ufl_form += new_ufl_form
 
-    quad_gen = MockQuadGenerator(mesh=mesh, nnz=nnz, max_quad_sets=max_quad_sets)
+    unf_domain = MockUnfittedDomain(mesh=mesh, nnz=nnz, max_quad_sets=max_quad_sets)
 
-    run_matrix_check(ufl_form, quad_gen)
+    run_matrix_check(ufl_form, unf_domain)
 
 
 @pytest.mark.parametrize("max_quad_sets", [3])
@@ -311,27 +311,27 @@ def test_interior_facet(
         f * ufl.inner(ufl.jump(ufl.grad(u), n), ufl.jump(ufl.grad(v), n)) * ufl.dS  # type: ignore
     )
 
-    quad_gen = MockQuadGenerator(mesh=mesh, nnz=nnz, max_quad_sets=max_quad_sets)
+    unf_domain = MockUnfittedDomain(mesh=mesh, nnz=nnz, max_quad_sets=max_quad_sets)
 
-    run_matrix_check(ufl_form, quad_gen)
+    run_matrix_check(ufl_form, unf_domain)
 
 
 if __name__ == "__main__":
     clean_cache()
-    # test_grad_grad(
-    #     N=1,
-    #     dim=2,
-    #     dx=ufl.dx,
-    #     p=1,
-    #     simplex_cell=True,
-    #     dtype=np.float32,
-    #     nnz=0.3,
-    #     max_quad_sets=3,
-    # )
-
-    test_interior_facet(
-        N=4, dim=2, p=1, simplex_cell=True, dtype=np.float32, nnz=0.3, max_quad_sets=3
+    test_grad_grad(
+        N=1,
+        dim=2,
+        dx=ufl.ds,
+        p=1,
+        simplex_cell=True,
+        dtype=np.float32,
+        nnz=0.3,
+        max_quad_sets=3,
     )
+
+    # test_interior_facet(
+    #     N=4, dim=2, p=1, simplex_cell=True, dtype=np.float32, nnz=0.3, max_quad_sets=3
+    # )
 
     # test_grad_grad_surface(
     #     N=4,

@@ -210,7 +210,7 @@ void test_volume_and_centroid(const std::shared_ptr<const qugar::impl::ImplicitF
   std::vector<std::int64_t> cut_cells;
   unf_domain.get_cut_cells(cut_cells);
 
-  const auto quad = qugar::create_quadrature(unf_domain, cut_cells, n_quad_pts_dir, true);
+  const auto quad = qugar::create_quadrature(unf_domain, cut_cells, n_quad_pts_dir);
 
   const auto unf_bound_quad = qugar::create_unfitted_bound_quadrature(unf_domain, cut_cells, n_quad_pts_dir);
 

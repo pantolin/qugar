@@ -335,9 +335,7 @@ def create_full_facet_quadrature(
 
 # So, first, we create a custom quadrature for the cut cells.
 
-cut_cells_quad = qugar.cpp.create_quadrature(
-    unf_domain, unf_domain.get_cut_cells(), n_quad_pts, full_cells=False
-)
+cut_cells_quad = qugar.cpp.create_quadrature(unf_domain, unf_domain.get_cut_cells(), n_quad_pts)
 
 # and for the full cells.
 

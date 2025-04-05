@@ -8,209 +8,77 @@
 #
 # --------------------------------------------------------------------------
 
-from typing import Callable, Optional
+from abc import ABC, abstractmethod
+from typing import Optional
 
-from qugar import has_FEniCSx
-
-if not has_FEniCSx:
-    raise ValueError("FEniCSx installation not found is required.")
-
-import dolfinx.mesh
 import numpy as np
 import numpy.typing as npt
 
-from qugar.cpp import UnfittedDomain_2D, UnfittedDomain_3D
-from qugar.mesh import TensorProductMesh
+from qugar.quad.custom_quad import (
+    CustomQuad,
+    CustomQuadFacet,
+    CustomQuadUnfBoundary,
+)
 
 
-class UnfittedDomain:
-    """Class for storing an unfitted domain
-    and access its cut, full, and empty cells and facets.
+class UnfittedDomainABC(ABC):
+    """Abstract base class for storing unfitted domains.
+
+    This class provides (abstract) methods for accessing the cut, full, and empty
+    cells and facets of the mesh. It also provides methods for creating
+    quadrature rules for the cut cells and unfitted boundaries.
+
+    Classes that inherit from this class should implement the
+    `get_cut_cells`, `get_full_cells`, `get_empty_cells`, `get_cut_facets`,
+    `get_full_facets`, `get_empty_facets`, and `get_unf_bdry_facets` methods
+    to access the cut, full, empty, and unfitted boundary facets,
+    respectively. The `create_quad_custom_cells`, `create_quad_unf_boundaries`,
+    and `create_quad_custom_facets` methods should be implemented to create
+    custom quadrature rules for the cut cells and unfitted boundaries.
+
+    This class also provides methods for creating subdomain data for the
+    different types of cells and faces.
+
+    Note:
+        This class is purely abstract and should not be instantiated
+        directly. It is intended to be used as a base class for other
+        classes that implement the abstract methods.
     """
 
-    def __init__(
-        self,
-        tp_mesh: TensorProductMesh,
-        cpp_object: UnfittedDomain_2D | UnfittedDomain_3D,
-    ) -> None:
-        """Constructor.
-
-        Args:
-            tp_mesh (TensorProductMesh): Tensor-product mesh
-                for which the cell decomposition is generated.
-            cpp_object (UnfittedDomain_2D | UnfittedDomain_3D):
-                Already generated unfitted domain binary object.
-        """
-
-        assert cpp_object.dim == tp_mesh.tdim, "Non-matching dimensions."
-        assert tp_mesh.tdim == tp_mesh.gdim, "Mesh must have co-dimension 0."
-        # assert cart_mesh.cart_grid_tp_cpp_object == cpp_object.grid, "Non-matching grids."
-
-        self._tp_mesh = tp_mesh
-        self._cpp_object = cpp_object
-
-        self._full_cells = None
-        self._empty_cells = None
-        self._cut_cells = None
-
-    @property
-    def dim(self) -> int:
-        """Gets the dimension of the mesh.
-
-        Returns:
-            int: Mesh's topological dimension (2 or 3).
-        """
-        return self.tp_mesh.tdim
-
-    @property
-    def tp_mesh(self) -> TensorProductMesh:
-        """Gets the stored tensor-product mesh.
-
-        Returns:
-            TensorProductMesh: Stored tensor-product mesh.
-        """
-        return self._tp_mesh
-
-    @property
-    def cpp_object(self) -> UnfittedDomain_2D | UnfittedDomain_3D:
-        """Gets the internal C++ unfitted domain.
-
-        Returns:
-            UnfittedDomain_2D | UnfittedDomain_3D:
-            Internal C++ unfitted domain.
-        """
-        return self._cpp_object
-
+    @abstractmethod
     def get_cut_cells(self) -> npt.NDArray[np.int32]:
         """Gets the ids of the cut cells.
 
         Returns:
             npt.NDArray[np.int32]: Array of cut cells associated to the
             current process following the DOLFINx local numbering.
+            The cell id are sorted.
         """
+        pass
 
-        if self._cut_cells is None:
-            if self._tp_mesh.num_local_cells != self._tp_mesh.num_cells_tp:
-                dlf_cell_ids = np.arange(self._tp_mesh.num_local_cells, dtype=np.int32)
-                lex_cell_ids = self._tp_mesh.get_lexicg_cell_ids(dlf_cell_ids)
-                lex_cut_cell_ids = self._cpp_object.get_cut_cells(lex_cell_ids)
-            else:
-                lex_cut_cell_ids = self._cpp_object.get_cut_cells()
-            self._cut_cells = self.tp_mesh.get_DOLFINx_local_cell_ids(lex_cut_cell_ids)
-
-        return self._cut_cells
-
+    @abstractmethod
     def get_full_cells(self) -> npt.NDArray[np.int32]:
         """Gets the ids of the full cells.
 
         Returns:
             npt.NDArray[np.int32]: Array of full cells associated to the
             current process following the DOLFINx local numbering.
+            The cell id are sorted.
         """
+        pass
 
-        if self._full_cells is None:
-            if self._tp_mesh.num_local_cells != self._tp_mesh.num_cells_tp:
-                dlf_cell_ids = np.arange(self._tp_mesh.num_local_cells, dtype=np.int32)
-                lex_cell_ids = self._tp_mesh.get_lexicg_cell_ids(dlf_cell_ids)
-                lex_full_cell_ids = self._cpp_object.get_full_cells(lex_cell_ids)
-            else:
-                lex_full_cell_ids = self._cpp_object.get_full_cells()
-            self._full_cells = self.tp_mesh.get_DOLFINx_local_cell_ids(lex_full_cell_ids)
-
-        return self._full_cells
-
+    @abstractmethod
     def get_empty_cells(self) -> npt.NDArray[np.int32]:
         """Gets the ids of the empty cells.
 
         Returns:
             npt.NDArray[np.int32]: Array of empty cells associated to the
             current process following the DOLFINx local numbering.
+            The cell id are sorted.
         """
+        pass
 
-        if self._empty_cells is None:
-            if self._tp_mesh.num_local_cells != self._tp_mesh.num_cells_tp:
-                dlf_cell_ids = np.arange(self._tp_mesh.num_local_cells, dtype=np.int32)
-                lex_cell_ids = self._tp_mesh.get_lexicg_cell_ids(dlf_cell_ids)
-                lex_empty_cell_ids = self._cpp_object.get_empty_cells(lex_cell_ids)
-            else:
-                lex_empty_cell_ids = self._cpp_object.get_empty_cells()
-            self._empty_cells = self.tp_mesh.get_DOLFINx_local_cell_ids(lex_empty_cell_ids)
-
-        return self._empty_cells
-
-    def _get_exterior_facets(self) -> npt.NDArray[np.int32]:
-        """Gets the exterior facets of the mesh.
-
-        Returns:
-            npt.NDArray[np.int32]: Sorted list of owned facet indices that are
-            exterior facets of the mesh.
-        """
-        msh = self._tp_mesh
-        msh.topology.create_connectivity(msh.tdim - 1, msh.tdim)
-        return dolfinx.mesh.exterior_facet_indices(msh.topology)
-
-    def _get_facets(
-        self,
-        facets_getter: Callable[
-            [Optional[npt.NDArray[np.int64]], Optional[npt.NDArray[np.int32]]],
-            tuple[npt.NDArray[np.int64], npt.NDArray[np.int32]],
-        ],
-        only_exterior: bool = False,
-        only_interior: bool = False,
-    ) -> tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]:
-        """Accesses a list of facets either through the function `facets_getter`.
-
-        The list of facets can be filtered to only exterior or interior facets.
-
-        Args:
-            facets_getter (Callable[[Optional[npt.NDArray[np.int64]], Optional[npt.NDArray[np.int32]]],
-              tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]]): Function to
-                access the facets. It returns the facets as pairs of cells and local facets
-                following lexicographical ordering. Optionally, it can receive as arguments
-                the (lexicographical) cell ids and local facet ids of the subsets of
-                facets to be considered.
-            only_exterior (bool): If `True`, only the exterior facets are returned.
-                Defaults to False.
-            only_interior (bool): If `True`, only the interior facets are returned.
-                Defaults to False.
-
-        Returns:
-            tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]:
-            Extracted facets. The facets are returned as one array of
-            cells and another one of local facets referred to those
-            cells both with the same length and both following (local) DOLFINx ordering.
-        """  # noqa: E501
-
-        assert not (only_exterior and only_interior), "Cannot be both exterior and interior."
-
-        if only_exterior or only_interior:
-            ext_facets_ids = self._get_exterior_facets()
-            if only_exterior:
-                facets_ids = ext_facets_ids
-            else:
-                topology = self.tp_mesh.topology
-                imap = topology.index_map(topology.dim - 1)
-                all_facets = np.arange(imap.local_range[0], imap.local_range[1], dtype=np.int32)
-                facets_ids = np.setdiff1d(all_facets, ext_facets_ids, assume_unique=True)
-
-            dlf_cell_ids, dlf_local_facet_ids = (
-                self.tp_mesh.transform_DOLFINx_local_facet_ids_to_cells_and_local_facets(facets_ids)
-            )
-            lex_cell_ids, lex_local_facet_ids = (
-                self.tp_mesh.transform_DOLFINx_local_facet_ids_to_lexicg(
-                    dlf_cell_ids, dlf_local_facet_ids
-                )
-            )
-
-            lex_cell_ids, lex_local_facet_ids = facets_getter(lex_cell_ids, lex_local_facet_ids)
-
-        else:
-            lex_cell_ids, lex_local_facet_ids = facets_getter(None, None)
-
-        return self.tp_mesh.transform_lexicg_facet_ids_to_DOLFINx_local(
-            lex_cell_ids, lex_local_facet_ids
-        )
-
+    @abstractmethod
     def get_cut_facets(
         self,
         only_exterior: bool = False,
@@ -235,8 +103,9 @@ class UnfittedDomain:
             cells and another one of local facets referred to those
             cells both with the same length and both following (local) DOLFINx ordering.
         """
-        return self._get_facets(self._cpp_object.get_cut_facets, only_exterior, only_interior)
+        pass
 
+    @abstractmethod
     def get_full_facets(
         self,
         only_exterior: bool = False,
@@ -261,9 +130,9 @@ class UnfittedDomain:
             cells and another one of local facets referred to those
             cells both with the same length and both following (local) DOLFINx ordering.
         """
+        pass
 
-        return self._get_facets(self._cpp_object.get_full_facets, only_exterior, only_interior)
-
+    @abstractmethod
     def get_empty_facets(
         self,
         only_exterior: bool = False,
@@ -287,9 +156,9 @@ class UnfittedDomain:
             cells and another one of local facets referred to those
             cells both with the same length and both following DOLFINx ordering.
         """
+        pass
 
-        return self._get_facets(self._cpp_object.get_empty_facets, only_exterior, only_interior)
-
+    @abstractmethod
     def get_unf_bdry_facets(
         self,
         only_exterior: bool = False,
@@ -314,8 +183,7 @@ class UnfittedDomain:
             cells and another one of local facets referred to those
             cells both with the same length and both following (local) DOLFINx ordering.
         """
-
-        return self._get_facets(self._cpp_object.get_unf_bdry_facets, only_exterior, only_interior)
+        pass
 
     def create_cell_subdomain_data(
         self,
@@ -418,3 +286,138 @@ class UnfittedDomain:
             add_facets(cells, local_facets, cut_tag)
 
         return list((tag, entities) for tag, entities in subdomain_data.items())
+
+    @abstractmethod
+    def create_quad_custom_cells(
+        self,
+        degree: int,
+        dlf_cells: npt.NDArray[np.int32],
+        tag: Optional[int] = None,
+    ) -> CustomQuad:
+        """Returns the custom quadratures for the given `dlf_cells`.
+
+        Among the given `dlf_cells`, it only creates quadratures for a
+        subset of those (the custom cells), while no points or
+        weights are generated for the others. Thus, the cells without
+        custom quadratures will be listed in the returned
+        `CustomQuadInterface`, but will have 0 points associated to
+        them.
+
+        Note:
+            This call may require the generation of the quadratures on
+            the fly, what can be potentially expensive.
+
+        Args:
+            degree (int): Expected degree of exactness of the quadrature
+                to be generated.
+
+            dlf_cells (npt.NDArray[np.int32]): Array of DOLFINx cell ids
+                (local to current MPI process) for which quadratures
+                will be generated.
+
+            tag (Optional[int]): Mesh tag of the subdomain associated to
+                the given cells. Defaults to None.
+
+        Returns:
+            CustomQuadInterface: Generated custom quadrature.
+        """
+        pass
+
+    @abstractmethod
+    def create_quad_unf_boundaries(
+        self,
+        degree: int,
+        dlf_cells: npt.NDArray[np.int32],
+        tag: Optional[int] = None,
+    ) -> CustomQuadUnfBoundary:
+        """Returns the custom quadrature for unfitted boundaries for the
+        given `cells`.
+
+        Warning:
+            All the given cells associated should contain unfitted
+            boundaries. I.e., they must be cut cells. If not, the
+            custom coefficients generator will raise an
+            exception.
+
+        Note:
+            This call may require the generation of the quadratures on
+            the fly, what can be potentially expensive.
+
+        Args:
+            degree (int): Expected degree of exactness of the quadrature
+                to be generated.
+
+            dlf_cells (npt.NDArray[np.int32]): Array of DOLFINx cell ids
+                (local to current MPI process) for which quadratures
+                will be generated. It must only contain cells with
+                unfitted boundaries.
+
+            tag (int): Mesh tag of the subdomain associated to the given
+                cells.
+
+        Returns:
+            CustomQuadUnfBoundaryInterface: Generated custom quadrature
+            for unfitted boundaries.
+        """
+        pass
+
+    @abstractmethod
+    def create_quad_custom_facets(
+        self,
+        degree: int,
+        dlf_cells: npt.NDArray[np.int32],
+        dlf_local_facets: npt.NDArray[np.int32],
+        integral_type: str,
+        tag: Optional[int] = None,
+    ) -> CustomQuadFacet:
+        """Returns the custom quadratures for the given facets.
+
+        Among the facets associated to `tag`, it only creates
+        quadratures for a subset of those (the custom facets), while no
+        points or weights are generated for the others. Thus, the facets
+        without custom quadratures will be listed in the returned
+        `CustomQuadFacetInterface`, but will have 0 points associated to
+
+        Among the given facets, it only creates quadratures for a
+        subset of those (the custom facets), while no points or
+        weights are generated for the others. Thus, the facets without
+        custom quadratures will be listed in the returned
+        `CustomQuadFacetInterface`, but will have 0 points associated to
+        them.
+
+        Note:
+            This call may require the generation of the quadratures on
+            the fly, what can be potentially expensive.
+
+        Args:
+            degree (int): Expected degree of exactness of the quadrature
+                to be generated.
+
+            dlf_cells (npt.NDArray[np.int32]): Array of DOLFINx cell ids
+                (local to current MPI process) for which quadratures
+                will be generated. It must only contain cells with
+                unfitted boundaries. Beyond a cell id, for indentifying
+                a facet, a local facet id (from the array
+                `local_facets`) is also needed.
+
+            dlf_local_facets (npt.NDArray[np.int32]): Array of local facet
+                ids for which the custom quadratures are generated. Each
+                facet is identified through a value in `cells` and a
+                value in `local_facets`, having both arrays the same
+                length. The numbering of these facets follows the
+                FEniCSx convention. See
+                https://github.com/FEniCS/basix/#supported-elements
+
+            integral_type (str): Type of integral to be computed. It can
+                be either 'interior_facet' or 'exterior_facet'.
+
+            tag (int): Mesh tag of the subdomain associated to the given
+                cells. Right now, it is not used. However, in the future
+                it may be used to filter the different boundaries
+                on the same cell.
+
+        Returns:
+            CustomQuadFacetInterface: Generated custom facet
+            quadratures.
+        """
+        pass

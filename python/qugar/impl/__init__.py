@@ -38,9 +38,7 @@ from qugar.impl.impl_function import (
 )
 
 __all__ = [
-    "UnfittedImplDomain",
     "ImplicitFunc",
-    "create_unfitted_impl_domain",
     "create_disk",
     "create_sphere",
     "create_ellipse",

@@ -140,7 +140,7 @@ int main(/* int argc, const char **argv */)
   std::vector<std::int64_t> cut_cells;
   unf_domain.get_cut_cells(cut_cells);
 
-  const auto quad = qugar::create_quadrature<3>(unf_domain, cut_cells, n_quad_pts_dir, true);
+  const auto quad = qugar::create_quadrature<3>(unf_domain, cut_cells, n_quad_pts_dir);
 
   const auto unf_bound_quad = qugar::create_unfitted_bound_quadrature<3>(unf_domain, cut_cells, n_quad_pts_dir);
 

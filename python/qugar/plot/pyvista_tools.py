@@ -454,14 +454,12 @@ def quadrature_to_PyVista(
         domain_ = domain
     else:
         assert has_FEniCSx, "FEniCSx is required to convert a TensorProductMesh to PyVista."
-        from qugar.unfitted_domain import UnfittedDomain
+        from qugar.mesh import UnfittedDomain
 
         assert isinstance(domain, UnfittedDomain), "Invalid type."
-        domain_ = domain.cpp_object
+        domain_ = domain.cpp_unf_domain_object
 
-    cells_quad = qugar.cpp.create_quadrature(
-        domain_, domain_.get_cut_cells(), n_pts_dir, full_cells=False
-    )
+    cells_quad = qugar.cpp.create_quadrature(domain_, domain_.get_cut_cells(), n_pts_dir)
 
     cells_points_set = _cut_quad_to_PyVista(domain_.grid, cells_quad)
 
@@ -476,7 +474,6 @@ def quadrature_to_PyVista(
         cut_facets_cells,
         cut_facets_local_facets,
         n_pts_dir,
-        full_facets=False,
     )
     unf_bdry_facets_cells, unf_bdry_facets_local_facets = domain_.get_unf_bdry_facets()
     unf_bdry_facets_quad = qugar.cpp.create_exterior_facets_quadrature(
@@ -484,17 +481,16 @@ def quadrature_to_PyVista(
         unf_bdry_facets_cells,
         unf_bdry_facets_local_facets,
         n_pts_dir,
-        full_facets=False,
     )
     facets_points_set = _create_quad_facet_points_grid(
         domain_.grid, [cut_facets_quad, unf_bdry_facets_quad]
     )
 
     if not is_cpp:
-        _append_DOLFINx_cell_ids(cells_points_set, domain.tp_mesh)
-        _append_DOLFINx_cell_ids(unf_bdry_points_set, domain.tp_mesh)
-        _append_DOLFINx_cell_ids(facets_points_set, domain.tp_mesh)
-        _append_DOLFINx_facets_ids(facets_points_set, domain.dim)
+        _append_DOLFINx_cell_ids(cells_points_set, domain)
+        _append_DOLFINx_cell_ids(unf_bdry_points_set, domain)
+        _append_DOLFINx_cell_ids(facets_points_set, domain)
+        _append_DOLFINx_facets_ids(facets_points_set, domain.tdim)
 
     return pv.MultiBlock(
         {
@@ -531,7 +527,7 @@ def unfitted_domain_facets_to_PyVista(
     grid = unfitted_domain_to_PyVista(domain, cut=True, full=True, empty=True)
     n_cells = grid.n_cells
 
-    dim = domain.dim
+    dim = domain.tdim
     assert 2 <= dim <= 3, "Invalid dimension."
 
     grid = cast(pv.DataSet, grid.explode(factor=0.0))
@@ -556,11 +552,11 @@ def unfitted_domain_facets_to_PyVista(
         domain_ = domain
     else:
         assert has_FEniCSx, "FEniCSx is required to convert a TensorProductMesh to PyVista."
-        from qugar.unfitted_domain import UnfittedDomain
+        from qugar.mesh import UnfittedDomain
 
         assert isinstance(domain, UnfittedDomain), "Invalid type."
 
-        domain_ = domain.cpp_object
+        domain_ = domain.cpp_unf_domain_object
 
     facets = {}
     if full:
@@ -619,12 +615,12 @@ def unfitted_domain_to_PyVista(
         domain_ = domain
     else:
         assert has_FEniCSx, "FEniCSx is required to convert a TensorProductMesh to PyVista."
-        from qugar.unfitted_domain import UnfittedDomain
+        from qugar.mesh import UnfittedDomain
 
         assert isinstance(domain, UnfittedDomain), "Invalid type."
 
-        grid = grid_tp_to_PyVista(domain.tp_mesh)
-        domain_ = domain.cpp_object
+        grid = grid_tp_to_PyVista(domain)
+        domain_ = domain.cpp_unf_domain_object
 
     value = np.full(grid.n_cells, empty, dtype=bool)
     status = np.full(grid.n_cells, 2, dtype=np.uint8)

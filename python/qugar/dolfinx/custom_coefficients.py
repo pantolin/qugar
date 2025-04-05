@@ -15,6 +15,7 @@ if not has_FEniCSx:
 
 
 import dolfinx.cpp.fem
+import dolfinx.cpp.fem as cpp_fem
 import dolfinx.mesh
 import numpy as np
 import numpy.typing as npt
@@ -26,17 +27,47 @@ from qugar.dolfinx.fe_table import FETable
 from qugar.dolfinx.fe_table_eval import evaluate_FE_tables
 from qugar.dolfinx.integral_data import IntegralData
 from qugar.dolfinx.quadrature_data import QuadratureData
-from qugar.quad import CustomQuad, CustomQuadFacet, CustomQuadUnfBoundary, QuadGenerator
+from qugar.mesh.unfitted_domain_abc import UnfittedDomainABC
+from qugar.quad import CustomQuad, CustomQuadFacet, CustomQuadUnfBoundary
 
 """Type defining all the possible array types for the integrals
 coefficients."""
 FloatingArray = npt.NDArray[np.float32 | np.float64 | np.complex64 | np.complex128]
 
 
+def _find_common_rows(A: npt.NDArray[np.int32], B: npt.NDArray[np.int32]) -> npt.NDArray[np.intp]:
+    """
+    Find rows in A that are also present in B.
+
+    Args:
+        A: 2D NumPy array of integers
+        B: 2D NumPy array of integers with same number of columns as A
+
+    Returns:
+        Indices of rows in A that are also in B
+    """
+    # Handle empty arrays
+    if A.size == 0 or B.size == 0:
+        return np.array([], dtype=np.intp)
+
+    # Convert to structured arrays to compare rows as single elements
+    dtype = np.dtype([("", np.int32)] * A.shape[1])
+    A_view = A.view(dtype).reshape(-1)
+    B_view = B.view(dtype).reshape(-1)
+
+    # Use isin to find which rows in A are also in B
+    mask = np.isin(A_view, B_view)
+
+    # Return indices where mask is True
+    return np.where(mask)[0]
+
+
 class _CustomCoeffsPackerIntegral:
     """Class for computing coefficients for a single custom integral.
 
     Parameters:
+        _unf_domain (UnfittedDomainABC): The unfitted domain in which the
+            integrals are computed.
         _custom_quads_types: All possible types for the custom
             quadratures. Namely ``CustomQuad``, ``CustomQuadFacet``, ``CustomQuadUnfBoundary``
         _itg_data (IntegralData): Data for the integral whose custom
@@ -57,7 +88,6 @@ class _CustomCoeffsPackerIntegral:
             (for each side, the local facet refers to cell the facet
             belongs to).
         _mesh (dolfinx.mesh.Mesh): DOLFINx associated to the integral.
-        _quad_gen (QuadGenerator): Custom quadratures generator.
         _old_coeffs (FloatingArray): Original (standard) compute
             coefficients for non custom integrals.
         _new_coeffs (FloatingArray): New coefficients for custom
@@ -68,7 +98,7 @@ class _CustomCoeffsPackerIntegral:
             integral quantities.
         _coeffs_dtype (FloatingArray): `numpy` scalar type of the
             integral coefficients.
-        _offsets_dtype (np.uintp): `numpy` scalar type for the offset
+        _offsets_dtype (np.intp): `numpy` scalar type for the offset
             values.
         _custom_quads (dict[IntegralData, _custom_quads_types]):
             Dictionary mapping each integral data (integrand in the
@@ -86,7 +116,7 @@ class _CustomCoeffsPackerIntegral:
             ones. The length of the array is the same as the number of
             entities, i.e., the same length along the first axis of
             `self._domain`.
-        _offsets (npt.NDArray[np.uintp]): Array of absolute offsets.
+        _offsets (npt.NDArray[np.intp]): Array of absolute offsets.
             The offsets specify for every entity in the domain (cells,
             exterior facets, or first facet in the case of interior
             facets) in which position of the (flatten) array of extra
@@ -99,16 +129,18 @@ class _CustomCoeffsPackerIntegral:
 
     def __init__(
         self,
+        unf_domain: UnfittedDomainABC,
         itg_data: IntegralData,
         subdomain_id: int,
         domain: npt.NDArray[np.int32],
         mesh: dolfinx.mesh.Mesh,
-        quad_gen: QuadGenerator,
         old_coeffs: npt.NDArray[np.float32 | np.float64 | np.complex64 | np.complex128],
     ) -> None:
         """Initializes the class.
 
         Args:
+            unf_domain (UnfittedDomainABC): The unfitted domain in which the
+                integrals are computed.
             itg_data (IntegralData): Data for the integral whose custom
                 coefficients are computed.
             subdomain_id (int): Id of the subdomain.
@@ -128,17 +160,16 @@ class _CustomCoeffsPackerIntegral:
                 facet refers to cell the facet belongs to).
             mesh (dolfinx.mesh.Mesh): DOLFINx associated to the
                 integral.
-            quad_gen (QuadGenerator): Class for generating custom
-                quadratures.
             old_coeffs (FloatingArray): `Standard` coefficients
                 associated to the non-custom integral.
         """
+        self._unf_domain = unf_domain
         self._itg_data = itg_data
         self._subdomain_id = subdomain_id
         self._domain = domain
         self._mesh = mesh
-        self._quad_gen = quad_gen
         self._old_coeffs = old_coeffs
+        self._custom_entity_ids = self._get_custom_entities_ids()
 
         self._set_dtypes()
         self._create_quadratures()
@@ -166,17 +197,8 @@ class _CustomCoeffsPackerIntegral:
         self._dtype = np.dtype(self._itg_data.dtype)
         self._coeffs_dtype = np.dtype(self._old_coeffs.dtype)
 
-        # We use np.uintp type  to store a size_t C type.
-        # See https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.uintp # noqa
-        self._offsets_dtype = np.dtype(np.uintp)
-
-    def _copy_old_coeffs_to_new(self) -> None:
-        """Copies the old coefficients (the ones of the non-custom
-        integral) in `self._old_coeffs` in the right position of the new
-        custom coefficients array `self._new_coeffs`.
-        """
-        s = self._old_coeffs.shape
-        self._new_coeffs[: s[0], : s[1]] = self._old_coeffs
+        # We use np.intp type to store a ptrdiff_t C type.
+        self._offsets_dtype = np.dtype(np.intp)
 
     def _get_subdomain_tag(self) -> int:
         """Returns the integral subdomain id.
@@ -251,21 +273,21 @@ class _CustomCoeffsPackerIntegral:
             coefficients offsets.
         """
 
-        # A size_t value (unsigned 64 bits int used for offsets) may not
+        # A ptrdiff_t value (signed 64 bits int used for offsets) may not
         # into a single coefficient value. In particular, in the case
         # they don't fit in the case coeffients are float 32 bits.
         # There should be no problem for float 64 bits, as well as for
         # complex 64 and 128 bits.
-        # In the case of float 32 bits, we pack the size_t into
+        # In the case of float 32 bits, we pack the ptrdiff_t into
         # two values.
         n_extra_cols = np.ceil(self._offsets_dtype.itemsize / self._coeffs_dtype.itemsize)
         return int(n_extra_cols)
 
     def _allocate_new_coeffs(
         self,
-    ) -> npt.NDArray[np.float32 | np.float64 | np.complex64 | np.complex128]:
+    ) -> None:
         """Allocates the `numpy` array for storing the custom
-        coefficients.
+        coefficients and stores it in `self._new_coeffs`.
 
         The size of the (original) non-custom array is enlarged for
         storing the original coefficients and the new ones. In
@@ -274,29 +296,24 @@ class _CustomCoeffsPackerIntegral:
         for every entity. In addition, as many rows as needed are
         added to store all the new coefficients to the custom cells.
 
-        This method also initializes the member
-        `self._n_vals_per_entity`.
-
-        Returns:
-            FloatingArray: Allocated `numpy` array for storing the
-            custom coefficients. It is initialzed to zero.
+        This method also initializes the member `self._n_vals_per_entity`.
         """
 
-        self._n_vals_per_entity = self._compute_n_vals_per_entity()
+        self._n_vals_per_entity = self._compute_n_vals_per_custom_entity()
 
         n_cols = self._old_coeffs.shape[1]
         n_cols += self._get_n_extra_cols()
 
-        n_tot_vals = self._offsets_dtype.type(sum(self._n_vals_per_entity))
+        n_tot_vals = np.sum(self._n_vals_per_entity, dtype=self._offsets_dtype)
 
         n_rows = self._offsets_dtype.type(self._domain.shape[0])
         if self._is_interior_facet():
             n_rows *= 2
-        n_rows += self._offsets_dtype.type(np.ceil(n_tot_vals / n_cols))
+        n_extra_rows = self._offsets_dtype.type(np.ceil(n_tot_vals / n_cols))
 
-        return np.zeros((n_rows, n_cols), dtype=self._coeffs_dtype)
+        self._new_coeffs = np.zeros((n_rows + n_extra_rows, n_cols), dtype=self._coeffs_dtype)
 
-    def _compute_n_vals_per_entity(self) -> npt.NDArray[np.int32]:
+    def _compute_n_vals_per_custom_entity(self) -> npt.NDArray[np.int32]:
         """Computes the number of values to be stored per custom entity.
 
         Warning:
@@ -306,11 +323,11 @@ class _CustomCoeffsPackerIntegral:
             npt.NDArray[np.int32]: Number of values per custom entity.
             The length of the array is the same as the number of custom
             entities, i.e., the same length along the first axis of
-            `self._custom_domain`.
+            `self._custom_entity_ids`.
         """
 
-        n_entities = self._domain.shape[0]
-        n_vals_per_entity = np.zeros(n_entities, dtype=np.int32)
+        n_custom_entities = self._custom_entity_ids.size
+        n_vals_per_custom_entity = np.zeros(n_custom_entities, dtype=np.int32)
 
         interior_facet = self._is_interior_facet()
 
@@ -333,13 +350,14 @@ class _CustomCoeffsPackerIntegral:
                 n_vals_per_pt += custom_quad.points.shape[1]
 
             n_pts_per_entity = custom_quad.n_pts_per_entity
+            assert n_pts_per_entity.size == n_custom_entities
 
-            n_vals_per_entity += n_pts_per_entity * n_vals_per_pt
+            n_vals_per_custom_entity += n_pts_per_entity * n_vals_per_pt
             # 1 extra values is added for storing the quadrature's
             # number of points. This number is a 32bit int, therefore,
             # it can be casted from any coefficient type (all of them
             # should be >= 32bits).
-            n_vals_per_entity[np.where(n_pts_per_entity != 0)] += 1
+            n_vals_per_custom_entity += 1
 
         if np.issubdtype(self._coeffs_dtype, np.complexfloating):
             # # If the coefficients are complex, we can pack two extra
@@ -355,7 +373,7 @@ class _CustomCoeffsPackerIntegral:
             #   dtype)
             assert False, "Not implemented yet for complex values."
 
-        return n_vals_per_entity
+        return n_vals_per_custom_entity
 
     def _compute_offsets(self) -> None:
         """Computes the custom coefficients offset and copies them into
@@ -380,27 +398,36 @@ class _CustomCoeffsPackerIntegral:
         n_entities = 2 * n_tot_entities if interior_facet else n_tot_entities
 
         n_cols = self._new_coeffs.shape[1]
-        first_extra_val_pos = self._offsets_dtype.type(n_entities * n_cols)
+        first_extra_pos = self._offsets_dtype.type(n_entities * n_cols)
+
         first_col_pos = np.arange(n_entities, dtype=self._offsets_dtype) * n_cols
-
-        self._offsets = (
-            np.concatenate(([0], np.cumsum(self._n_vals_per_entity[:-1]))) + first_extra_val_pos
-        )
-        self._offsets = self._offsets.astype(self._offsets_dtype)
         if interior_facet:
-            first_col_pos = first_col_pos.reshape(-1, 2)[:, 0]
-        rel_offsets = self._offsets - first_col_pos
-        rel_offsets[np.where(self._n_vals_per_entity == 0)] = 0
+            first_col_pos = first_col_pos[::2]
 
-        all_rel_offsets = np.empty(n_entities, dtype=rel_offsets.dtype)
+        n_custom_entities = self._custom_entity_ids.size
+        if n_custom_entities == 0:
+            self._offsets = np.empty(0, dtype=self._offsets_dtype)
+        else:
+            self._offsets = (
+                np.concatenate(([0], np.cumsum(self._n_vals_per_entity[:-1]))) + first_extra_pos
+            ).astype(self._offsets_dtype)
+        assert self._offsets.size == self._custom_entity_ids.size
+
+        rel_offsets = self._offsets - first_col_pos[self._custom_entity_ids]
+
+        # The offset for the full entities are set to -1.
+        all_rel_offsets = np.full(n_entities, -1, dtype=rel_offsets.dtype)
+        # Then we set the offsets for the custom entities.
         if interior_facet:
             all_rel_offsets_ = all_rel_offsets.reshape(-1, 2)
-            all_rel_offsets_[:, 0] = rel_offsets
+            all_rel_offsets_[self._custom_entity_ids, 0] = rel_offsets
         else:
-            all_rel_offsets[:] = rel_offsets
+            all_rel_offsets[self._custom_entity_ids] = rel_offsets
+        # And finally for the empty entities we set the offset to 0.
+        all_rel_offsets[self._get_empty_entities_ids()] = 0
 
-        # Copying np.uintp offsets to the coefficients array.
-        # No cast performed, just a view. A cast will be required in C.
+        # Copying np.intp offsets to the coefficients array.
+        # No cast performed, just a view.
 
         n_extra_cols = self._get_n_extra_cols()
         all_rel_offsets_view = all_rel_offsets.view(self._coeffs_dtype).reshape([-1, n_extra_cols])
@@ -455,8 +482,8 @@ class _CustomCoeffsPackerIntegral:
         odtype = self._offsets_dtype
 
         offsets = np.copy(self._offsets)
-        offsets = offsets[np.where(self._n_vals_per_entity != 0)]
-        n_custom = offsets.size
+        n_custom_entities = self._custom_entity_ids.size
+        assert offsets.size == n_custom_entities
 
         for vals_for_quad in vals_all_quads:
             assert len(vals_for_quad) > 0
@@ -476,7 +503,7 @@ class _CustomCoeffsPackerIntegral:
 
             # TODO: This loop over the cells may be slow and could be
             # improved. Maybe to be done with numba.
-            for cell_id in range(n_custom):
+            for cell_id in range(n_custom_entities):
                 n_pts = n_pts_per_cell[cell_id]
                 c_off0 = offsets[cell_id]
                 for i, vals in enumerate(vals_for_quad):
@@ -513,7 +540,9 @@ class _CustomCoeffsPackerIntegral:
         else:
             self._copy_vals_real(vals_all_quads)
 
-    def _create_quadrature(self, quad_data: QuadratureData) -> CustomQuad | CustomQuadUnfBoundary:
+    def _create_quadrature_cell(
+        self, quad_data: QuadratureData
+    ) -> CustomQuad | CustomQuadUnfBoundary:
         """Creates the custom quadratures for a certain integrand in the
         integral.
 
@@ -531,14 +560,15 @@ class _CustomCoeffsPackerIntegral:
         assert not self._is_facet()
 
         degree = quad_data.degree
-        quad_gen = self._quad_gen
         subdom_tag = self._get_subdomain_tag()
-        cells = self._domain
+        all_cells = self._domain
+
+        custom_cells = all_cells[self._custom_entity_ids]
 
         if quad_data.unfitted_boundary:
-            return quad_gen.create_quad_unf_boundaries(degree, cells, subdom_tag)
+            return self._unf_domain.create_quad_unf_boundaries(degree, custom_cells, subdom_tag)
         else:
-            return quad_gen.create_quad_custom_cells(degree, cells, subdom_tag)
+            return self._unf_domain.create_quad_custom_cells(degree, custom_cells, subdom_tag)
 
     def _create_quadrature_facet(
         self, quad_data: QuadratureData
@@ -557,7 +587,7 @@ class _CustomCoeffsPackerIntegral:
             Generated quadrature. The first item of the tuple is the
             quadrature associated to the facet, while the second is
             that quadrature but mapped to the reference domain of the
-            parente cell. In the case of internal facets, the second
+            parent cell. In the case of internal facets, the second
             item is a tuple with two mapped quadratures (one for each
             side of the interface).
         """
@@ -566,27 +596,27 @@ class _CustomCoeffsPackerIntegral:
 
         degree = quad_data.degree
         subdom_tag = self._get_subdomain_tag()
-        quad_gen = self._quad_gen
 
-        interior_facet = self._is_interior_facet()
-        if interior_facet:
-            cells = self._domain[:, 0, 0].reshape(-1)
-            facets = self._domain[:, 0, 1].reshape(-1)
-        else:
-            cells = self._domain[:, 0].reshape(-1)
-            facets = self._domain[:, 1].reshape(-1)
+        all_cells, all_facets = self._get_single_facets()
+        custom_cells = all_cells[self._custom_entity_ids]
+        custom_facets = all_facets[self._custom_entity_ids]
 
-        quad_facet = quad_gen.create_quad_custom_facets(
-            degree, cells, facets, self._integral_type, subdom_tag
+        quad_facet = self._unf_domain.create_quad_custom_facets(
+            degree,
+            custom_cells,
+            custom_facets,
+            self._integral_type,
+            subdom_tag,
         )
 
-        quad = self._map_facet_quadrature(quad_facet, cells, facets)
-        if not interior_facet:
+        quad = self._map_facet_quadrature(quad_facet, custom_cells, custom_facets)
+
+        if not self._is_interior_facet():
             return quad_facet, quad
 
-        cells_1 = self._domain[:, 1, 0].reshape(-1)
-        facets_1 = self._domain[:, 1, 1].reshape(-1)
-        quad_1 = self._map_facet_quadrature(quad_facet, cells_1, facets_1)
+        custom_cells_1 = self._domain[:, 1, 0].reshape(-1)[self._custom_entity_ids]
+        custom_facets_1 = self._domain[:, 1, 1].reshape(-1)[self._custom_entity_ids]
+        quad_1 = self._map_facet_quadrature(quad_facet, custom_cells_1, custom_facets_1)
 
         return quad_facet, (quad, quad_1)
 
@@ -629,6 +659,96 @@ class _CustomCoeffsPackerIntegral:
 
         return CustomQuad(cells, n_pts_per_entity, mapped_points, quad_facet.weights)
 
+    def _get_single_facets(self) -> tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]:
+        """Returns the facets associated to the current integral.
+
+        In the case of interior facets, only the first facet is
+        returned.
+
+        Returns:
+            tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]: Tuple
+            containing the cell ids and the local facet ids for the
+            facets associated to the current integral.
+        """
+        assert self._is_facet()
+
+        if self._is_interior_facet():
+            return self._domain[:, 0, 0].reshape(-1), self._domain[:, 0, 1].reshape(-1)
+        else:
+            return self._domain[:, 0].reshape(-1), self._domain[:, 1].reshape(-1)
+
+    def _get_empty_entities_ids(
+        self,
+    ) -> npt.NDArray[np.intp]:
+        """Returns the empty entities ids referred to all the entities
+        in the `self._domain`.
+
+        Returns:
+            npt.NDArray[np.intp]: Empty entities ids.
+        """
+
+        if self._is_facet():
+            interior_facet = self._is_interior_facet()
+
+            all_cells, all_facets = self._get_single_facets()
+
+            if interior_facet:
+                empty_cells, empty_facets = self._unf_domain.get_empty_facets(only_interior=True)
+            else:
+                empty_cells, empty_facets = self._unf_domain.get_empty_facets(only_exterior=True)
+
+            all_cells_facets = np.column_stack((all_cells, all_facets))
+            empty_cells_facets = np.column_stack((empty_cells, empty_facets))
+
+            return _find_common_rows(all_cells_facets, empty_cells_facets)
+
+        else:
+            all_cells = self._domain
+            empty_cells = self._unf_domain.get_empty_cells()
+
+            _, empty_ids, _ = np.intersect1d(
+                all_cells, empty_cells, assume_unique=True, return_indices=True
+            )
+            return empty_ids
+
+    def _get_custom_entities_ids(
+        self,
+    ) -> npt.NDArray[np.intp]:
+        """Returns the custom entities ids referred to all the entities
+        in the `self._domain`.
+
+        Returns:
+            npt.NDArray[np.intp]: Custom entities ids.
+        """
+
+        if self._is_facet():
+            interior_facet = self._is_interior_facet()
+
+            all_cells, all_facets = self._get_single_facets()
+
+            if interior_facet:
+                target_cells, target_facets = self._unf_domain.get_cut_facets(only_interior=True)
+            else:
+                target_cells, target_facets = self._unf_domain.get_cut_facets(only_exterior=True)
+                unf_bdry_cells, unf_bdry_facets = self._unf_domain.get_unf_bdry_facets()
+
+                target_cells = np.concatenate((target_cells, unf_bdry_cells))
+                target_facets = np.concatenate((target_facets, unf_bdry_facets))
+
+            all_cells_facets = np.column_stack((all_cells, all_facets))
+            target_cells_facets = np.column_stack((target_cells, target_facets))
+
+            return _find_common_rows(all_cells_facets, target_cells_facets)
+
+        else:
+            all_cells = self._domain
+            cut_cells = self._unf_domain.get_cut_cells()
+
+            _, custom_entity_ids, _ = np.intersect1d(
+                all_cells, cut_cells, assume_unique=True, return_indices=True
+            )
+            return custom_entity_ids
+
     def _create_quadratures(self) -> None:
         """Creates the custom quadratures for the integrands in the
         integral and stores them in `self._custom_quads` and
@@ -644,7 +764,7 @@ class _CustomCoeffsPackerIntegral:
                 if self._is_mixed_dim():
                     self._custom_quads_facets[quad_data] = quad_facet
             else:
-                quad = self._create_quadrature(quad_data)
+                quad = self._create_quadrature_cell(quad_data)
 
             self._custom_quads[quad_data] = quad
 
@@ -792,12 +912,11 @@ class _CustomCoeffsPackerIntegral:
             if self._is_interior_facet():
                 custom_quad = custom_quad[0]
 
-            nnz = np.where(custom_quad.n_pts_per_entity != 0)
-            vals_for_quad = [custom_quad.n_pts_per_entity[nnz]]
-            vals_for_quad.append(custom_quad.weights)  # type: ignore
+            vals_for_quad = [custom_quad.n_pts_per_entity]
+            vals_for_quad.append(custom_quad.weights)
 
             if quad_data.unfitted_boundary:
-                vals_for_quad.append(custom_quad.normals.ravel())  # type: ignore
+                vals_for_quad.append(custom_quad.normals.ravel())
 
             vals_for_quad += self._compute_new_vals_tables(quad_data, FE_tables)
 
@@ -826,33 +945,24 @@ class _CustomCoeffsPackerIntegral:
         integral of the current entity start.
         """
 
-        # t0 = time.time()
-        self._new_coeffs = self._allocate_new_coeffs()
-        # print(f"Allocation time: {time.time() - t0} seconds.")
+        self._allocate_new_coeffs()
 
-        # t0 = time.time()
-        self._copy_old_coeffs_to_new()
-        # print(f"Copying old coefficients: {time.time() - t0} seconds.")
+        # Copying old coefficients to the new array.
+        old_shape = self._old_coeffs.shape
+        self._new_coeffs[: old_shape[0], : old_shape[1]] = self._old_coeffs
 
-        if self._old_coeffs.shape[0] == self._new_coeffs.shape[0]:
+        if old_shape == self._new_coeffs.shape[0]:
             return
 
-        # t0 = time.time()
         self._compute_offsets()
-
-        vals_all_quads = self._compute_new_vals()
-        # print(f"Computing extra values: {time.time() - t0} seconds.")
-
-        # t0 = time.time()
-        self._copy_vals(vals_all_quads)
-        # print(f"   Copying new values: {time.time() - t0} seconds.")
+        self._copy_vals(self._compute_new_vals())
 
 
 def _compute_custom_coeffs(
     form: Form,
+    unf_domain: UnfittedDomainABC,
     itg_data: IntegralData,
     itg_info: tuple[IntegralType, int],
-    quad_gen: QuadGenerator,
     old_coeffs: FloatingArray,
 ) -> FloatingArray:
     """Generates the custom coefficients for an integral.
@@ -860,10 +970,10 @@ def _compute_custom_coeffs(
     Args:
         form (Form): DOLFINx form associated to the integral whose
             custom coefficients are computed.
+        unf_domain (UnfittedDomainABC): The unfitted domain in which the
+            integrals are computed.
         itg_data (IntegralData): Data of the integral whose custom
             coefficients are computed.
-        quad_gen (QuadGenerator): Class for generating custom
-            quadratures.
         old_coeffs (FloatingArray): `Standard` coefficients associated
             to the non-custom integral.
 
@@ -875,7 +985,7 @@ def _compute_custom_coeffs(
     mesh = form._cpp_object.mesh
 
     generator = _CustomCoeffsPackerIntegral(
-        itg_data, itg_info[1], domain, mesh, quad_gen, old_coeffs
+        unf_domain, itg_data, itg_info[1], domain, mesh, old_coeffs
     )
 
     return generator.new_coeffs
@@ -890,21 +1000,25 @@ class CustomCoeffsPacker:
     Parameters:
         _form (Form): DOLFINx form (containing the custom integral
             module).
+        _domain (UnfittedDomainABC): The unfitted domain in which the
+            integrals are computed.
         _itg_data (list[IntegralData]): Data of all the integrals
             contained in the `form`.
     """
 
-    def __init__(self, form: Form, itg_data: list[IntegralData]) -> None:
+    def __init__(self, form: Form, domain: UnfittedDomainABC, itg_data: list[IntegralData]) -> None:
         """Initializes the class.
 
         Args:
-            form (Form): DOLFINx form (containing the custom integral
-                module).
+            form (Form): DOLFINx form (containing the custom integral).
+            domain (UnfittedDomainABC): The unfitted domain in which the
+                integrals are computed.
             itg_data (list[IntegralData]): Data of all the integrals
                 contained in the `form`.
         """
 
         self._form = form
+        self._domain = domain
         self._itg_data = itg_data
         return
 
@@ -934,17 +1048,13 @@ class CustomCoeffsPacker:
         assert False, "Integral data not found."
 
     def pack_coefficients(
-        self, quad_gen: QuadGenerator
+        self,
     ) -> dict[
         tuple[IntegralType, int],
         npt.NDArray[np.float32 | np.float64 | np.complex64 | np.complex128],
     ]:
         """Generates the custom coefficients consumed by custom
         integrals for all the integral types and subdomains.
-
-        Args:
-            quad_gen (QuadGenerator): Class for generating custom
-                quadratures.
 
         Returns:
             dict[tuple[IntegralType, int], FloatingArray]: Generated
@@ -953,7 +1063,7 @@ class CustomCoeffsPacker:
         """
 
         # t0 = time.time()
-        coeffs = dolfinx.cpp.fem.pack_coefficients(self._form._cpp_object)
+        coeffs = cpp_fem.pack_coefficients(self._form._cpp_object)
         # print(f"Computing original coefficients: {time.time() - t0} seconds.")
 
         new_pack_coeffs: dict[
@@ -964,7 +1074,7 @@ class CustomCoeffsPacker:
         for itg_info, old_coeffs in coeffs.items():
             itg_data = self._get_itg_data(itg_info)
             new_coeffs = _compute_custom_coeffs(
-                self._form, itg_data, itg_info, quad_gen, old_coeffs
+                self._form, self._domain, itg_data, itg_info, old_coeffs
             )
             new_pack_coeffs[itg_info] = new_coeffs
 
