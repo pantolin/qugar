@@ -13,14 +13,9 @@ from typing import Optional
 import numpy as np
 import numpy.typing as npt
 
-import qugar.utils
-
-if not qugar.utils.has_FEniCSx:
-    raise ValueError("FEniCSx installation not found is required.")
-
-
 import qugar.cpp
 import qugar.impl
+import qugar.utils
 from qugar.cpp import ImplicitFunc_2D, ImplicitFunc_3D
 
 
