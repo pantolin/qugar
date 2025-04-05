@@ -33,7 +33,6 @@ template<int dim>
 void create_cell_quadrature(const UnfittedImplDomain<dim> &unf_domain,
   std::int64_t cell_id,
   int n_pts_dir,
-  bool full_cells,
   CutCellsQuad<dim> &quad);
 
 template<int dim>
@@ -47,7 +46,6 @@ void create_facet_quadrature(const UnfittedImplDomain<dim> &unf_domain,
   std::int64_t cell_id,
   int local_facet_id,
   int n_pts_dir,
-  bool full_facets,
   bool remove_unf_bdry,
   bool remove_cut,
   CutIsoBoundsQuad<dim - 1> &quad);

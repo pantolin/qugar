@@ -23,7 +23,7 @@ import dolfinx.mesh
 import numpy as np
 import pytest
 import ufl
-from mock_quad_generator import MockQuadGenerator
+from mock_unf_domain import MockUnfittedDomain
 from utils import clean_cache, create_mesh, dtypes  # type: ignore
 
 from qugar.dolfinx import CustomForm, dx_bdry_unf, form_custom, mapped_normal
@@ -71,10 +71,10 @@ def test_unfitted_normal(N, dim, p, simplex_cell, dtype, nnz, max_quad_sets):
 
     mesh = create_mesh(dim, N, simplex_cell, dtype)
 
-    quad_gen = MockQuadGenerator(mesh=mesh, nnz=nnz, max_quad_sets=max_quad_sets)
+    unf_domain = MockUnfittedDomain(mesh=mesh, nnz=nnz, max_quad_sets=max_quad_sets)
 
     bdry_tag = 0
-    unf_bdry_cells = np.sort(quad_gen.get_unf_bdry_cells())
+    unf_bdry_cells = np.sort(unf_domain.get_cut_cells())
     cell_tags = dolfinx.mesh.meshtags(
         mesh, dim, unf_bdry_cells, np.full_like(unf_bdry_cells, bdry_tag)
     )
@@ -109,10 +109,10 @@ def test_unfitted_normal(N, dim, p, simplex_cell, dtype, nnz, max_quad_sets):
 
     ufl_form = ufl_form_0 + ufl_form_1 + ufl_form_2  # type: ignore
 
-    custom_form = form_custom(ufl_form, dtype=dtype)
+    custom_form = form_custom(ufl_form, unf_domain, dtype=dtype)
     assert isinstance(custom_form, CustomForm)
 
-    custom_coeffs = custom_form.pack_coefficients(quad_gen)
+    custom_coeffs = custom_form.pack_coefficients()
 
     dolfinx.fem.assemble_vector(custom_form, coeffs=custom_coeffs)
 

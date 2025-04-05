@@ -41,12 +41,9 @@ from qugar.impl.impl_function import (
     create_sphere,
     create_torus,
 )
-from qugar.impl.impl_unfitted_domain import UnfittedImplDomain, create_unfitted_impl_domain
 
 __all__ = [
-    "UnfittedImplDomain",
     "ImplicitFunc",
-    "create_unfitted_impl_domain",
     "create_disk",
     "create_sphere",
     "create_ellipse",

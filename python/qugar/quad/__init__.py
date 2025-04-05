@@ -10,18 +10,18 @@
 
 """Quadrature module for QUGaR"""
 
-from qugar.quad.quad_data import CellState, CustomQuad, CustomQuadFacet, CustomQuadUnfBoundary
-from qugar.utils import has_FEniCSx
+from qugar.quad.custom_quad import (
+    CellState,
+    CustomQuad,
+    CustomQuadFacet,
+    CustomQuadUnfBoundary,
+    QuadGenerator,
+)
 
 __all__ = [
     "CellState",
     "CustomQuad",
     "CustomQuadFacet",
     "CustomQuadUnfBoundary",
+    "QuadGenerator",
 ]
-
-
-if has_FEniCSx:
-    from qugar.quad.quad_generator import QuadGenerator, create_quadrature_generator
-
-    __all__ += ["QuadGenerator", "create_quadrature_generator"]

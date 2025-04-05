@@ -12,7 +12,7 @@
 from typing import TypeAlias
 
 import qugar.cpp as cpp
-from qugar.unfitted_domain import UnfittedDomain
+from qugar.mesh import UnfittedDomain
 
 
 class UnfDomainReparamMesh:
@@ -61,4 +61,4 @@ def create_reparam_mesh(
     assert n_pts_dir > 1, "The number of points in each direction must be greater than 1"
 
     algo = cpp.create_reparameterization_levelset if levelset else cpp.create_reparameterization
-    return UnfDomainReparamMesh(algo(unf_domain.cpp_object, n_pts_dir))
+    return UnfDomainReparamMesh(algo(unf_domain.cpp_unf_domain_object, n_pts_dir))

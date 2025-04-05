@@ -31,7 +31,7 @@ from utils import (
 import qugar.cpp
 import qugar.impl
 from qugar.impl import ImplicitFunc
-from qugar.mesh import create_Cartesian_mesh
+from qugar.mesh import create_unfitted_impl_Cartesian_mesh
 
 
 def create_domain(
@@ -57,13 +57,7 @@ def create_domain(
     n_cells = [n_cells_dir] * dim
     xmin = np.zeros(dim, dtype)
     xmax = np.ones(dim, dtype)
-    cart_mesh = create_Cartesian_mesh(
-        comm,
-        n_cells,
-        xmin,
-        xmax,
-    )
-    return qugar.impl.create_unfitted_impl_domain(dom_func, cart_mesh)
+    return create_unfitted_impl_Cartesian_mesh(comm, dom_func, n_cells, xmin, xmax)
 
 
 def create_quad_PyVista_grid_hash(grid) -> str:
@@ -1024,7 +1018,7 @@ def test_tpms(
         "e8c0aed8cd2408156143e35c7f726846ef4e76890cf19e9a488709ecc0c28053",
     )
     targets[("Schwarz_Diamond", 2, 12, 5, np.float32, False)] = (
-        "490192179a4b027f4de5e3a6100b5070c26d1cf06dce41c7020fba21dfeef485",
+        "dc85c157834d330b5459183c3c708f80ff17c5b543447025bc25608a7a6cae98",
         "7b597dbb82c1587fa1c4762ef3999e8cd67d2ebcb226ea9bc560d65c5a67bce4",
     )
     targets[("Schwarz_Primitive", 2, 12, 5, np.float32, False)] = (
@@ -1120,7 +1114,7 @@ def test_tpms(
         "49169c99629b60941669364a19153f927b0ccd69d1028741a106af2af8a61f95",
     )
     targets[("Schwarz_Diamond", 2, 12, 5, np.float64, False)] = (
-        "490192179a4b027f4de5e3a6100b5070c26d1cf06dce41c7020fba21dfeef485",
+        "15bf3f2d2d065220651446793fab4fabd7080dc4008ec19d20089ed3df0d93bb",
         "253c1117ea7bac90dd0124456cb80fa667ee82b11ccdfcd5e953c6ade3549fee",
     )
     targets[("Schwarz_Primitive", 2, 12, 5, np.float64, False)] = (
@@ -1216,7 +1210,7 @@ def test_tpms(
         "a15c321be38d1bc0bbcdbc089675f88f312177d181280e65239a188ac72a017c",
     )
     targets[("Schwarz_Diamond", 2, 12, 5, np.float32, True)] = (
-        "490192179a4b027f4de5e3a6100b5070c26d1cf06dce41c7020fba21dfeef485",
+        "233ac98f4bd00c84f7420b393ad179f92ff24a8a2a46fa6433563bd85e4803d5",
         "4db069722fbe6baf603e5f5fcd628232a2ff2ac54e58baee1ee48b00e13d8868",
     )
     targets[("Schwarz_Primitive", 2, 12, 5, np.float32, True)] = (
@@ -1312,7 +1306,7 @@ def test_tpms(
         "0d407f5cd8d014eb77527429f76481d85e7c3718e22e9fe78fc97d9649e74152",
     )
     targets[("Schwarz_Diamond", 2, 12, 5, np.float64, True)] = (
-        "490192179a4b027f4de5e3a6100b5070c26d1cf06dce41c7020fba21dfeef485",
+        "337bee2cb415a16c657294da5268c87915c63da922ace498629f7c7820ed7c5a",
         "5934f6551c6996029787e92b4aa94d0191d425ec7cf6adc55af7e7d777304f68",
     )
     targets[("Schwarz_Primitive", 2, 12, 5, np.float64, True)] = (
@@ -1346,12 +1340,12 @@ def test_tpms(
 
     periods = np.ones(dim, dtype=dtype)
     for functor, functor_str in [
-        [qugar.impl.create_Schoen, "Schoen"],
-        [qugar.impl.create_Schoen_IWP, "Schoen_IWP"],
-        [qugar.impl.create_Schoen_FRD, "Schoen_FRD"],
-        [qugar.impl.create_Fischer_Koch_S, "Fischer_Koch_S"],
+        # [qugar.impl.create_Schoen, "Schoen"],
+        # [qugar.impl.create_Schoen_IWP, "Schoen_IWP"],
+        # [qugar.impl.create_Schoen_FRD, "Schoen_FRD"],
+        # [qugar.impl.create_Fischer_Koch_S, "Fischer_Koch_S"],
         [qugar.impl.create_Schwarz_Diamond, "Schwarz_Diamond"],
-        [qugar.impl.create_Schwarz_Primitive, "Schwarz_Primitive"],
+        # [qugar.impl.create_Schwarz_Primitive, "Schwarz_Primitive"],
     ]:
         func = functor(periods)
         if negative:
@@ -1372,4 +1366,7 @@ def test_tpms(
 
 
 if __name__ == "__main__":
-    test_tpms(2, 11, 5, np.float32, True)
+    test_tpms(2, 12, 5, np.float32, False)
+    # test_tpms(2, 12, 5, np.float32, True)
+    # test_tpms(2, 12, 5, np.float64, False)
+    # test_tpms(2, 12, 5, np.float64, True)

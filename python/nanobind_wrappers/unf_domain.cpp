@@ -105,12 +105,13 @@ namespace {
     const std::string pyclass_name{ std::string("UnfittedDomain_") + std::to_string(dim) + "D" };
     nb::class_<UnfDomain>(module, pyclass_name.c_str(), "UnfittedDomain object")
       .def_prop_ro(
-        "dim", [](UnfDomain & /*domain*/) { return dim; }, nb::rv_policy::reference_internal)
+        "dim", [](const UnfDomain & /*domain*/) { return dim; }, nb::rv_policy::reference_internal)
       .def_prop_ro(
-        "grid", [](UnfDomain &domain) { return domain.get_grid(); }, nb::rv_policy::reference_internal)
+        "grid", [](const UnfDomain &domain) { return domain.get_grid(); }, nb::rv_policy::reference_internal)
+      .def_prop_ro("num_total_cells", [](const UnfDomain &domain) { return domain.get_num_total_cells(); })
       .def(
         "get_full_cells",
-        [&get_cells](UnfDomain &domain,
+        [&get_cells](const UnfDomain &domain,
           const std::optional<nb::ndarray<const std::int64_t, nb::numpy, nb::shape<-1>>> &target_cell_ids_py) {
           const auto accessor_0 = [&domain](const auto &target_cell_ids, auto &cell_ids) {
             domain.get_full_cells(target_cell_ids, cell_ids);
@@ -122,7 +123,7 @@ namespace {
         nb::arg("target_cell_ids") = nb::none())
       .def(
         "get_empty_cells",
-        [&get_cells](UnfDomain &domain,
+        [&get_cells](const UnfDomain &domain,
           const std::optional<nb::ndarray<const std::int64_t, nb::numpy, nb::shape<-1>>> &target_cell_ids_py) {
           const auto accessor_0 = [&domain](const auto &target_cell_ids, auto &cell_ids) {
             domain.get_empty_cells(target_cell_ids, cell_ids);
@@ -134,7 +135,7 @@ namespace {
         nb::arg("target_cell_ids") = nb::none())
       .def(
         "get_cut_cells",
-        [&get_cells](UnfDomain &domain,
+        [&get_cells](const UnfDomain &domain,
           const std::optional<nb::ndarray<const std::int64_t, nb::numpy, nb::shape<-1>>> &target_cell_ids_py) {
           const auto accessor_0 = [&domain](const auto &target_cell_ids, auto &cell_ids) {
             domain.get_cut_cells(target_cell_ids, cell_ids);
@@ -146,7 +147,7 @@ namespace {
         nb::arg("target_cell_ids") = nb::none())
       .def(
         "get_empty_facets",
-        [&get_facets](UnfDomain &domain,
+        [&get_facets](const UnfDomain &domain,
           const std::optional<nb::ndarray<const std::int64_t, nb::numpy, nb::shape<-1>>> &target_cell_ids_py,
           const std::optional<nb::ndarray<const int, nb::numpy, nb::shape<-1>>> &target_local_facet_ids_py) {
           const auto accessor_0 =
@@ -164,7 +165,7 @@ namespace {
         nb::arg("target_local_facet_ids") = nb::none())
       .def(
         "get_full_facets",
-        [&get_facets](UnfDomain &domain,
+        [&get_facets](const UnfDomain &domain,
           const std::optional<nb::ndarray<const std::int64_t, nb::numpy, nb::shape<-1>>> &target_cell_ids_py,
           const std::optional<nb::ndarray<const int, nb::numpy, nb::shape<-1>>> &target_local_facet_ids_py) {
           const auto accessor_0 =
@@ -182,7 +183,7 @@ namespace {
         nb::arg("target_local_facet_ids") = nb::none())
       .def(
         "get_cut_facets",
-        [&get_facets](UnfDomain &domain,
+        [&get_facets](const UnfDomain &domain,
           const std::optional<nb::ndarray<const std::int64_t, nb::numpy, nb::shape<-1>>> &target_cell_ids_py,
           const std::optional<nb::ndarray<const int, nb::numpy, nb::shape<-1>>> &target_local_facet_ids_py) {
           const auto accessor_0 =
@@ -200,7 +201,7 @@ namespace {
         nb::arg("target_local_facet_ids") = nb::none())
       .def(
         "get_unf_bdry_facets",
-        [&get_facets](UnfDomain &domain,
+        [&get_facets](const UnfDomain &domain,
           const std::optional<nb::ndarray<const std::int64_t, nb::numpy, nb::shape<-1>>> &target_cell_ids_py,
           const std::optional<nb::ndarray<const int, nb::numpy, nb::shape<-1>>> &target_local_facet_ids_py) {
           const auto accessor_0 =

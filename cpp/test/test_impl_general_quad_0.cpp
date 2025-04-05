@@ -108,7 +108,7 @@ TEST_CASE("Schoen Gyroid 2D function quadrature", "[impl]")
   std::vector<std::int64_t> cut_cells;
   unf_domain.get_cut_cells(cut_cells);
 
-  const auto quad = create_quadrature<2>(unf_domain, cut_cells, n_pts_dir, true);
+  const auto quad = create_quadrature<2>(unf_domain, cut_cells, n_pts_dir);
   // NOLINTNEXTLINE (bugprone-chained-comparison)
   REQUIRE(quad->points.size() == 213);
 
@@ -126,9 +126,8 @@ TEST_CASE("Schoen Gyroid 2D function quadrature", "[impl]")
   // NOLINTNEXTLINE (cppcoreguidelines-avoid-do-while)
   REQUIRE(tol.coincident(unf_bound_centroid, target_unf_bound_centroid));
 
-  constexpr bool include_full_facets{ true };
-  const auto facet_quad = create_exterior_facets_quadrature<2>(
-    unf_domain, cut_facets_cells, cut_facets_local_facets_ids, n_pts_dir, include_full_facets);
+  const auto facet_quad =
+    create_exterior_facets_quadrature<2>(unf_domain, cut_facets_cells, cut_facets_local_facets_ids, n_pts_dir);
   // NOLINTNEXTLINE (bugprone-chained-comparison)
   REQUIRE(facet_quad->points.size() == 0);
 }
@@ -174,7 +173,7 @@ TEST_CASE("General function quadrature", "[impl]")
   std::vector<std::int64_t> cut_cells;
   unf_domain.get_cut_cells(cut_cells);
 
-  const auto quad = create_quadrature<3>(unf_domain, cut_cells, n_pts_dir, true);
+  const auto quad = create_quadrature<3>(unf_domain, cut_cells, n_pts_dir);
   // NOLINTNEXTLINE (bugprone-chained-comparison)
   REQUIRE(quad->points.size() == 795837);
 
@@ -192,9 +191,8 @@ TEST_CASE("General function quadrature", "[impl]")
   // NOLINTNEXTLINE (cppcoreguidelines-avoid-do-while)
   REQUIRE(tol.coincident(unf_bound_centroid, target_unf_bound_centroid));
 
-  constexpr bool include_full_facets{ true };
-  const auto facet_quad = create_exterior_facets_quadrature<3>(
-    unf_domain, cut_facets_cells, cut_facets_local_facets_ids, n_pts_dir, include_full_facets);
+  const auto facet_quad =
+    create_exterior_facets_quadrature<3>(unf_domain, cut_facets_cells, cut_facets_local_facets_ids, n_pts_dir);
   // NOLINTNEXTLINE (bugprone-chained-comparison)
   REQUIRE(facet_quad->points.size() == 7704);
 

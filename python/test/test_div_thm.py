@@ -31,9 +31,8 @@ from utils import (
 import qugar.cpp
 import qugar.impl
 from qugar.dolfinx import CustomForm, dx_bdry_unf, form_custom, mapped_normal
-from qugar.impl import ImplicitFunc, UnfittedImplDomain
-from qugar.mesh import create_Cartesian_mesh
-from qugar.quad import create_quadrature_generator
+from qugar.impl import ImplicitFunc
+from qugar.mesh import UnfittedCartMesh, create_unfitted_impl_Cartesian_mesh
 
 
 def create_vector_func(dlf_mesh: dolfinx.mesh.Mesh) -> ufl.Coefficient:
@@ -59,7 +58,7 @@ def create_vector_func(dlf_mesh: dolfinx.mesh.Mesh) -> ufl.Coefficient:
         )
 
 
-def create_div_thm_volume_ufl_form(domain: UnfittedImplDomain, n_quad_pts: int):
+def create_div_thm_volume_ufl_form(domain: UnfittedCartMesh, n_quad_pts: int):
     """
     Creates a UFL form representing the volume integral of the divergence theorem
     for a given unfitted domain.
@@ -72,7 +71,6 @@ def create_div_thm_volume_ufl_form(domain: UnfittedImplDomain, n_quad_pts: int):
     Returns:
         ufl.Form: The UFL form representing the volume integral of the divergence theorem.
     """
-    mesh = domain.tp_mesh
 
     full_tag = 1
     cut_tag = 0
@@ -80,7 +78,7 @@ def create_div_thm_volume_ufl_form(domain: UnfittedImplDomain, n_quad_pts: int):
 
     quad_degree = get_Gauss_quad_degree(n_quad_pts)
     dx_ = ufl.dx(
-        domain=mesh,
+        domain=domain,
         subdomain_data=cell_tags,
     )
     dx = dx_(subdomain_id=cut_tag, degree=quad_degree) + dx_(full_tag)
@@ -89,14 +87,14 @@ def create_div_thm_volume_ufl_form(domain: UnfittedImplDomain, n_quad_pts: int):
     # it would be enough to use a single tag for both cut and full cells.
     # and invoke dx_ only once for that tag.
 
-    func = create_vector_func(mesh)
+    func = create_vector_func(domain)
     div_func = ufl.div(func)
 
     ufl_form_vol = div_func * dx
     return ufl_form_vol
 
 
-def create_div_thm_surface_ufl_form(domain: UnfittedImplDomain, n_quad_pts: int):
+def create_div_thm_surface_ufl_form(domain: UnfittedCartMesh, n_quad_pts: int):
     """
     Creates a UFL form representing the surface integral of the divergence theorem
     for a given unfitted domain.
@@ -109,7 +107,6 @@ def create_div_thm_surface_ufl_form(domain: UnfittedImplDomain, n_quad_pts: int)
     Returns:
         ufl.Form: The UFL form representing the surface integral of the divergence theorem.
     """
-    mesh = domain.tp_mesh
 
     cut_tag = 0
     full_tag = 1
@@ -122,22 +119,22 @@ def create_div_thm_surface_ufl_form(domain: UnfittedImplDomain, n_quad_pts: int)
     quad_degree = get_Gauss_quad_degree(n_quad_pts)
 
     ds_unf = dx_bdry_unf(
-        domain=mesh,
+        domain=domain,
         subdomain_data=cell_subdomain_data,
         subdomain_id=cut_tag,
         degree=quad_degree,
     )
 
-    ds_ = ufl.ds(domain=mesh, subdomain_data=facet_tags)
+    ds_ = ufl.ds(domain=domain, subdomain_data=facet_tags)
     ds = ds_(cut_tag, degree=quad_degree) + ds_((full_tag, unf_bdry_tag))
 
     # Note: if no specific number of quadrature points is set for the cut facets,
     # it would be enough to use a single tag for both cut and full facets.
     # and invoke ds_ only once for that tag.
 
-    bound_normal = mapped_normal(mesh)
-    facet_normal = ufl.FacetNormal(mesh)
-    func = create_vector_func(mesh)
+    bound_normal = mapped_normal(domain)
+    facet_normal = ufl.FacetNormal(domain)
+    func = create_vector_func(domain)
 
     ufl_form_srf = ufl.inner(func, bound_normal) * ds_unf + ufl.inner(func, facet_normal) * ds
     return ufl_form_srf
@@ -173,22 +170,19 @@ def check_div_thm(
     n_cells = [n_cells_dir] * dim
     xmin = np.zeros(dim, dtype)
     xmax = np.ones(dim, dtype)
-    cart_mesh = create_Cartesian_mesh(comm, n_cells, xmin, xmax)
-    domain = qugar.impl.create_unfitted_impl_domain(dom_func, cart_mesh)
+    unf_mesh = create_unfitted_impl_Cartesian_mesh(comm, dom_func, n_cells, xmin, xmax)
 
-    ufl_form_vol = create_div_thm_volume_ufl_form(domain, n_quad_pts)
-    ufl_form_srf = create_div_thm_surface_ufl_form(domain, n_quad_pts)
+    ufl_form_vol = create_div_thm_volume_ufl_form(unf_mesh, n_quad_pts)
+    ufl_form_srf = create_div_thm_surface_ufl_form(unf_mesh, n_quad_pts)
 
-    form_vol = form_custom(ufl_form_vol, dtype=dtype)
+    form_vol = form_custom(ufl_form_vol, unf_mesh, dtype=dtype)
     assert isinstance(form_vol, CustomForm)
 
-    form_srf = form_custom(ufl_form_srf, dtype=dtype)
+    form_srf = form_custom(ufl_form_srf, unf_mesh, dtype=dtype)
     assert isinstance(form_srf, CustomForm)
 
-    quad_gen = create_quadrature_generator(domain)
-
-    vol_integral = fem.assemble_scalar(form_vol, coeffs=form_vol.pack_coefficients(quad_gen))
-    srf_integral = fem.assemble_scalar(form_srf, coeffs=form_srf.pack_coefficients(quad_gen))
+    vol_integral = fem.assemble_scalar(form_vol, coeffs=form_vol.pack_coefficients())
+    srf_integral = fem.assemble_scalar(form_srf, coeffs=form_srf.pack_coefficients())
 
     assert np.isclose(vol_integral, srf_integral, atol=atol, rtol=rtol)
 
@@ -222,7 +216,7 @@ def test_disk(
         negative (bool): Flag to indicate whether the negative of the implicit function
             should be used.
     """
-    radius = 0.8
+    radius = 0.6
     center = np.array([0.51, 0.45], dtype=dtype)
 
     func = qugar.impl.create_disk(radius=radius, center=center, use_bzr=use_bzr)

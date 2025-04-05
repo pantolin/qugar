@@ -312,8 +312,8 @@ class TensorProductMesh(Mesh):
             n_nodes_per_cell = 2**tdim
             conn = np.empty((0, n_nodes_per_cell), dtype=np.int64, order="C")
 
-        super().__init__(
-            comm, nodes_coords, conn, cell_type, degree, ghost_mode, merge_nodes, merge_tol
+        Mesh.__init__(
+            self, comm, nodes_coords, conn, cell_type, degree, ghost_mode, merge_nodes, merge_tol
         )
 
     @property
@@ -495,7 +495,7 @@ class CartesianMesh(TensorProductMesh):
         self._cart_grid_tp_cpp_object = cart_grid_tp_cpp
         n_cells = cart_grid_tp_cpp.num_cells_dir
 
-        super().__init__(comm, nodes_coords, n_cells, degree, ghost_mode)
+        TensorProductMesh.__init__(self, comm, nodes_coords, n_cells, degree, ghost_mode)
 
     @property
     def cart_grid_tp_cpp_object(self) -> qugar.cpp.CartGridTP_2D | qugar.cpp.CartGridTP_2D:

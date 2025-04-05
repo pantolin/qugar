@@ -20,7 +20,7 @@ import dolfinx.fem
 import numpy as np
 import pytest
 import ufl
-from mock_quad_generator import MockQuadGenerator
+from mock_unf_domain import MockUnfittedDomain
 from utils import clean_cache, create_mesh, dtypes, run_vector_check  # type: ignore
 
 
@@ -81,9 +81,9 @@ def test_v_f(
     ufl_form_0 = e * v * dx(domain=mesh)  # type: ignore
     ufl_form = ufl_form_0
 
-    quad_gen = MockQuadGenerator(mesh=mesh, nnz=nnz, max_quad_sets=max_quad_sets)
+    unf_domain = MockUnfittedDomain(mesh=mesh, nnz=nnz, max_quad_sets=max_quad_sets)
 
-    run_vector_check(ufl_form, quad_gen)
+    run_vector_check(ufl_form, unf_domain)
 
 
 @pytest.mark.parametrize("max_quad_sets", [3])
@@ -136,9 +136,9 @@ def test_interior_facet(
     f = dolfinx.fem.Function(V1, dtype=dtype)
     ufl_form = f * ufl.jump(v) * ufl.dS  # type: ignore
 
-    quad_gen = MockQuadGenerator(mesh=mesh, nnz=nnz, max_quad_sets=max_quad_sets)
+    unf_domain = MockUnfittedDomain(mesh=mesh, nnz=nnz, max_quad_sets=max_quad_sets)
 
-    run_vector_check(ufl_form, quad_gen)
+    run_vector_check(ufl_form, unf_domain)
 
 
 if __name__ == "__main__":

@@ -507,7 +507,7 @@ class Mesh(dolfinx.mesh.Mesh):
         else:
             return orig_nodes
 
-    def get_cells_exterior_facets(
+    def get_exterior_facets_as_cells_and_facets(
         self,
         dlf_local_cell_ids: npt.NDArray[np.int32],
     ) -> npt.NDArray[np.int32]:
@@ -538,6 +538,16 @@ class Mesh(dolfinx.mesh.Mesh):
         exterior_facets = dolfinx.mesh.exterior_facet_indices(self.topology)
         return np.setdiff1d(exterior_facets, facets_in_cells)
 
+    def get_exterior_facets(self) -> npt.NDArray[np.int32]:
+        """Gets the exterior facets of the mesh.
+
+        Returns:
+            npt.NDArray[np.int32]: Sorted list of owned facet indices that are
+            exterior facets of the mesh.
+        """
+        self.topology.create_connectivity(self.tdim - 1, self.tdim)
+        return dolfinx.mesh.exterior_facet_indices(self.topology)
+
     def get_cell_facets(
         self,
         dlf_local_cell_id: np.int32,
@@ -558,6 +568,16 @@ class Mesh(dolfinx.mesh.Mesh):
         cell_to_facets = self.topology.connectivity(tdim, tdim - 1)
 
         return cell_to_facets.links(dlf_local_cell_id)
+
+    def get_all_original_cell_ids(self) -> npt.NDArray[np.int64]:
+        """
+        Retrieves the all the cell ids from the mesh using the original numbering.
+
+        Returns:
+            npt.nDArray[np.int64]: An array containing the original cell IDs.
+        """
+        all_local_dlf_cell_ids = np.arange(self.num_local_cells, dtype=np.int32)
+        return self.get_original_cell_ids(all_local_dlf_cell_ids)
 
     def transform_original_facet_ids_to_DOLFINx_local(
         self,

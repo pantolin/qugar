@@ -22,7 +22,7 @@ import dolfinx.fem
 import numpy as np
 import pytest
 import ufl
-from mock_quad_generator import MockQuadGenerator
+from mock_unf_domain import MockUnfittedDomain
 from utils import clean_cache, create_mesh, dtypes, run_scalar_check  # type: ignore
 
 
@@ -74,9 +74,9 @@ def test_measure(
 
     ufl_form = one * dx(domain=mesh)
 
-    quad_gen = MockQuadGenerator(mesh=mesh, nnz=nnz, max_quad_sets=max_quad_sets)
+    unf_domain = MockUnfittedDomain(mesh=mesh, nnz=nnz, max_quad_sets=max_quad_sets)
 
-    run_scalar_check(ufl_form, quad_gen)
+    run_scalar_check(ufl_form, unf_domain)
 
 
 @pytest.mark.parametrize("max_quad_sets", [3])
@@ -146,9 +146,9 @@ def test_scalar(
     ufl_form_1 = cast(ufl.Form, ufl.inner(f, constant_0) * dx(domain=mesh))
     ufl_form = ufl_form_0 + ufl_form_1
 
-    quad_gen = MockQuadGenerator(mesh=mesh, nnz=nnz, max_quad_sets=max_quad_sets)
+    unf_domain = MockUnfittedDomain(mesh=mesh, nnz=nnz, max_quad_sets=max_quad_sets)
 
-    run_scalar_check(ufl_form, quad_gen)
+    run_scalar_check(ufl_form, unf_domain)
 
 
 if __name__ == "__main__":
@@ -164,11 +164,11 @@ if __name__ == "__main__":
     # )
     test_scalar(
         N=1,
-        dim=3,
+        dim=2,
         dx=ufl.dx,
         p=1,
-        simplex_cell=False,
+        simplex_cell=True,
         dtype=np.float32,
-        nnz=0.3,
+        nnz=0.0,
         max_quad_sets=3,
     )

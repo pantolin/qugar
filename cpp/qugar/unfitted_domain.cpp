@@ -44,6 +44,11 @@ template<int dim> auto UnfittedDomain<dim>::get_grid() const -> GridPtr
   return this->grid_;
 }
 
+template<int dim> std::size_t UnfittedDomain<dim>::get_num_total_cells() const
+{
+  return this->grid_->get_num_cells();
+}
+
 template<int dim> std::size_t UnfittedDomain<dim>::get_num_full_cells() const
 {
   return this->kd_tree_->get_num_cells(ImmersedCellStatus::full);

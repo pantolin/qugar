@@ -160,7 +160,6 @@ import qugar.cpp
 import qugar.impl
 from qugar.dolfinx import CustomForm, dx_bdry_unf, form_custom, mapped_normal
 from qugar.mesh import create_Cartesian_mesh
-from qugar.quad import create_quadrature_generator
 
 # -
 

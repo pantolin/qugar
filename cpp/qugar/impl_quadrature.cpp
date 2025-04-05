@@ -451,7 +451,6 @@ template<int dim>
 void create_cell_quadrature(const UnfittedImplDomain<dim> &unf_domain,
   const std::int64_t cell_id,
   const int n_pts_dir,
-  const bool full_cells,
   CutCellsQuad<dim> &quad)
 // NOLINTEND (bugprone-easily-swappable-parameters)
 {
@@ -474,7 +473,7 @@ void create_cell_quadrature(const UnfittedImplDomain<dim> &unf_domain,
     CutCellsQuadWrapper<dim> quad_wrapper(quad, domain);
     compute_quadrature_with_algoim<dim, false>(*phi, domain, n_pts_dir, quad_wrapper);
 
-  } else if (full_cells && unf_domain.is_full_cell(cell_id)) {
+  } else if (unf_domain.is_full_cell(cell_id)) {
     const int n_pts_per_quad_set = n_pts_dir * n_pts_dir * (dim == 3 ? n_pts_dir : 1);
 
     static auto gauss_01 = Quadrature<dim>::create_Gauss_01(n_pts_dir);
@@ -534,7 +533,6 @@ void create_facet_quadrature(const UnfittedImplDomain<dim> &unf_domain,
   const std::int64_t cell_id,
   const int local_facet_id,
   const int n_pts_dir,
-  const bool full_facets,
   const bool remove_unf_bdry,
   const bool remove_cut,
   CutIsoBoundsQuad<dim - 1> &quad)
@@ -551,24 +549,20 @@ void create_facet_quadrature(const UnfittedImplDomain<dim> &unf_domain,
   auto &n_pts_per_facet = quad.n_pts_per_facet;
 
   if (unf_domain.is_full_facet(cell_id, local_facet_id) || unf_domain.is_full_unfitted_facet(cell_id, local_facet_id)) {
-    if (full_facets) {
-      const int n_pts_per_quad_set = n_pts_dir * (dim == 3 ? n_pts_dir : 1);
+    const int n_pts_per_quad_set = n_pts_dir * (dim == 3 ? n_pts_dir : 1);
 
-      static auto gauss_01 = Quadrature<dim - 1>::create_Gauss_01(n_pts_dir);
-      if (gauss_01->get_num_points() != static_cast<std::size_t>(n_pts_per_quad_set)) {
-        gauss_01 = Quadrature<dim - 1>::create_Gauss_01(n_pts_dir);
-      }
-
-      const auto &gauss_pt = gauss_01->points();
-      points.insert(points.end(), gauss_pt.cbegin(), gauss_pt.cend());
-
-      const auto &gauss_wg = gauss_01->weights();
-      weights.insert(weights.end(), gauss_wg.cbegin(), gauss_wg.cend());
-
-      n_pts_per_facet.push_back(n_pts_per_quad_set);
-    } else {
-      n_pts_per_facet.push_back(0);
+    static auto gauss_01 = Quadrature<dim - 1>::create_Gauss_01(n_pts_dir);
+    if (gauss_01->get_num_points() != static_cast<std::size_t>(n_pts_per_quad_set)) {
+      gauss_01 = Quadrature<dim - 1>::create_Gauss_01(n_pts_dir);
     }
+
+    const auto &gauss_pt = gauss_01->points();
+    points.insert(points.end(), gauss_pt.cbegin(), gauss_pt.cend());
+
+    const auto &gauss_wg = gauss_01->weights();
+    weights.insert(weights.end(), gauss_wg.cbegin(), gauss_wg.cend());
+
+    n_pts_per_facet.push_back(n_pts_per_quad_set);
   } else if (unf_domain.is_cut_facet(cell_id, local_facet_id)
              || unf_domain.has_unfitted_boundary(cell_id, local_facet_id)) {
 
@@ -586,16 +580,10 @@ void create_facet_quadrature(const UnfittedImplDomain<dim> &unf_domain,
 
 // Instantiations
 
-template void create_cell_quadrature<2>(const UnfittedImplDomain<2> &,
-  const std::int64_t,
-  const int,
-  const bool,
-  CutCellsQuad<2> &);
-template void create_cell_quadrature<3>(const UnfittedImplDomain<3> &,
-  const std::int64_t,
-  const int,
-  const bool,
-  CutCellsQuad<3> &);
+template void
+  create_cell_quadrature<2>(const UnfittedImplDomain<2> &, const std::int64_t, const int, CutCellsQuad<2> &);
+template void
+  create_cell_quadrature<3>(const UnfittedImplDomain<3> &, const std::int64_t, const int, CutCellsQuad<3> &);
 
 template void create_cell_unfitted_bound_quadrature<2>(const UnfittedImplDomain<2> &unf_domain,
   const std::int64_t,
@@ -612,13 +600,11 @@ template void create_facet_quadrature<2>(const UnfittedImplDomain<2> &,
   const int,
   const bool,
   const bool,
-  const bool,
   CutIsoBoundsQuad<1> &);
 template void create_facet_quadrature<3>(const UnfittedImplDomain<3> &,
   const std::int64_t,
   const int,
   const int,
-  const bool,
   const bool,
   const bool,
   CutIsoBoundsQuad<2> &);
