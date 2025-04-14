@@ -1,5 +1,6 @@
 var NAVTREEINDEX1 =
 {
+"d1/dca/qugar__export_8hpp.html#abd0fc00a90fc799b39f175551e03885f":[3,0,0,1,0,25,3],
 "d1/dca/qugar__export_8hpp.html#aead1f0d3e26efb0ea4271e01b15a3e3b":[3,0,0,1,0,25,0],
 "d1/dca/qugar__export_8hpp_source.html":[3,0,0,1,0,25],
 "d1/def/classqugar_1_1impl_1_1funcs_1_1Sphere.html":[0,0,0,0,0,20],
@@ -89,9 +90,9 @@ var NAVTREEINDEX1 =
 "d2/d5e/namespacequgar_1_1impl.html#a1958862994b81ad16e70737c86ca8f00aca03114f3fbc8358aebf5f7f84f09e93":[0,0,0,0,13,1],
 "d2/d5e/namespacequgar_1_1impl.html#a1958862994b81ad16e70737c86ca8f00afb9d1dd92e3f2e1293cd94de0442ed4c":[0,0,0,0,13,2],
 "d2/d5e/namespacequgar_1_1impl.html#a2254fa568e6ab2e43f2cc7f84d272eef":[0,0,0,0,27],
-"d2/d5e/namespacequgar_1_1impl.html#a243927d24ca2c0b3844b8db74e6ced1d":[0,0,0,0,18],
 "d2/d5e/namespacequgar_1_1impl.html#a2526bba4f2d25931fb22fba16a53b008":[0,0,0,0,39],
 "d2/d5e/namespacequgar_1_1impl.html#a300b31d776b3499be317657ce45392bd":[0,0,0,0,25],
+"d2/d5e/namespacequgar_1_1impl.html#a360ae5183a48ffb55324aaf38f158ac9":[0,0,0,0,18],
 "d2/d5e/namespacequgar_1_1impl.html#a3885fffa69cb82a5463a32239aa77c18":[0,0,0,0,30],
 "d2/d5e/namespacequgar_1_1impl.html#a3b9a9d91f7aaef06f08be59c5ce67cbe":[0,0,0,0,38],
 "d2/d5e/namespacequgar_1_1impl.html#a3c10001e993bd0d9ef1a4eb6161d4596":[0,0,0,0,29],
@@ -102,11 +103,11 @@ var NAVTREEINDEX1 =
 "d2/d5e/namespacequgar_1_1impl.html#a83494e71e1c1a31db74066adcc1d3711":[0,0,0,0,22],
 "d2/d5e/namespacequgar_1_1impl.html#a86700fba9e5deb1d550a7537ec8c8b02":[0,0,0,0,11],
 "d2/d5e/namespacequgar_1_1impl.html#a88d43c40531b6c13d38598e23c531982":[0,0,0,0,21],
-"d2/d5e/namespacequgar_1_1impl.html#a93e42b6d5bdf5c20766279faea4f3359":[0,0,0,0,17],
+"d2/d5e/namespacequgar_1_1impl.html#a957bc2864404a1de1e2f3047337a3c38":[0,0,0,0,16],
 "d2/d5e/namespacequgar_1_1impl.html#a9b150239e9ac1214830854a1875a56b4":[0,0,0,0,40],
 "d2/d5e/namespacequgar_1_1impl.html#a9e5b2dba084269f34d6fe32c22b516f1":[0,0,0,0,14],
-"d2/d5e/namespacequgar_1_1impl.html#aa60f3f77833789d74da0b48bb52a4f60":[0,0,0,0,16],
 "d2/d5e/namespacequgar_1_1impl.html#aa9fc77331406a2659f2e6ba131f3f482":[0,0,0,0,35],
+"d2/d5e/namespacequgar_1_1impl.html#aade04127c99db26bfd44c12ee1a457bc":[0,0,0,0,17],
 "d2/d5e/namespacequgar_1_1impl.html#aaec77f630ac70eb8836ff4456359c91e":[0,0,0,0,23],
 "d2/d5e/namespacequgar_1_1impl.html#abaa89428c9856f8c3b1e6ea5efea4ed7":[0,0,0,0,37],
 "d2/d5e/namespacequgar_1_1impl.html#acd4d5befcbfbbd40224d42c72fd20882":[0,0,0,0,34],
@@ -248,6 +249,5 @@ var NAVTREEINDEX1 =
 "d2/dfe/classqugar_1_1BoundBox.html#a82d562f47f56af8d3fb2623b38013d92":[0,0,0,2,18],
 "d2/dfe/classqugar_1_1BoundBox.html#a82d562f47f56af8d3fb2623b38013d92":[2,0,0,1,18],
 "d2/dfe/classqugar_1_1BoundBox.html#a88dc51bd2b5a3df1017d67c3c45c5283":[0,0,0,2,3],
-"d2/dfe/classqugar_1_1BoundBox.html#a88dc51bd2b5a3df1017d67c3c45c5283":[2,0,0,1,3],
-"d2/dfe/classqugar_1_1BoundBox.html#a891ccbb7739da530693125bf6681e0a6":[0,0,0,2,6]
+"d2/dfe/classqugar_1_1BoundBox.html#a88dc51bd2b5a3df1017d67c3c45c5283":[2,0,0,1,3]
 };

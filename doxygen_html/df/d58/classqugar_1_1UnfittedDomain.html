@@ -127,7 +127,7 @@ Inheritance diagram for qugar::UnfittedDomain&lt; dim &gt;:</div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-types" name="pub-types"></a>
 Public Types</h2></td></tr>
-<tr class="memitem:a934e42746b340c926a99ba4979672d52" id="r_a934e42746b340c926a99ba4979672d52"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a934e42746b340c926a99ba4979672d52">FacetsStatus</a> = std::array&lt;<a class="el" href="../../d0/d6b/namespacequgar.html#a2a8e94584d3f66820b45e705a99aa8ba">ImmersedFacetStatus</a>, <a class="el" href="#a87f40c518e6d81f905232f98aca00a98">n_facets_per_cell</a>&gt;</td></tr>
+<tr class="memitem:a934e42746b340c926a99ba4979672d52" id="r_a934e42746b340c926a99ba4979672d52"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a934e42746b340c926a99ba4979672d52">FacetsStatus</a> = std::array&lt;<a class="el" href="../../d0/d6b/namespacequgar.html#a2a8e94584d3f66820b45e705a99aa8ba">ImmersedFacetStatus</a>, <a class="el" href="#af2b1a32cbcf47a37c34ccaa25ba68e2b">n_facets_per_cell</a>&gt;</td></tr>
 <tr class="separator:a934e42746b340c926a99ba4979672d52"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aec64583f1f8b1945e39e9ce03185585a" id="r_aec64583f1f8b1945e39e9ce03185585a"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aec64583f1f8b1945e39e9ce03185585a">GridPtr</a> = std::shared_ptr&lt;const <a class="el" href="../../d1/d84/classqugar_1_1CartGridTP.html">CartGridTP</a>&lt;dim&gt;&gt;</td></tr>
 <tr class="separator:aec64583f1f8b1945e39e9ce03185585a"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -152,18 +152,34 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a334e02e57aee47573192c5663dbef992"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2b65515823be0accc41838c80e6fcd97" id="r_a2b65515823be0accc41838c80e6fcd97"><td class="memItemLeft" align="right" valign="top"><a class="el" href="#aec64583f1f8b1945e39e9ce03185585a">GridPtr</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a2b65515823be0accc41838c80e6fcd97">get_grid</a> () const</td></tr>
 <tr class="separator:a2b65515823be0accc41838c80e6fcd97"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a87c0f3209146178172a125a422c5ec6c" id="r_a87c0f3209146178172a125a422c5ec6c"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a87c0f3209146178172a125a422c5ec6c">is_exterior_facet</a> (std::int64_t cell_id, int local_facet_id) const</td></tr>
+<tr class="separator:a87c0f3209146178172a125a422c5ec6c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a22cb7ca5bbded5d36380f4b765962e29" id="r_a22cb7ca5bbded5d36380f4b765962e29"><td class="memItemLeft" align="right" valign="top">std::size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a22cb7ca5bbded5d36380f4b765962e29">get_num_total_cells</a> () const</td></tr>
+<tr class="separator:a22cb7ca5bbded5d36380f4b765962e29"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a76682837ddebf7c5d3560b351cdbe00f" id="r_a76682837ddebf7c5d3560b351cdbe00f"><td class="memItemLeft" align="right" valign="top">std::size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a76682837ddebf7c5d3560b351cdbe00f">get_num_full_cells</a> () const</td></tr>
 <tr class="separator:a76682837ddebf7c5d3560b351cdbe00f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a204d562c32230cce54528581734c0305" id="r_a204d562c32230cce54528581734c0305"><td class="memItemLeft" align="right" valign="top">std::size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a204d562c32230cce54528581734c0305">get_num_empty_cells</a> () const</td></tr>
 <tr class="separator:a204d562c32230cce54528581734c0305"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac72bf6481d7d8f8af55d914a6851f947" id="r_ac72bf6481d7d8f8af55d914a6851f947"><td class="memItemLeft" align="right" valign="top">std::size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ac72bf6481d7d8f8af55d914a6851f947">get_num_cut_cells</a> () const</td></tr>
 <tr class="separator:ac72bf6481d7d8f8af55d914a6851f947"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6ea329e5b8dfc6de5cb6704676547754" id="r_a6ea329e5b8dfc6de5cb6704676547754"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a6ea329e5b8dfc6de5cb6704676547754">has_full_cells_with_unf_bdry</a> () const</td></tr>
+<tr class="separator:a6ea329e5b8dfc6de5cb6704676547754"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a53d781be3eb435d36947143e04a3bef0" id="r_a53d781be3eb435d36947143e04a3bef0"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a53d781be3eb435d36947143e04a3bef0">get_full_cells</a> (std::vector&lt; std::int64_t &gt; &amp;cell_ids) const</td></tr>
 <tr class="separator:a53d781be3eb435d36947143e04a3bef0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae8a4ca6685ab50fbda40de30371c2056" id="r_ae8a4ca6685ab50fbda40de30371c2056"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ae8a4ca6685ab50fbda40de30371c2056">get_empty_cells</a> (std::vector&lt; std::int64_t &gt; &amp;cell_ids) const</td></tr>
 <tr class="separator:ae8a4ca6685ab50fbda40de30371c2056"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a067552ebee9e21562fa7d464a51c4678" id="r_a067552ebee9e21562fa7d464a51c4678"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a067552ebee9e21562fa7d464a51c4678">get_cut_cells</a> (std::vector&lt; std::int64_t &gt; &amp;cell_ids) const</td></tr>
 <tr class="separator:a067552ebee9e21562fa7d464a51c4678"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a07a11dc64fb0638458f1d98a32bdd3a5" id="r_a07a11dc64fb0638458f1d98a32bdd3a5"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a07a11dc64fb0638458f1d98a32bdd3a5">get_unf_bdry_cells</a> (std::vector&lt; std::int64_t &gt; &amp;cell_ids, bool exclude_ext_facets) const</td></tr>
+<tr class="separator:a07a11dc64fb0638458f1d98a32bdd3a5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2efccd3fe5e3585b9e513b388d3a910b" id="r_a2efccd3fe5e3585b9e513b388d3a910b"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a2efccd3fe5e3585b9e513b388d3a910b">get_full_cells</a> (const std::vector&lt; std::int64_t &gt; &amp;target_cell_ids, std::vector&lt; std::int64_t &gt; &amp;cell_ids) const</td></tr>
+<tr class="separator:a2efccd3fe5e3585b9e513b388d3a910b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abb9fe278de0fd74661b2a6849f6e0c1d" id="r_abb9fe278de0fd74661b2a6849f6e0c1d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#abb9fe278de0fd74661b2a6849f6e0c1d">get_empty_cells</a> (const std::vector&lt; std::int64_t &gt; &amp;target_cell_ids, std::vector&lt; std::int64_t &gt; &amp;cell_ids) const</td></tr>
+<tr class="separator:abb9fe278de0fd74661b2a6849f6e0c1d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2ba7c5d81c95c06e7e8eac4c933b0d9e" id="r_a2ba7c5d81c95c06e7e8eac4c933b0d9e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a2ba7c5d81c95c06e7e8eac4c933b0d9e">get_cut_cells</a> (const std::vector&lt; std::int64_t &gt; &amp;target_cell_ids, std::vector&lt; std::int64_t &gt; &amp;cell_ids) const</td></tr>
+<tr class="separator:a2ba7c5d81c95c06e7e8eac4c933b0d9e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab52a64adfd76b15c9c557fa2df9f8f9d" id="r_ab52a64adfd76b15c9c557fa2df9f8f9d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ab52a64adfd76b15c9c557fa2df9f8f9d">get_unf_bdry_cells</a> (const std::vector&lt; std::int64_t &gt; &amp;target_cell_ids, std::vector&lt; std::int64_t &gt; &amp;cell_ids, bool exclude_ext_facets) const</td></tr>
+<tr class="separator:ab52a64adfd76b15c9c557fa2df9f8f9d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a612950e77c9b7363ad2f328fd122fff4" id="r_a612950e77c9b7363ad2f328fd122fff4"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a612950e77c9b7363ad2f328fd122fff4">get_empty_facets</a> (std::vector&lt; std::int64_t &gt; &amp;cell_ids, std::vector&lt; int &gt; &amp;local_facets_ids) const</td></tr>
 <tr class="separator:a612950e77c9b7363ad2f328fd122fff4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad08262af54e08fe42884dcf4047eedae" id="r_ad08262af54e08fe42884dcf4047eedae"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad08262af54e08fe42884dcf4047eedae">get_full_facets</a> (std::vector&lt; std::int64_t &gt; &amp;cell_ids, std::vector&lt; int &gt; &amp;local_facets_ids) const</td></tr>
@@ -174,12 +190,6 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a81bb597ee443b9a0fe3921d6efe8fac4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8d3ea8db4110946f6c134c8bd3da3290" id="r_a8d3ea8db4110946f6c134c8bd3da3290"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a8d3ea8db4110946f6c134c8bd3da3290">get_cut_facets</a> (std::vector&lt; std::int64_t &gt; &amp;cell_ids, std::vector&lt; int &gt; &amp;local_facets_ids) const</td></tr>
 <tr class="separator:a8d3ea8db4110946f6c134c8bd3da3290"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2efccd3fe5e3585b9e513b388d3a910b" id="r_a2efccd3fe5e3585b9e513b388d3a910b"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a2efccd3fe5e3585b9e513b388d3a910b">get_full_cells</a> (const std::vector&lt; std::int64_t &gt; &amp;target_cell_ids, std::vector&lt; std::int64_t &gt; &amp;cell_ids) const</td></tr>
-<tr class="separator:a2efccd3fe5e3585b9e513b388d3a910b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:abb9fe278de0fd74661b2a6849f6e0c1d" id="r_abb9fe278de0fd74661b2a6849f6e0c1d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#abb9fe278de0fd74661b2a6849f6e0c1d">get_empty_cells</a> (const std::vector&lt; std::int64_t &gt; &amp;target_cell_ids, std::vector&lt; std::int64_t &gt; &amp;cell_ids) const</td></tr>
-<tr class="separator:abb9fe278de0fd74661b2a6849f6e0c1d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2ba7c5d81c95c06e7e8eac4c933b0d9e" id="r_a2ba7c5d81c95c06e7e8eac4c933b0d9e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a2ba7c5d81c95c06e7e8eac4c933b0d9e">get_cut_cells</a> (const std::vector&lt; std::int64_t &gt; &amp;target_cell_ids, std::vector&lt; std::int64_t &gt; &amp;cell_ids) const</td></tr>
-<tr class="separator:a2ba7c5d81c95c06e7e8eac4c933b0d9e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a523059c0feff79247d5641bfe196d8cb" id="r_a523059c0feff79247d5641bfe196d8cb"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a523059c0feff79247d5641bfe196d8cb">get_empty_facets</a> (const std::vector&lt; std::int64_t &gt; &amp;target_cell_ids, const std::vector&lt; int &gt; &amp;target_local_facets_ids, std::vector&lt; std::int64_t &gt; &amp;cell_ids, std::vector&lt; int &gt; &amp;local_facets_ids) const</td></tr>
 <tr class="separator:a523059c0feff79247d5641bfe196d8cb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac355abddf1e46acfb0ea8a6e87867931" id="r_ac355abddf1e46acfb0ea8a6e87867931"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ac355abddf1e46acfb0ea8a6e87867931">get_full_facets</a> (const std::vector&lt; std::int64_t &gt; &amp;target_cell_ids, const std::vector&lt; int &gt; &amp;target_local_facets_ids, std::vector&lt; std::int64_t &gt; &amp;cell_ids, std::vector&lt; int &gt; &amp;local_facets_ids) const</td></tr>
@@ -192,12 +202,12 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:ab4b54ed8c79d3f6e369faaa8aacfcbd5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad5ba40379398f4c1e1baaf7b3c0a775f" id="r_ad5ba40379398f4c1e1baaf7b3c0a775f"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad5ba40379398f4c1e1baaf7b3c0a775f">is_full_cell</a> (std::int64_t cell_id) const</td></tr>
 <tr class="separator:ad5ba40379398f4c1e1baaf7b3c0a775f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac1e7a1f3d94d8ef3bb0e9785445ffb70" id="r_ac1e7a1f3d94d8ef3bb0e9785445ffb70"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ac1e7a1f3d94d8ef3bb0e9785445ffb70">is_full_with_unf_bdry_cell</a> (std::int64_t cell_id) const</td></tr>
-<tr class="separator:ac1e7a1f3d94d8ef3bb0e9785445ffb70"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:abf7f98d8b752db986f0e9903a6557794" id="r_abf7f98d8b752db986f0e9903a6557794"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#abf7f98d8b752db986f0e9903a6557794">is_empty_cell</a> (std::int64_t cell_id) const</td></tr>
 <tr class="separator:abf7f98d8b752db986f0e9903a6557794"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3cef1484b67bb2a25d12c77d0c1aba6e" id="r_a3cef1484b67bb2a25d12c77d0c1aba6e"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a3cef1484b67bb2a25d12c77d0c1aba6e">is_cut_cell</a> (std::int64_t cell_id) const</td></tr>
 <tr class="separator:a3cef1484b67bb2a25d12c77d0c1aba6e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac1e7a1f3d94d8ef3bb0e9785445ffb70" id="r_ac1e7a1f3d94d8ef3bb0e9785445ffb70"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ac1e7a1f3d94d8ef3bb0e9785445ffb70">is_full_with_unf_bdry_cell</a> (std::int64_t cell_id) const</td></tr>
+<tr class="separator:ac1e7a1f3d94d8ef3bb0e9785445ffb70"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a683df9d76b5ae53fd5da84114930040f" id="r_a683df9d76b5ae53fd5da84114930040f"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a683df9d76b5ae53fd5da84114930040f">is_full_facet</a> (std::int64_t cell_id, int local_facet_id) const</td></tr>
 <tr class="separator:a683df9d76b5ae53fd5da84114930040f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a30eba30731f9060bedcabada7c14f232" id="r_a30eba30731f9060bedcabada7c14f232"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a30eba30731f9060bedcabada7c14f232">is_empty_facet</a> (std::int64_t cell_id, int local_facet_id) const</td></tr>
@@ -206,6 +216,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:ae78df24571c4655bd657b97c770aa3d1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a41728c4c1f84421be07345062a4976ab" id="r_a41728c4c1f84421be07345062a4976ab"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a41728c4c1f84421be07345062a4976ab">is_full_unfitted_facet</a> (std::int64_t cell_id, int local_facet_id) const</td></tr>
 <tr class="separator:a41728c4c1f84421be07345062a4976ab"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adeee931a84693cfdd1702cd3b432cf1a" id="r_adeee931a84693cfdd1702cd3b432cf1a"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#adeee931a84693cfdd1702cd3b432cf1a">is_cell_with_unf_bdry</a> (std::int64_t cell_id) const</td></tr>
+<tr class="separator:adeee931a84693cfdd1702cd3b432cf1a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af9f5372b19e35ae1f03e565b62d3920e" id="r_af9f5372b19e35ae1f03e565b62d3920e"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af9f5372b19e35ae1f03e565b62d3920e">has_unfitted_boundary</a> (std::int64_t cell_id, int local_facet_id) const</td></tr>
 <tr class="separator:af9f5372b19e35ae1f03e565b62d3920e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa05e05c30a600f066e7478f09aca7693" id="r_aa05e05c30a600f066e7478f09aca7693"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa05e05c30a600f066e7478f09aca7693">has_external_boundary</a> (std::int64_t cell_id, int local_facet_id) const</td></tr>
@@ -228,13 +240,15 @@ Static Public Member Functions</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-static-attribs" name="pub-static-attribs"></a>
 Static Public Attributes</h2></td></tr>
-<tr class="memitem:a87f40c518e6d81f905232f98aca00a98" id="r_a87f40c518e6d81f905232f98aca00a98"><td class="memItemLeft" align="right" valign="top">static const std::size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a87f40c518e6d81f905232f98aca00a98">n_facets_per_cell</a> = static_cast&lt;std::size_t&gt;(dim) * 2</td></tr>
-<tr class="separator:a87f40c518e6d81f905232f98aca00a98"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af2b1a32cbcf47a37c34ccaa25ba68e2b" id="r_af2b1a32cbcf47a37c34ccaa25ba68e2b"><td class="memItemLeft" align="right" valign="top">static const int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af2b1a32cbcf47a37c34ccaa25ba68e2b">n_facets_per_cell</a> = dim * 2</td></tr>
+<tr class="separator:af2b1a32cbcf47a37c34ccaa25ba68e2b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pro-methods" name="pro-methods"></a>
 Protected Member Functions</h2></td></tr>
 <tr class="memitem:a4cc79a0b3a4ffec4654193db976352c4" id="r_a4cc79a0b3a4ffec4654193db976352c4"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a4cc79a0b3a4ffec4654193db976352c4">UnfittedDomain</a> (const <a class="el" href="#aec64583f1f8b1945e39e9ce03185585a">GridPtr</a> &amp;grid)</td></tr>
 <tr class="separator:a4cc79a0b3a4ffec4654193db976352c4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2b709f176a45be2b4dea45b8c1884676" id="r_a2b709f176a45be2b4dea45b8c1884676"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a2b709f176a45be2b4dea45b8c1884676">init_full_cells_with_unf_bdry</a> ()</td></tr>
+<tr class="separator:a2b709f176a45be2b4dea45b8c1884676"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pro-attribs" name="pro-attribs"></a>
 Protected Attributes</h2></td></tr>
@@ -244,6 +258,8 @@ Protected Attributes</h2></td></tr>
 <tr class="separator:aa58913e4e90a32d384993c687f37ca0c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3519a2ab44216b144eee7ae0c678cb63" id="r_a3519a2ab44216b144eee7ae0c678cb63"><td class="memItemLeft" align="right" valign="top">std::unordered_map&lt; std::int64_t, <a class="el" href="#a934e42746b340c926a99ba4979672d52">FacetsStatus</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a3519a2ab44216b144eee7ae0c678cb63">facets_status_</a></td></tr>
 <tr class="separator:a3519a2ab44216b144eee7ae0c678cb63"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3e183cf2b5141273fedbb0f9c841d3b4" id="r_a3e183cf2b5141273fedbb0f9c841d3b4"><td class="memItemLeft" align="right" valign="top">std::vector&lt; std::int64_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a3e183cf2b5141273fedbb0f9c841d3b4">full_cells_with_unf_bdry_</a></td></tr>
+<tr class="separator:a3e183cf2b5141273fedbb0f9c841d3b4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pri-static-methods" name="pri-static-methods"></a>
 Static Private Member Functions</h2></td></tr>
@@ -260,7 +276,7 @@ Static Private Member Functions</h2></td></tr>
 template&lt;int dim&gt; </div>
       <table class="memname">
         <tr>
-          <td class="memname">using <a class="el" href="../../df/d58/classqugar_1_1UnfittedDomain.html">qugar::UnfittedDomain</a>&lt; dim &gt;::FacetsStatus = std::array&lt;<a class="el" href="../../d0/d6b/namespacequgar.html#a2a8e94584d3f66820b45e705a99aa8ba">ImmersedFacetStatus</a>, <a class="el" href="#a87f40c518e6d81f905232f98aca00a98">n_facets_per_cell</a>&gt;</td>
+          <td class="memname">using <a class="el" href="../../df/d58/classqugar_1_1UnfittedDomain.html">qugar::UnfittedDomain</a>&lt; dim &gt;::FacetsStatus = std::array&lt;<a class="el" href="../../d0/d6b/namespacequgar.html#a2a8e94584d3f66820b45e705a99aa8ba">ImmersedFacetStatus</a>, <a class="el" href="#af2b1a32cbcf47a37c34ccaa25ba68e2b">n_facets_per_cell</a>&gt;</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -922,6 +938,84 @@ template&lt;int dim&gt; </div>
 
 </div>
 </div>
+<a id="a22cb7ca5bbded5d36380f4b765962e29" name="a22cb7ca5bbded5d36380f4b765962e29"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a22cb7ca5bbded5d36380f4b765962e29">&#9670;&#160;</a></span>get_num_total_cells()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;int dim&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::size_t <a class="el" href="../../df/d58/classqugar_1_1UnfittedDomain.html">qugar::UnfittedDomain</a>&lt; dim &gt;::get_num_total_cells </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">nodiscard</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ab52a64adfd76b15c9c557fa2df9f8f9d" name="ab52a64adfd76b15c9c557fa2df9f8f9d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab52a64adfd76b15c9c557fa2df9f8f9d">&#9670;&#160;</a></span>get_unf_bdry_cells() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;int dim&gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname">void <a class="el" href="../../df/d58/classqugar_1_1UnfittedDomain.html">qugar::UnfittedDomain</a>&lt; dim &gt;::get_unf_bdry_cells </td>
+          <td>(</td>
+          <td class="paramtype">const std::vector&lt; std::int64_t &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>target_cell_ids</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::vector&lt; std::int64_t &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>cell_ids</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool</td>          <td class="paramname"><span class="paramname"><em>exclude_ext_facets</em></span>&#160;) const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a07a11dc64fb0638458f1d98a32bdd3a5" name="a07a11dc64fb0638458f1d98a32bdd3a5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a07a11dc64fb0638458f1d98a32bdd3a5">&#9670;&#160;</a></span>get_unf_bdry_cells() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;int dim&gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname">void <a class="el" href="../../df/d58/classqugar_1_1UnfittedDomain.html">qugar::UnfittedDomain</a>&lt; dim &gt;::get_unf_bdry_cells </td>
+          <td>(</td>
+          <td class="paramtype">std::vector&lt; std::int64_t &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>cell_ids</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool</td>          <td class="paramname"><span class="paramname"><em>exclude_ext_facets</em></span>&#160;) const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="ae9e195d53e5c108fad43cd5d23031c66" name="ae9e195d53e5c108fad43cd5d23031c66"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ae9e195d53e5c108fad43cd5d23031c66">&#9670;&#160;</a></span>get_unfitted_facets() <span class="overload">[1/2]</span></h2>
 
@@ -1036,6 +1130,33 @@ template&lt;int dim&gt; </div>
 
 </div>
 </div>
+<a id="a6ea329e5b8dfc6de5cb6704676547754" name="a6ea329e5b8dfc6de5cb6704676547754"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6ea329e5b8dfc6de5cb6704676547754">&#9670;&#160;</a></span>has_full_cells_with_unf_bdry()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;int dim&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool <a class="el" href="../../df/d58/classqugar_1_1UnfittedDomain.html">qugar::UnfittedDomain</a>&lt; dim &gt;::has_full_cells_with_unf_bdry </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">nodiscard</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a96eaef601240922800158eda786c1094" name="a96eaef601240922800158eda786c1094"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a96eaef601240922800158eda786c1094">&#9670;&#160;</a></span>has_unfitted_boundary() <span class="overload">[1/2]</span></h2>
 
@@ -1083,6 +1204,60 @@ template&lt;int dim&gt; </div>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>local_facet_id</em></span>&#160;) const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">nodiscard</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a2b709f176a45be2b4dea45b8c1884676" name="a2b709f176a45be2b4dea45b8c1884676"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2b709f176a45be2b4dea45b8c1884676">&#9670;&#160;</a></span>init_full_cells_with_unf_bdry()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;int dim&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void <a class="el" href="../../df/d58/classqugar_1_1UnfittedDomain.html">qugar::UnfittedDomain</a>&lt; dim &gt;::init_full_cells_with_unf_bdry </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">protected</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="adeee931a84693cfdd1702cd3b432cf1a" name="adeee931a84693cfdd1702cd3b432cf1a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adeee931a84693cfdd1702cd3b432cf1a">&#9670;&#160;</a></span>is_cell_with_unf_bdry()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;int dim&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool <a class="el" href="../../df/d58/classqugar_1_1UnfittedDomain.html">qugar::UnfittedDomain</a>&lt; dim &gt;::is_cell_with_unf_bdry </td>
+          <td>(</td>
+          <td class="paramtype">std::int64_t</td>          <td class="paramname"><span class="paramname"><em>cell_id</em></span></td><td>)</td>
+          <td> const</td>
         </tr>
       </table>
   </td>
@@ -1246,6 +1421,37 @@ template&lt;int dim&gt; </div>
       <table class="memname">
         <tr>
           <td class="memname">bool <a class="el" href="../../df/d58/classqugar_1_1UnfittedDomain.html">qugar::UnfittedDomain</a>&lt; dim &gt;::is_empty_facet </td>
+          <td>(</td>
+          <td class="paramtype">std::int64_t</td>          <td class="paramname"><span class="paramname"><em>cell_id</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>local_facet_id</em></span>&#160;) const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">nodiscard</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a87c0f3209146178172a125a422c5ec6c" name="a87c0f3209146178172a125a422c5ec6c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a87c0f3209146178172a125a422c5ec6c">&#9670;&#160;</a></span>is_exterior_facet()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;int dim&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool <a class="el" href="../../df/d58/classqugar_1_1UnfittedDomain.html">qugar::UnfittedDomain</a>&lt; dim &gt;::is_exterior_facet </td>
           <td>(</td>
           <td class="paramtype">std::int64_t</td>          <td class="paramname"><span class="paramname"><em>cell_id</em></span>, </td>
         </tr>
@@ -1517,6 +1723,30 @@ template&lt;int dim&gt; </div>
 
 </div>
 </div>
+<a id="a3e183cf2b5141273fedbb0f9c841d3b4" name="a3e183cf2b5141273fedbb0f9c841d3b4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3e183cf2b5141273fedbb0f9c841d3b4">&#9670;&#160;</a></span>full_cells_with_unf_bdry_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;int dim&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::vector&lt;std::int64_t&gt; <a class="el" href="../../df/d58/classqugar_1_1UnfittedDomain.html">qugar::UnfittedDomain</a>&lt; dim &gt;::full_cells_with_unf_bdry_</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">protected</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a2a6adc16cb5e53cdd43e4ad23bb81a6e" name="a2a6adc16cb5e53cdd43e4ad23bb81a6e"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a2a6adc16cb5e53cdd43e4ad23bb81a6e">&#9670;&#160;</a></span>grid_</h2>
 
@@ -1565,8 +1795,8 @@ template&lt;int dim&gt; </div>
 
 </div>
 </div>
-<a id="a87f40c518e6d81f905232f98aca00a98" name="a87f40c518e6d81f905232f98aca00a98"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a87f40c518e6d81f905232f98aca00a98">&#9670;&#160;</a></span>n_facets_per_cell</h2>
+<a id="af2b1a32cbcf47a37c34ccaa25ba68e2b" name="af2b1a32cbcf47a37c34ccaa25ba68e2b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af2b1a32cbcf47a37c34ccaa25ba68e2b">&#9670;&#160;</a></span>n_facets_per_cell</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1577,7 +1807,7 @@ template&lt;int dim&gt; </div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">const std::size_t <a class="el" href="../../df/d58/classqugar_1_1UnfittedDomain.html">qugar::UnfittedDomain</a>&lt; dim &gt;::n_facets_per_cell = static_cast&lt;std::size_t&gt;(dim) * 2</td>
+          <td class="memname">const int <a class="el" href="../../df/d58/classqugar_1_1UnfittedDomain.html">qugar::UnfittedDomain</a>&lt; dim &gt;::n_facets_per_cell = dim * 2</td>
         </tr>
       </table>
   </td>

@@ -4,12 +4,6 @@
 .. automodule:: qugar.quad
 
    
-   .. rubric:: Functions
-
-   .. autosummary::
-   
-      create_quadrature_generator
-   
    .. rubric:: Classes
 
    .. autosummary::

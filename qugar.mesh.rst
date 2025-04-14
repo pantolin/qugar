@@ -24,12 +24,15 @@
       map_cells_and_local_facets_to_facets
       map_facets_to_cells_and_local_facets
       create_Cartesian_mesh
+      create_unfitted_impl_Cartesian_mesh
    
    .. rubric:: Classes
 
    .. autosummary::
    
+      UnfittedDomain
       CartesianMesh
       TensorProductMesh
       TensorProdIndex
+      UnfittedCartMesh
    

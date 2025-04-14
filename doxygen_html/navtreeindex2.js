@@ -1,5 +1,6 @@
 var NAVTREEINDEX2 =
 {
+"d2/dfe/classqugar_1_1BoundBox.html#a891ccbb7739da530693125bf6681e0a6":[0,0,0,2,6],
 "d2/dfe/classqugar_1_1BoundBox.html#a891ccbb7739da530693125bf6681e0a6":[2,0,0,1,6],
 "d2/dfe/classqugar_1_1BoundBox.html#a89c525b74ad80b4a6248ebc96122224e":[0,0,0,2,22],
 "d2/dfe/classqugar_1_1BoundBox.html#a89c525b74ad80b4a6248ebc96122224e":[2,0,0,1,22],
@@ -210,9 +211,9 @@ var NAVTREEINDEX2 =
 "d6/dc2/structstd_1_1hash_3_01qugar_1_1TensorIndexTP_3_01dim_01_4_01_4.html#a7fc8e5d6d9f316f52ee830222b1ead1e":[0,0,1,0,0],
 "d6/dc2/structstd_1_1hash_3_01qugar_1_1TensorIndexTP_3_01dim_01_4_01_4.html#a7fc8e5d6d9f316f52ee830222b1ead1e":[2,0,1,0,0],
 "d6/dc8/impl__quadrature_8hpp.html":[3,0,0,1,0,10],
-"d6/dc8/impl__quadrature_8hpp.html#a243927d24ca2c0b3844b8db74e6ced1d":[3,0,0,1,0,10,2],
-"d6/dc8/impl__quadrature_8hpp.html#a93e42b6d5bdf5c20766279faea4f3359":[3,0,0,1,0,10,1],
-"d6/dc8/impl__quadrature_8hpp.html#aa60f3f77833789d74da0b48bb52a4f60":[3,0,0,1,0,10,0],
+"d6/dc8/impl__quadrature_8hpp.html#a360ae5183a48ffb55324aaf38f158ac9":[3,0,0,1,0,10,2],
+"d6/dc8/impl__quadrature_8hpp.html#a957bc2864404a1de1e2f3047337a3c38":[3,0,0,1,0,10,0],
+"d6/dc8/impl__quadrature_8hpp.html#aade04127c99db26bfd44c12ee1a457bc":[3,0,0,1,0,10,1],
 "d6/dc8/impl__quadrature_8hpp_source.html":[3,0,0,1,0,10],
 "d6/dcd/classqugar_1_1impl_1_1funcs_1_1Cylinder.html":[0,0,0,0,0,8],
 "d6/dcd/classqugar_1_1impl_1_1funcs_1_1Cylinder.html":[2,0,0,0,0,8],
@@ -248,6 +249,5 @@ var NAVTREEINDEX2 =
 "d7/d46/structqugar_1_1impl_1_1RootsIntervals.html#a2dcd3b081d49aeb832b112631eee211f":[2,0,0,0,9,5],
 "d7/d46/structqugar_1_1impl_1_1RootsIntervals.html#a31c53d61f7654b0be4afaf589d0a6333":[0,0,0,0,9,10],
 "d7/d46/structqugar_1_1impl_1_1RootsIntervals.html#a31c53d61f7654b0be4afaf589d0a6333":[2,0,0,0,9,10],
-"d7/d46/structqugar_1_1impl_1_1RootsIntervals.html#a3e96d703d30771ec9f534f540ae12750":[0,0,0,0,9,7],
-"d7/d46/structqugar_1_1impl_1_1RootsIntervals.html#a3e96d703d30771ec9f534f540ae12750":[2,0,0,0,9,7]
+"d7/d46/structqugar_1_1impl_1_1RootsIntervals.html#a3e96d703d30771ec9f534f540ae12750":[0,0,0,0,9,7]
 };

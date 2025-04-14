@@ -8,8 +8,8 @@ var cut__quadrature_8hpp =
       [ "full", "d1/daf/cut__quadrature_8hpp.html#a402f12f6759afc2de1fbd12066f73d26ae0ab9fe58f840a0a682e83026396c9aa", null ],
       [ "empty", "d1/daf/cut__quadrature_8hpp.html#a402f12f6759afc2de1fbd12066f73d26a927d20c31cad4273b3af21d7d2306123", null ]
     ] ],
-    [ "create_exterior_facets_quadrature", "d1/daf/cut__quadrature_8hpp.html#a63b121a771c6741d21cf9c0af1e9f5b0", null ],
-    [ "create_interior_facets_quadrature", "d1/daf/cut__quadrature_8hpp.html#a2995f6066adc73cefa196180757123eb", null ],
-    [ "create_quadrature", "d1/daf/cut__quadrature_8hpp.html#ad445be012c036b0ba21f2ea3ef1d4b2a", null ],
-    [ "create_unfitted_bound_quadrature", "d1/daf/cut__quadrature_8hpp.html#a7bf54140d30528eb2a67aac55bb762cf", null ]
+    [ "create_exterior_facets_quadrature", "d1/daf/cut__quadrature_8hpp.html#a4933aa96e660ea9accc2ddc2b2c74791", null ],
+    [ "create_interior_facets_quadrature", "d1/daf/cut__quadrature_8hpp.html#a5947e3d800f468dc8224760267ed0aae", null ],
+    [ "create_quadrature", "d1/daf/cut__quadrature_8hpp.html#ae64056761f525b5d9b618eb67d6ecce5", null ],
+    [ "create_unfitted_bound_quadrature", "d1/daf/cut__quadrature_8hpp.html#ada98f71d3a8eef961a96cc6e9ea3bd8c", null ]
 ];

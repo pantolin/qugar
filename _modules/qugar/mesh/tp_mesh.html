@@ -88,7 +88,7 @@
 
 <span class="sd">&quot;&quot;&quot;Tensor-product and Cartesian meshes.&quot;&quot;&quot;</span>
 
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">cast</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span>
 
 <span class="kn">import</span> <span class="nn">qugar.utils</span>
 
@@ -98,23 +98,17 @@
 
 <span class="kn">from</span> <span class="nn">mpi4py</span> <span class="kn">import</span> <span class="n">MPI</span>
 
-<span class="kn">import</span> <span class="nn">basix.ufl</span>
-<span class="kn">import</span> <span class="nn">dolfinx.cpp</span> <span class="k">as</span> <span class="nn">dlf_cpp</span>
 <span class="kn">import</span> <span class="nn">dolfinx.mesh</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">numpy.typing</span> <span class="k">as</span> <span class="nn">npt</span>
-<span class="kn">import</span> <span class="nn">ufl</span>
+<span class="kn">from</span> <span class="nn">basix</span> <span class="kn">import</span> <span class="n">CellType</span>
 <span class="kn">from</span> <span class="nn">dolfinx.cpp.mesh</span> <span class="kn">import</span> <span class="n">GhostMode</span>
-<span class="kn">from</span> <span class="nn">dolfinx.fem</span> <span class="kn">import</span> <span class="n">coordinate_element</span> <span class="k">as</span> <span class="n">_coordinate_element</span>
 
 <span class="kn">import</span> <span class="nn">qugar.cpp</span>
+<span class="kn">from</span> <span class="nn">qugar.mesh.mesh</span> <span class="kn">import</span> <span class="n">Mesh</span>
 <span class="kn">from</span> <span class="nn">qugar.mesh.tp_index</span> <span class="kn">import</span> <span class="n">TensorProdIndex</span>
 <span class="kn">from</span> <span class="nn">qugar.mesh.utils</span> <span class="kn">import</span> <span class="p">(</span>
-    <span class="n">DOLFINx_to_lexicg_faces</span><span class="p">,</span>
     <span class="n">DOLFINx_to_lexicg_nodes</span><span class="p">,</span>
-    <span class="n">create_cells_to_facets_map</span><span class="p">,</span>
-    <span class="n">lexicg_to_DOLFINx_faces</span><span class="p">,</span>
-    <span class="n">map_facets_to_cells_and_local_facets</span><span class="p">,</span>
 <span class="p">)</span>
 
 
@@ -212,81 +206,6 @@
     <span class="k">return</span> <span class="n">conn</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">n_nodes_per_cell</span><span class="p">)</span>
 
 
-<span class="k">def</span> <span class="nf">_merge_coincident_points_in_mesh</span><span class="p">(</span>
-    <span class="n">nodes</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">],</span>
-    <span class="n">conn</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">],</span>
-    <span class="n">tolerance</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">type</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">],</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">],</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">]]:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Finds conincident points from a mesh and merge them updating the</span>
-<span class="sd">    cells&#39; connectivity.</span>
-
-<span class="sd">    This functionality requires `scipy` package to be installed.</span>
-
-<span class="sd">    Args:</span>
-<span class="sd">        nodes (npt.NDArray[np.float32 | np.float64]): Coordinates of the</span>
-<span class="sd">            nodes stored in a 2D array. Rows correspond to the different</span>
-<span class="sd">            points and columns to their coordinates.</span>
-<span class="sd">        conn (npt.NDArray[np.int64]): Connectivity to update. It is a 2D</span>
-<span class="sd">            array, where every row stores a list of nodes ids. The</span>
-<span class="sd">            connectivity of each cells follows the DOLFINx convention.</span>
-<span class="sd">            See https://github.com/FEniCS/basix/#supported-elements</span>
-<span class="sd">        tolerance (Optional[type[np.float32 | np.float64]]): Absolute</span>
-<span class="sd">            tolerance to be used in the comparison of coincident points.</span>
-<span class="sd">            If not set, it is computed as 1.0e-5 times the maximum</span>
-<span class="sd">            length along the Cartesian directions of the the bounding</span>
-<span class="sd">            box enclosing the nodes.</span>
-
-<span class="sd">    Raises:</span>
-<span class="sd">        ValueError: If `scipy` is not found, an exception is thrown.</span>
-
-<span class="sd">    Returns:</span>
-<span class="sd">        npt.NDArray[np.float32 | np.float64], npt.NDArray[np.int64],</span>
-<span class="sd">        npt.NDArray[np.int64]:</span>
-<span class="sd">        The first entry is the new array of node coordinates (with same</span>
-<span class="sd">        format as `nodes`) containing unique (non-coincident) nodes.</span>
-<span class="sd">        The second entry is the update connectivity (with same format as</span>
-<span class="sd">        `conn`). The last entry is the map from old nodes to new ones.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="k">try</span><span class="p">:</span>
-        <span class="kn">import</span> <span class="nn">scipy</span> <span class="k">as</span> <span class="nn">sp</span>
-    <span class="k">except</span> <span class="ne">ImportError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
-
-    <span class="n">kdtree</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">spatial</span><span class="o">.</span><span class="n">KDTree</span><span class="p">(</span><span class="n">nodes</span><span class="p">)</span>
-
-    <span class="k">if</span> <span class="n">tolerance</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">tolerance</span> <span class="o">=</span> <span class="n">cast</span><span class="p">(</span><span class="n">nodes</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">type</span><span class="p">,</span> <span class="mf">1.0e-5</span> <span class="o">*</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">nodes</span><span class="p">)</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">nodes</span><span class="p">)))</span>
-    <span class="n">coincidences</span> <span class="o">=</span> <span class="n">kdtree</span><span class="o">.</span><span class="n">query_pairs</span><span class="p">(</span><span class="n">tolerance</span><span class="p">,</span> <span class="n">output_type</span><span class="o">=</span><span class="s2">&quot;ndarray&quot;</span><span class="p">)</span>
-
-    <span class="n">master</span> <span class="o">=</span> <span class="n">coincidences</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span>
-    <span class="n">slave</span> <span class="o">=</span> <span class="n">coincidences</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span>
-
-    <span class="n">n_pts</span> <span class="o">=</span> <span class="n">nodes</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-    <span class="n">slave_to_master</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">n_pts</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span>
-    <span class="n">slave_to_master</span><span class="p">[</span><span class="n">slave</span><span class="p">]</span> <span class="o">=</span> <span class="n">slave_to_master</span><span class="p">[</span><span class="n">master</span><span class="p">]</span>
-
-    <span class="n">convergence</span> <span class="o">=</span> <span class="kc">False</span>
-
-    <span class="k">while</span> <span class="ow">not</span> <span class="n">convergence</span><span class="p">:</span>
-        <span class="n">slave_to_master_prev</span> <span class="o">=</span> <span class="n">slave_to_master</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-        <span class="n">slave_to_master</span> <span class="o">=</span> <span class="n">slave_to_master</span><span class="p">[</span><span class="n">slave_to_master</span><span class="p">]</span>
-        <span class="n">convergence</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">slave_to_master</span> <span class="o">==</span> <span class="n">slave_to_master_prev</span><span class="p">)</span>
-
-    <span class="n">master_unique</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">slave_to_master</span><span class="p">))</span>
-    <span class="n">master_to_new_ordering</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">n_pts</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span>
-    <span class="n">master_to_new_ordering</span><span class="p">[</span><span class="n">master_unique</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">master_unique</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span>
-    <span class="n">old_to_new</span> <span class="o">=</span> <span class="n">master_to_new_ordering</span><span class="p">[</span><span class="n">slave_to_master</span><span class="p">]</span>
-
-    <span class="n">new_nodes</span> <span class="o">=</span> <span class="n">nodes</span><span class="p">[</span><span class="n">master_unique</span><span class="p">]</span>
-    <span class="n">new_conn</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty_like</span><span class="p">(</span><span class="n">conn</span><span class="p">)</span>
-    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">cell_conn</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">conn</span><span class="p">):</span>
-        <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">node</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">cell_conn</span><span class="p">):</span>
-            <span class="n">new_conn</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">old_to_new</span><span class="p">[</span><span class="n">node</span><span class="p">]</span>
-
-    <span class="k">return</span> <span class="n">new_nodes</span><span class="p">,</span> <span class="n">new_conn</span><span class="p">,</span> <span class="n">old_to_new</span>
-
-
 <span class="k">def</span> <span class="nf">_create_Cartesian_mesh_nodes_from_points</span><span class="p">(</span>
     <span class="n">pts_1D</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]],</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]:</span>
@@ -321,45 +240,6 @@
         <span class="n">nodes</span><span class="p">[:,</span> <span class="nb">dir</span><span class="p">]</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="nb">dir</span><span class="p">]</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
 
     <span class="k">return</span> <span class="n">nodes</span>
-
-
-<span class="k">def</span> <span class="nf">_create_Cartesian_mesh_equidistant_nodes</span><span class="p">(</span>
-    <span class="n">n_pts_dir</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">],</span>
-    <span class="n">xmin</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">],</span>
-    <span class="n">xmax</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">],</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Creates the coordinates matrix of equidistant nodes of a</span>
-<span class="sd">    tensor-product Cartesian mesh.</span>
-
-<span class="sd">    The mesh domain is the bounding box defined by `xmin` and `xmax`.</span>
-
-<span class="sd">    The ordering of the generated nodes follow the lexicographical</span>
-<span class="sd">    ordering convetion.</span>
-
-<span class="sd">    Args:</span>
-<span class="sd">        n_pts_dir (npt.NDArray[np.int32]): Number of points per</span>
-<span class="sd">            direction.</span>
-<span class="sd">        xmin (npt.NDArray[np.float32 | np.float64]): Minimum coordinates</span>
-<span class="sd">            of the bounding box enclosing the mesh.</span>
-<span class="sd">        xmax (npt.NDArray[np.float32 | np.float64]): Maximum coordinates</span>
-<span class="sd">            of the bounding box enclosing the mesh.</span>
-
-<span class="sd">    Returns:</span>
-<span class="sd">        npt.NDArray[np.float32 | np.float64]: Coordinates of the nodes</span>
-<span class="sd">        stored in a 2D array. Rows correspond to the different points</span>
-<span class="sd">        and columns to their coordinates.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="n">dim</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">n_pts_dir</span><span class="p">)</span>
-    <span class="k">assert</span> <span class="mi">1</span> <span class="o">&lt;=</span> <span class="n">dim</span> <span class="o">&lt;=</span> <span class="mi">3</span><span class="p">,</span> <span class="s2">&quot;Invalid dimension.&quot;</span>
-    <span class="k">assert</span> <span class="n">xmin</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="n">dim</span> <span class="ow">and</span> <span class="n">xmax</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="n">dim</span>
-
-    <span class="n">dtype</span> <span class="o">=</span> <span class="n">xmin</span><span class="o">.</span><span class="n">dtype</span>
-    <span class="k">assert</span> <span class="n">dtype</span> <span class="o">==</span> <span class="n">xmax</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span> <span class="s2">&quot;Non matching dtypes.&quot;</span>
-
-    <span class="n">pts_1D</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">xmin</span><span class="p">[</span><span class="nb">dir</span><span class="p">],</span> <span class="n">xmax</span><span class="p">[</span><span class="nb">dir</span><span class="p">],</span> <span class="n">n_pts_dir</span><span class="p">[</span><span class="nb">dir</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">)</span> <span class="k">for</span> <span class="nb">dir</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">dim</span><span class="p">)]</span>
-
-    <span class="k">return</span> <span class="n">_create_Cartesian_mesh_nodes_from_points</span><span class="p">(</span><span class="n">pts_1D</span><span class="p">)</span>
 
 
 <span class="k">def</span> <span class="nf">_create_Cartesian_mesh_nodes_from_cells</span><span class="p">(</span>
@@ -406,35 +286,9 @@
     <span class="k">return</span> <span class="n">_create_Cartesian_mesh_nodes_from_points</span><span class="p">(</span><span class="n">pts</span><span class="p">)</span>
 
 
-<span class="k">def</span> <span class="nf">_find_in_array</span><span class="p">(</span><span class="n">values_to_search</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">,</span> <span class="n">all_values</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Finds the index positions of the `values_to_search` referred to</span>
-<span class="sd">    the array `all_values`.</span>
-
-<span class="sd">    Args:</span>
-<span class="sd">        values_to_search (npt.NDArray): Values to search.</span>
-<span class="sd">        all_values (npt.NDArray): Array in which the values are sought.</span>
-<span class="sd">            It must have the same type as `values_to_search`.</span>
-
-<span class="sd">    Returns:</span>
-<span class="sd">        npt.NDArray[np.int64]: Array indicating the position in</span>
-<span class="sd">        `all_values` of each item in `values_to_search`. It has the same</span>
-<span class="sd">        length as `values_to_search`. If a value is not present,</span>
-<span class="sd">        it returns -1.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="n">index</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">all_values</span><span class="p">)</span>
-    <span class="n">sorted_all_values</span> <span class="o">=</span> <span class="n">all_values</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
-
-    <span class="n">sorted_index</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">searchsorted</span><span class="p">(</span><span class="n">sorted_all_values</span><span class="p">,</span> <span class="n">values_to_search</span><span class="p">)</span>
-    <span class="n">values_to_search_index</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">sorted_index</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;clip&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span>
-    <span class="n">mask</span> <span class="o">=</span> <span class="n">all_values</span><span class="p">[</span><span class="n">values_to_search_index</span><span class="p">]</span> <span class="o">!=</span> <span class="n">values_to_search</span>
-
-    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">values_to_search_index</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="n">mask</span><span class="p">)</span><span class="o">.</span><span class="n">filled</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
-
-
 <div class="viewcode-block" id="TensorProductMesh">
 <a class="viewcode-back" href="../../../generated/qugar.mesh.html#qugar.mesh.TensorProductMesh">[docs]</a>
-<span class="k">class</span> <span class="nc">TensorProductMesh</span><span class="p">(</span><span class="n">dolfinx</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">Mesh</span><span class="p">):</span>
+<span class="k">class</span> <span class="nc">TensorProductMesh</span><span class="p">(</span><span class="n">Mesh</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Tensor-product mesh data structure.</span>
 
 <span class="sd">    This class derives from `dolfinx.mesh.Mesh`, easing the management of</span>
@@ -470,7 +324,7 @@
 <span class="sd">    Note that after the mesh creation, DOLFINx renumbers and partitions</span>
 <span class="sd">    the mesh, so, this numeration will be different. It is always</span>
 <span class="sd">    possible to retrieve the original numbering using the maps</span>
-<span class="sd">    `self.get_lexicg_node_ids` or `self.get_lexicg_cell_ids`.</span>
+<span class="sd">    `self.get_original_node_ids` or `self.get_original_cell_ids`.</span>
 <span class="sd">    Or, from the lexicographical to the local DOLFINx numbering using</span>
 <span class="sd">    `self.get_DOLFINx_local_node_ids` or `self.get_DOLFINx_local_cell_ids`,</span>
 <span class="sd">    or the global with `self.get_DOLFINx_global_node_ids` or</span>
@@ -512,33 +366,35 @@
 <span class="sd">                function `merge_coincident_points_in_mesh`.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
+        <span class="n">tdim</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">n_cells</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="mi">1</span> <span class="o">&lt;=</span> <span class="n">tdim</span> <span class="o">&lt;=</span> <span class="mi">3</span><span class="p">,</span> <span class="s2">&quot;Invalid dimension.&quot;</span>
+
+        <span class="n">cell_type</span> <span class="o">=</span> <span class="p">[</span><span class="n">CellType</span><span class="o">.</span><span class="n">interval</span><span class="p">,</span> <span class="n">CellType</span><span class="o">.</span><span class="n">quadrilateral</span><span class="p">,</span> <span class="n">CellType</span><span class="o">.</span><span class="n">hexahedron</span><span class="p">][</span>
+            <span class="nb">len</span><span class="p">(</span><span class="n">n_cells</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+        <span class="p">]</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">_n_cells</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">n_cells</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
         <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_n_cells</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span>
-        <span class="k">assert</span> <span class="mi">1</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tdim</span> <span class="o">&lt;=</span> <span class="mi">3</span><span class="p">,</span> <span class="s2">&quot;Invalid dimension.&quot;</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">_degree</span> <span class="o">=</span> <span class="n">degree</span>
-        <span class="k">assert</span> <span class="mi">1</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">degree</span><span class="p">,</span> <span class="s2">&quot;Invalid degree.&quot;</span>
+        <span class="k">if</span> <span class="n">comm</span><span class="o">.</span><span class="n">rank</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">conn</span> <span class="o">=</span> <span class="n">_create_tensor_prod_mesh_conn</span><span class="p">(</span><span class="n">tdim</span><span class="p">,</span> <span class="n">degree</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_cells_dir</span><span class="p">)</span>
+            <span class="n">conn</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="s2">&quot;C&quot;</span><span class="p">)</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">_create_mesh</span><span class="p">(</span><span class="n">comm</span><span class="p">,</span> <span class="n">nodes_coords</span><span class="p">,</span> <span class="n">merge_nodes</span><span class="p">,</span> <span class="n">merge_tol</span><span class="p">,</span> <span class="n">ghost_mode</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># TODO: this is a temporary hack. All the nodes and cells</span>
+            <span class="c1"># are created in rank 0, and then distributed. Better</span>
+            <span class="c1"># performance could be achieved by distributing nodes and</span>
+            <span class="c1"># cells since their creation.</span>
+            <span class="c1"># See https://jsdokken.com/dolfinx_docs/meshes.html#mpi-communication</span>
+            <span class="c1"># for further details.</span>
+            <span class="k">assert</span> <span class="n">nodes_coords</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span>
 
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">dtype</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">dtype</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">]</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">dtype</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Gets the type associated to the breaks.</span>
+            <span class="n">n_nodes_per_cell</span> <span class="o">=</span> <span class="mi">2</span><span class="o">**</span><span class="n">tdim</span>
+            <span class="n">conn</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="n">n_nodes_per_cell</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="s2">&quot;C&quot;</span><span class="p">)</span>
 
-<span class="sd">        Returns:</span>
-<span class="sd">            np.dtype[np.float32] | np.dtype[np.float64]: Type associated to the</span>
-<span class="sd">            breaks.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">geometry</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">dtype</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">degree</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Gets the mesh&#39; degree.</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            int: Mesh&#39;s degree.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_degree</span>
+        <span class="n">Mesh</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span> <span class="n">comm</span><span class="p">,</span> <span class="n">nodes_coords</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">cell_type</span><span class="p">,</span> <span class="n">degree</span><span class="p">,</span> <span class="n">ghost_mode</span><span class="p">,</span> <span class="n">merge_nodes</span><span class="p">,</span> <span class="n">merge_tol</span>
+        <span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">num_pts_dir</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">]:</span>
@@ -561,63 +417,6 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_n_cells</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">tdim</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Gets the topological dimension of the mesh.</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            int: Mesh&#39;s topological dimension (1, 2, or 3).</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_n_cells</span><span class="o">.</span><span class="n">size</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">gdim</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Gets the geometrical dimension of the mesh.</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            int: Mesh&#39;s geometrical dimension.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">geometry</span><span class="o">.</span><span class="n">dim</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">has_merged_nodes</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Checks if the mesh has merged nodes.</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            bool: Whether the mesh has merged nodes.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_merged_nodes_map</span><span class="o">.</span><span class="n">size</span> <span class="o">&gt;</span> <span class="mi">0</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">merged_nodes_map</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Gets the map of lexicographical merged nodes: from original</span>
-<span class="sd">        ids to unique ones.</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            npt.NDArray[np.int64]: Map from old to new lexicographical</span>
-<span class="sd">            nodes.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_merged_nodes_map</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">num_global_cells</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Gets the total (global) number of cells of the DOLFINx mesh.</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            np.int64: Number of global cells of the DOLFINx mesh.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">topology</span><span class="o">.</span><span class="n">index_map</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tdim</span><span class="p">)</span><span class="o">.</span><span class="n">size_global</span><span class="p">)</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">num_local_cells</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Gets the local number of cells (associated to the current</span>
-<span class="sd">        subdomain, i.e., MPI process).</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            np.int64: Number of local cells.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">topology</span><span class="o">.</span><span class="n">index_map</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tdim</span><span class="p">)</span><span class="o">.</span><span class="n">size_local</span><span class="p">)</span>
-
-    <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">num_cells_tp</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Gets the total number of cells of the underlying tensor-product mesh.</span>
 
@@ -625,258 +424,6 @@
 <span class="sd">            np.int64: Number of cells of the tensor-product mesh.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_n_cells</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="nf">_create_mesh</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span>
-        <span class="n">comm</span><span class="p">:</span> <span class="n">MPI</span><span class="o">.</span><span class="n">Comm</span><span class="p">,</span>
-        <span class="n">nodes_coords</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">],</span>
-        <span class="n">merge_nodes</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
-        <span class="n">merge_tol</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">type</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">ghost_mode</span><span class="o">=</span><span class="n">GhostMode</span><span class="o">.</span><span class="n">none</span><span class="p">,</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Creates the base DOLFINx mesh.</span>
-
-<span class="sd">        Args:</span>
-<span class="sd">            comm (MPI.Comm): MPI communicator to be used for</span>
-<span class="sd">                distributing the mesh.</span>
-<span class="sd">            nodes_coords (npt.NDArray[np.float32 | np.float64]): Nodes</span>
-<span class="sd">                coordinates. The rows correspond to the different nodes</span>
-<span class="sd">                (following lexicographical ordering), and the columns to</span>
-<span class="sd">                the coordinates of each point.</span>
-<span class="sd">            ghost_mode (GhostMode, optional): Ghost mode used for mesh</span>
-<span class="sd">                partitioning. Defaults to `none`.</span>
-<span class="sd">            merge_nodes (bool): If `True`, coincident nodes will be</span>
-<span class="sd">                merged together into a single one. Otherwise, duplicated</span>
-<span class="sd">                nodes will not be merged.</span>
-<span class="sd">            merge_tol (Optional[type[np.float32 | np.float64]]): Absolute</span>
-<span class="sd">                tolerance to be used for seeking coincident nodes.</span>
-<span class="sd">                If not set, and if `merge_nodes` is set to `True`,</span>
-<span class="sd">                this tolerance will be automatically computed in the</span>
-<span class="sd">                function `merge_coincident_points_in_mesh`. Defaults to</span>
-<span class="sd">                None.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">_merged_nodes_map</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span>
-
-        <span class="n">nodes_coords</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">nodes_coords</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="s2">&quot;C&quot;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">nodes_coords</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="n">gdim</span> <span class="o">=</span> <span class="mi">1</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">gdim</span> <span class="o">=</span> <span class="n">nodes_coords</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
-
-        <span class="k">if</span> <span class="n">comm</span><span class="o">.</span><span class="n">rank</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="n">conn</span> <span class="o">=</span> <span class="n">_create_tensor_prod_mesh_conn</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tdim</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">degree</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_cells_dir</span><span class="p">)</span>
-            <span class="k">assert</span> <span class="n">nodes_coords</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_pts_dir</span><span class="p">)</span>
-
-            <span class="k">if</span> <span class="n">merge_nodes</span><span class="p">:</span>
-                <span class="n">nodes_coords</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_merged_nodes_map</span> <span class="o">=</span> <span class="n">_merge_coincident_points_in_mesh</span><span class="p">(</span>
-                    <span class="n">nodes_coords</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">merge_tol</span>
-                <span class="p">)</span>
-            <span class="n">conn</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="s2">&quot;C&quot;</span><span class="p">)</span>
-
-        <span class="k">else</span><span class="p">:</span>
-            <span class="c1"># TODO: this is a temporary hack. All the nodes and cells</span>
-            <span class="c1"># are created in rank 0, and then distributed. Better</span>
-            <span class="c1"># performance could be achieved by distributing nodes and</span>
-            <span class="c1"># cells since their creation.</span>
-            <span class="c1"># See https://jsdokken.com/dolfinx_docs/meshes.html#mpi-communication</span>
-            <span class="c1"># for further details.</span>
-            <span class="k">assert</span> <span class="n">nodes_coords</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span>
-
-            <span class="n">n_nodes_per_cell</span> <span class="o">=</span> <span class="mi">2</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">tdim</span>
-            <span class="n">conn</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="n">n_nodes_per_cell</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="s2">&quot;C&quot;</span><span class="p">)</span>
-
-        <span class="k">if</span> <span class="n">comm</span><span class="o">.</span><span class="n">size</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="n">partitioner</span> <span class="o">=</span> <span class="n">dlf_cpp</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">create_cell_partitioner</span><span class="p">(</span><span class="n">ghost_mode</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">partitioner</span> <span class="o">=</span> <span class="kc">None</span>
-
-        <span class="n">cell_type</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;interval&quot;</span><span class="p">,</span> <span class="s2">&quot;quadrilateral&quot;</span><span class="p">,</span> <span class="s2">&quot;hexahedron&quot;</span><span class="p">][</span><span class="bp">self</span><span class="o">.</span><span class="n">tdim</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span>
-
-        <span class="n">element</span> <span class="o">=</span> <span class="n">basix</span><span class="o">.</span><span class="n">ufl</span><span class="o">.</span><span class="n">element</span><span class="p">(</span>
-            <span class="s2">&quot;Lagrange&quot;</span><span class="p">,</span> <span class="n">cell_type</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">degree</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">gdim</span><span class="p">,),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">nodes_coords</span><span class="o">.</span><span class="n">dtype</span>
-        <span class="p">)</span>
-        <span class="n">domain</span> <span class="o">=</span> <span class="n">ufl</span><span class="o">.</span><span class="n">Mesh</span><span class="p">(</span><span class="n">element</span><span class="p">)</span>
-
-        <span class="n">e_ufl</span> <span class="o">=</span> <span class="n">domain</span><span class="o">.</span><span class="n">ufl_coordinate_element</span><span class="p">()</span>
-        <span class="n">cmap</span> <span class="o">=</span> <span class="n">_coordinate_element</span><span class="p">(</span><span class="n">e_ufl</span><span class="o">.</span><span class="n">basix_element</span><span class="p">)</span>
-        <span class="c1"># TODO: Resolve UFL vs Basix geometric dimension issue</span>
-        <span class="c1"># assert domain.geometric_dimension() == gdim</span>
-
-        <span class="n">msh_cpp</span> <span class="o">=</span> <span class="n">dlf_cpp</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">create_mesh</span><span class="p">(</span><span class="n">comm</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">cmap</span><span class="o">.</span><span class="n">_cpp_object</span><span class="p">,</span> <span class="n">nodes_coords</span><span class="p">,</span> <span class="n">partitioner</span><span class="p">)</span>
-
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">msh_cpp</span><span class="p">,</span> <span class="n">domain</span><span class="p">)</span>
-
-<div class="viewcode-block" id="TensorProductMesh.get_DOLFINx_local_cell_ids">
-<a class="viewcode-back" href="../../../generated/qugar.mesh.html#qugar.mesh.TensorProductMesh.get_DOLFINx_local_cell_ids">[docs]</a>
-    <span class="k">def</span> <span class="nf">get_DOLFINx_local_cell_ids</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span>
-        <span class="n">lex_cell_ids</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">],</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Transforms the given `lex_cell_ids` from the lexicographical tensor-product mesh</span>
-<span class="sd">        into the corresponding local ids of the underlying DOLFINx mesh.</span>
-
-<span class="sd">        Args:</span>
-<span class="sd">            lex_cell_ids (npt.NDArray[np.int64]):</span>
-<span class="sd">                Cell indices to be transformed. They are lexicographical indices</span>
-<span class="sd">                referred to the tensor-product mesh.</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            npt.NDArray[np.int32]: Indices of the cells in</span>
-<span class="sd">            the underlying DOLFINx mesh. These indices correspond to the</span>
-<span class="sd">            local numbering associated to the current subdomain</span>
-<span class="sd">            (process). Note that some indices may be set to -1 in the</span>
-<span class="sd">            case the associated input lexicographical indices are not contained</span>
-<span class="sd">            in the subdomain. The length of the output</span>
-<span class="sd">            array is the same as the input.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-
-        <span class="n">dlf_to_lex</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">topology</span><span class="o">.</span><span class="n">original_cell_index</span>
-        <span class="k">return</span> <span class="n">_find_in_array</span><span class="p">(</span><span class="n">lex_cell_ids</span><span class="p">,</span> <span class="n">dlf_to_lex</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span></div>
-
-
-<div class="viewcode-block" id="TensorProductMesh.get_DOLFINx_global_cell_ids">
-<a class="viewcode-back" href="../../../generated/qugar.mesh.html#qugar.mesh.TensorProductMesh.get_DOLFINx_global_cell_ids">[docs]</a>
-    <span class="k">def</span> <span class="nf">get_DOLFINx_global_cell_ids</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span>
-        <span class="n">lex_cell_ids</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">],</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Transforms the given local `lex_cell_ids` into the corresponding global ids</span>
-<span class="sd">        of the underlying DOLFINx mesh.</span>
-
-<span class="sd">        Args:</span>
-<span class="sd">            lex_cell_ids (npt.NDArray[np.int64]):</span>
-<span class="sd">                Cell indices to be transformed. They are lexicographical indices</span>
-
-<span class="sd">        Note:</span>
-<span class="sd">            All the indices in `lex_cell_ids` must be contained in the</span>
-<span class="sd">            current subdomain.</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            npt.NDArray[np.int64]: Indices of the cells in the underlying DOLFINx mesh.</span>
-<span class="sd">            These indices correspond to the global indices belonging to the</span>
-<span class="sd">            current subdomain (process).</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-
-        <span class="n">dlf_local_cell_ids</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_DOLFINx_local_cell_ids</span><span class="p">(</span><span class="n">lex_cell_ids</span><span class="p">)</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_DOLFINx_local_to_global_cell_ids</span><span class="p">(</span><span class="n">dlf_local_cell_ids</span><span class="p">)</span></div>
-
-
-<div class="viewcode-block" id="TensorProductMesh.get_DOLFINx_local_to_global_cell_ids">
-<a class="viewcode-back" href="../../../generated/qugar.mesh.html#qugar.mesh.TensorProductMesh.get_DOLFINx_local_to_global_cell_ids">[docs]</a>
-    <span class="k">def</span> <span class="nf">get_DOLFINx_local_to_global_cell_ids</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span>
-        <span class="n">dlf_local_cell_ids</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">],</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Transforms the given local `dlf_local_cell_ids` (DOLFINx) local</span>
-<span class="sd">        cell ids into the corresponding global ones associated to the current process.</span>
-
-<span class="sd">        Args:</span>
-<span class="sd">            dlf_local_cell_ids (npt.NDArray[np.int32]): DOLFINx local cell indices</span>
-<span class="sd">                to be transformed.</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            npt.NDArray[np.int64]: Global indices of the DOLFINx cells.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-
-        <span class="n">index_map</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">topology</span><span class="o">.</span><span class="n">index_map</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tdim</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">index_map</span><span class="o">.</span><span class="n">local_to_global</span><span class="p">(</span><span class="n">dlf_local_cell_ids</span><span class="p">)</span></div>
-
-
-<div class="viewcode-block" id="TensorProductMesh.get_lexicg_cell_ids">
-<a class="viewcode-back" href="../../../generated/qugar.mesh.html#qugar.mesh.TensorProductMesh.get_lexicg_cell_ids">[docs]</a>
-    <span class="k">def</span> <span class="nf">get_lexicg_cell_ids</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span>
-        <span class="n">dlf_local_cell_ids</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">],</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Transforms given `dlf_local_cell_ids` into</span>
-<span class="sd">        the tensor-product mesh numbering, that follows a lexicographical</span>
-<span class="sd">        indexing.</span>
-
-<span class="sd">        Args:</span>
-<span class="sd">            dlf_local_cell_ids (npt.NDArray[np.int32]):</span>
-<span class="sd">                Cell indices to be transformed. They arelocal</span>
-<span class="sd">                indices referred to the underlying DOLFINx mesh.</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            npt.NDArray[np.int64]: Ids of the cells in the</span>
-<span class="sd">            tensor-product lexicographical indexing. The length of the output array</span>
-<span class="sd">            is the same as the input.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-
-        <span class="n">dlf_to_lex</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">topology</span><span class="o">.</span><span class="n">original_cell_index</span>
-        <span class="n">n_local_cells</span> <span class="o">=</span> <span class="n">dlf_to_lex</span><span class="o">.</span><span class="n">size</span>
-        <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">dlf_local_cell_ids</span> <span class="o">&lt;</span> <span class="n">n_local_cells</span><span class="p">)</span> <span class="ow">and</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">dlf_local_cell_ids</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span>
-            <span class="s2">&quot;Cells not contained in subdomain&quot;</span>
-        <span class="p">)</span>
-
-        <span class="k">return</span> <span class="n">dlf_to_lex</span><span class="p">[</span><span class="n">dlf_local_cell_ids</span><span class="p">]</span></div>
-
-
-<div class="viewcode-block" id="TensorProductMesh.get_DOLFINx_local_node_ids">
-<a class="viewcode-back" href="../../../generated/qugar.mesh.html#qugar.mesh.TensorProductMesh.get_DOLFINx_local_node_ids">[docs]</a>
-    <span class="k">def</span> <span class="nf">get_DOLFINx_local_node_ids</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span>
-        <span class="n">lex_node_ids</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">],</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Transforms the given `lx_node_ids` from the tensor-product mesh</span>
-<span class="sd">        into the corresponding local ids of the underlying DOLFINx mesh.</span>
-
-<span class="sd">        Args:</span>
-<span class="sd">            lex_node_ids (npt.NDArray[np.int64]):</span>
-<span class="sd">                Node indices to be transformed. They are lexicographical</span>
-<span class="sd">                indices referred to the tensor-product mesh.</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            npt.NDArray[np.int32]: Indices of the nodes in</span>
-<span class="sd">            the underlying DOLFINx mesh. These indices correspond to the</span>
-<span class="sd">            local numbering associated to the current subdomain</span>
-<span class="sd">            (process). Note that some indices may be set to -1 in the</span>
-<span class="sd">            case the input indices are lexicographical and some of them</span>
-<span class="sd">            are not contained in the subdomain. The length of the output</span>
-<span class="sd">            array is the same as the input.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-
-        <span class="n">dlf_to_lex</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">geometry</span><span class="o">.</span><span class="n">input_global_indices</span>
-
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_merged_nodes</span><span class="p">:</span>
-            <span class="c1"># Mapping &quot;old&quot; to &quot;new&quot; ids.</span>
-            <span class="n">lex_node_ids</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">merged_nodes_map</span><span class="p">[</span><span class="n">lex_node_ids</span><span class="p">]</span>
-
-        <span class="k">return</span> <span class="n">_find_in_array</span><span class="p">(</span><span class="n">lex_node_ids</span><span class="p">,</span> <span class="n">dlf_to_lex</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span></div>
-
-
-<div class="viewcode-block" id="TensorProductMesh.get_lexicg_node_ids">
-<a class="viewcode-back" href="../../../generated/qugar.mesh.html#qugar.mesh.TensorProductMesh.get_lexicg_node_ids">[docs]</a>
-    <span class="k">def</span> <span class="nf">get_lexicg_node_ids</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span>
-        <span class="n">dlf_local_node_ids</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">],</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Transforms given `dlf_local_node_ids` from the (local) DOLFINx</span>
-<span class="sd">        mesh numbering to the lexicographical (tensor-product mesh) one.</span>
-
-<span class="sd">        Args:</span>
-<span class="sd">            dlf_local_node_ids (npt.NDArray[np.int32]):</span>
-<span class="sd">                Node indices to be transformed. They are referred to the</span>
-<span class="sd">                underlying (local) DOLFINx mesh.</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            npt.NDArray[np.int64]: Ids of the nodes in the</span>
-<span class="sd">            tensor-product lexicographical indexing.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-
-        <span class="n">dlf_to_lex</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">geometry</span><span class="o">.</span><span class="n">input_global_indices</span>
-        <span class="n">n_local_nodes</span> <span class="o">=</span> <span class="n">dlf_to_lex</span><span class="o">.</span><span class="n">size</span>
-        <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">dlf_local_node_ids</span> <span class="o">&lt;</span> <span class="n">n_local_nodes</span><span class="p">)</span> <span class="ow">and</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">dlf_local_node_ids</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span>
-            <span class="s2">&quot;Nodes not contained in subdomain.&quot;</span>
-        <span class="p">)</span>
-
-        <span class="n">lex_nodes</span> <span class="o">=</span> <span class="n">dlf_to_lex</span><span class="p">[</span><span class="n">dlf_local_node_ids</span><span class="p">]</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_merged_nodes</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">_find_in_array</span><span class="p">(</span><span class="n">lex_nodes</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">merged_nodes_map</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">lex_nodes</span></div>
-
 
 <div class="viewcode-block" id="TensorProductMesh.create_facet_bdry_tags">
 <a class="viewcode-back" href="../../../generated/qugar.mesh.html#qugar.mesh.TensorProductMesh.create_facet_bdry_tags">[docs]</a>
@@ -913,65 +460,6 @@
             <span class="n">faces_facets</span><span class="p">,</span>
             <span class="n">faces_markers</span><span class="p">,</span>
         <span class="p">)</span></div>
-
-
-<div class="viewcode-block" id="TensorProductMesh.get_cells_exterior_facets">
-<a class="viewcode-back" href="../../../generated/qugar.mesh.html#qugar.mesh.TensorProductMesh.get_cells_exterior_facets">[docs]</a>
-    <span class="k">def</span> <span class="nf">get_cells_exterior_facets</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span>
-        <span class="n">dlf_local_cell_ids</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">],</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Extracts the exterior facets of associated to a list of</span>
-<span class="sd">        (local) DOLFINx cell ids.</span>
-
-<span class="sd">        The exterior facets are those that belong to one single cell</span>
-<span class="sd">        (they are not at the interface between two cells, but on the</span>
-<span class="sd">        mesh boundary).</span>
-
-<span class="sd">        Args:</span>
-<span class="sd">            dlf_local_cell_ids (npt.NDArray[np.int32] | np.int32):</span>
-<span class="sd">                Array of cells whose exterior facets are extracted.</span>
-<span class="sd">                They are (local to the current subdomain) DOLFINx cell</span>
-<span class="sd">                indices.</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            npt.NDArray[np.int32]: Sorted unique array of exterior</span>
-<span class="sd">            facets present in the current subdomain.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">topology</span><span class="o">.</span><span class="n">create_connectivity</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tdim</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tdim</span><span class="p">)</span>
-
-        <span class="n">cells_to_facets</span> <span class="o">=</span> <span class="n">create_cells_to_facets_map</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
-
-        <span class="n">facets_in_cells</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">cells_to_facets</span><span class="p">[</span><span class="n">dlf_local_cell_ids</span><span class="p">]</span><span class="o">.</span><span class="n">ravel</span><span class="p">()))</span>
-
-        <span class="n">exterior_facets</span> <span class="o">=</span> <span class="n">dolfinx</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">exterior_facet_indices</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">topology</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">setdiff1d</span><span class="p">(</span><span class="n">exterior_facets</span><span class="p">,</span> <span class="n">facets_in_cells</span><span class="p">)</span></div>
-
-
-<div class="viewcode-block" id="TensorProductMesh.get_face_DOLFINx_local_node_ids">
-<a class="viewcode-back" href="../../../generated/qugar.mesh.html#qugar.mesh.TensorProductMesh.get_face_DOLFINx_local_node_ids">[docs]</a>
-    <span class="k">def</span> <span class="nf">get_face_DOLFINx_local_node_ids</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span>
-        <span class="n">face_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Extracts the nodes of a given boundary face that belong to</span>
-<span class="sd">        the subdomain of the tensor-product mesh.</span>
-
-<span class="sd">        Args:</span>
-<span class="sd">            face_id (int): Id of the face whose nodes are extracted.</span>
-<span class="sd">                This id follows the lexicographical ordering.</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            npt.NDArray[np.int32]: Sorted unique array of local DOLFINx</span>
-<span class="sd">            nodes of the boundary face that belong to the current subdomain</span>
-<span class="sd">            (process).</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-
-        <span class="n">all_lex_bndry_nodes</span> <span class="o">=</span> <span class="n">TensorProdIndex</span><span class="o">.</span><span class="n">get_face</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_pts_dir</span><span class="p">,</span> <span class="n">face_id</span><span class="p">,</span> <span class="n">lexicg</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-
-        <span class="n">bndry_nodes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_DOLFINx_local_node_ids</span><span class="p">(</span><span class="n">all_lex_bndry_nodes</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">bndry_nodes</span><span class="p">[</span><span class="n">bndry_nodes</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">])</span>  <span class="c1"># Removing nodes out of the mesh domain.</span></div>
 
 
 <div class="viewcode-block" id="TensorProductMesh.get_face_DOLFINx_cells">
@@ -1025,30 +513,6 @@
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">cell_to_facets</span><span class="p">[</span><span class="n">dlf_local_cells</span><span class="p">,</span> <span class="n">face_id</span><span class="p">]))</span></div>
 
 
-<div class="viewcode-block" id="TensorProductMesh.get_cell_facets">
-<a class="viewcode-back" href="../../../generated/qugar.mesh.html#qugar.mesh.TensorProductMesh.get_cell_facets">[docs]</a>
-    <span class="k">def</span> <span class="nf">get_cell_facets</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span>
-        <span class="n">dlf_local_cell_id</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">,</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Extracts the facet ids of the given cell.</span>
-
-<span class="sd">        Args:</span>
-<span class="sd">            dlf_local_cell_id (np.int32): Id of the queried cell. It is a DOLFINx</span>
-<span class="sd">                (local) cell id.</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            npt.NDArray[np.int32]: Array of DOLFINx cell facets.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-
-        <span class="n">tdim</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tdim</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">topology</span><span class="o">.</span><span class="n">create_connectivity</span><span class="p">(</span><span class="n">tdim</span><span class="p">,</span> <span class="n">tdim</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
-        <span class="n">cell_to_facets</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">topology</span><span class="o">.</span><span class="n">connectivity</span><span class="p">(</span><span class="n">tdim</span><span class="p">,</span> <span class="n">tdim</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
-
-        <span class="k">return</span> <span class="n">cell_to_facets</span><span class="o">.</span><span class="n">links</span><span class="p">(</span><span class="n">dlf_local_cell_id</span><span class="p">)</span></div>
-
-
 <div class="viewcode-block" id="TensorProductMesh.get_cell_tensor_index">
 <a class="viewcode-back" href="../../../generated/qugar.mesh.html#qugar.mesh.TensorProductMesh.get_cell_tensor_index">[docs]</a>
     <span class="k">def</span> <span class="nf">get_cell_tensor_index</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dlf_local_cell_id</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">]:</span>
@@ -1062,105 +526,8 @@
 <span class="sd">            npt.NDArray[np.int32]: Cell tensor index</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="n">lex_cell_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_lexicg_cell_ids</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">dlf_local_cell_id</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">lex_cell_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_original_cell_ids</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">dlf_local_cell_id</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
         <span class="k">return</span> <span class="n">TensorProdIndex</span><span class="o">.</span><span class="n">get_tensor_index</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_cells_dir</span><span class="p">,</span> <span class="n">lex_cell_id</span><span class="p">)</span></div>
-
-
-<div class="viewcode-block" id="TensorProductMesh.transform_lexicg_facet_ids_to_DOLFINx_local">
-<a class="viewcode-back" href="../../../generated/qugar.mesh.html#qugar.mesh.TensorProductMesh.transform_lexicg_facet_ids_to_DOLFINx_local">[docs]</a>
-    <span class="k">def</span> <span class="nf">transform_lexicg_facet_ids_to_DOLFINx_local</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span>
-        <span class="n">lex_cell_ids</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">],</span>
-        <span class="n">lex_facet_ids</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">],</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">],</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">]]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Transforms the given lexicographical facets indices to</span>
-<span class="sd">        DOLFINx local numbering (otherwise)</span>
-
-<span class="sd">        Args:</span>
-<span class="sd">            lex_cell_ids (npt.NDArray[np.int64]): Indices of the facets</span>
-<span class="sd">                following the lexicographical ordering. All the cell</span>
-<span class="sd">                indices must be associated to the current process.</span>
-
-<span class="sd">            lex_facet_ids (npt.NDArray[np.int32]): Local indices of the</span>
-<span class="sd">                facets referred to `lex_cell_ids` (both arrays should have</span>
-<span class="sd">                the same length). The face ids follow the</span>
-<span class="sd">                lexicographical ordering.</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]:</span>
-<span class="sd">            Transformed facets returned as one array of cells and another</span>
-<span class="sd">            one of local facets referred to those cells. The indices of the cells</span>
-<span class="sd">            and local facets follow the DOLFINx local numbering.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-
-        <span class="n">dlf_cells</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_DOLFINx_local_cell_ids</span><span class="p">(</span><span class="n">lex_cell_ids</span><span class="p">)</span>
-
-        <span class="n">dlf_to_lex_facets</span> <span class="o">=</span> <span class="n">DOLFINx_to_lexicg_faces</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tdim</span><span class="p">)</span>
-        <span class="n">dlf_facets</span> <span class="o">=</span> <span class="n">dlf_to_lex_facets</span><span class="p">[</span><span class="n">lex_facet_ids</span><span class="p">]</span>
-        <span class="k">return</span> <span class="n">dlf_cells</span><span class="p">,</span> <span class="n">dlf_facets</span></div>
-
-
-<div class="viewcode-block" id="TensorProductMesh.transform_DOLFINx_local_facet_ids_to_lexicg">
-<a class="viewcode-back" href="../../../generated/qugar.mesh.html#qugar.mesh.TensorProductMesh.transform_DOLFINx_local_facet_ids_to_lexicg">[docs]</a>
-    <span class="k">def</span> <span class="nf">transform_DOLFINx_local_facet_ids_to_lexicg</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span>
-        <span class="n">dlf_local_cell_ids</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">],</span>
-        <span class="n">dlf_local_facet_ids</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">],</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">],</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">]]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Transforms the given local DOLFINx facets indices to</span>
-<span class="sd">        either lexicographical numbering (both for cells and local facet ids).</span>
-
-<span class="sd">        Args:</span>
-<span class="sd">            dlf_local_cell_ids (npt.NDArray[np.int32]): Indices of the facets</span>
-<span class="sd">                following the DOLFINx local ordering.</span>
-
-<span class="sd">            dlf_local_facet_ids (npt.NDArray[np.int32]): Local indices of the</span>
-<span class="sd">                facets referred to `dlf_local_cell_ids` (both arrays should have</span>
-<span class="sd">                the same length). The face ids follow the</span>
-<span class="sd">                DOLFINx ordering.</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]:</span>
-<span class="sd">            Transformed facets returned as one array of cells and another</span>
-<span class="sd">            one of local facets referred to those cells. The indices of the cells</span>
-<span class="sd">            and local facets follow the DOLFINx (local) numbering.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-
-        <span class="n">lex_cell_ids</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_lexicg_cell_ids</span><span class="p">(</span><span class="n">dlf_local_cell_ids</span><span class="p">)</span>
-        <span class="n">lex_to_dlf_facets</span> <span class="o">=</span> <span class="n">lexicg_to_DOLFINx_faces</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tdim</span><span class="p">)</span>
-        <span class="n">lex_facet_is</span> <span class="o">=</span> <span class="n">lex_to_dlf_facets</span><span class="p">[</span><span class="n">dlf_local_facet_ids</span><span class="p">]</span>
-        <span class="k">return</span> <span class="n">lex_cell_ids</span><span class="p">,</span> <span class="n">lex_facet_is</span></div>
-
-
-<div class="viewcode-block" id="TensorProductMesh.transform_DOLFINx_local_facet_ids_to_cells_and_local_facets">
-<a class="viewcode-back" href="../../../generated/qugar.mesh.html#qugar.mesh.TensorProductMesh.transform_DOLFINx_local_facet_ids_to_cells_and_local_facets">[docs]</a>
-    <span class="k">def</span> <span class="nf">transform_DOLFINx_local_facet_ids_to_cells_and_local_facets</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span>
-        <span class="n">dlf_local_facet_ids</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">],</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">],</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">]]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Given the ids of (local) DOLFINx facets, returns the DOLFINx</span>
-<span class="sd">        cells and local facet ids corresponding to those facets.</span>
-
-<span class="sd">        Note:</span>
-<span class="sd">            Interior facets belong to more whan one cell, in those cases</span>
-<span class="sd">            only one cell (and local facet) is returned for that</span>
-<span class="sd">            particular facet. The one chosen depends on the way in which</span>
-<span class="sd">            that information is stored in the mesh connectivity.</span>
-
-<span class="sd">        Args:</span>
-<span class="sd">            dlf_local_facet_ids (npt.NDArray[np.int32]): Array of DOLFINx facets</span>
-<span class="sd">                (local to the current process) to be transformed.</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]: DOLFINx cells</span>
-<span class="sd">                and local facet ids the associated to the facets. The first</span>
-<span class="sd">                entry of the tuple corresponds to the cells and the second</span>
-<span class="sd">                to the the local facets.</span>
-
-<span class="sd">                The local facets indices follow the FEniCSx convention. See</span>
-<span class="sd">                https://github.com/FEniCS/basix/#supported-elements</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">map_facets_to_cells_and_local_facets</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dlf_local_facet_ids</span><span class="p">)</span></div>
 </div>
 
 
@@ -1223,7 +590,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_cart_grid_tp_cpp_object</span> <span class="o">=</span> <span class="n">cart_grid_tp_cpp</span>
         <span class="n">n_cells</span> <span class="o">=</span> <span class="n">cart_grid_tp_cpp</span><span class="o">.</span><span class="n">num_cells_dir</span>
 
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">comm</span><span class="p">,</span> <span class="n">nodes_coords</span><span class="p">,</span> <span class="n">n_cells</span><span class="p">,</span> <span class="n">degree</span><span class="p">,</span> <span class="n">ghost_mode</span><span class="p">)</span>
+        <span class="n">TensorProductMesh</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">comm</span><span class="p">,</span> <span class="n">nodes_coords</span><span class="p">,</span> <span class="n">n_cells</span><span class="p">,</span> <span class="n">degree</span><span class="p">,</span> <span class="n">ghost_mode</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">cart_grid_tp_cpp_object</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">qugar</span><span class="o">.</span><span class="n">cpp</span><span class="o">.</span><span class="n">CartGridTP_2D</span> <span class="o">|</span> <span class="n">qugar</span><span class="o">.</span><span class="n">cpp</span><span class="o">.</span><span class="n">CartGridTP_2D</span><span class="p">:</span>
@@ -1307,24 +674,21 @@
     <span class="n">dim</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">n_cells</span><span class="p">)</span>
     <span class="k">assert</span> <span class="mi">2</span> <span class="o">&lt;=</span> <span class="n">dim</span> <span class="o">&lt;=</span> <span class="mi">3</span><span class="p">,</span> <span class="s2">&quot;Invalid dimension.&quot;</span>
 
-    <span class="k">if</span> <span class="n">xmin</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">dtype</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dtype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span> <span class="k">if</span> <span class="n">xmax</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">xmax</span><span class="o">.</span><span class="n">dtype</span>
-        <span class="n">xmin</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">dim</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">)</span>
+    <span class="n">dtype</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">dtype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span> <span class="k">if</span> <span class="n">xmin</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">xmin</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span> <span class="k">if</span> <span class="n">xmax</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">xmax</span><span class="o">.</span><span class="n">dtype</span>
+    <span class="n">xmin_</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">dim</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">)</span> <span class="k">if</span> <span class="n">xmin</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">xmin</span>
+    <span class="n">xmax_</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">dim</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">)</span> <span class="k">if</span> <span class="n">xmax</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">xmax</span>
 
-    <span class="k">if</span> <span class="n">xmax</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">xmax</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">dim</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">xmin</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
-
-    <span class="k">assert</span> <span class="n">dim</span> <span class="o">==</span> <span class="n">xmin</span><span class="o">.</span><span class="n">size</span> <span class="ow">and</span> <span class="n">dim</span> <span class="o">==</span> <span class="n">xmax</span><span class="o">.</span><span class="n">size</span>
-    <span class="k">assert</span> <span class="n">xmin</span><span class="o">.</span><span class="n">dtype</span> <span class="o">==</span> <span class="n">xmax</span><span class="o">.</span><span class="n">dtype</span> <span class="ow">and</span> <span class="n">xmin</span><span class="o">.</span><span class="n">dtype</span> <span class="ow">in</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]</span>
-    <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">xmax</span> <span class="o">&gt;</span> <span class="n">xmin</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">dim</span> <span class="o">==</span> <span class="n">xmin_</span><span class="o">.</span><span class="n">size</span> <span class="ow">and</span> <span class="n">dim</span> <span class="o">==</span> <span class="n">xmax_</span><span class="o">.</span><span class="n">size</span>
+    <span class="k">assert</span> <span class="n">xmin_</span><span class="o">.</span><span class="n">dtype</span> <span class="o">==</span> <span class="n">xmax_</span><span class="o">.</span><span class="n">dtype</span> <span class="ow">and</span> <span class="n">xmin_</span><span class="o">.</span><span class="n">dtype</span> <span class="ow">in</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]</span>
+    <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">xmax</span> <span class="o">&gt;</span> <span class="n">xmin_</span><span class="p">)</span>
 
     <span class="n">cell_breaks</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="nb">dir</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">dim</span><span class="p">):</span>
-        <span class="n">cell_breaks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">xmin</span><span class="p">[</span><span class="nb">dir</span><span class="p">],</span> <span class="n">xmax</span><span class="p">[</span><span class="nb">dir</span><span class="p">],</span> <span class="n">n_cells</span><span class="p">[</span><span class="nb">dir</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">))</span>
+        <span class="n">cell_breaks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">xmin_</span><span class="p">[</span><span class="nb">dir</span><span class="p">],</span> <span class="n">xmax_</span><span class="p">[</span><span class="nb">dir</span><span class="p">],</span> <span class="n">n_cells</span><span class="p">[</span><span class="nb">dir</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">))</span>
 
     <span class="n">cpp_grid</span> <span class="o">=</span> <span class="n">qugar</span><span class="o">.</span><span class="n">cpp</span><span class="o">.</span><span class="n">create_cart_grid</span><span class="p">(</span><span class="n">cell_breaks</span><span class="p">)</span>
 
-    <span class="k">return</span> <span class="n">CartesianMesh</span><span class="p">(</span><span class="n">comm</span><span class="p">,</span> <span class="n">cpp_grid</span><span class="p">,</span> <span class="n">degree</span><span class="p">,</span> <span class="n">ghost_mode</span><span class="p">,</span> <span class="n">xmin</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">type</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">CartesianMesh</span><span class="p">(</span><span class="n">comm</span><span class="p">,</span> <span class="n">cpp_grid</span><span class="p">,</span> <span class="n">degree</span><span class="p">,</span> <span class="n">ghost_mode</span><span class="p">,</span> <span class="n">xmin_</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">type</span><span class="p">)</span></div>
 
 </pre></div>
 

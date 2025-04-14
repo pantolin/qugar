@@ -1,9 +1,5 @@
 var NAVTREEINDEX5 =
 {
-"dc/d7b/classqugar_1_1impl_1_1RefSystem.html#a625ec6532d7d8d8d15aebad5fbadae11":[2,0,0,0,8,9],
-"dc/d7b/classqugar_1_1impl_1_1RefSystem.html#a8b5480c2c37b42661146602c1f79bbb5":[0,0,0,0,8,8],
-"dc/d7b/classqugar_1_1impl_1_1RefSystem.html#a8b5480c2c37b42661146602c1f79bbb5":[2,0,0,0,8,8],
-"dc/d7b/classqugar_1_1impl_1_1RefSystem.html#ac70ba577ac0fe1bd7a4d1ceefa11e06b":[0,0,0,0,8,2],
 "dc/d7b/classqugar_1_1impl_1_1RefSystem.html#ac70ba577ac0fe1bd7a4d1ceefa11e06b":[2,0,0,0,8,2],
 "dc/d7b/classqugar_1_1impl_1_1RefSystem.html#ad54e99b7c32d5b2737ad23ba496fd1a7":[0,0,0,0,8,3],
 "dc/d7b/classqugar_1_1impl_1_1RefSystem.html#ad54e99b7c32d5b2737ad23ba496fd1a7":[2,0,0,0,8,3],
@@ -240,14 +236,18 @@ var NAVTREEINDEX5 =
 "df/d58/classqugar_1_1UnfittedDomain.html":[2,0,0,15],
 "df/d58/classqugar_1_1UnfittedDomain.html#a067552ebee9e21562fa7d464a51c4678":[0,0,0,16,8],
 "df/d58/classqugar_1_1UnfittedDomain.html#a067552ebee9e21562fa7d464a51c4678":[2,0,0,15,8],
+"df/d58/classqugar_1_1UnfittedDomain.html#a07a11dc64fb0638458f1d98a32bdd3a5":[0,0,0,16,28],
+"df/d58/classqugar_1_1UnfittedDomain.html#a07a11dc64fb0638458f1d98a32bdd3a5":[2,0,0,15,28],
 "df/d58/classqugar_1_1UnfittedDomain.html#a17bd71bf028763f2a4c8dab1690034ef":[0,0,0,16,4],
 "df/d58/classqugar_1_1UnfittedDomain.html#a17bd71bf028763f2a4c8dab1690034ef":[2,0,0,15,4],
 "df/d58/classqugar_1_1UnfittedDomain.html#a204d562c32230cce54528581734c0305":[0,0,0,16,24],
 "df/d58/classqugar_1_1UnfittedDomain.html#a204d562c32230cce54528581734c0305":[2,0,0,15,24],
-"df/d58/classqugar_1_1UnfittedDomain.html#a2a6adc16cb5e53cdd43e4ad23bb81a6e":[0,0,0,16,47],
-"df/d58/classqugar_1_1UnfittedDomain.html#a2a6adc16cb5e53cdd43e4ad23bb81a6e":[2,0,0,15,47],
+"df/d58/classqugar_1_1UnfittedDomain.html#a22cb7ca5bbded5d36380f4b765962e29":[0,0,0,16,26],
+"df/d58/classqugar_1_1UnfittedDomain.html#a22cb7ca5bbded5d36380f4b765962e29":[2,0,0,15,26],
+"df/d58/classqugar_1_1UnfittedDomain.html#a2a6adc16cb5e53cdd43e4ad23bb81a6e":[0,0,0,16,55],
+"df/d58/classqugar_1_1UnfittedDomain.html#a2a6adc16cb5e53cdd43e4ad23bb81a6e":[2,0,0,15,55],
 "df/d58/classqugar_1_1UnfittedDomain.html#a2b65515823be0accc41838c80e6fcd97":[0,0,0,16,22],
 "df/d58/classqugar_1_1UnfittedDomain.html#a2b65515823be0accc41838c80e6fcd97":[2,0,0,15,22],
-"df/d58/classqugar_1_1UnfittedDomain.html#a2ba7c5d81c95c06e7e8eac4c933b0d9e":[0,0,0,16,7],
-"df/d58/classqugar_1_1UnfittedDomain.html#a2ba7c5d81c95c06e7e8eac4c933b0d9e":[2,0,0,15,7]
+"df/d58/classqugar_1_1UnfittedDomain.html#a2b709f176a45be2b4dea45b8c1884676":[0,0,0,16,36],
+"df/d58/classqugar_1_1UnfittedDomain.html#a2b709f176a45be2b4dea45b8c1884676":[2,0,0,15,36]
 };

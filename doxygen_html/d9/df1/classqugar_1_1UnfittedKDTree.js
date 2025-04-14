@@ -21,15 +21,12 @@ var classqugar_1_1UnfittedKDTree =
     [ "get_status", "d9/df1/classqugar_1_1UnfittedKDTree.html#a67f87dc9e7b771da84247d6ff704f966", null ],
     [ "get_subgrid", "d9/df1/classqugar_1_1UnfittedKDTree.html#af9c340cac33d848cd563f33a6c93eb88", null ],
     [ "is_cell", "d9/df1/classqugar_1_1UnfittedKDTree.html#a4cc5b6140cf5a80e13377af2788b092d", null ],
-    [ "is_cut", "d9/df1/classqugar_1_1UnfittedKDTree.html#ab9ff1141f2ba8d963c901f80d9590eec", null ],
-    [ "is_empty", "d9/df1/classqugar_1_1UnfittedKDTree.html#a57852695269e70d192095f0eddf22346", null ],
-    [ "is_full", "d9/df1/classqugar_1_1UnfittedKDTree.html#a166b032ca61d4e9bb7a963893256f818", null ],
     [ "is_in_tree", "d9/df1/classqugar_1_1UnfittedKDTree.html#a8dc37d720f6cf8883645fbce0c5bc8ac", null ],
     [ "is_leaf", "d9/df1/classqugar_1_1UnfittedKDTree.html#a6cf8d99afc55a15ab0f99e0011a865d3", null ],
     [ "reduce", "d9/df1/classqugar_1_1UnfittedKDTree.html#a253f954749ee0cab37639e88ec29d396", null ],
     [ "set_status", "d9/df1/classqugar_1_1UnfittedKDTree.html#a9e89266e54b53aed27d492656a9c620a", null ],
     [ "transverse_tree", "d9/df1/classqugar_1_1UnfittedKDTree.html#a0ca2151787893052e98147affc9507bd", null ],
     [ "children_", "d9/df1/classqugar_1_1UnfittedKDTree.html#a88699fd6e1a8486ddd3fa2b1ad04f8f9", null ],
-    [ "status_", "d9/df1/classqugar_1_1UnfittedKDTree.html#ab49c434129e8d17901eef08e84c09a7a", null ],
+    [ "status_", "d9/df1/classqugar_1_1UnfittedKDTree.html#a195a7218c850ab3077944bcef1340b45", null ],
     [ "subgrid_", "d9/df1/classqugar_1_1UnfittedKDTree.html#a6f442ac46807a79118e4b303c756009e", null ]
 ];

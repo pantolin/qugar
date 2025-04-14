@@ -2,7 +2,7 @@ var searchData=
 [
   ['n_5fcoefs_0',['n_coefs',['../d0/dbc/classqugar_1_1impl_1_1AffineTransf.html#a8e2b8043a15b5ca17f874f3d90a480a0',1,'qugar::impl::AffineTransf']]],
   ['n_5fentries_1',['n_entries',['../d0/d92/classqugar_1_1Gauss.html#a11fceca7a3c0d0c3cc98522657794aa8',1,'qugar::Gauss::n_entries'],['../d5/de8/classqugar_1_1TanhSinh.html#ab5b631f086b330e537b39a99a822b505',1,'qugar::TanhSinh::n_entries']]],
-  ['n_5ffacets_5fper_5fcell_2',['n_facets_per_cell',['../df/d58/classqugar_1_1UnfittedDomain.html#a87f40c518e6d81f905232f98aca00a98',1,'qugar::UnfittedDomain']]],
+  ['n_5ffacets_5fper_5fcell_2',['n_facets_per_cell',['../df/d58/classqugar_1_1UnfittedDomain.html#af2b1a32cbcf47a37c34ccaa25ba68e2b',1,'qugar::UnfittedDomain']]],
   ['n_5fmax_3',['n_max',['../d0/d92/classqugar_1_1Gauss.html#abb2de65bd588da2c005ecda5bf208dd4',1,'qugar::Gauss::n_max'],['../d5/de8/classqugar_1_1TanhSinh.html#a4967cdd2e0337d0de493631388f14f75',1,'qugar::TanhSinh::n_max']]],
   ['n_5fpts_5fper_5fcell_4',['n_pts_per_cell',['../d8/dd5/structqugar_1_1CutCellsQuad.html#a4b037d1d53ef1903ac842a984e86d3ed',1,'qugar::CutCellsQuad::n_pts_per_cell'],['../d2/d41/structqugar_1_1CutUnfBoundsQuad.html#a90c2587c6b2c9a8bf994ec81e91467d9',1,'qugar::CutUnfBoundsQuad::n_pts_per_cell']]],
   ['n_5fpts_5fper_5ffacet_5',['n_pts_per_facet',['../df/d6d/structqugar_1_1CutIsoBoundsQuad.html#ad4c9eb30e42ad913248eb8b8253a6f41',1,'qugar::CutIsoBoundsQuad']]],

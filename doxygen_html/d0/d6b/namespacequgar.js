@@ -49,7 +49,8 @@ var namespacequgar =
     [ "ImmersedCellStatus", "d0/d6b/namespacequgar.html#a8d29996537c43e2b4e3773030bcf1eef", [
       [ "cut", "d0/d6b/namespacequgar.html#a8d29996537c43e2b4e3773030bcf1eefafe47aa7c733c490d36e80508d5dc4019", null ],
       [ "full", "d0/d6b/namespacequgar.html#a8d29996537c43e2b4e3773030bcf1eefae9dc924f238fa6cc29465942875fe8f0", null ],
-      [ "empty", "d0/d6b/namespacequgar.html#a8d29996537c43e2b4e3773030bcf1eefaa2e4822a98337283e39f7b60acf85ec9", null ]
+      [ "empty", "d0/d6b/namespacequgar.html#a8d29996537c43e2b4e3773030bcf1eefaa2e4822a98337283e39f7b60acf85ec9", null ],
+      [ "unknown", "d0/d6b/namespacequgar.html#a8d29996537c43e2b4e3773030bcf1eefaad921d60486366258809553a3db49a4a", null ]
     ] ],
     [ "ImmersedFacetStatus", "d0/d6b/namespacequgar.html#a2a8e94584d3f66820b45e705a99aa8ba", [
       [ "cut", "d0/d6b/namespacequgar.html#a2a8e94584d3f66820b45e705a99aa8baafe47aa7c733c490d36e80508d5dc4019", null ],
@@ -73,12 +74,12 @@ var namespacequgar =
     [ "at", "d0/d6b/namespacequgar.html#aeee71dd2d15b06381cda264b8ed738d7", null ],
     [ "at", "d0/d6b/namespacequgar.html#a96c529f1e791327c0ae2e45a7ee0f39f", null ],
     [ "at", "d0/d6b/namespacequgar.html#abc440522a502f2671b0f5a82d2901d66", null ],
-    [ "create_exterior_facets_quadrature", "d0/d6b/namespacequgar.html#a63b121a771c6741d21cf9c0af1e9f5b0", null ],
-    [ "create_interior_facets_quadrature", "d0/d6b/namespacequgar.html#a2995f6066adc73cefa196180757123eb", null ],
-    [ "create_quadrature", "d0/d6b/namespacequgar.html#ad445be012c036b0ba21f2ea3ef1d4b2a", null ],
+    [ "create_exterior_facets_quadrature", "d0/d6b/namespacequgar.html#a4933aa96e660ea9accc2ddc2b2c74791", null ],
+    [ "create_interior_facets_quadrature", "d0/d6b/namespacequgar.html#a5947e3d800f468dc8224760267ed0aae", null ],
+    [ "create_quadrature", "d0/d6b/namespacequgar.html#ae64056761f525b5d9b618eb67d6ecce5", null ],
     [ "create_reparameterization", "d0/d6b/namespacequgar.html#a05706e926bcfa699a97cb65d91b29319", null ],
     [ "create_reparameterization", "d0/d6b/namespacequgar.html#a285022e9ee78a68f4023bc3469e303b9", null ],
-    [ "create_unfitted_bound_quadrature", "d0/d6b/namespacequgar.html#a7bf54140d30528eb2a67aac55bb762cf", null ],
+    [ "create_unfitted_bound_quadrature", "d0/d6b/namespacequgar.html#ada98f71d3a8eef961a96cc6e9ea3bd8c", null ],
     [ "find_coincident_points", "d0/d6b/namespacequgar.html#a810f1ea11af7a4d73dc7071cad604b4c", null ],
     [ "make_points_unique", "d0/d6b/namespacequgar.html#a5aa55797545cdbf9c7d28cbe062a2e3f", null ],
     [ "narrow_cast", "d0/d6b/namespacequgar.html#aeb632759e5ce6b58f6b5b29435e0700a", null ],

@@ -1,24 +1,24 @@
 ---
 jupytext:
-  main_language: python
   text_representation:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.16.7
+    jupytext_version: 1.17.0
+  main_language: python
 ---
 
 # Divergence theorem (without FEniCSx)
 
-This demo is implemented in {download}`demo_div_thm_no_fenicsx.py` and it
+This demo is implemented in {download}`demo_div_thm_no_fenicsx.py` and
 solves the same problem as the [Divergence theorem demo](demo_div_thm.md)
 but without using [FEniCSx](https://fenicsproject.org) features.
 It uses only low-level interfaces to the C++ component of QUGaR.
 
 This demo covers:
-- How to create an unfitted implicit domain described by an implicit function.
-- How to generate custom quadrature rule for cells and facets, and access
-the generated points, weights, and normals.
+- How to create an unfitted domain described by an implicit function.
+- How to generate custom quadrature rules for cells, facets, and
+unfitted boundaries, and access the generated points, weights, and normals.
 
 all of them using only the C++ component of QUGaR.
 
@@ -58,7 +58,6 @@ import numpy.typing as npt
 
 import qugar
 import qugar.cpp
-import qugar.utils
 ```
 
 and declare some handy type aliases.
@@ -100,14 +99,15 @@ name = "sphere"
 print(f"{name.capitalize()} - divergence theorem verification")
 ```
 
-and also the number of quadrature points per direction in each integration tile to be used.
+and also the number of quadrature points per direction to be used in
+each integration.
 
 ```python
 n_quad_pts = 5
 ```
 
 We create a Cartesian grid (corresponding to $\mathcal{T}$) in which
-we will embbed the domain $\Omega$.
+we will embed the domain $\Omega$.
 
 ```python
 dim = impl_func.dim
@@ -117,7 +117,7 @@ cell_breaks = [np.linspace(0.0, 1.0, n_cells[dir] + 1, dtype=dtype) for dir in r
 grid = qugar.cpp.create_cart_grid(cell_breaks)
 ```
 
-and then we create an unfitted domain that stores the partition
+and then create an unfitted domain that stores the partition
 $\mathcal{T}=\mathcal{T}_{\text{cut}}\cup\mathcal{T}_{\text{full}}\cup\mathcal{T}_{\text{empty}}$.
 
 ```python
@@ -175,34 +175,34 @@ def scale_points_from_01(
 def find_facets_on_boundary(
     unf_domain: UnfittedDomain,
     cells: npt.NDArray[np.int32],
-    facets: npt.NDArray[np.int32],
-    facet_id: int,
+    local_faces: npt.NDArray[np.int32],
+    local_face_id: int,
 ) -> npt.NDArray[np.int32]:
     """
-    Among the given cells (and associated facets), finds (and returns) the cells whose
-    facets are equal to facet_id.
+    Among the given cells (and associated faces), finds (and returns) the cells whose
+    faces are equal to local_face_id.
 
     Args:
         unf_domain (UnfittedDomain): The unfitted implicit domain object containing the grid.
         cells (npt.NDArray[np.int32]): Array of cell indices.
-        facets (npt.NDArray[np.int32]): Array of facet indices corresponding to the cells.
-        facet_id (int): The ID of the facet to find among the cells.
+        facets (npt.NDArray[np.int32]): Array of local face indices corresponding to the cells.
+        local_face_id (int): The ID of the local face to find among the cells.
 
     Returns:
-        npt.NDArray[np.int32]: Array of cell indices that have have an associated facet id
-        equal to facet_id.
+        npt.NDArray[np.int32]: Array of cell indices that have have an associated
+        local face id equal to local_face_id.
     """
-    cells = cells[np.where(facets == facet_id)]
+    cells = cells[np.where(local_faces == local_face_id)]
 
     grid = unf_domain.grid
-    bound_cells = grid.get_boundary_cells(facet_id)
+    bound_cells = grid.get_boundary_cells(local_face_id)
     indices = np.where(np.isin(cells, bound_cells))[0]
     return cells[indices]
 ```
 
 ```python
 def find_full_facets_on_boundary(
-    unf_domain: UnfittedDomain, facet_id: int
+    unf_domain: UnfittedDomain, local_face_id: int
 ) -> npt.NDArray[np.int32]:
     """
     Find full facets on the boundary of an unfitted implicit domain that have the
@@ -210,53 +210,55 @@ def find_full_facets_on_boundary(
 
     This function retrieves the full facets from the given unfitted implicit domain
     and identifies which of these facets are on the boundary based on the
-    provided facet ID.
+    provided local face ID.
 
     Args:
         unf_domain (UnfittedDomain): The unfitted implicit domain object containing
             the grid data.
-        facet_id (int): The ID of the facet to check for boundary status.
+        local_face_id (int): The local ID of the face to check for boundary status.
 
     Returns:
-        npt.NDArray[np.int32]: An array of cell IDs associated fo the facets.
+        npt.NDArray[np.int32]: An array of cell IDs associated to the facets.
     """
-    cells, facets = unf_domain.full_facets
-    return find_facets_on_boundary(unf_domain, cells, facets, facet_id)
+    cells, facets = unf_domain.get_full_facets()
+    return find_facets_on_boundary(unf_domain, cells, facets, local_face_id)
 ```
 
 ```python
-def find_cut_facets_on_boundary(unf_domain: UnfittedDomain, facet_id: int) -> npt.NDArray[np.int32]:
+def find_cut_facets_on_boundary(
+    unf_domain: UnfittedDomain, local_face_id: int
+) -> npt.NDArray[np.int32]:
     """
     Find cut facets on the boundary of an unfitted implicit domain that have the
-    given local facet_id.
+    given local local_face_id.
 
     This function retrieves the cut facets from the given unfitted implicit domain
     and identifies which of these facets are on the boundary based on the
-    provided facet ID.
+    provided local face ID.
 
     Args:
         unf_domain (UnfittedDomain): The unfitted implicit domain object containing
             the grid data.
-        facet_id (int): The ID of the facet to check for boundary status.
+        local_face_id (int): The local ID of the face to check for boundary status.
 
     Returns:
-        npt.NDArray[np.int32]: An array of cell IDs associated fo the facets.
+        npt.NDArray[np.int32]: An array of cell IDs associated to the facets.
     """
-    cells, facets = unf_domain.cut_facets
-    return find_facets_on_boundary(unf_domain, cells, facets, facet_id)
+    cells, facets = unf_domain.get_cut_facets()
+    return find_facets_on_boundary(unf_domain, cells, facets, local_face_id)
 ```
 
 ```python
 def create_facet_quadrature(
     facet_points: npt.NDArray[dtype],
     facet_weights: npt.NDArray[dtype],
-    facet_id: int,
+    local_face_id: int,
 ) -> Tuple[npt.NDArray[dtype], npt.NDArray[dtype], npt.NDArray[dtype]]:
     """
-    Create quadrature points, weights, and normals for a given facet id.
+    Create quadrature points, weights, and normals for a given local face id.
 
     Extends the points from the facet to the higher-dimensional space by adding
-    the constant coordinate of the facet.
+    the constant coordinate of the face.
     It also generated the (constant) normal vectors for the quadrature points.
 
     Note:
@@ -265,7 +267,8 @@ def create_facet_quadrature(
     Args:
         facet_points (npt.NDArray[dtype]): Array of points on the facet.
         facet_weights (npt.NDArray[dtype]): Array of weights for the quadrature points.
-        facet_id (int): Identifier for the facet, used to determine the constant direction and side.
+        local_face_id (int): Identifier for the facet, used to determine
+            the constant direction and side.
 
     Returns:
         Tuple[npt.NDArray[dtype], npt.NDArray[dtype], npt.NDArray[dtype]]:
@@ -277,8 +280,8 @@ def create_facet_quadrature(
     dim = facet_dim + 1
     dtype = facet_points.dtype
 
-    const_dir = facet_id // 2
-    side = facet_id % 2
+    const_dir = local_face_id // 2
+    side = local_face_id % 2
 
     points = np.zeros((facet_points.shape[0], dim), dtype=dtype)
 
@@ -297,14 +300,14 @@ def create_facet_quadrature(
 
 ```python
 def create_full_facet_quadrature(
-    dim: int, facet_id: int, n_quad_pts: int
+    dim: int, local_face_id: int, n_quad_pts: int
 ) -> Tuple[npt.NDArray[dtype], npt.NDArray[dtype], npt.NDArray[dtype]]:
     """
-    Create a full facet quadrature for a given dimension and facet.
+    Create a full facet quadrature for a given dimension and local face.
 
     Args:
         dim (int): The dimension of the space.
-        facet_id (int): The identifier of the facet.
+        local_face_id (int): The identifier of the local face.
         n_quad_pts (int): The number of quadrature points per direction.
 
     Returns:
@@ -314,7 +317,7 @@ def create_full_facet_quadrature(
             - normals: Array of normal vectors for the quadrature points.
     """
     quad = qugar.cpp.create_Gauss_quad_01([n_quad_pts] * (dim - 1))
-    return create_facet_quadrature(quad.points, quad.weights, facet_id)
+    return create_facet_quadrature(quad.points, quad.weights, local_face_id)
 ```
 
 ### Computing the volumetric integral
@@ -328,12 +331,10 @@ We compute now the volumetric integral for the cut and full cells.
 So, first, we create a custom quadrature for the cut cells.
 
 ```python
-cut_cells_quad = qugar.cpp.create_quadrature(
-    unf_domain, unf_domain.get_cut_cells(), n_quad_pts, full_cells=False
-)
+cut_cells_quad = qugar.cpp.create_quadrature(unf_domain, unf_domain.get_cut_cells(), n_quad_pts)
 ```
 
-and for the full cells.
+and for the full cells we use the standard quadrature rule.
 
 ```python
 quad_01 = qugar.cpp.create_Gauss_quad_01([n_quad_pts] * dim)
@@ -343,11 +344,11 @@ We define a function for computing the contribution of a single
 cell, either cut or full.
 
 ```python
-def compute_cell_integr(points, weights, cell_id):
+def compute_cell_integr(points_01, weights_01, cell_id):
     domain = grid.get_cell_domain(cell_id)
-    cell_volume = domain.volume
-    vals = divF_func(scale_points_from_01(domain.as_array(), points))
-    return np.dot(vals, weights) * cell_volume
+    weights = weights_01 * domain.volume
+    vals = divF_func(scale_points_from_01(domain.as_array(), points_01))
+    return np.dot(vals, weights)
 ```
 
 Loop over the full cells and compute their contributions
@@ -358,55 +359,60 @@ for cell_id in unf_domain.get_full_cells():
     vol_intgr += compute_cell_integr(quad_01.points, quad_01.weights, cell_id)
 ```
 
-and the same of the cut cells (retrieving the associated custom quadrature points
+and the same for the cut cells (retrieving the associated custom quadrature points
 and weights for every cell)
 
 ```python
 pt_id = 0
 for cell_id, n_pts in zip(cut_cells_quad.cells, cut_cells_quad.n_pts_per_entity):
     pt_id_1 = pt_id + n_pts
+
     weights = cut_cells_quad.weights[pt_id:pt_id_1]
     points = cut_cells_quad.points[pt_id:pt_id_1]
-    pt_id = pt_id_1
     vol_intgr += compute_cell_integr(points, weights, cell_id)
+
+    pt_id = pt_id_1
 ```
 
 ### Computing the surface integral
 
 +++
 
-We compute now the surface integral for the cut cells (for $\Gamma_{\text{int}}$)
+We compute now the surface integral for the unfitted boundaries (for $\Gamma_{\text{unf}}$)
 and the cut (for $\mathcal{F}_{\text{cut}}$) and full facets (for $\mathcal{F}_{\text{full}}$).
 
 +++
 
 We define a function for computing the contribution of a single
-cut cell or (cut or full) facet.
+cell (containing an unfitted boundary) or (cut or full) facet.
 
 ```python
-def compute_srf_integral(points, weights, normals, cell_id):
+def compute_srf_integral(points_01, weights_01, normals, cell_id):
     cell_domain = grid.get_cell_domain(cell_id)
-    vals = F_func(scale_points_from_01(cell_domain.as_array(), points))
+    vals = F_func(scale_points_from_01(cell_domain.as_array(), points_01))
 
-    cell_volume = cell_domain.volume
     mapped_normals = np.empty_like(normals)
     for dir in range(dim):
         mapped_normals[:, dir] = normals[:, dir] / cell_domain.length(dir)
-    scaled_weights = weights * np.linalg.norm(mapped_normals, axis=1) * cell_volume
+    scaled_weights = weights_01 * cell_domain.volume * np.linalg.norm(mapped_normals, axis=1)
 
     return np.dot(np.sum(vals * normals, axis=1), scaled_weights)
 ```
 
+
+
++++
+
 We first compute the contribution of the external facets (i.e., $\Gamma_{\text{ext}}$).
-For that purpose we iterate along the `dim * 2` facets of the
+For that purpose we iterate along the `dim * 2` faces of the
 hypercube $\Omega^\ast$ and compute first the contribution of $\mathcal{F}_{\text{full}}$
 
 ```python
 srf_intgr = dtype(0.0)
 
-for facet_id in range(dim * 2):
-    full_facets = find_full_facets_on_boundary(unf_domain, facet_id)
-    points, weights, normals = create_full_facet_quadrature(dim, facet_id, n_quad_pts)
+for face_id in range(dim * 2):
+    full_facets = find_full_facets_on_boundary(unf_domain, face_id)
+    points, weights, normals = create_full_facet_quadrature(dim, face_id, n_quad_pts)
 
     for cell_id in full_facets:
         srf_intgr += compute_srf_integral(points, weights, normals, cell_id)
@@ -415,49 +421,56 @@ for facet_id in range(dim * 2):
 and then for $\mathcal{F}_{\text{cut}}$ (that requires a custom quadrature).
 
 ```python
-for facet_id in range(dim * 2):
-    cells = find_cut_facets_on_boundary(unf_domain, facet_id)
-    facets = np.full_like(cells, facet_id)
-    facet_quad = qugar.cpp.create_facets_quadrature(unf_domain, cells, facets, n_quad_pts)
+for face_id in range(dim * 2):
+    cells = find_cut_facets_on_boundary(unf_domain, face_id)
+    facets = np.full_like(cells, face_id)
+    facet_quad = qugar.cpp.create_exterior_facets_quadrature(unf_domain, cells, facets, n_quad_pts)
 
     pt_id = 0
     for cell_id, n_pts in zip(facet_quad.cells, facet_quad.n_pts_per_entity):
         pt_id_1 = pt_id + n_pts
+
         facet_points = facet_quad.points[pt_id:pt_id_1]
         facet_weights = facet_quad.weights[pt_id:pt_id_1]
-        points, weights, normals = create_facet_quadrature(facet_points, facet_weights, facet_id)
-        pt_id = pt_id_1
-
+        points, weights, normals = create_facet_quadrature(facet_points, facet_weights, face_id)
         srf_intgr += compute_srf_integral(points, weights, normals, cell_id)
+
+        pt_id = pt_id_1
 ```
 
-Finally, we compute the contribution of the cut cells (for $\Gamma_{\text{int}}$).
+Finally, we compute the contribution of the unfitted boundaries (for $\Gamma_{\text{unf}}$).
 
 +++
 
 We compute the needed custom quadrature.
 
 ```python
-int_bnd_quad = qugar.cpp.create_unfitted_bound_quadrature(
+include_facet_unf_bry = True
+exclude_ext_bdry = True
+unf_bdry_quad = qugar.cpp.create_unfitted_bound_quadrature(
     unf_domain,
     unf_domain.get_cut_cells(),
     n_quad_pts,
+    include_facet_unf_bry,
+    exclude_ext_bdry,
 )
 ```
 
-and then iterate along the cut cells (retrieving the associated custom quadrature points
-and weights, and the normals for every cell).
+and then iterate along the cells that contain unfitted boundaries
+(retrieving the associated custom quadrature points, weights, and
+normals for every cell).
 
 ```python
 pt_id = 0
-for cell_id, n_pts in zip(int_bnd_quad.cells, int_bnd_quad.n_pts_per_entity):
+for cell_id, n_pts in zip(unf_bdry_quad.cells, unf_bdry_quad.n_pts_per_entity):
     pt_id_1 = pt_id + n_pts
-    weights = int_bnd_quad.weights[pt_id:pt_id_1]
-    normals = int_bnd_quad.normals[pt_id:pt_id_1]
-    points = int_bnd_quad.points[pt_id:pt_id_1]
-    pt_id = pt_id_1
 
+    weights = unf_bdry_quad.weights[pt_id:pt_id_1]
+    normals = unf_bdry_quad.normals[pt_id:pt_id_1]
+    points = unf_bdry_quad.points[pt_id:pt_id_1]
     srf_intgr += compute_srf_integral(points, weights, normals, cell_id)
+
+    pt_id = pt_id_1
 ```
 
 Finally, we compare both integrals

@@ -534,19 +534,19 @@
         <span class="n">domain_</span> <span class="o">=</span> <span class="n">domain</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">assert</span> <span class="n">has_FEniCSx</span><span class="p">,</span> <span class="s2">&quot;FEniCSx is required to convert a TensorProductMesh to PyVista.&quot;</span>
-        <span class="kn">from</span> <span class="nn">qugar.unfitted_domain</span> <span class="kn">import</span> <span class="n">UnfittedDomain</span>
+        <span class="kn">from</span> <span class="nn">qugar.mesh</span> <span class="kn">import</span> <span class="n">UnfittedDomain</span>
 
         <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">domain</span><span class="p">,</span> <span class="n">UnfittedDomain</span><span class="p">),</span> <span class="s2">&quot;Invalid type.&quot;</span>
-        <span class="n">domain_</span> <span class="o">=</span> <span class="n">domain</span><span class="o">.</span><span class="n">cpp_object</span>
+        <span class="n">domain_</span> <span class="o">=</span> <span class="n">domain</span><span class="o">.</span><span class="n">cpp_unf_domain_object</span>
 
-    <span class="n">cells_quad</span> <span class="o">=</span> <span class="n">qugar</span><span class="o">.</span><span class="n">cpp</span><span class="o">.</span><span class="n">create_quadrature</span><span class="p">(</span>
-        <span class="n">domain_</span><span class="p">,</span> <span class="n">domain_</span><span class="o">.</span><span class="n">get_cut_cells</span><span class="p">(),</span> <span class="n">n_pts_dir</span><span class="p">,</span> <span class="n">full_cells</span><span class="o">=</span><span class="kc">False</span>
-    <span class="p">)</span>
+    <span class="n">cells_quad</span> <span class="o">=</span> <span class="n">qugar</span><span class="o">.</span><span class="n">cpp</span><span class="o">.</span><span class="n">create_quadrature</span><span class="p">(</span><span class="n">domain_</span><span class="p">,</span> <span class="n">domain_</span><span class="o">.</span><span class="n">get_cut_cells</span><span class="p">(),</span> <span class="n">n_pts_dir</span><span class="p">)</span>
 
     <span class="n">cells_points_set</span> <span class="o">=</span> <span class="n">_cut_quad_to_PyVista</span><span class="p">(</span><span class="n">domain_</span><span class="o">.</span><span class="n">grid</span><span class="p">,</span> <span class="n">cells_quad</span><span class="p">)</span>
 
+    <span class="n">include_facet_unf_bry</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="n">exclude_ext_bdry</span> <span class="o">=</span> <span class="kc">True</span>
     <span class="n">unf_bdry_quad</span> <span class="o">=</span> <span class="n">qugar</span><span class="o">.</span><span class="n">cpp</span><span class="o">.</span><span class="n">create_unfitted_bound_quadrature</span><span class="p">(</span>
-        <span class="n">domain_</span><span class="p">,</span> <span class="n">domain_</span><span class="o">.</span><span class="n">get_cut_cells</span><span class="p">(),</span> <span class="n">n_pts_dir</span>
+        <span class="n">domain_</span><span class="p">,</span> <span class="n">domain_</span><span class="o">.</span><span class="n">get_cut_cells</span><span class="p">(),</span> <span class="n">n_pts_dir</span><span class="p">,</span> <span class="n">include_facet_unf_bry</span><span class="p">,</span> <span class="n">exclude_ext_bdry</span>
     <span class="p">)</span>
     <span class="n">unf_bdry_points_set</span> <span class="o">=</span> <span class="n">_cut_quad_to_PyVista</span><span class="p">(</span><span class="n">domain_</span><span class="o">.</span><span class="n">grid</span><span class="p">,</span> <span class="n">unf_bdry_quad</span><span class="p">)</span>
 
@@ -556,7 +556,6 @@
         <span class="n">cut_facets_cells</span><span class="p">,</span>
         <span class="n">cut_facets_local_facets</span><span class="p">,</span>
         <span class="n">n_pts_dir</span><span class="p">,</span>
-        <span class="n">full_facets</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">unf_bdry_facets_cells</span><span class="p">,</span> <span class="n">unf_bdry_facets_local_facets</span> <span class="o">=</span> <span class="n">domain_</span><span class="o">.</span><span class="n">get_unf_bdry_facets</span><span class="p">()</span>
     <span class="n">unf_bdry_facets_quad</span> <span class="o">=</span> <span class="n">qugar</span><span class="o">.</span><span class="n">cpp</span><span class="o">.</span><span class="n">create_exterior_facets_quadrature</span><span class="p">(</span>
@@ -564,17 +563,16 @@
         <span class="n">unf_bdry_facets_cells</span><span class="p">,</span>
         <span class="n">unf_bdry_facets_local_facets</span><span class="p">,</span>
         <span class="n">n_pts_dir</span><span class="p">,</span>
-        <span class="n">full_facets</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">facets_points_set</span> <span class="o">=</span> <span class="n">_create_quad_facet_points_grid</span><span class="p">(</span>
         <span class="n">domain_</span><span class="o">.</span><span class="n">grid</span><span class="p">,</span> <span class="p">[</span><span class="n">cut_facets_quad</span><span class="p">,</span> <span class="n">unf_bdry_facets_quad</span><span class="p">]</span>
     <span class="p">)</span>
 
     <span class="k">if</span> <span class="ow">not</span> <span class="n">is_cpp</span><span class="p">:</span>
-        <span class="n">_append_DOLFINx_cell_ids</span><span class="p">(</span><span class="n">cells_points_set</span><span class="p">,</span> <span class="n">domain</span><span class="o">.</span><span class="n">tp_mesh</span><span class="p">)</span>
-        <span class="n">_append_DOLFINx_cell_ids</span><span class="p">(</span><span class="n">unf_bdry_points_set</span><span class="p">,</span> <span class="n">domain</span><span class="o">.</span><span class="n">tp_mesh</span><span class="p">)</span>
-        <span class="n">_append_DOLFINx_cell_ids</span><span class="p">(</span><span class="n">facets_points_set</span><span class="p">,</span> <span class="n">domain</span><span class="o">.</span><span class="n">tp_mesh</span><span class="p">)</span>
-        <span class="n">_append_DOLFINx_facets_ids</span><span class="p">(</span><span class="n">facets_points_set</span><span class="p">,</span> <span class="n">domain</span><span class="o">.</span><span class="n">dim</span><span class="p">)</span>
+        <span class="n">_append_DOLFINx_cell_ids</span><span class="p">(</span><span class="n">cells_points_set</span><span class="p">,</span> <span class="n">domain</span><span class="p">)</span>
+        <span class="n">_append_DOLFINx_cell_ids</span><span class="p">(</span><span class="n">unf_bdry_points_set</span><span class="p">,</span> <span class="n">domain</span><span class="p">)</span>
+        <span class="n">_append_DOLFINx_cell_ids</span><span class="p">(</span><span class="n">facets_points_set</span><span class="p">,</span> <span class="n">domain</span><span class="p">)</span>
+        <span class="n">_append_DOLFINx_facets_ids</span><span class="p">(</span><span class="n">facets_points_set</span><span class="p">,</span> <span class="n">domain</span><span class="o">.</span><span class="n">tdim</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">pv</span><span class="o">.</span><span class="n">MultiBlock</span><span class="p">(</span>
         <span class="p">{</span>
@@ -614,7 +612,7 @@
     <span class="n">grid</span> <span class="o">=</span> <span class="n">unfitted_domain_to_PyVista</span><span class="p">(</span><span class="n">domain</span><span class="p">,</span> <span class="n">cut</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">full</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">empty</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">n_cells</span> <span class="o">=</span> <span class="n">grid</span><span class="o">.</span><span class="n">n_cells</span>
 
-    <span class="n">dim</span> <span class="o">=</span> <span class="n">domain</span><span class="o">.</span><span class="n">dim</span>
+    <span class="n">dim</span> <span class="o">=</span> <span class="n">domain</span><span class="o">.</span><span class="n">tdim</span>
     <span class="k">assert</span> <span class="mi">2</span> <span class="o">&lt;=</span> <span class="n">dim</span> <span class="o">&lt;=</span> <span class="mi">3</span><span class="p">,</span> <span class="s2">&quot;Invalid dimension.&quot;</span>
 
     <span class="n">grid</span> <span class="o">=</span> <span class="n">cast</span><span class="p">(</span><span class="n">pv</span><span class="o">.</span><span class="n">DataSet</span><span class="p">,</span> <span class="n">grid</span><span class="o">.</span><span class="n">explode</span><span class="p">(</span><span class="n">factor</span><span class="o">=</span><span class="mf">0.0</span><span class="p">))</span>
@@ -639,11 +637,11 @@
         <span class="n">domain_</span> <span class="o">=</span> <span class="n">domain</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">assert</span> <span class="n">has_FEniCSx</span><span class="p">,</span> <span class="s2">&quot;FEniCSx is required to convert a TensorProductMesh to PyVista.&quot;</span>
-        <span class="kn">from</span> <span class="nn">qugar.unfitted_domain</span> <span class="kn">import</span> <span class="n">UnfittedDomain</span>
+        <span class="kn">from</span> <span class="nn">qugar.mesh</span> <span class="kn">import</span> <span class="n">UnfittedDomain</span>
 
         <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">domain</span><span class="p">,</span> <span class="n">UnfittedDomain</span><span class="p">),</span> <span class="s2">&quot;Invalid type.&quot;</span>
 
-        <span class="n">domain_</span> <span class="o">=</span> <span class="n">domain</span><span class="o">.</span><span class="n">cpp_object</span>
+        <span class="n">domain_</span> <span class="o">=</span> <span class="n">domain</span><span class="o">.</span><span class="n">cpp_unf_domain_object</span>
 
     <span class="n">facets</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="k">if</span> <span class="n">full</span><span class="p">:</span>
@@ -705,12 +703,12 @@
         <span class="n">domain_</span> <span class="o">=</span> <span class="n">domain</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">assert</span> <span class="n">has_FEniCSx</span><span class="p">,</span> <span class="s2">&quot;FEniCSx is required to convert a TensorProductMesh to PyVista.&quot;</span>
-        <span class="kn">from</span> <span class="nn">qugar.unfitted_domain</span> <span class="kn">import</span> <span class="n">UnfittedDomain</span>
+        <span class="kn">from</span> <span class="nn">qugar.mesh</span> <span class="kn">import</span> <span class="n">UnfittedDomain</span>
 
         <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">domain</span><span class="p">,</span> <span class="n">UnfittedDomain</span><span class="p">),</span> <span class="s2">&quot;Invalid type.&quot;</span>
 
-        <span class="n">grid</span> <span class="o">=</span> <span class="n">grid_tp_to_PyVista</span><span class="p">(</span><span class="n">domain</span><span class="o">.</span><span class="n">tp_mesh</span><span class="p">)</span>
-        <span class="n">domain_</span> <span class="o">=</span> <span class="n">domain</span><span class="o">.</span><span class="n">cpp_object</span>
+        <span class="n">grid</span> <span class="o">=</span> <span class="n">grid_tp_to_PyVista</span><span class="p">(</span><span class="n">domain</span><span class="p">)</span>
+        <span class="n">domain_</span> <span class="o">=</span> <span class="n">domain</span><span class="o">.</span><span class="n">cpp_unf_domain_object</span>
 
     <span class="n">value</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="n">grid</span><span class="o">.</span><span class="n">n_cells</span><span class="p">,</span> <span class="n">empty</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
     <span class="n">status</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="n">grid</span><span class="o">.</span><span class="n">n_cells</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>

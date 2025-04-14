@@ -62,12 +62,12 @@ var NAVTREE =
 var NAVTREEINDEX =
 [
 "annotated.html",
-"d1/dca/qugar__export_8hpp.html#aead1f0d3e26efb0ea4271e01b15a3e3b",
+"d1/dca/qugar__export_8hpp.html#abd0fc00a90fc799b39f175551e03885f",
 "d2/dfe/classqugar_1_1BoundBox.html#a891ccbb7739da530693125bf6681e0a6",
-"d7/d46/structqugar_1_1impl_1_1RootsIntervals.html#a477820803397a48fc4dafb001cb626bf",
+"d7/d46/structqugar_1_1impl_1_1RootsIntervals.html#a3e96d703d30771ec9f534f540ae12750",
 "d9/df1/classqugar_1_1UnfittedKDTree.html#a72183dffaa451b3ebbd40f163910793a",
-"dc/d7b/classqugar_1_1impl_1_1RefSystem.html#a625ec6532d7d8d8d15aebad5fbadae11",
-"df/d58/classqugar_1_1UnfittedDomain.html#a2efccd3fe5e3585b9e513b388d3a910b"
+"dc/d7b/classqugar_1_1impl_1_1RefSystem.html#ac70ba577ac0fe1bd7a4d1ceefa11e06b",
+"df/d58/classqugar_1_1UnfittedDomain.html#a2ba7c5d81c95c06e7e8eac4c933b0d9e"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

@@ -55,7 +55,7 @@
 <li class="toctree-l3"><a class="reference internal" href="demo_div_thm.html">Divergence theorem</a></li>
 <li class="toctree-l3 current"><a class="current reference internal" href="#">Creation of unfitted implicit domains</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#geometry-definition">Geometry definition</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#generating-the-unfitted-domain">Generating the unfitted domain</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#generating-the-unfitted-mesh">Generating the unfitted mesh</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#visualization">Visualization</a></li>
 </ul>
 </li>
@@ -68,7 +68,7 @@
 <li class="toctree-l3"><a class="reference internal" href="demo_div_thm_no_fenicsx.html">Divergence theorem (without FEniCSx)</a></li>
 <li class="toctree-l3 current"><a class="current reference internal" href="#">Creation of unfitted implicit domains</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#geometry-definition">Geometry definition</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#generating-the-unfitted-domain">Generating the unfitted domain</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#generating-the-unfitted-mesh">Generating the unfitted mesh</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#visualization">Visualization</a></li>
 </ul>
 </li>
@@ -113,7 +113,7 @@
 illustrates:</p>
 <ul class="simple">
 <li><p>The library of available implicit functions for defining domains.</p></li>
-<li><p>How to create an unfitted implicit domain described by an implicit function.</p></li>
+<li><p>How to create an unfitted mesh described by an implicit function.</p></li>
 <li><p>How to visualize an unfitted domain in PyVista by creating a reparameterization.</p></li>
 </ul>
 <p>This demo requires the <a class="reference external" href="https://fenicsproject.org">FEniCSx</a> and <a class="reference external" href="https://pyvista.org">PyVista</a>
@@ -379,33 +379,33 @@ support will be provided for Bezier functions explicitly defined through its con
 and for B-spline functions.</p>
 </section>
 </section>
-<section id="generating-the-unfitted-domain">
-<h2>Generating the unfitted domain<a class="headerlink" href="#generating-the-unfitted-domain" title="Link to this heading"></a></h2>
+<section id="generating-the-unfitted-mesh">
+<h2>Generating the unfitted mesh<a class="headerlink" href="#generating-the-unfitted-mesh" title="Link to this heading"></a></h2>
 <p>First we choose a function among the ones defined above.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">func</span> <span class="o">=</span> <span class="n">func_schoen</span>
 </pre></div>
 </div>
-<p>and then generate the unfitted domain using a Cartesian mesh over a hypercube <span class="math notranslate nohighlight">\([0,1]^d\)</span>
+<p>and then generate the unfitted Cartesian mesh over a hypercube <span class="math notranslate nohighlight">\([0,1]^d\)</span>
 with 8 cells per direction, where <span class="math notranslate nohighlight">\(d=2\)</span> or <span class="math notranslate nohighlight">\(d=3\)</span>.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">dim</span> <span class="o">=</span> <span class="n">func</span><span class="o">.</span><span class="n">dim</span>
 <span class="n">n_cells</span> <span class="o">=</span> <span class="p">[</span><span class="mi">8</span><span class="p">]</span> <span class="o">*</span> <span class="n">dim</span>
+<span class="n">comm</span> <span class="o">=</span> <span class="n">MPI</span><span class="o">.</span><span class="n">COMM_WORLD</span>
 </pre></div>
 </div>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">mesh</span> <span class="o">=</span> <span class="n">qugar</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">create_Cartesian_mesh</span><span class="p">(</span>
-    <span class="n">comm</span><span class="o">=</span><span class="n">MPI</span><span class="o">.</span><span class="n">COMM_WORLD</span><span class="p">,</span> <span class="n">n_cells</span><span class="o">=</span><span class="n">n_cells</span><span class="p">,</span> <span class="n">xmin</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">dim</span><span class="p">),</span> <span class="n">xmax</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">dim</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">unf_mesh</span> <span class="o">=</span> <span class="n">qugar</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">create_unfitted_impl_Cartesian_mesh</span><span class="p">(</span>
+    <span class="n">comm</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="n">n_cells</span><span class="p">,</span> <span class="n">xmin</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">dim</span><span class="p">),</span> <span class="n">xmax</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">dim</span><span class="p">)</span>
 <span class="p">)</span>
-<span class="n">unf_domain</span> <span class="o">=</span> <span class="n">qugar</span><span class="o">.</span><span class="n">impl</span><span class="o">.</span><span class="n">create_unfitted_impl_domain</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">mesh</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>
 <section id="visualization">
 <h2>Visualization<a class="headerlink" href="#visualization" title="Link to this heading"></a></h2>
-<p>Finally, we create a visualization of the unfitted domain’s interior a levelset
+<p>Finally, we create a visualization of the unfitted mesh’s interior a levelset
 through a parameterization.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">reparam</span> <span class="o">=</span> <span class="n">qugar</span><span class="o">.</span><span class="n">reparam</span><span class="o">.</span><span class="n">create_reparam_mesh</span><span class="p">(</span><span class="n">unf_domain</span><span class="p">,</span> <span class="n">n_pts_dir</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">levelset</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">reparam</span> <span class="o">=</span> <span class="n">qugar</span><span class="o">.</span><span class="n">reparam</span><span class="o">.</span><span class="n">create_reparam_mesh</span><span class="p">(</span><span class="n">unf_mesh</span><span class="p">,</span> <span class="n">n_pts_dir</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">levelset</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 <span class="n">reparam_pv</span> <span class="o">=</span> <span class="n">qugar</span><span class="o">.</span><span class="n">plot</span><span class="o">.</span><span class="n">reparam_mesh_to_PyVista</span><span class="p">(</span><span class="n">reparam</span><span class="p">)</span>
 
-<span class="n">reparam_srf</span> <span class="o">=</span> <span class="n">qugar</span><span class="o">.</span><span class="n">reparam</span><span class="o">.</span><span class="n">create_reparam_mesh</span><span class="p">(</span><span class="n">unf_domain</span><span class="p">,</span> <span class="n">n_pts_dir</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">levelset</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">reparam_srf</span> <span class="o">=</span> <span class="n">qugar</span><span class="o">.</span><span class="n">reparam</span><span class="o">.</span><span class="n">create_reparam_mesh</span><span class="p">(</span><span class="n">unf_mesh</span><span class="p">,</span> <span class="n">n_pts_dir</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">levelset</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="n">reparam_srf_pv</span> <span class="o">=</span> <span class="n">qugar</span><span class="o">.</span><span class="n">plot</span><span class="o">.</span><span class="n">reparam_mesh_to_PyVista</span><span class="p">(</span><span class="n">reparam_srf</span><span class="p">)</span>
 
 <span class="n">pl</span> <span class="o">=</span> <span class="n">pv</span><span class="o">.</span><span class="n">Plotter</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>

@@ -151,19 +151,28 @@
 <tr class="row-even"><td><p><a class="reference internal" href="#qugar.mesh.create_Cartesian_mesh" title="qugar.mesh.create_Cartesian_mesh"><code class="xref py py-obj docutils literal notranslate"><span class="pre">create_Cartesian_mesh</span></code></a>(comm, n_cells[, xmin, ...])</p></td>
 <td><p>Creates a Cartesian mesh from a bounding box and the number of cells per direction.</p></td>
 </tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#qugar.mesh.create_unfitted_impl_Cartesian_mesh" title="qugar.mesh.create_unfitted_impl_Cartesian_mesh"><code class="xref py py-obj docutils literal notranslate"><span class="pre">create_unfitted_impl_Cartesian_mesh</span></code></a>(comm, ...)</p></td>
+<td><p>Creates an uniftted Cartesian mesh generated with a bounding box and the number of cells per direction, and an implicit function describing the domain</p></td>
+</tr>
 </tbody>
 </table>
 <p class="rubric">Classes</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#qugar.mesh.CartesianMesh" title="qugar.mesh.CartesianMesh"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CartesianMesh</span></code></a>(comm, cart_grid_tp_cpp, ...)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#qugar.mesh.UnfittedDomain" title="qugar.mesh.UnfittedDomain"><code class="xref py py-obj docutils literal notranslate"><span class="pre">UnfittedDomain</span></code></a>(mesh, cpp_unf_domain_object)</p></td>
+<td><p>Class for storing an unfitted domains and access its cut, full, and empty cells and facets, and create custom quadratures associated to those cells and facets.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#qugar.mesh.CartesianMesh" title="qugar.mesh.CartesianMesh"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CartesianMesh</span></code></a>(comm, cart_grid_tp_cpp, ...)</p></td>
 <td><p>Cartesian mesh data structure.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#qugar.mesh.TensorProductMesh" title="qugar.mesh.TensorProductMesh"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TensorProductMesh</span></code></a>(comm, nodes_coords, n_cells)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#qugar.mesh.TensorProductMesh" title="qugar.mesh.TensorProductMesh"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TensorProductMesh</span></code></a>(comm, nodes_coords, n_cells)</p></td>
 <td><p>Tensor-product mesh data structure.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#qugar.mesh.TensorProdIndex" title="qugar.mesh.TensorProdIndex"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TensorProdIndex</span></code></a>()</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#qugar.mesh.TensorProdIndex" title="qugar.mesh.TensorProdIndex"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TensorProdIndex</span></code></a>()</p></td>
 <td><p>Helper class for accessing indices in arbitrary dimensions tensor-product structures.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#qugar.mesh.UnfittedCartMesh" title="qugar.mesh.UnfittedCartMesh"><code class="xref py py-obj docutils literal notranslate"><span class="pre">UnfittedCartMesh</span></code></a>(comm, cpp_unf_domain, ...)</p></td>
+<td><p>Class for storing an unfitted Cartesian mesh domain and access its cut, full, and empty cells and facets.</p></td>
 </tr>
 </tbody>
 </table>
@@ -637,7 +646,7 @@ outer-most. The nodes and cells numbering for a  2D case would be:</p>
 <p>Note that after the mesh creation, DOLFINx renumbers and partitions
 the mesh, so, this numeration will be different. It is always
 possible to retrieve the original numbering using the maps
-<cite>self.get_lexicg_node_ids</cite> or <cite>self.get_lexicg_cell_ids</cite>.
+<cite>self.get_original_node_ids</cite> or <cite>self.get_original_cell_ids</cite>.
 Or, from the lexicographical to the local DOLFINx numbering using
 <cite>self.get_DOLFINx_local_node_ids</cite> or <cite>self.get_DOLFINx_local_cell_ids</cite>,
 or the global with <cite>self.get_DOLFINx_global_node_ids</cite> or
@@ -686,163 +695,6 @@ tensor-product mesh. I.e., umin:0, umax:1, vmin:2, vmax:3, …</p>
 </dl>
 </dd></dl>
 
-<dl class="py property">
-<dt class="sig sig-object py" id="qugar.mesh.TensorProductMesh.degree">
-<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">degree</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#qugar.mesh.TensorProductMesh.degree" title="Link to this definition"></a></dt>
-<dd><p>Gets the mesh’ degree.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Mesh’s degree.</p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>int</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py property">
-<dt class="sig sig-object py" id="qugar.mesh.TensorProductMesh.dtype">
-<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">dtype</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">float32</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">float64</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#qugar.mesh.TensorProductMesh.dtype" title="Link to this definition"></a></dt>
-<dd><p>Gets the type associated to the breaks.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Type associated to the
-breaks.</p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>np.dtype[np.float32] | np.dtype[np.float64]</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py property">
-<dt class="sig sig-object py" id="qugar.mesh.TensorProductMesh.gdim">
-<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">gdim</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#qugar.mesh.TensorProductMesh.gdim" title="Link to this definition"></a></dt>
-<dd><p>Gets the geometrical dimension of the mesh.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Mesh’s geometrical dimension.</p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>int</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="qugar.mesh.TensorProductMesh.get_DOLFINx_global_cell_ids">
-<span class="sig-name descname"><span class="pre">get_DOLFINx_global_cell_ids</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lex_cell_ids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">int64</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">int64</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/qugar/mesh/tp_mesh.html#TensorProductMesh.get_DOLFINx_global_cell_ids"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qugar.mesh.TensorProductMesh.get_DOLFINx_global_cell_ids" title="Link to this definition"></a></dt>
-<dd><p>Transforms the given local <cite>lex_cell_ids</cite> into the corresponding global ids
-of the underlying DOLFINx mesh.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>lex_cell_ids</strong> (<em>npt.NDArray</em><em>[</em><em>np.int64</em><em>]</em>) – Cell indices to be transformed. They are lexicographical indices</p>
-</dd>
-</dl>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>All the indices in <cite>lex_cell_ids</cite> must be contained in the
-current subdomain.</p>
-</div>
-<dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Indices of the cells in the underlying DOLFINx mesh.
-These indices correspond to the global indices belonging to the
-current subdomain (process).</p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>npt.NDArray[np.int64]</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="qugar.mesh.TensorProductMesh.get_DOLFINx_local_cell_ids">
-<span class="sig-name descname"><span class="pre">get_DOLFINx_local_cell_ids</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lex_cell_ids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">int64</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">int32</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/qugar/mesh/tp_mesh.html#TensorProductMesh.get_DOLFINx_local_cell_ids"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qugar.mesh.TensorProductMesh.get_DOLFINx_local_cell_ids" title="Link to this definition"></a></dt>
-<dd><p>Transforms the given <cite>lex_cell_ids</cite> from the lexicographical tensor-product mesh
-into the corresponding local ids of the underlying DOLFINx mesh.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>lex_cell_ids</strong> (<em>npt.NDArray</em><em>[</em><em>np.int64</em><em>]</em>) – Cell indices to be transformed. They are lexicographical indices
-referred to the tensor-product mesh.</p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Indices of the cells in
-the underlying DOLFINx mesh. These indices correspond to the
-local numbering associated to the current subdomain
-(process). Note that some indices may be set to -1 in the
-case the associated input lexicographical indices are not contained
-in the subdomain. The length of the output
-array is the same as the input.</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>npt.NDArray[np.int32]</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="qugar.mesh.TensorProductMesh.get_DOLFINx_local_node_ids">
-<span class="sig-name descname"><span class="pre">get_DOLFINx_local_node_ids</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lex_node_ids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">int64</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">int32</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/qugar/mesh/tp_mesh.html#TensorProductMesh.get_DOLFINx_local_node_ids"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qugar.mesh.TensorProductMesh.get_DOLFINx_local_node_ids" title="Link to this definition"></a></dt>
-<dd><p>Transforms the given <cite>lx_node_ids</cite> from the tensor-product mesh
-into the corresponding local ids of the underlying DOLFINx mesh.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>lex_node_ids</strong> (<em>npt.NDArray</em><em>[</em><em>np.int64</em><em>]</em>) – Node indices to be transformed. They are lexicographical
-indices referred to the tensor-product mesh.</p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Indices of the nodes in
-the underlying DOLFINx mesh. These indices correspond to the
-local numbering associated to the current subdomain
-(process). Note that some indices may be set to -1 in the
-case the input indices are lexicographical and some of them
-are not contained in the subdomain. The length of the output
-array is the same as the input.</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>npt.NDArray[np.int32]</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="qugar.mesh.TensorProductMesh.get_DOLFINx_local_to_global_cell_ids">
-<span class="sig-name descname"><span class="pre">get_DOLFINx_local_to_global_cell_ids</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dlf_local_cell_ids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">int32</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">int64</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/qugar/mesh/tp_mesh.html#TensorProductMesh.get_DOLFINx_local_to_global_cell_ids"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qugar.mesh.TensorProductMesh.get_DOLFINx_local_to_global_cell_ids" title="Link to this definition"></a></dt>
-<dd><p>Transforms the given local <cite>dlf_local_cell_ids</cite> (DOLFINx) local
-cell ids into the corresponding global ones associated to the current process.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>dlf_local_cell_ids</strong> (<em>npt.NDArray</em><em>[</em><em>np.int32</em><em>]</em>) – DOLFINx local cell indices
-to be transformed.</p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Global indices of the DOLFINx cells.</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>npt.NDArray[np.int64]</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="qugar.mesh.TensorProductMesh.get_cell_facets">
-<span class="sig-name descname"><span class="pre">get_cell_facets</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dlf_local_cell_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int32</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">int32</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/qugar/mesh/tp_mesh.html#TensorProductMesh.get_cell_facets"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qugar.mesh.TensorProductMesh.get_cell_facets" title="Link to this definition"></a></dt>
-<dd><p>Extracts the facet ids of the given cell.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>dlf_local_cell_id</strong> (<em>np.int32</em>) – Id of the queried cell. It is a DOLFINx
-(local) cell id.</p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Array of DOLFINx cell facets.</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>npt.NDArray[np.int32]</p>
-</dd>
-</dl>
-</dd></dl>
-
 <dl class="py method">
 <dt class="sig sig-object py" id="qugar.mesh.TensorProductMesh.get_cell_tensor_index">
 <span class="sig-name descname"><span class="pre">get_cell_tensor_index</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dlf_local_cell_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int32</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">int32</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/qugar/mesh/tp_mesh.html#TensorProductMesh.get_cell_tensor_index"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qugar.mesh.TensorProductMesh.get_cell_tensor_index" title="Link to this definition"></a></dt>
@@ -854,30 +706,6 @@ of a given (local) DOLFINx cell index.</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>Cell tensor index</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>npt.NDArray[np.int32]</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="qugar.mesh.TensorProductMesh.get_cells_exterior_facets">
-<span class="sig-name descname"><span class="pre">get_cells_exterior_facets</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dlf_local_cell_ids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">int32</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">int32</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/qugar/mesh/tp_mesh.html#TensorProductMesh.get_cells_exterior_facets"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qugar.mesh.TensorProductMesh.get_cells_exterior_facets" title="Link to this definition"></a></dt>
-<dd><p>Extracts the exterior facets of associated to a list of
-(local) DOLFINx cell ids.</p>
-<p>The exterior facets are those that belong to one single cell
-(they are not at the interface between two cells, but on the
-mesh boundary).</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>dlf_local_cell_ids</strong> (<em>npt.NDArray</em><em>[</em><em>np.int32</em><em>] </em><em>| </em><em>np.int32</em>) – Array of cells whose exterior facets are extracted.
-They are (local to the current subdomain) DOLFINx cell
-indices.</p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Sorted unique array of exterior
-facets present in the current subdomain.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>npt.NDArray[np.int32]</p>
@@ -910,27 +738,6 @@ current subdomain.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="qugar.mesh.TensorProductMesh.get_face_DOLFINx_local_node_ids">
-<span class="sig-name descname"><span class="pre">get_face_DOLFINx_local_node_ids</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">face_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">int32</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/qugar/mesh/tp_mesh.html#TensorProductMesh.get_face_DOLFINx_local_node_ids"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qugar.mesh.TensorProductMesh.get_face_DOLFINx_local_node_ids" title="Link to this definition"></a></dt>
-<dd><p>Extracts the nodes of a given boundary face that belong to
-the subdomain of the tensor-product mesh.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>face_id</strong> (<em>int</em>) – Id of the face whose nodes are extracted.
-This id follows the lexicographical ordering.</p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Sorted unique array of local DOLFINx
-nodes of the boundary face that belong to the current subdomain
-(process).</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>npt.NDArray[np.int32]</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
 <dt class="sig sig-object py" id="qugar.mesh.TensorProductMesh.get_face_facets">
 <span class="sig-name descname"><span class="pre">get_face_facets</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">face_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">int32</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/qugar/mesh/tp_mesh.html#TensorProductMesh.get_face_facets"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qugar.mesh.TensorProductMesh.get_face_facets" title="Link to this definition"></a></dt>
 <dd><p>Extracts the facets indices of the given face of the tensor-product
@@ -949,81 +756,6 @@ current subdomain.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>npt.NDArray[np.int32]</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="qugar.mesh.TensorProductMesh.get_lexicg_cell_ids">
-<span class="sig-name descname"><span class="pre">get_lexicg_cell_ids</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dlf_local_cell_ids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">int32</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">int64</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/qugar/mesh/tp_mesh.html#TensorProductMesh.get_lexicg_cell_ids"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qugar.mesh.TensorProductMesh.get_lexicg_cell_ids" title="Link to this definition"></a></dt>
-<dd><p>Transforms given <cite>dlf_local_cell_ids</cite> into
-the tensor-product mesh numbering, that follows a lexicographical
-indexing.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>dlf_local_cell_ids</strong> (<em>npt.NDArray</em><em>[</em><em>np.int32</em><em>]</em>) – Cell indices to be transformed. They arelocal
-indices referred to the underlying DOLFINx mesh.</p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Ids of the cells in the
-tensor-product lexicographical indexing. The length of the output array
-is the same as the input.</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>npt.NDArray[np.int64]</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="qugar.mesh.TensorProductMesh.get_lexicg_node_ids">
-<span class="sig-name descname"><span class="pre">get_lexicg_node_ids</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dlf_local_node_ids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">int32</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">int64</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/qugar/mesh/tp_mesh.html#TensorProductMesh.get_lexicg_node_ids"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qugar.mesh.TensorProductMesh.get_lexicg_node_ids" title="Link to this definition"></a></dt>
-<dd><p>Transforms given <cite>dlf_local_node_ids</cite> from the (local) DOLFINx
-mesh numbering to the lexicographical (tensor-product mesh) one.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>dlf_local_node_ids</strong> (<em>npt.NDArray</em><em>[</em><em>np.int32</em><em>]</em>) – Node indices to be transformed. They are referred to the
-underlying (local) DOLFINx mesh.</p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Ids of the nodes in the
-tensor-product lexicographical indexing.</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>npt.NDArray[np.int64]</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py property">
-<dt class="sig sig-object py" id="qugar.mesh.TensorProductMesh.has_merged_nodes">
-<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">has_merged_nodes</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#qugar.mesh.TensorProductMesh.has_merged_nodes" title="Link to this definition"></a></dt>
-<dd><p>Checks if the mesh has merged nodes.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Whether the mesh has merged nodes.</p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>bool</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py property">
-<dt class="sig sig-object py" id="qugar.mesh.TensorProductMesh.merged_nodes_map">
-<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">merged_nodes_map</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">int64</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#qugar.mesh.TensorProductMesh.merged_nodes_map" title="Link to this definition"></a></dt>
-<dd><p>from original
-ids to unique ones.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Map from old to new lexicographical
-nodes.</p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>npt.NDArray[np.int64]</p>
-</dd>
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Gets the map of lexicographical merged nodes</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1057,35 +789,6 @@ nodes.</p>
 </dd></dl>
 
 <dl class="py property">
-<dt class="sig sig-object py" id="qugar.mesh.TensorProductMesh.num_global_cells">
-<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">num_global_cells</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int64</span></em><a class="headerlink" href="#qugar.mesh.TensorProductMesh.num_global_cells" title="Link to this definition"></a></dt>
-<dd><p>Gets the total (global) number of cells of the DOLFINx mesh.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Number of global cells of the DOLFINx mesh.</p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>np.int64</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py property">
-<dt class="sig sig-object py" id="qugar.mesh.TensorProductMesh.num_local_cells">
-<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">num_local_cells</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int64</span></em><a class="headerlink" href="#qugar.mesh.TensorProductMesh.num_local_cells" title="Link to this definition"></a></dt>
-<dd><p>Gets the local number of cells (associated to the current
-subdomain, i.e., MPI process).</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Number of local cells.</p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>np.int64</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py property">
 <dt class="sig sig-object py" id="qugar.mesh.TensorProductMesh.num_pts_dir">
 <em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">num_pts_dir</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">int32</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#qugar.mesh.TensorProductMesh.num_pts_dir" title="Link to this definition"></a></dt>
 <dd><p>Gets the number of points per direction in the mesh
@@ -1101,47 +804,340 @@ the mesh’s degree.</p>
 </dl>
 </dd></dl>
 
-<dl class="py property">
-<dt class="sig sig-object py" id="qugar.mesh.TensorProductMesh.tdim">
-<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">tdim</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#qugar.mesh.TensorProductMesh.tdim" title="Link to this definition"></a></dt>
-<dd><p>Gets the topological dimension of the mesh.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Mesh’s topological dimension (1, 2, or 3).</p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>int</p>
-</dd>
-</dl>
 </dd></dl>
 
-<dl class="py method">
-<dt class="sig sig-object py" id="qugar.mesh.TensorProductMesh.transform_DOLFINx_local_facet_ids_to_cells_and_local_facets">
-<span class="sig-name descname"><span class="pre">transform_DOLFINx_local_facet_ids_to_cells_and_local_facets</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dlf_local_facet_ids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">int32</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">int32</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">int32</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/qugar/mesh/tp_mesh.html#TensorProductMesh.transform_DOLFINx_local_facet_ids_to_cells_and_local_facets"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qugar.mesh.TensorProductMesh.transform_DOLFINx_local_facet_ids_to_cells_and_local_facets" title="Link to this definition"></a></dt>
-<dd><p>Given the ids of (local) DOLFINx facets, returns the DOLFINx
-cells and local facet ids corresponding to those facets.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="qugar.mesh.UnfittedCartMesh">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qugar.mesh.</span></span><span class="sig-name descname"><span class="pre">UnfittedCartMesh</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">comm:</span> <span class="pre">~mpi4py.MPI.Comm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cpp_unf_domain:</span> <span class="pre">~qugar.cpp.UnfittedDomain_2D</span> <span class="pre">|</span> <span class="pre">~qugar.cpp.UnfittedDomain_3D</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cpp_cart_grid_tp:</span> <span class="pre">~qugar.cpp.CartGridTP_2D</span> <span class="pre">|</span> <span class="pre">~qugar.cpp.CartGridTP_3D</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">degree:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ghost_mode:</span> <span class="pre">~dolfinx.cpp.mesh.GhostMode</span> <span class="pre">=</span> <span class="pre">GhostMode.none</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype:</span> <span class="pre">type[~numpy.float32</span> <span class="pre">|</span> <span class="pre">~numpy.float64]</span> <span class="pre">=</span> <span class="pre">&lt;class</span> <span class="pre">'numpy.float64'&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qugar/mesh/unfitted_cart_mesh.html#UnfittedCartMesh"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qugar.mesh.UnfittedCartMesh" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#qugar.mesh.CartesianMesh" title="qugar.mesh.tp_mesh.CartesianMesh"><code class="xref py py-class docutils literal notranslate"><span class="pre">CartesianMesh</span></code></a>, <a class="reference internal" href="#qugar.mesh.UnfittedDomain" title="qugar.mesh.unfitted_domain.UnfittedDomain"><code class="xref py py-class docutils literal notranslate"><span class="pre">UnfittedDomain</span></code></a></p>
+<p>Class for storing an unfitted Cartesian mesh domain
+and access its cut, full, and empty cells and facets.</p>
+<p>Constructor.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>Interior facets belong to more whan one cell, in those cases
-only one cell (and local facet) is returned for that
-particular facet. The one chosen depends on the way in which
-that information is stored in the mesh connectivity.</p>
+<p>This constructor is not intended to be called directly,
+but rather use the function <cite>create_Cartesian_mesh</cite>.</p>
 </div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>dlf_local_facet_ids</strong> (<em>npt.NDArray</em><em>[</em><em>np.int32</em><em>]</em>) – Array of DOLFINx facets
-(local to the current process) to be transformed.</p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p><dl>
-<dt>DOLFINx cells</dt><dd><p>and local facet ids the associated to the facets. The first
-entry of the tuple corresponds to the cells and the second
-to the the local facets.</p>
-<p>The local facets indices follow the FEniCSx convention. See
-<a class="reference external" href="https://github.com/FEniCS/basix/#supported-elements">https://github.com/FEniCS/basix/#supported-elements</a></p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>comm</strong> (<em>MPI.Comm</em>) – MPI communicator to be used for
+distributing the mesh.</p></li>
+<li><p><strong>cpp_unf_domain</strong> (<a class="reference internal" href="qugar.cpp.html#qugar.cpp.UnfittedDomain_2D" title="qugar.cpp.UnfittedDomain_2D"><em>UnfittedDomain_2D</em></a><em> | </em><a class="reference internal" href="qugar.cpp.html#qugar.cpp.UnfittedDomain_3D" title="qugar.cpp.UnfittedDomain_3D"><em>UnfittedDomain_3D</em></a>) – C++ unfitted domain object.</p></li>
+<li><p><strong>cpp_cart_grid_tp</strong> (<a class="reference internal" href="qugar.cpp.html#qugar.cpp.CartGridTP_2D" title="qugar.cpp.CartGridTP_2D"><em>CartGridTP_2D</em></a><em> | </em><a class="reference internal" href="qugar.cpp.html#qugar.cpp.CartGridTP_3D" title="qugar.cpp.CartGridTP_3D"><em>CartGridTP_3D</em></a>) – C++ Cartesian grid object.</p></li>
+<li><p><strong>degree</strong> (<em>int</em><em>, </em><em>optional</em>) – Degree of the mesh. Defaults to 1.
+It must be greater than zero.</p></li>
+<li><p><strong>ghost_mode</strong> (<em>GhostMode</em><em>, </em><em>optional</em>) – Ghost mode used for mesh
+partitioning. Defaults to <cite>none</cite>.</p></li>
+<li><p><strong>dtype</strong> (<em>type</em><em>[</em><em>np.float32</em><em> | </em><em>np.float64</em><em>]</em><em>, </em><em>optional</em>) – Type to
+be used in the grid. Defaults to <cite>np.float64</cite>.</p></li>
+</ul>
 </dd>
 </dl>
-</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="qugar.mesh.UnfittedDomain">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qugar.mesh.</span></span><span class="sig-name descname"><span class="pre">UnfittedDomain</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mesh</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Mesh</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cpp_unf_domain_object</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="qugar.cpp.html#qugar.cpp.UnfittedDomain_2D" title="qugar.cpp.UnfittedDomain_2D"><span class="pre">UnfittedDomain_2D</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="qugar.cpp.html#qugar.cpp.UnfittedDomain_3D" title="qugar.cpp.UnfittedDomain_3D"><span class="pre">UnfittedDomain_3D</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qugar/mesh/unfitted_domain.html#UnfittedDomain"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qugar.mesh.UnfittedDomain" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">UnfittedDomainABC</span></code></p>
+<p>Class for storing an unfitted domains
+and access its cut, full, and empty cells and facets,
+and create custom quadratures associated to those cells and facets.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This class is not intended to be used directly, but rather
+as a class to be inherited by other classes, such as
+<cite>UnfittedCartMesh</cite>.</p>
+</div>
+<p>Constructor.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mesh</strong> (<em>Mesh</em>) – Mesh object associated to the unfitted domain.</p></li>
+<li><p><strong>cpp_unf_domain_object</strong> (<a class="reference internal" href="qugar.cpp.html#qugar.cpp.UnfittedDomain_2D" title="qugar.cpp.UnfittedDomain_2D"><em>UnfittedDomain_2D</em></a><em> | </em><a class="reference internal" href="qugar.cpp.html#qugar.cpp.UnfittedDomain_3D" title="qugar.cpp.UnfittedDomain_3D"><em>UnfittedDomain_3D</em></a>) – Already generated unfitted domain binary object.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py property">
+<dt class="sig sig-object py" id="qugar.mesh.UnfittedDomain.cpp_unf_domain_object">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">cpp_unf_domain_object</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="qugar.cpp.html#qugar.cpp.UnfittedDomain_2D" title="qugar.cpp.UnfittedDomain_2D"><span class="pre">UnfittedDomain_2D</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="qugar.cpp.html#qugar.cpp.UnfittedDomain_3D" title="qugar.cpp.UnfittedDomain_3D"><span class="pre">UnfittedDomain_3D</span></a></em><a class="headerlink" href="#qugar.mesh.UnfittedDomain.cpp_unf_domain_object" title="Link to this definition"></a></dt>
+<dd><p>Gets the internal C++ unfitted domain.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Internal C++ unfitted domain.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="qugar.cpp.html#qugar.cpp.UnfittedDomain_2D" title="qugar.cpp.UnfittedDomain_2D">UnfittedDomain_2D</a> | <a class="reference internal" href="qugar.cpp.html#qugar.cpp.UnfittedDomain_3D" title="qugar.cpp.UnfittedDomain_3D">UnfittedDomain_3D</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qugar.mesh.UnfittedDomain.create_cell_tags">
+<span class="sig-name descname"><span class="pre">create_cell_tags</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cut_tag</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">full_tag</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">empty_tag</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unf_bdry_tag</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">int32</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/qugar/mesh/unfitted_domain.html#UnfittedDomain.create_cell_tags"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qugar.mesh.UnfittedDomain.create_cell_tags" title="Link to this definition"></a></dt>
+<dd><p>Creates a cell tags container to identify the cut, full,
+empty, and/or cells containing unfitted boundaries.</p>
+<p>These tags can be used to prescribe the <cite>subdomain_data</cite> to which
+integration measure apply. E.g., <cite>ufl.dx(subdomain_data=cell_tags)</cite>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Full cells that contain unfitted boundaries are considered as full.
+Those cells can be explicitly tagged with the <cite>unf_bdry_tag</cite> tag.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>A DOFLINX mesh tag object could be generated in a straightforward manner
+from the information returned by this function. However, be aware
+that if you include both the cells associated to cut or full cells, and the
+ones that contain unfitted boundaries, the generated set of cells will not
+be unique (breaking the DOLFINx mesh tags object requisites).</p>
+</div>
+<p>If the tag for <cite>cut</cite>, <cite>full</cite>, <cite>empty</cite>, or <cite>unf_bdry_tag</cite> tags are not provided
+(they are set to <cite>None</cite>), those cells will not be included in the generated cell tags.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cut_tag</strong> (<em>Optional</em><em>[</em><em>int</em><em>]</em>) – Tag to assign to cut cells. Defaults to None.</p></li>
+<li><p><strong>full_tag</strong> (<em>Optional</em><em>[</em><em>int</em><em>]</em>) – Tag to assign to full cells. Defaults to None.</p></li>
+<li><p><strong>empty_tag</strong> (<em>Optional</em><em>[</em><em>int</em><em>]</em>) – Tag to assign to empty cells. Defaults to None.</p></li>
+<li><p><strong>unf_bdry_tag</strong> (<em>Optional</em><em>[</em><em>int</em><em>]</em>) – Tag to assign to cells containing
+unfitted boundaries. In general, these cells will coincide with
+the cut cells. However, in some cases, we may have full cells
+that also contain unfitted boundaries on their facets. Those
+full cells are also considered as unfitted boundary cells in
+the case the unfitted boundary does not lay on exterior facets.
+Defaults to None.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Generated cells tags.
+It is a list where each entry is a tuple with a tag (identifier) and an array
+of cell ids.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list[tuple[int, npt.NDArray[np.int32]]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qugar.mesh.UnfittedDomain.create_facet_tags">
+<span class="sig-name descname"><span class="pre">create_facet_tags</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cut_tag</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">full_tag</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">empty_tag</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exterior</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">int32</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/qugar/mesh/unfitted_domain.html#UnfittedDomain.create_facet_tags"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qugar.mesh.UnfittedDomain.create_facet_tags" title="Link to this definition"></a></dt>
+<dd><p>Creates a facet tags container to identify the cut, full,
+and/or empty cells.</p>
+<p>These tags can be used to prescribe the <cite>subdomain_data</cite> to which
+integration measure apply. E.g., <cite>ufl.ds(subdomain_data=cell_tags)</cite>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>A DOFLINX mesh tag object could be generated in a straightforward manner
+from the information returned by this function. However, be aware
+that in the information returned by this function, the information
+for the interior facets is duplicated (provided information for the
+positive and negative sides of the facet).</p>
+</div>
+<p>If the tag for cut, full, or empty tags are not provided, those
+facets will not be included in the list.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cut_tag</strong> (<em>Optional</em><em>[</em><em>int</em><em>]</em>) – Tag to assign to cut facets. Defaults to None.</p></li>
+<li><p><strong>full_tag</strong> (<em>Optional</em><em>[</em><em>int</em><em>]</em>) – Tag to assign to full facets. Defaults to None.</p></li>
+<li><p><strong>empty_tag</strong> (<em>Optional</em><em>[</em><em>int</em><em>]</em>) – Tag to assign to empty facets. Defaults to None.</p></li>
+<li><p><strong>exterior</strong> (<em>bool</em>) – If <cite>True</cite>, the exterior facets are considered.
+Otherwise, the interior ones. Check the documentation of
+<cite>get_cut_facets</cite>, <cite>get_full_facets</cite>, and <cite>get_empty_facets</cite>
+methods for more information about the implications of
+considering interior or exterior facets.
+Defaults to True.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Generated facet tags.
+It is a list where is entry is a tuple with a tag (identifier) and an array
+of facets. The array of facets is made of consecutive pairs of cells and
+local face ids.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list[tuple[int, npt.NDArray[np.int32]]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qugar.mesh.UnfittedDomain.create_quad_custom_cells">
+<span class="sig-name descname"><span class="pre">create_quad_custom_cells</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">degree</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dlf_cells</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">int32</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="qugar.quad.html#qugar.quad.CustomQuad" title="qugar.quad.custom_quad.CustomQuad"><span class="pre">CustomQuad</span></a></span></span><a class="reference internal" href="../_modules/qugar/mesh/unfitted_domain.html#UnfittedDomain.create_quad_custom_cells"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qugar.mesh.UnfittedDomain.create_quad_custom_cells" title="Link to this definition"></a></dt>
+<dd><p>Returns the custom quadratures for the given <cite>dlf_cells</cite>.</p>
+<p>For empty cells, no quadrature is generated and will have 0 points
+associated to them. For full cells, the quadrature will be the
+standard one associated to the cell type. While for
+cut cells a custom quadrature for the cell’s interior will be
+generated.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This call may require the generation of the quadratures on
+the fly, what can be potentially expensive.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>degree</strong> (<em>int</em>) – Expected degree of exactness of the quadrature
+to be generated.</p></li>
+<li><p><strong>dlf_cells</strong> (<em>npt.NDArray</em><em>[</em><em>np.int32</em><em>]</em>) – Array of DOLFINx cell ids
+(local to current MPI process) for which quadratures
+will be generated.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Generated custom quadrature.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>CustomQuadInterface</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qugar.mesh.UnfittedDomain.create_quad_custom_facets">
+<span class="sig-name descname"><span class="pre">create_quad_custom_facets</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">degree</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dlf_cells</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">int32</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dlf_local_faces</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">int32</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exterior</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="qugar.quad.html#qugar.quad.CustomQuadFacet" title="qugar.quad.custom_quad.CustomQuadFacet"><span class="pre">CustomQuadFacet</span></a></span></span><a class="reference internal" href="../_modules/qugar/mesh/unfitted_domain.html#UnfittedDomain.create_quad_custom_facets"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qugar.mesh.UnfittedDomain.create_quad_custom_facets" title="Link to this definition"></a></dt>
+<dd><p>Returns the custom quadratures for the given facets.</p>
+<p>For empty facets, no quadrature is generated and will have 0 points
+associated to them. For full facets, the quadrature will be the
+standard one associated to the facet type. While for
+cut facets a custom quadrature for the facet’s interior will be
+generated.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Some unfitted boundary parts may lay over facets.
+This function generates quadrature for those parts if they correspond
+to interior facets. For the case of exterior facets,
+the corresponding quadratures will be included in the
+quadrature generated with the method <cite>create_quad_unf_boundaries</cite>.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This call may require the generation of the quadratures on
+the fly, what can be potentially expensive.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>degree</strong> (<em>int</em>) – Expected degree of exactness of the quadrature
+to be generated.</p></li>
+<li><p><strong>dlf_cells</strong> (<em>npt.NDArray</em><em>[</em><em>np.int32</em><em>]</em>) – Array of DOLFINx cell ids
+(local to current MPI process) for which quadratures
+will be generated. Beyond a cell id, for indentifying
+a facet, a local facet id (from the array
+<cite>local_faces</cite>) is also needed.</p></li>
+<li><p><strong>dlf_local_faces</strong> (<em>npt.NDArray</em><em>[</em><em>np.int32</em><em>]</em>) – Array of local face
+ids for which the custom quadratures are generated. Each
+facet is identified through a value in <cite>cells</cite> and a
+value in <cite>local_faces</cite>, having both arrays the same
+length. The numbering of these facets follows the
+FEniCSx convention. See
+<a class="reference external" href="https://github.com/FEniCS/basix/#supported-elements">https://github.com/FEniCS/basix/#supported-elements</a></p></li>
+<li><p><strong>exterior</strong> (<em>bool</em>) – If <cite>True</cite> the quadratures will be generated
+considering the given facets as exterior facets.
+Otherwise, as interior.
+See the documentation of <cite>get_cut_facets</cite>,
+<cite>get_full_facets</cite>, and <cite>get_empty_facets</cite> methods
+for more information about the implications of considering
+interior or exterior facets.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Generated custom facet
+quadratures.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>CustomQuadFacetInterface</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qugar.mesh.UnfittedDomain.create_quad_unf_boundaries">
+<span class="sig-name descname"><span class="pre">create_quad_unf_boundaries</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">degree</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dlf_cells</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">int32</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="qugar.quad.html#qugar.quad.CustomQuadUnfBoundary" title="qugar.quad.custom_quad.CustomQuadUnfBoundary"><span class="pre">CustomQuadUnfBoundary</span></a></span></span><a class="reference internal" href="../_modules/qugar/mesh/unfitted_domain.html#UnfittedDomain.create_quad_unf_boundaries"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qugar.mesh.UnfittedDomain.create_quad_unf_boundaries" title="Link to this definition"></a></dt>
+<dd><p>Returns the custom quadrature for unfitted boundaries for the
+given <cite>cells</cite>.</p>
+<p>For cells not containing unfitted boundaries,
+no quadrature is generated and will have 0 points associated to
+them. While for cells containing unfitted boundaries (see
+<cite>get_unf_bdry_cells</cite>), a custom quadrature for the unfitted
+boundary will be generated.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Some unfitted boundary parts may lay over facets.
+This function generates quadrature for those parts if they correspond
+to exterior facets. For the case of interior facets,
+the corresponding quadratures will be included in the
+quadrature generated with the method <cite>create_quad_custom_facets</cite>.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This call may require the generation of the quadratures on
+the fly, what can be potentially expensive.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>degree</strong> (<em>int</em>) – Expected degree of exactness of the quadrature
+to be generated.</p></li>
+<li><p><strong>dlf_cells</strong> (<em>npt.NDArray</em><em>[</em><em>np.int32</em><em>]</em>) – Array of DOLFINx cell ids
+(local to current MPI process) for which quadratures
+will be generated.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Generated custom quadrature
+for unfitted boundaries.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>CustomQuadUnfBoundaryInterface</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qugar.mesh.UnfittedDomain.get_cut_cells">
+<span class="sig-name descname"><span class="pre">get_cut_cells</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">int32</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/qugar/mesh/unfitted_domain.html#UnfittedDomain.get_cut_cells"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qugar.mesh.UnfittedDomain.get_cut_cells" title="Link to this definition"></a></dt>
+<dd><p>Gets the ids of the cut cells.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Array of cut cells associated to the
+current process following the DOLFINx local numbering.
+The cell ids are sorted.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>npt.NDArray[np.int32]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qugar.mesh.UnfittedDomain.get_cut_facets">
+<span class="sig-name descname"><span class="pre">get_cut_facets</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">exterior</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">int32</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">int32</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/qugar/mesh/unfitted_domain.html#UnfittedDomain.get_cut_facets"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qugar.mesh.UnfittedDomain.get_cut_facets" title="Link to this definition"></a></dt>
+<dd><p>Gets the cut facets as DOLFINx cells and local facet ids</p>
+<p>The list of facets will be filtered to only exterior or interior
+facets according to the argument <cite>exterior</cite>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The selection of cut facets is performed differently depending
+on whether exterior or interior facets are considered.
+For interior facets, simply facets that containg cut parts
+are considered. While for exterior facets, on top of those
+cut facets, facets that contain unfitted boundaries are also
+considered as cut facets, but only if the unfitted boundary
+does not correspond to a full facet.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>exterior</strong> (<em>bool</em>) – If <cite>True</cite>, the exterior facets are considered.
+Otherwise, the interior ones. Defaults to True.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Cut facets. The facets are returned as one array of
+cells and another one of local facets referred to those
+cells both with the same length and both following (local) DOLFINx ordering.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]</p>
@@ -1150,25 +1146,45 @@ to the the local facets.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="qugar.mesh.TensorProductMesh.transform_DOLFINx_local_facet_ids_to_lexicg">
-<span class="sig-name descname"><span class="pre">transform_DOLFINx_local_facet_ids_to_lexicg</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dlf_local_cell_ids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">int32</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dlf_local_facet_ids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">int32</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">int64</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">int32</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/qugar/mesh/tp_mesh.html#TensorProductMesh.transform_DOLFINx_local_facet_ids_to_lexicg"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qugar.mesh.TensorProductMesh.transform_DOLFINx_local_facet_ids_to_lexicg" title="Link to this definition"></a></dt>
-<dd><p>Transforms the given local DOLFINx facets indices to
-either lexicographical numbering (both for cells and local facet ids).</p>
+<dt class="sig sig-object py" id="qugar.mesh.UnfittedDomain.get_empty_cells">
+<span class="sig-name descname"><span class="pre">get_empty_cells</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">int32</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/qugar/mesh/unfitted_domain.html#UnfittedDomain.get_empty_cells"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qugar.mesh.UnfittedDomain.get_empty_cells" title="Link to this definition"></a></dt>
+<dd><p>Gets the ids of the empty cells.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Array of empty cells associated to the
+current process following the DOLFINx local numbering.
+The cell ids are sorted.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>npt.NDArray[np.int32]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qugar.mesh.UnfittedDomain.get_empty_facets">
+<span class="sig-name descname"><span class="pre">get_empty_facets</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">exterior</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">int32</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">int32</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/qugar/mesh/unfitted_domain.html#UnfittedDomain.get_empty_facets"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qugar.mesh.UnfittedDomain.get_empty_facets" title="Link to this definition"></a></dt>
+<dd><p>Gets the empty facets as DOLFINx cells and local facet ids</p>
+<p>The list of facets will be filtered to only exterior or interior
+facets according to the argument <cite>exterior</cite>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The selection of empty facets is performed differently depending
+on whether exterior or interior facets are considered.
+For exterior facets we only consider empty facets that do
+not touch the domain. While for interior facets, we consider
+empty facets that are completely outside of the domain, but
+also those that only touch its boundary.</p>
+</div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>dlf_local_cell_ids</strong> (<em>npt.NDArray</em><em>[</em><em>np.int32</em><em>]</em>) – Indices of the facets
-following the DOLFINx local ordering.</p></li>
-<li><p><strong>dlf_local_facet_ids</strong> (<em>npt.NDArray</em><em>[</em><em>np.int32</em><em>]</em>) – Local indices of the
-facets referred to <cite>dlf_local_cell_ids</cite> (both arrays should have
-the same length). The face ids follow the
-DOLFINx ordering.</p></li>
-</ul>
+<dd class="field-odd"><p><strong>exterior</strong> (<em>bool</em>) – If <cite>True</cite>, the exterior facets are considered.
+Otherwise, the interior ones. Defaults to True.</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Transformed facets returned as one array of cells and another
-one of local facets referred to those cells. The indices of the cells
-and local facets follow the DOLFINx (local) numbering.</p>
+<dd class="field-even"><p>Empty facets. The facets are returned as one array of
+cells and another one of local facets referred to those
+cells both with the same length and both following (local) DOLFINx ordering.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]</p>
@@ -1177,29 +1193,123 @@ and local facets follow the DOLFINx (local) numbering.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="qugar.mesh.TensorProductMesh.transform_lexicg_facet_ids_to_DOLFINx_local">
-<span class="sig-name descname"><span class="pre">transform_lexicg_facet_ids_to_DOLFINx_local</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lex_cell_ids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">int64</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lex_facet_ids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">int32</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">int32</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">int32</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/qugar/mesh/tp_mesh.html#TensorProductMesh.transform_lexicg_facet_ids_to_DOLFINx_local"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qugar.mesh.TensorProductMesh.transform_lexicg_facet_ids_to_DOLFINx_local" title="Link to this definition"></a></dt>
-<dd><p>Transforms the given lexicographical facets indices to
-DOLFINx local numbering (otherwise)</p>
+<dt class="sig sig-object py" id="qugar.mesh.UnfittedDomain.get_full_cells">
+<span class="sig-name descname"><span class="pre">get_full_cells</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">int32</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/qugar/mesh/unfitted_domain.html#UnfittedDomain.get_full_cells"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qugar.mesh.UnfittedDomain.get_full_cells" title="Link to this definition"></a></dt>
+<dd><p>Gets the ids of the full cells.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>We also consider as full the full cells that contain
+unfitted boundaries on their facets.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Array of full cells associated to the
+current process following the DOLFINx local numbering.
+The cell ids are sorted.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>npt.NDArray[np.int32]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qugar.mesh.UnfittedDomain.get_full_facets">
+<span class="sig-name descname"><span class="pre">get_full_facets</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">exterior</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">int32</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">int32</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/qugar/mesh/unfitted_domain.html#UnfittedDomain.get_full_facets"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qugar.mesh.UnfittedDomain.get_full_facets" title="Link to this definition"></a></dt>
+<dd><p>Gets the full facets as DOLFINx cells and local facet ids</p>
+<p>The list of facets will be filtered to only exterior or interior
+facets according to the argument <cite>exterior</cite>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The selection of full facets is performed differently depending
+on whether exterior or interior facets are considered.
+For interior facets, simply facets that are fully inside
+the domain (not touching the boundary) are considered.
+While for exterior facets, we consider those that are fully
+contained in the domain’s boundary, including the ones
+corresponding to unfitted boundaries, if the facet is full.</p>
+</div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>lex_cell_ids</strong> (<em>npt.NDArray</em><em>[</em><em>np.int64</em><em>]</em>) – Indices of the facets
-following the lexicographical ordering. All the cell
-indices must be associated to the current process.</p></li>
-<li><p><strong>lex_facet_ids</strong> (<em>npt.NDArray</em><em>[</em><em>np.int32</em><em>]</em>) – Local indices of the
-facets referred to <cite>lex_cell_ids</cite> (both arrays should have
-the same length). The face ids follow the
-lexicographical ordering.</p></li>
-</ul>
+<dd class="field-odd"><p><strong>exterior</strong> (<em>bool</em>) – If <cite>True</cite>, the exterior facets are considered.
+Otherwise, the interior ones. Defaults to True.</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Transformed facets returned as one array of cells and another
-one of local facets referred to those cells. The indices of the cells
-and local facets follow the DOLFINx local numbering.</p>
+<dd class="field-even"><p>Full facets. The facets are returned as one array of
+cells and another one of local facets referred to those
+cells both with the same length and both following (local) DOLFINx ordering.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qugar.mesh.UnfittedDomain.get_num_Gauss_points">
+<em class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_num_Gauss_points</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">degree</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="reference internal" href="../_modules/qugar/mesh/unfitted_domain.html#UnfittedDomain.get_num_Gauss_points"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qugar.mesh.UnfittedDomain.get_num_Gauss_points" title="Link to this definition"></a></dt>
+<dd><p>Returns the number of points per direction to be used
+for a given degree of exactness.</p>
+<p>It computes the number of points assuming the Gauss-Legendre quadrature.
+The degree of exactness is 2 times the number of points plues one.</p>
+<p>It does not consider the map of of the quadrature tile.
+A slightly higher number of points/degree may be needed.
+See the Appendix of the following paper for more details:</p>
+<dl class="simple">
+<dt>Antolin, P., Wei, X. and Buffa, A., 2022. Robust numerical integration on curved</dt><dd><p>polyhedra based on folded decompositions.
+Computer Methods in Applied Mechanics and Engineering, 395, p.114948.</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>degree</strong> (<em>int</em>) – Expected degree of exactness of the quadrature.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Number of quadrature points per direction for every quadrature tile.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qugar.mesh.UnfittedDomain.get_unf_bdry_cells">
+<span class="sig-name descname"><span class="pre">get_unf_bdry_cells</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">int32</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/qugar/mesh/unfitted_domain.html#UnfittedDomain.get_unf_bdry_cells"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qugar.mesh.UnfittedDomain.get_unf_bdry_cells" title="Link to this definition"></a></dt>
+<dd><p>Gets the ids of the cells that contain unfitted boundaries.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>All the cut cells (see <cite>get_cut_cells</cite>) have unfitted
+boundaries, but in some particular cases, we may have full
+cells that also contain unfitted boundaries on their boundary.
+Those full cells are also considered as unfitted boundary
+cells in the case the unfitted boundary does not lay on
+exterior facets.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Array of cells containing unfitted
+boundaries, associated to the current process following the
+DOLFINx local numbering. The cell ids are sorted.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>npt.NDArray[np.int32]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qugar.mesh.UnfittedDomain.has_full_cells_with_unf_bdry">
+<span class="sig-name descname"><span class="pre">has_full_cells_with_unf_bdry</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="../_modules/qugar/mesh/unfitted_domain.html#UnfittedDomain.has_full_cells_with_unf_bdry"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qugar.mesh.UnfittedDomain.has_full_cells_with_unf_bdry" title="Link to this definition"></a></dt>
+<dd><p>Checks if the unfitted domain has full cells with unfitted
+boundaries.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><cite>True</cite> if the unfitted domain has full cells with
+unfitted boundaries, <cite>False</cite> otherwise.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>bool</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1354,6 +1464,38 @@ facet, the facet id can be accessed as
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>npt.NDArray[np.int32]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="qugar.mesh.create_unfitted_impl_Cartesian_mesh">
+<span class="sig-prename descclassname"><span class="pre">qugar.mesh.</span></span><span class="sig-name descname"><span class="pre">create_unfitted_impl_Cartesian_mesh</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">comm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Comm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">impl_func</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="qugar.impl.html#qugar.impl.ImplicitFunc" title="qugar.impl.impl_function.ImplicitFunc"><span class="pre">ImplicitFunc</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_cells</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">int32</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">int32</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xmin</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">float32</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float64</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xmax</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">float32</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float64</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">degree</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ghost_mode</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">GhostMode</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">GhostMode.none</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#qugar.mesh.UnfittedCartMesh" title="qugar.mesh.unfitted_cart_mesh.UnfittedCartMesh"><span class="pre">UnfittedCartMesh</span></a></span></span><a class="reference internal" href="../_modules/qugar/mesh/unfitted_cart_mesh.html#create_unfitted_impl_Cartesian_mesh"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qugar.mesh.create_unfitted_impl_Cartesian_mesh" title="Link to this definition"></a></dt>
+<dd><p>Creates an uniftted Cartesian mesh generated with a bounding box and the number of
+cells per direction, and an implicit function describing the domain</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>comm</strong> – MPI communicator to be used for distributing the mesh.</p></li>
+<li><p><strong>impl_func</strong> (<a class="reference internal" href="qugar.cpp.html#qugar.cpp.ImplicitFunc_2D" title="qugar.cpp.ImplicitFunc_2D"><em>ImplicitFunc_2D</em></a><em> | </em><a class="reference internal" href="qugar.cpp.html#qugar.cpp.ImplicitFunc_3D" title="qugar.cpp.ImplicitFunc_3D"><em>ImplicitFunc_3D</em></a>) – Implicit function
+that describes the domain.</p></li>
+<li><p><strong>n_cells</strong> (<em>npt.NDArray</em><em>[</em><em>np.int32</em><em>] </em><em>| </em><em>list</em><em>[</em><em>np.int32</em><em>] </em><em>| </em><em>list</em><em>[</em><em>int</em><em>]</em>) – Number of cells per direction in the mesh.</p></li>
+<li><p><strong>xmin</strong> (<em>Optional</em><em>[</em><em>npt.NDArray</em><em>[</em><em>np.float32</em><em> | </em><em>np.float64</em><em>]</em><em>]</em>) – Minimum
+coordinates of the mesh’s bounding box. Defaults to a vector
+of zeros with double floating precision.</p></li>
+<li><p><strong>xmax</strong> (<em>Optional</em><em>[</em><em>npt.NDArray</em><em>[</em><em>np.float32</em><em> | </em><em>np.float64</em><em>]</em><em>]</em>) – Maximum
+coordinates of the mesh’s bounding box. Defaults to a vector
+of ones with double floating precision.</p></li>
+<li><p><strong>degree</strong> (<em>int</em><em>, </em><em>optional</em>) – Degree of the mesh. Defaults to 1.</p></li>
+<li><p><strong>ghost_mode</strong> (<em>GhostMode</em><em>, </em><em>optional</em>) – Ghost mode used for mesh
+partitioning. Defaults to <cite>none</cite>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Generated unfitted Cartesian mesh.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#qugar.mesh.UnfittedCartMesh" title="qugar.mesh.UnfittedCartMesh">UnfittedCartMesh</a></p>
 </dd>
 </dl>
 </dd></dl>

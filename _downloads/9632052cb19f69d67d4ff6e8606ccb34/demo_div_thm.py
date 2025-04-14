@@ -14,7 +14,7 @@
 # illustrates:
 #
 # - The basic concepts of unfitted domain discretizations.
-# - How to create an {py:class}`unfitted implicit domain <qugar.impl.UnfittedImplDomain>`
+# - How to create an {py:class}`unfitted Cartesian mesh<qugar.mesh.UnfittedCartMesh>`
 #   described by an {py:class}`implicit function <qugar.impl.ImplicitFunc>`.
 # - How to compute integrals inside the unfitted domain and on its boundary using [FEniCSx](https://fenicsproject.org).
 #
@@ -77,17 +77,17 @@
 # \end{align}
 # $$
 #
-# The integrals over the full elements in $\mathcal{T}_{\text{full}}$ are computed
+# The integrals over the full cells in $\mathcal{T}_{\text{full}}$ are computed
 # using DOLFINx standard capabilities. However, the integrals over the active part
-# of the cut elements ($\tau\cap\Omega,\,\forall\tau\in\mathcal{T}_{\text{cut}}$) will be computed
+# of the cut cells ($\tau\cap\Omega,\,\forall\tau\in\mathcal{T}_{\text{cut}}$) will be computed
 # using QUGaR generated quadratures in combination with new custom forms that allow DOLFINx to use
 # quadrature rules defined at runtime.
 #
 # Regarding the right-hand-side of the divergence theorem, for computing the surface integral
 # we must consider that the boundary $\Gamma$ is composed of two parts as
-# $\Gamma=\Gamma_{\text{ext}}\cup\Gamma_{\text{int}}$, where
+# $\Gamma=\Gamma_{\text{ext}}\cup\Gamma_{\text{unf}}$, where
 # $\Gamma_{\text{ext}}=\Gamma\cap\partial\Omega^\ast$ and
-# $\Gamma_{\text{int}}=\Gamma\setminus\partial\Omega^\ast$
+# $\Gamma_{\text{unf}}=\Gamma\setminus\partial\Omega^\ast$
 #
 # The boundary $\Gamma_{\text{ext}}$ is discretized through a subset of external facets
 # (those that belong to a single cell) of the mesh $\mathcal{T}$ (that we denote as $\mathcal{F}$).
@@ -103,9 +103,11 @@
 # - $\mathcal{F}_{\text{full}} =\left\lbrace\zeta\in\mathcal{F}:
 #   \zeta\cap\Gamma=\zeta\right\rbrace$
 #
-# For computing the integral over $\Gamma_{\text{int}}$, the part of the $\Gamma$
-# that is immersed in the mesh $\mathcal{T}$ but does not intersect $\mathcal{F}$,
-# we will special quadrature rules defined over the cut cells $\mathcal{T}_{\text{cut}}$.
+# For computing the integral over $\Gamma_{\text{unf}}$, the part of the $\Gamma$
+# that is immersed (unfitted) in the mesh $\mathcal{T}$ but does not intersect $\mathcal{F}$,
+# we will use special quadrature rules defined over the cut cells $\mathcal{T}_{\text{cut}}$
+# (in some corner cases they may correspond to the boundary of full cells
+# $\mathcal{T}_{\text{cut}}$).
 #
 # Thus, the surface integral of the divergence theorem will be approximated as
 #
@@ -115,7 +117,7 @@
 # \sum_{\zeta\in\mathcal{F}_{\scriptsize\mbox{full}}}\int_{\zeta} \textbf{F} \cdot \textbf{n}
 # {\rm d} s + \sum_{\zeta\in\mathcal{F}_{\scriptsize\mbox{cut}}}\int_{\zeta\cap\mathcal{F}}
 # \textbf{F} \cdot \textbf{n}  {\rm d} s
-# + \sum_{\tau\in\mathcal{T}_{\scriptsize\mbox{cut}}}\int_{\tau\cap\Gamma_{\text{int}}}
+# + \sum_{\tau\in\mathcal{T}_{\scriptsize\mbox{cut}}}\int_{\tau\cap\Gamma_{\text{unf}}}
 # \textbf{F} \cdot \textbf{n}  {\rm d} s
 # \end{align}
 # $$
@@ -156,11 +158,9 @@ import numpy as np
 import ufl
 
 import qugar
-import qugar.cpp
 import qugar.impl
 from qugar.dolfinx import CustomForm, dx_bdry_unf, form_custom, mapped_normal
-from qugar.mesh import create_Cartesian_mesh
-from qugar.quad import create_quadrature_generator
+from qugar.mesh import create_unfitted_impl_Cartesian_mesh
 
 # -
 
@@ -192,30 +192,23 @@ print(f"{name.capitalize()} - divergence theorem verification")
 
 # Other possible geometries can be check in the [Implicit functions demo](demo_impl_funcs.md).
 
-# We create a {py:class}`Cartesian mesh<qugar.mesh.CartesianMesh>`
-# (corresponding to $\mathcal{T}$) in which we will embbed the domain $\Omega$,
+# We create an {py:class}`unfitted Cartesian mesh<qugar.mesh.UnfittedCartMesh>`
+# (corresponding to $\mathcal{T}$) in which we embed the domain $\Omega$,
 
 dim = impl_func.dim
 n_cells = [16] * dim
 # xmin and xmax define the domain $\Omega^\ast$
 xmin = np.zeros(dim, dtype)
 xmax = np.ones(dim, dtype)
-cart_mesh = create_Cartesian_mesh(
-    MPI.COMM_WORLD,
-    n_cells,
-    xmin,
-    xmax,
-)
+comm = MPI.COMM_WORLD
 
-# and then we create an unfitted domain that stores the partition
-# $\mathcal{T}=\mathcal{T}_{\text{cut}}\cup\mathcal{T}_{\text{full}}\cup\mathcal{T}_{\text{empty}}$.
+unf_mesh = create_unfitted_impl_Cartesian_mesh(comm, impl_func, n_cells, xmin, xmax)
 
-unf_domain = qugar.impl.create_unfitted_impl_domain(impl_func, cart_mesh)
 
 # We create the vector function $\mathbf{F}$ and its divergence.
 
 # +
-x = ufl.SpatialCoordinate(cart_mesh)
+x = ufl.SpatialCoordinate(unf_mesh)
 if dim == 2:
     F = ufl.as_vector([ufl.sin(x[0]), ufl.cos(x[1])])  # type: ignore
 else:
@@ -226,61 +219,59 @@ div_F = ufl.div(F)
 
 # In order to be able to integrate over the different families of cells and facets,
 # we create tags for the cut and full cells and facets using QUGaR built-in functions.
+# We also define tags for the cells containing unfitted boundaries (that in this
+# case correspond to the cut cells).
 
-cell_subdomain_data = unf_domain.create_cell_subdomain_data(cut_tag=0, full_tag=1)
-facet_tags = unf_domain.create_exterior_facet_subdomain_data(cut_tag=0, full_tag=0, unf_bdry_tag=0)
-
-# Note that the same tag can be used for two different families of cells or facets.
+cell_tags = unf_mesh.create_cell_tags(cut_tag=0, full_tag=0, unf_bdry_tag=1)
+facet_tags = unf_mesh.create_facet_tags(cut_tag=0, full_tag=0, exterior=True)
 
 
 # For computing volumetric integrals, we use standard UFL measures with the
 # defined cell tags.
 
 dx = ufl.dx(
-    subdomain_id=(0, 1),
-    domain=cart_mesh,
-    subdomain_data=cell_subdomain_data,
+    subdomain_id=0,
+    domain=unf_mesh,
+    subdomain_data=cell_tags,
 )
 ufl_form_vol = div_F * dx
 
 # While in the case of the surface integrals, the procedure is twofold:
-# for $\Gamma_{\text{int}}$ we use the
+# for $\Gamma_{\text{unf}}$ we use the
 # {py:class}`dx_bdry_unf<qugar.dolfinx.dx_bdry_unf>` measure introduced in QUGaR
 # (note that we integrate over the cut cells only)
 
-ds_int = dx_bdry_unf(subdomain_id=0, domain=cart_mesh, subdomain_data=cell_subdomain_data)
+ds_unf = dx_bdry_unf(subdomain_id=1, domain=unf_mesh, subdomain_data=cell_tags)
 
 # and the standard UFL external facet measure for (both parts of) $\Gamma_{\text{ext}}$.
 
-ds = ufl.ds(subdomain_id=0, domain=cart_mesh, subdomain_data=facet_tags)
+ds = ufl.ds(subdomain_id=0, domain=unf_mesh, subdomain_data=facet_tags)
 
-# In the same way, the unit outward normal vector at the boundary $\Gamma_{\text{int}}$  requires
+# In the same way, the unit outward normal vector at the boundary $\Gamma_{\text{unf}}$  requires
 # the {py:class}`mapped_normal<qugar.dolfinx.mapped_normal>` function introduced in QUGaR.
 
-bound_normal = mapped_normal(cart_mesh)
+bound_normal = mapped_normal(unf_mesh)
 
 # while the normal at the external facets is defined using the standard UFL function.
 
-facet_normal = ufl.FacetNormal(cart_mesh)
+facet_normal = ufl.FacetNormal(unf_mesh)
 
 # Using these measures and normals we define the integrals over the surface as
 
-ufl_form_srf = ufl.inner(F, bound_normal) * ds_int + ufl.inner(F, facet_normal) * ds
+ufl_form_srf = ufl.inner(F, bound_normal) * ds_unf + ufl.inner(F, facet_normal) * ds
 
 # Finally, we create the DOLFINx forms for the volumetric and surface integrals
 # using the {py:class}`form_custom<qugar.dolfinx.form_custom>` functionality from QUGaR
 
-form_vol = cast(CustomForm, form_custom(ufl_form_vol, dtype=dtype))
-form_srf = cast(CustomForm, form_custom(ufl_form_srf, dtype=dtype))
+form_vol = cast(CustomForm, form_custom(ufl_form_vol, unf_mesh, dtype=dtype))
+form_srf = cast(CustomForm, form_custom(ufl_form_srf, unf_mesh, dtype=dtype))
 
 # and assemble them using the custom quadrature rules generated by QUGaR
 # and fed to DOLFINx at runtime through the coefficients.
 
 # +
-quad_gen = create_quadrature_generator(unf_domain)
-
-vol_intgr = dolfinx.fem.assemble_scalar(form_vol, coeffs=form_vol.pack_coefficients(quad_gen))
-srf_intgr = dolfinx.fem.assemble_scalar(form_srf, coeffs=form_srf.pack_coefficients(quad_gen))
+vol_intgr = dolfinx.fem.assemble_scalar(form_vol, coeffs=form_vol.pack_coefficients())
+srf_intgr = dolfinx.fem.assemble_scalar(form_srf, coeffs=form_srf.pack_coefficients())
 # -
 
 # Finally, we compare both integrals

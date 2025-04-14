@@ -228,23 +228,28 @@ Enumerations</h2></td></tr>
 <tr class="memitem:a8d29996537c43e2b4e3773030bcf1eef" id="r_a8d29996537c43e2b4e3773030bcf1eef"><td class="memItemLeft" align="right" valign="top">enum class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a8d29996537c43e2b4e3773030bcf1eef">ImmersedCellStatus</a> : std::uint8_t { <a class="el" href="#a8d29996537c43e2b4e3773030bcf1eefafe47aa7c733c490d36e80508d5dc4019">cut</a>
 , <a class="el" href="#a8d29996537c43e2b4e3773030bcf1eefae9dc924f238fa6cc29465942875fe8f0">full</a>
 , <a class="el" href="#a8d29996537c43e2b4e3773030bcf1eefaa2e4822a98337283e39f7b60acf85ec9">empty</a>
+, <a class="el" href="#a8d29996537c43e2b4e3773030bcf1eefaad921d60486366258809553a3db49a4a">unknown</a>
  }</td></tr>
 <tr class="separator:a8d29996537c43e2b4e3773030bcf1eef"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:ad445be012c036b0ba21f2ea3ef1d4b2a" id="r_ad445be012c036b0ba21f2ea3ef1d4b2a"><td class="memTemplParams" colspan="2">template&lt;int dim&gt; </td></tr>
-<tr class="memitem:ad445be012c036b0ba21f2ea3ef1d4b2a"><td class="memTemplItemLeft" align="right" valign="top">std::shared_ptr&lt; const <a class="el" href="../../d8/dd5/structqugar_1_1CutCellsQuad.html">CutCellsQuad</a>&lt; dim &gt; &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#ad445be012c036b0ba21f2ea3ef1d4b2a">create_quadrature</a> (const <a class="el" href="../../df/d58/classqugar_1_1UnfittedDomain.html">UnfittedDomain</a>&lt; dim &gt; &amp;unf_domain, const std::vector&lt; std::int64_t &gt; &amp;cells, int n_pts_dir, bool full_cells)</td></tr>
-<tr class="separator:ad445be012c036b0ba21f2ea3ef1d4b2a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7bf54140d30528eb2a67aac55bb762cf" id="r_a7bf54140d30528eb2a67aac55bb762cf"><td class="memTemplParams" colspan="2">template&lt;int dim&gt; </td></tr>
-<tr class="memitem:a7bf54140d30528eb2a67aac55bb762cf"><td class="memTemplItemLeft" align="right" valign="top">std::shared_ptr&lt; const <a class="el" href="../../d2/d41/structqugar_1_1CutUnfBoundsQuad.html">CutUnfBoundsQuad</a>&lt; dim &gt; &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#a7bf54140d30528eb2a67aac55bb762cf">create_unfitted_bound_quadrature</a> (const <a class="el" href="../../df/d58/classqugar_1_1UnfittedDomain.html">UnfittedDomain</a>&lt; dim &gt; &amp;unf_domain, const std::vector&lt; std::int64_t &gt; &amp;cells, int n_pts_dir)</td></tr>
-<tr class="separator:a7bf54140d30528eb2a67aac55bb762cf"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2995f6066adc73cefa196180757123eb" id="r_a2995f6066adc73cefa196180757123eb"><td class="memTemplParams" colspan="2">template&lt;int dim&gt; </td></tr>
-<tr class="memitem:a2995f6066adc73cefa196180757123eb"><td class="memTemplItemLeft" align="right" valign="top">std::shared_ptr&lt; const <a class="el" href="../../df/d6d/structqugar_1_1CutIsoBoundsQuad.html">CutIsoBoundsQuad</a>&lt; dim - 1 &gt; &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#a2995f6066adc73cefa196180757123eb">create_interior_facets_quadrature</a> (const <a class="el" href="../../df/d58/classqugar_1_1UnfittedDomain.html">UnfittedDomain</a>&lt; dim &gt; &amp;unf_domain, const std::vector&lt; std::int64_t &gt; &amp;cells, const std::vector&lt; int &gt; &amp;facets, int n_pts_dir, bool full_facets)</td></tr>
-<tr class="separator:a2995f6066adc73cefa196180757123eb"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a63b121a771c6741d21cf9c0af1e9f5b0" id="r_a63b121a771c6741d21cf9c0af1e9f5b0"><td class="memTemplParams" colspan="2">template&lt;int dim&gt; </td></tr>
-<tr class="memitem:a63b121a771c6741d21cf9c0af1e9f5b0"><td class="memTemplItemLeft" align="right" valign="top">std::shared_ptr&lt; const <a class="el" href="../../df/d6d/structqugar_1_1CutIsoBoundsQuad.html">CutIsoBoundsQuad</a>&lt; dim - 1 &gt; &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#a63b121a771c6741d21cf9c0af1e9f5b0">create_exterior_facets_quadrature</a> (const <a class="el" href="../../df/d58/classqugar_1_1UnfittedDomain.html">UnfittedDomain</a>&lt; dim &gt; &amp;unf_domain, const std::vector&lt; std::int64_t &gt; &amp;cells, const std::vector&lt; int &gt; &amp;facets, int n_pts_dir, bool full_facets)</td></tr>
-<tr class="separator:a63b121a771c6741d21cf9c0af1e9f5b0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae64056761f525b5d9b618eb67d6ecce5" id="r_ae64056761f525b5d9b618eb67d6ecce5"><td class="memTemplParams" colspan="2">template&lt;int dim&gt; </td></tr>
+<tr class="memitem:ae64056761f525b5d9b618eb67d6ecce5"><td class="memTemplItemLeft" align="right" valign="top">std::shared_ptr&lt; const <a class="el" href="../../d8/dd5/structqugar_1_1CutCellsQuad.html">CutCellsQuad</a>&lt; dim &gt; &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#ae64056761f525b5d9b618eb67d6ecce5">create_quadrature</a> (const <a class="el" href="../../df/d58/classqugar_1_1UnfittedDomain.html">UnfittedDomain</a>&lt; dim &gt; &amp;unf_domain, const std::vector&lt; std::int64_t &gt; &amp;cells, int n_pts_dir)</td></tr>
+<tr class="memdesc:ae64056761f525b5d9b618eb67d6ecce5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates quadrature for cells.  <br /></td></tr>
+<tr class="separator:ae64056761f525b5d9b618eb67d6ecce5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ada98f71d3a8eef961a96cc6e9ea3bd8c" id="r_ada98f71d3a8eef961a96cc6e9ea3bd8c"><td class="memTemplParams" colspan="2">template&lt;int dim&gt; </td></tr>
+<tr class="memitem:ada98f71d3a8eef961a96cc6e9ea3bd8c"><td class="memTemplItemLeft" align="right" valign="top">std::shared_ptr&lt; const <a class="el" href="../../d2/d41/structqugar_1_1CutUnfBoundsQuad.html">CutUnfBoundsQuad</a>&lt; dim &gt; &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#ada98f71d3a8eef961a96cc6e9ea3bd8c">create_unfitted_bound_quadrature</a> (const <a class="el" href="../../df/d58/classqugar_1_1UnfittedDomain.html">UnfittedDomain</a>&lt; dim &gt; &amp;unf_domain, const std::vector&lt; std::int64_t &gt; &amp;cells, int n_pts_dir, bool include_facet_unf_bdry, bool exclude_ext_bdry)</td></tr>
+<tr class="memdesc:ada98f71d3a8eef961a96cc6e9ea3bd8c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates a quadrature for the unfitted boundary.  <br /></td></tr>
+<tr class="separator:ada98f71d3a8eef961a96cc6e9ea3bd8c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5947e3d800f468dc8224760267ed0aae" id="r_a5947e3d800f468dc8224760267ed0aae"><td class="memTemplParams" colspan="2">template&lt;int dim&gt; </td></tr>
+<tr class="memitem:a5947e3d800f468dc8224760267ed0aae"><td class="memTemplItemLeft" align="right" valign="top">std::shared_ptr&lt; const <a class="el" href="../../df/d6d/structqugar_1_1CutIsoBoundsQuad.html">CutIsoBoundsQuad</a>&lt; dim - 1 &gt; &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#a5947e3d800f468dc8224760267ed0aae">create_interior_facets_quadrature</a> (const <a class="el" href="../../df/d58/classqugar_1_1UnfittedDomain.html">UnfittedDomain</a>&lt; dim &gt; &amp;unf_domain, const std::vector&lt; std::int64_t &gt; &amp;cells, const std::vector&lt; int &gt; &amp;facets, int n_pts_dir)</td></tr>
+<tr class="memdesc:a5947e3d800f468dc8224760267ed0aae"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates quadrature for interior facets (those that do not belong to the external boundary of the grid).  <br /></td></tr>
+<tr class="separator:a5947e3d800f468dc8224760267ed0aae"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4933aa96e660ea9accc2ddc2b2c74791" id="r_a4933aa96e660ea9accc2ddc2b2c74791"><td class="memTemplParams" colspan="2">template&lt;int dim&gt; </td></tr>
+<tr class="memitem:a4933aa96e660ea9accc2ddc2b2c74791"><td class="memTemplItemLeft" align="right" valign="top">std::shared_ptr&lt; const <a class="el" href="../../df/d6d/structqugar_1_1CutIsoBoundsQuad.html">CutIsoBoundsQuad</a>&lt; dim - 1 &gt; &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#a4933aa96e660ea9accc2ddc2b2c74791">create_exterior_facets_quadrature</a> (const <a class="el" href="../../df/d58/classqugar_1_1UnfittedDomain.html">UnfittedDomain</a>&lt; dim &gt; &amp;unf_domain, const std::vector&lt; std::int64_t &gt; &amp;cells, const std::vector&lt; int &gt; &amp;facets, int n_pts_dir)</td></tr>
+<tr class="memdesc:a4933aa96e660ea9accc2ddc2b2c74791"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates quadrature for exterior facets (those that belong to the external boundary of the grid).  <br /></td></tr>
+<tr class="separator:a4933aa96e660ea9accc2ddc2b2c74791"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a810f1ea11af7a4d73dc7071cad604b4c" id="r_a810f1ea11af7a4d73dc7071cad604b4c"><td class="memTemplParams" colspan="2">template&lt;int dim&gt; </td></tr>
 <tr class="memitem:a810f1ea11af7a4d73dc7071cad604b4c"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#a810f1ea11af7a4d73dc7071cad604b4c">find_coincident_points</a> (const std::vector&lt; <a class="el" href="#acedd2a0f9db919d923f32babff4d7b1f">Point</a>&lt; dim &gt; &gt; &amp;points, const <a class="el" href="../../db/d28/classqugar_1_1Tolerance.html">Tolerance</a> &amp;tol, std::vector&lt; std::size_t &gt; &amp;points_map)</td></tr>
 <tr class="memdesc:a810f1ea11af7a4d73dc7071cad604b4c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Finds coincident points in a given set of points.  <br /></td></tr>
@@ -290,7 +295,7 @@ Variables</h2></td></tr>
 <tr class="separator:a58ece4b1c5493114dd7270510a7691c8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a85a4c442d6bdd85da55d060b96064a75" id="r_a85a4c442d6bdd85da55d060b96064a75"><td class="memItemLeft" align="right" valign="top">constexpr std::string_view&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a85a4c442d6bdd85da55d060b96064a75">QUGAR_VERSION_STRING</a> { &quot;0.0.4&quot; }</td></tr>
 <tr class="separator:a85a4c442d6bdd85da55d060b96064a75"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a60fbd9fef129212a8ae43f10567722e5" id="r_a60fbd9fef129212a8ae43f10567722e5"><td class="memItemLeft" align="right" valign="top">constexpr std::string_view&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a60fbd9fef129212a8ae43f10567722e5">QUGAR_VERSION_GIT</a> { &quot;e155961&quot; }</td></tr>
+<tr class="memitem:a60fbd9fef129212a8ae43f10567722e5" id="r_a60fbd9fef129212a8ae43f10567722e5"><td class="memItemLeft" align="right" valign="top">constexpr std::string_view&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a60fbd9fef129212a8ae43f10567722e5">QUGAR_VERSION_GIT</a> { &quot;774e553&quot; }</td></tr>
 <tr class="separator:a60fbd9fef129212a8ae43f10567722e5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
@@ -413,6 +418,7 @@ template&lt;typename T , int dim&gt; </div>
 <tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a8d29996537c43e2b4e3773030bcf1eefafe47aa7c733c490d36e80508d5dc4019" name="a8d29996537c43e2b4e3773030bcf1eefafe47aa7c733c490d36e80508d5dc4019"></a>cut&#160;</td><td class="fielddoc"></td></tr>
 <tr><td class="fieldname"><a id="a8d29996537c43e2b4e3773030bcf1eefae9dc924f238fa6cc29465942875fe8f0" name="a8d29996537c43e2b4e3773030bcf1eefae9dc924f238fa6cc29465942875fe8f0"></a>full&#160;</td><td class="fielddoc"></td></tr>
 <tr><td class="fieldname"><a id="a8d29996537c43e2b4e3773030bcf1eefaa2e4822a98337283e39f7b60acf85ec9" name="a8d29996537c43e2b4e3773030bcf1eefaa2e4822a98337283e39f7b60acf85ec9"></a>empty&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a8d29996537c43e2b4e3773030bcf1eefaad921d60486366258809553a3db49a4a" name="a8d29996537c43e2b4e3773030bcf1eefaad921d60486366258809553a3db49a4a"></a>unknown&#160;</td><td class="fielddoc"></td></tr>
 </table>
 
 </div>
@@ -618,8 +624,8 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
-<a id="a63b121a771c6741d21cf9c0af1e9f5b0" name="a63b121a771c6741d21cf9c0af1e9f5b0"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a63b121a771c6741d21cf9c0af1e9f5b0">&#9670;&#160;</a></span>create_exterior_facets_quadrature()</h2>
+<a id="a4933aa96e660ea9accc2ddc2b2c74791" name="a4933aa96e660ea9accc2ddc2b2c74791"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4933aa96e660ea9accc2ddc2b2c74791">&#9670;&#160;</a></span>create_exterior_facets_quadrature()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -644,20 +650,35 @@ template&lt;int dim&gt; </div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>n_pts_dir</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">bool</td>          <td class="paramname"><span class="paramname"><em>full_facets</em></span>&#160;)</td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>n_pts_dir</em></span>&#160;)</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
+<p>Creates quadrature for exterior facets (those that belong to the external boundary of the grid). </p>
+<p>For exterior facets, the cut part of the domain, as well as the unfitted boundary that lays on the facet, are considered in the quadrature.</p>
+<dl class="section warning"><dt>Warning</dt><dd>The provided facets are not checked to be exterior facets. It is the caller's responsibility to provide the correct facets.</dd></dl>
+<dl class="tparams"><dt>Template Parameters</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">dim</td><td>Dimension of the domain. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">unf_domain</td><td>Unfitted domain. </td></tr>
+    <tr><td class="paramname">cells</td><td>Cells for which the quadrature is created. </td></tr>
+    <tr><td class="paramname">facets</td><td>Local facets for which the quadrature is created (this vector must be of the same size as cells). </td></tr>
+    <tr><td class="paramname">n_pts_dir</td><td>Number of points in each direction for generated custom quadratures. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Generated quadratures. </dd></dl>
+
 </div>
 </div>
-<a id="a2995f6066adc73cefa196180757123eb" name="a2995f6066adc73cefa196180757123eb"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a2995f6066adc73cefa196180757123eb">&#9670;&#160;</a></span>create_interior_facets_quadrature()</h2>
+<a id="a5947e3d800f468dc8224760267ed0aae" name="a5947e3d800f468dc8224760267ed0aae"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5947e3d800f468dc8224760267ed0aae">&#9670;&#160;</a></span>create_interior_facets_quadrature()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -682,20 +703,35 @@ template&lt;int dim&gt; </div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>n_pts_dir</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">bool</td>          <td class="paramname"><span class="paramname"><em>full_facets</em></span>&#160;)</td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>n_pts_dir</em></span>&#160;)</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
+<p>Creates quadrature for interior facets (those that do not belong to the external boundary of the grid). </p>
+<p>For interior facets, only the part of the facet that is inside the domain is considered. I.e., fully internal facets or the cut (interior) part of cut facets. Unfitted boundaries laying on the facet are not considered.</p>
+<dl class="section warning"><dt>Warning</dt><dd>The provided facets are not checked to be interior facets. It is the caller's responsibility to provide the correct facets.</dd></dl>
+<dl class="tparams"><dt>Template Parameters</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">dim</td><td>Dimension of the domain. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">unf_domain</td><td>Unfitted domain. </td></tr>
+    <tr><td class="paramname">cells</td><td>Cells for which the quadrature is created. </td></tr>
+    <tr><td class="paramname">facets</td><td>Local facets for which the quadrature is created (this vector must be of the same size as cells). </td></tr>
+    <tr><td class="paramname">n_pts_dir</td><td>Number of points in each direction for generated custom quadratures. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Generated quadratures. </dd></dl>
+
 </div>
 </div>
-<a id="ad445be012c036b0ba21f2ea3ef1d4b2a" name="ad445be012c036b0ba21f2ea3ef1d4b2a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad445be012c036b0ba21f2ea3ef1d4b2a">&#9670;&#160;</a></span>create_quadrature()</h2>
+<a id="ae64056761f525b5d9b618eb67d6ecce5" name="ae64056761f525b5d9b618eb67d6ecce5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae64056761f525b5d9b618eb67d6ecce5">&#9670;&#160;</a></span>create_quadrature()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -715,19 +751,32 @@ template&lt;int dim&gt; </div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>n_pts_dir</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">bool</td>          <td class="paramname"><span class="paramname"><em>full_cells</em></span>&#160;)</td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>n_pts_dir</em></span>&#160;)</td>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Creates quadrature for cells. </p>
+<p>For cut cells, the generated quadrature correspond to the interior part of the cell. For full cells, the quadrature is the standard one, and for empty cells, no quadrature is created (the generated quadrature is empty except for the number of points that is set to 0).</p>
+<dl class="tparams"><dt>Template Parameters</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">dim</td><td>Dimension of the domain. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">unf_domain</td><td>Unitted domain. </td></tr>
+    <tr><td class="paramname">cells</td><td>Cells for which the quadrature is created. </td></tr>
+    <tr><td class="paramname">n_pts_dir</td><td>Number of points in each direction for generated custom quadratures. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Generated quadrature. </dd></dl>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="../../d0/d6b/namespacequgar_ad445be012c036b0ba21f2ea3ef1d4b2a_icgraph.svg" width="300" height="36"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="../../d0/d6b/namespacequgar_ae64056761f525b5d9b618eb67d6ecce5_icgraph.svg" width="300" height="36"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -783,8 +832,8 @@ template&lt;int dim, bool levelset&gt; </div>
 
 </div>
 </div>
-<a id="a7bf54140d30528eb2a67aac55bb762cf" name="a7bf54140d30528eb2a67aac55bb762cf"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a7bf54140d30528eb2a67aac55bb762cf">&#9670;&#160;</a></span>create_unfitted_bound_quadrature()</h2>
+<a id="ada98f71d3a8eef961a96cc6e9ea3bd8c" name="ada98f71d3a8eef961a96cc6e9ea3bd8c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ada98f71d3a8eef961a96cc6e9ea3bd8c">&#9670;&#160;</a></span>create_unfitted_bound_quadrature()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -804,14 +853,43 @@ template&lt;int dim&gt; </div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>n_pts_dir</em></span>&#160;)</td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>n_pts_dir</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool</td>          <td class="paramname"><span class="paramname"><em>include_facet_unf_bdry</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool</td>          <td class="paramname"><span class="paramname"><em>exclude_ext_bdry</em></span>&#160;)</td>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Creates a quadrature for the unfitted boundary. </p>
+<dl class="tparams"><dt>Template Parameters</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">dim</td><td>Dimension of the domain. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">unf_domain</td><td>Unitted domain. </td></tr>
+    <tr><td class="paramname">cells</td><td>Cells for which the quadrature is created. </td></tr>
+    <tr><td class="paramname">n_pts_dir</td><td>Number of points in each direction for generated custom quadratures. </td></tr>
+    <tr><td class="paramname">include_facet_unf_bdry</td><td>If true, the quadrature includes the parts of the unfitted boundary that belong to the cells' facets. </td></tr>
+    <tr><td class="paramname">exclude_ext_bdry</td><td>If the previous parameter is true, and this is one is also true, the parts of the unfitted boundary that belong to the external facets are not included. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Generated quadrature. </dd></dl>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="../../d0/d6b/namespacequgar_a7bf54140d30528eb2a67aac55bb762cf_icgraph.svg" width="279" height="51"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="../../d0/d6b/namespacequgar_ada98f71d3a8eef961a96cc6e9ea3bd8c_icgraph.svg" width="279" height="51"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -984,7 +1062,7 @@ template&lt;typename T , int dim&gt; </div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">std::string_view qugar::QUGAR_VERSION_GIT { &quot;e155961&quot; }</td>
+          <td class="memname">std::string_view qugar::QUGAR_VERSION_GIT { &quot;774e553&quot; }</td>
         </tr>
       </table>
   </td>

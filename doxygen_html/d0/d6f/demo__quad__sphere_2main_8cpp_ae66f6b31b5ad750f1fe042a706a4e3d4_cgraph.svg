@@ -20,7 +20,7 @@
 <!-- Node2 -->
 <g id="Node000002" class="node">
 <title>Node2</title>
-<g id="a_Node000002"><a xlink:href="../../d0/d6b/namespacequgar.html#ad445be012c036b0ba21f2ea3ef1d4b2a" target="_top" xlink:title=" ">
+<g id="a_Node000002"><a xlink:href="../../d0/d6b/namespacequgar.html#ae64056761f525b5d9b618eb67d6ecce5" target="_top" xlink:title="Creates quadrature for cells.">
 <polygon fill="white" stroke="#666666" points="217,-115.5 77,-115.5 77,-96.5 217,-96.5 217,-115.5"/>
 <text text-anchor="middle" x="147" y="-103.5" font-family="Helvetica,sans-Serif" font-size="10.00">qugar::create_quadrature</text>
 </a>
@@ -38,7 +38,7 @@
 <!-- Node3 -->
 <g id="Node000003" class="node">
 <title>Node3</title>
-<g id="a_Node000003"><a xlink:href="../../d0/d6b/namespacequgar.html#a7bf54140d30528eb2a67aac55bb762cf" target="_top" xlink:title=" ">
+<g id="a_Node000003"><a xlink:href="../../d0/d6b/namespacequgar.html#ada98f71d3a8eef961a96cc6e9ea3bd8c" target="_top" xlink:title="Creates a quadrature for the unfitted boundary.">
 <polygon fill="white" stroke="#666666" points="209,-78 85,-78 85,-48 209,-48 209,-78"/>
 <text text-anchor="start" x="93" y="-66" font-family="Helvetica,sans-Serif" font-size="10.00">qugar::create_unfitted</text>
 <text text-anchor="middle" x="147" y="-55" font-family="Helvetica,sans-Serif" font-size="10.00">_bound_quadrature</text>

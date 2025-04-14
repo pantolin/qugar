@@ -122,13 +122,13 @@
     <span class="n">_ufl_to_dolfinx_domain</span><span class="p">,</span>
     <span class="n">form_cpp_class</span><span class="p">,</span>
     <span class="n">form_cpp_creator</span><span class="p">,</span>
-    <span class="n">get_integration_domains</span><span class="p">,</span>
 <span class="p">)</span>
+<span class="kn">from</span> <span class="nn">dolfinx.mesh</span> <span class="kn">import</span> <span class="n">MeshTags</span>
 
 <span class="kn">from</span> <span class="nn">qugar.dolfinx.custom_coefficients</span> <span class="kn">import</span> <span class="n">CustomCoeffsPacker</span>
 <span class="kn">from</span> <span class="nn">qugar.dolfinx.integral_data</span> <span class="kn">import</span> <span class="n">IntegralData</span>
 <span class="kn">from</span> <span class="nn">qugar.dolfinx.jit</span> <span class="kn">import</span> <span class="n">ffcx_jit</span>
-<span class="kn">from</span> <span class="nn">qugar.quad</span> <span class="kn">import</span> <span class="n">QuadGenerator</span>
+<span class="kn">from</span> <span class="nn">qugar.mesh.unfitted_domain_abc</span> <span class="kn">import</span> <span class="n">UnfittedDomainABC</span>
 
 <span class="k">if</span> <span class="n">typing</span><span class="o">.</span><span class="n">TYPE_CHECKING</span><span class="p">:</span>
     <span class="kn">from</span> <span class="nn">mpi4py</span> <span class="kn">import</span> <span class="n">MPI</span>
@@ -156,6 +156,7 @@
             <span class="n">_cpp</span><span class="o">.</span><span class="n">fem</span><span class="o">.</span><span class="n">Form_float32</span><span class="p">,</span>
             <span class="n">_cpp</span><span class="o">.</span><span class="n">fem</span><span class="o">.</span><span class="n">Form_float64</span><span class="p">,</span>
         <span class="p">],</span>
+        <span class="n">domain</span><span class="p">:</span> <span class="n">UnfittedDomainABC</span><span class="p">,</span>
         <span class="n">itg_data</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">IntegralData</span><span class="p">],</span>
         <span class="n">ufcx_form</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">code</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -176,12 +177,12 @@
 <span class="sd">            module: CFFI module.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">form</span><span class="p">,</span> <span class="n">ufcx_form</span><span class="p">,</span> <span class="n">code</span><span class="p">,</span> <span class="n">module</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_coeffs_packer</span> <span class="o">=</span> <span class="n">CustomCoeffsPacker</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">itg_data</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_coeffs_packer</span> <span class="o">=</span> <span class="n">CustomCoeffsPacker</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">domain</span><span class="p">,</span> <span class="n">itg_data</span><span class="p">)</span>
 
 <div class="viewcode-block" id="CustomForm.pack_coefficients">
 <a class="viewcode-back" href="../../../generated/qugar.dolfinx.html#qugar.dolfinx.CustomForm.pack_coefficients">[docs]</a>
     <span class="k">def</span> <span class="nf">pack_coefficients</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="n">quad_gen</span><span class="p">:</span> <span class="n">QuadGenerator</span>
+        <span class="bp">self</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span>
         <span class="nb">tuple</span><span class="p">[</span><span class="n">IntegralType</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span>
         <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">complex64</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">complex128</span><span class="p">],</span>
@@ -193,23 +194,75 @@
 <span class="sd">            This function mimics the behaviour of</span>
 <span class="sd">            ``dolfinx.cpp.fem.pack_coefficients``.</span>
 
-<span class="sd">        Args:</span>
-<span class="sd">            quad_gen (QuadGenerator): Custom quadrature generator.</span>
-
 <span class="sd">        Returns:</span>
 <span class="sd">            dict[ tuple[IntegralType, int], npt.NDArray[np.float32 |</span>
 <span class="sd">            np.float64 | np.complex64 | np.complex128]]:</span>
 <span class="sd">            Generated custom coefficients.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coeffs_packer</span><span class="o">.</span><span class="n">pack_coefficients</span><span class="p">(</span><span class="n">quad_gen</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coeffs_packer</span><span class="o">.</span><span class="n">pack_coefficients</span><span class="p">()</span></div>
 </div>
 
+
+
+<span class="k">def</span> <span class="nf">_get_custom_integration_domains</span><span class="p">(</span>
+    <span class="n">domain</span><span class="p">:</span> <span class="n">UnfittedDomainABC</span><span class="p">,</span>
+    <span class="n">integral_type</span><span class="p">:</span> <span class="n">IntegralType</span><span class="p">,</span>
+    <span class="n">subdomain</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="n">typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="n">MeshTags</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]]]],</span>
+    <span class="n">subdomain_ids</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Get custom integration domains from subdomain data.</span>
+
+<span class="sd">    The subdomain data is a meshtags object consisting of markers, or a</span>
+<span class="sd">    None object. If it is a None object we do not pack any integration</span>
+<span class="sd">    entities. Integration domains are defined as a list of tuples, where</span>
+<span class="sd">    each input `subdomain_ids` is mapped to an array of integration</span>
+<span class="sd">    entities, where an integration entity for a cell integral is the</span>
+<span class="sd">    list of cells. For an exterior facet integral each integration</span>
+<span class="sd">    entity is a tuple (cell_index, local_facet_index). For an interior</span>
+<span class="sd">    facet integral each integration entity is a uple (cell_index0,</span>
+<span class="sd">    local_facet_index0, cell_index1, local_facet_index1). Where the</span>
+<span class="sd">    first cell-facet pair is the &#39;+&#39; restriction, the second the &#39;-&#39;</span>
+<span class="sd">    restriction.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        integral_type: The type of integral to pack integration</span>
+<span class="sd">            entities for.</span>
+<span class="sd">        domain (UnfittedDomainABC): The unfitted domain to integrate over.</span>
+<span class="sd">        subdomain: A meshtag with markers or manually specified</span>
+<span class="sd">            integration domains.</span>
+<span class="sd">        subdomain_ids: List of ids to integrate over.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">subdomain</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">domains</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">integral_type</span> <span class="ow">in</span> <span class="p">(</span><span class="n">IntegralType</span><span class="o">.</span><span class="n">exterior_facet</span><span class="p">,</span> <span class="n">IntegralType</span><span class="o">.</span><span class="n">interior_facet</span><span class="p">):</span>
+                <span class="n">tdim</span> <span class="o">=</span> <span class="n">subdomain</span><span class="o">.</span><span class="n">topology</span><span class="o">.</span><span class="n">dim</span>  <span class="c1"># type: ignore</span>
+                <span class="n">subdomain</span><span class="o">.</span><span class="n">_cpp_object</span><span class="o">.</span><span class="n">topology</span><span class="o">.</span><span class="n">create_connectivity</span><span class="p">(</span><span class="n">tdim</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">tdim</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
+                <span class="n">subdomain</span><span class="o">.</span><span class="n">_cpp_object</span><span class="o">.</span><span class="n">topology</span><span class="o">.</span><span class="n">create_connectivity</span><span class="p">(</span><span class="n">tdim</span><span class="p">,</span> <span class="n">tdim</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
+            <span class="c1"># Compute integration domains only for each subdomain id in</span>
+            <span class="c1"># the integrals</span>
+            <span class="c1"># If a process has no integral entities, insert an empty</span>
+            <span class="c1"># array</span>
+            <span class="k">for</span> <span class="nb">id</span> <span class="ow">in</span> <span class="n">subdomain_ids</span><span class="p">:</span>
+                <span class="n">integration_entities</span> <span class="o">=</span> <span class="n">_cpp</span><span class="o">.</span><span class="n">fem</span><span class="o">.</span><span class="n">compute_integration_domains</span><span class="p">(</span>
+                    <span class="n">integral_type</span><span class="p">,</span>
+                    <span class="n">subdomain</span><span class="o">.</span><span class="n">_cpp_object</span><span class="o">.</span><span class="n">topology</span><span class="p">,</span>  <span class="c1"># type: ignore</span>
+                    <span class="n">subdomain</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="nb">id</span><span class="p">),</span>  <span class="c1"># type: ignore</span>
+                    <span class="n">subdomain</span><span class="o">.</span><span class="n">dim</span><span class="p">,</span>  <span class="c1"># type: ignore</span>
+                <span class="p">)</span>
+                <span class="n">domains</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="nb">id</span><span class="p">,</span> <span class="n">integration_entities</span><span class="p">))</span>
+            <span class="k">return</span> <span class="p">[(</span><span class="n">s</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">s</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">domains</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[(</span><span class="n">s</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">s</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">subdomain</span><span class="p">]</span>  <span class="c1"># type: ignore</span>
 
 
 <div class="viewcode-block" id="form_custom">
 <a class="viewcode-back" href="../../../generated/qugar.dolfinx.html#qugar.dolfinx.form_custom">[docs]</a>
 <span class="k">def</span> <span class="nf">form_custom</span><span class="p">(</span>
     <span class="n">form</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Union</span><span class="p">[</span><span class="n">ufl</span><span class="o">.</span><span class="n">Form</span><span class="p">,</span> <span class="n">typing</span><span class="o">.</span><span class="n">Iterable</span><span class="p">[</span><span class="n">ufl</span><span class="o">.</span><span class="n">Form</span><span class="p">]],</span>
+    <span class="n">domain</span><span class="p">:</span> <span class="n">UnfittedDomainABC</span><span class="p">,</span>
     <span class="n">dtype</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">DTypeLike</span> <span class="o">=</span> <span class="n">default_scalar_type</span><span class="p">,</span>
     <span class="n">form_compiler_options</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">jit_options</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">Optional</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -231,6 +284,7 @@
 
 <span class="sd">    Args:</span>
 <span class="sd">        form: A UFL form or list(s) of UFL forms.</span>
+<span class="sd">        domain (UnfittedDomainABC): The unfitted domain to integrate over.</span>
 <span class="sd">        dtype: Scalar type to use for the compiled form.</span>
 <span class="sd">        form_compiler_options: See :func:`ffcx_jit &lt;dolfinx.jit.ffcx_jit&gt;`</span>
 <span class="sd">        jit_options: See :func:`ffcx_jit &lt;dolfinx.jit.ffcx_jit&gt;`.</span>
@@ -261,7 +315,7 @@
     <span class="n">form_compiler_options</span><span class="p">[</span><span class="s2">&quot;scalar_type&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">dtype</span>
     <span class="n">ftype</span> <span class="o">=</span> <span class="n">form_cpp_class</span><span class="p">(</span><span class="n">dtype</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_form</span><span class="p">(</span><span class="n">form</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">CustomForm</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">_form</span><span class="p">(</span><span class="n">form</span><span class="p">,</span> <span class="n">unf_domain</span><span class="p">:</span> <span class="n">UnfittedDomainABC</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">CustomForm</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Compile a single UFL form.&quot;&quot;&quot;</span>
         <span class="c1"># Extract subdomain data from UFL form</span>
         <span class="n">sd</span> <span class="o">=</span> <span class="n">form</span><span class="o">.</span><span class="n">subdomain_data</span><span class="p">()</span>
@@ -318,8 +372,8 @@
         <span class="c1"># Subdomain markers (possibly empty list for some integral</span>
         <span class="c1"># types)</span>
         <span class="n">subdomains</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="n">_ufl_to_dolfinx_domain</span><span class="p">[</span><span class="n">key</span><span class="p">]:</span> <span class="n">get_integration_domains</span><span class="p">(</span>
-                <span class="n">_ufl_to_dolfinx_domain</span><span class="p">[</span><span class="n">key</span><span class="p">],</span> <span class="n">subdomain_data</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">subdomain_ids</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+            <span class="n">_ufl_to_dolfinx_domain</span><span class="p">[</span><span class="n">key</span><span class="p">]:</span> <span class="n">_get_custom_integration_domains</span><span class="p">(</span>
+                <span class="n">domain</span><span class="p">,</span> <span class="n">_ufl_to_dolfinx_domain</span><span class="p">[</span><span class="n">key</span><span class="p">],</span> <span class="n">subdomain_data</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">subdomain_ids</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
             <span class="p">)</span>
             <span class="k">for</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">subdomain_data</span><span class="p">)</span> <span class="ow">in</span> <span class="n">sd</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">domain</span><span class="p">)</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
         <span class="p">}</span>
@@ -338,7 +392,7 @@
             <span class="n">_entity_maps</span><span class="p">,</span>
             <span class="n">mesh</span><span class="p">,</span>
         <span class="p">)</span>
-        <span class="k">return</span> <span class="n">CustomForm</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">itg_data</span><span class="p">,</span> <span class="n">ufcx_form</span><span class="p">,</span> <span class="n">code</span><span class="p">,</span> <span class="n">module</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">CustomForm</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">unf_domain</span><span class="p">,</span> <span class="n">itg_data</span><span class="p">,</span> <span class="n">ufcx_form</span><span class="p">,</span> <span class="n">code</span><span class="p">,</span> <span class="n">module</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_flatten_list</span><span class="p">(</span><span class="n">lst</span><span class="p">):</span>
         <span class="n">new_lst</span> <span class="o">=</span> <span class="p">[]</span>
@@ -347,7 +401,9 @@
                 <span class="n">new_lst</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">_flatten_list</span><span class="p">(</span><span class="n">i</span><span class="p">))</span>
         <span class="k">return</span> <span class="n">new_lst</span>
 
-    <span class="k">def</span> <span class="nf">_create_form</span><span class="p">(</span><span class="n">form</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">CustomForm</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="n">CustomForm</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]:</span>
+    <span class="k">def</span> <span class="nf">_create_form</span><span class="p">(</span>
+        <span class="n">form</span><span class="p">,</span> <span class="n">domain</span><span class="p">:</span> <span class="n">UnfittedDomainABC</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">CustomForm</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="n">CustomForm</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Recursively convert ufl.Forms to dolfinx.fem.Form.</span>
 
 <span class="sd">        Args:</span>
@@ -361,14 +417,14 @@
             <span class="k">if</span> <span class="n">form</span><span class="o">.</span><span class="n">empty</span><span class="p">():</span>
                 <span class="k">return</span> <span class="kc">None</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="k">return</span> <span class="n">_form</span><span class="p">(</span><span class="n">form</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">_form</span><span class="p">(</span><span class="n">form</span><span class="p">,</span> <span class="n">domain</span><span class="p">)</span>
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">form</span><span class="p">,</span> <span class="n">collections</span><span class="o">.</span><span class="n">abc</span><span class="o">.</span><span class="n">Iterable</span><span class="p">):</span>
-            <span class="n">forms</span> <span class="o">=</span> <span class="n">_flatten_list</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">sub_form</span><span class="p">:</span> <span class="n">_create_form</span><span class="p">(</span><span class="n">sub_form</span><span class="p">),</span> <span class="n">form</span><span class="p">)))</span>
+            <span class="n">forms</span> <span class="o">=</span> <span class="n">_flatten_list</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">sub_form</span><span class="p">:</span> <span class="n">_create_form</span><span class="p">(</span><span class="n">sub_form</span><span class="p">,</span> <span class="n">domain</span><span class="p">),</span> <span class="n">form</span><span class="p">)))</span>
             <span class="k">return</span> <span class="n">forms</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Not implemented case.&quot;</span><span class="p">)</span>
 
-    <span class="k">return</span> <span class="n">_create_form</span><span class="p">(</span><span class="n">form</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">_create_form</span><span class="p">(</span><span class="n">form</span><span class="p">,</span> <span class="n">domain</span><span class="p">)</span></div>
 
 
 
