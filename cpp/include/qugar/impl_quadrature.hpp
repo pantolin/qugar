@@ -35,10 +35,24 @@ void create_cell_quadrature(const UnfittedImplDomain<dim> &unf_domain,
   int n_pts_dir,
   CutCellsQuad<dim> &quad);
 
+/**
+ * @brief Creates a quadrature for the unfitted boundary.
+ * @tparam dim Dimension of the domain.
+ * @param unf_domain  Unitted domain.
+ * @param cell_id Cell for which the quadrature is created.
+ * @param n_pts_dir Number of points in each direction for generated custom quadratures.
+ * @param include_facet_unf_bdry  If true, the quadrature includes the parts of the unfitted boundary
+ *                                that belong to the cells' facets.
+ * @param exclude_ext_bdry If the previous parameter is true, and this is one is false, the parts
+ *                         of the unfitted boundary that belong to the external facets are not included.
+ * @param quad Quadrature object to be filled with the generated quadrature.
+ */
 template<int dim>
 void create_cell_unfitted_bound_quadrature(const UnfittedImplDomain<dim> &unf_domain,
   std::int64_t cell_id,
   int n_pts_dir,
+  bool include_facet_unf_bdry,
+  bool exclude_ext_bdry,
   CutUnfBoundsQuad<dim> &quad);
 
 template<int dim>

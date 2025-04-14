@@ -62,13 +62,3 @@ __all__ = [
     "create_Schwarz_Primitive",
     "create_Schwarz_Diamond",
 ]
-
-from qugar.utils import has_FEniCSx
-
-if has_FEniCSx:
-    from qugar.impl.impl_unfitted_domain import UnfittedImplDomain, create_unfitted_impl_domain
-
-    __all__ += [
-        "UnfittedImplDomain",
-        "create_unfitted_impl_domain",
-    ]

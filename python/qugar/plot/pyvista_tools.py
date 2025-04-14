@@ -463,8 +463,10 @@ def quadrature_to_PyVista(
 
     cells_points_set = _cut_quad_to_PyVista(domain_.grid, cells_quad)
 
+    include_facet_unf_bry = True
+    exclude_ext_bdry = True
     unf_bdry_quad = qugar.cpp.create_unfitted_bound_quadrature(
-        domain_, domain_.get_cut_cells(), n_pts_dir
+        domain_, domain_.get_cut_cells(), n_pts_dir, include_facet_unf_bry, exclude_ext_bdry
     )
     unf_bdry_points_set = _cut_quad_to_PyVista(domain_.grid, unf_bdry_quad)
 

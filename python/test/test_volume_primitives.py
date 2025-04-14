@@ -57,19 +57,17 @@ def compute_volume(
 
     cut_tag = 0
     full_tag = 1
-    cell_subdomain_data = unf_mesh.create_cell_subdomain_data(cut_tag=cut_tag, full_tag=full_tag)
+    cell_tags = unf_mesh.create_cell_tags(cut_tag=cut_tag, full_tag=full_tag)
 
     one = dolfinx.fem.Constant(unf_mesh, dtype(1.0))
 
     quad_degree = get_Gauss_quad_degree(n_quad_pts)
-    dx_cut = ufl.dx(
-        domain=unf_mesh,
-        subdomain_data=cell_subdomain_data,
+    dx = ufl.dx(domain=unf_mesh, subdomain_data=cell_tags)
+    dx_cut = dx(
         subdomain_id=cut_tag,
         degree=quad_degree,
     )
-    dx = ufl.dx(domain=unf_mesh, subdomain_data=cell_subdomain_data, subdomain_id=full_tag)
-    ufl_form = one * (dx + dx_cut)
+    ufl_form = one * (dx(full_tag) + dx_cut)
 
     custom_form = form_custom(ufl_form, unf_mesh, dtype=dtype)
     assert isinstance(custom_form, CustomForm)
@@ -96,14 +94,14 @@ def compute_boundary_area(
     """
 
     bdry_tag = 0
-    cell_subdomain_data = unf_mesh.create_cell_subdomain_data(cut_tag=bdry_tag)
+    cell_tags = unf_mesh.create_cell_tags(cut_tag=bdry_tag)
 
     one = dolfinx.fem.Constant(unf_mesh, dtype(1.0))
 
     quad_degree = get_Gauss_quad_degree(n_quad_pts)
     ds = dx_bdry_unf(
         domain=unf_mesh,
-        subdomain_data=cell_subdomain_data,
+        subdomain_data=cell_tags,
         subdomain_id=bdry_tag,
         degree=quad_degree,
     )

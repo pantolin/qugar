@@ -421,6 +421,7 @@ UnfittedImplDomain<dim>::UnfittedImplDomain(const FuncPtr phi, const GridPtr gri
   const std::optional<std::vector<std::int64_t>> cells;
   const auto compute_sign = create_compute_sign_function<dim>(*phi);
   this->create_decomposition(*(this->kd_tree_), compute_sign, cells);
+  this->init_full_cells_with_unf_bdry();
 }
 
 
@@ -434,6 +435,7 @@ UnfittedImplDomain<dim>::UnfittedImplDomain(const FuncPtr phi,
 
   const auto compute_sign = create_compute_sign_function<dim>(*phi);
   this->create_decomposition(*(this->kd_tree_), compute_sign, cells);
+  this->init_full_cells_with_unf_bdry();
 }
 
 template<int dim>
@@ -466,6 +468,7 @@ void UnfittedImplDomain<dim>::create_decomposition(KDTree &tree,
   }
 }
 
+// Note that that full cells with unfitted boundaries are transformed to full.
 ImmersedCellStatus transform_cell_status(const ImmersedCellStatusTmp cell_status)
 {
   switch (cell_status) {

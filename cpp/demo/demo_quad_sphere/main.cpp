@@ -142,7 +142,10 @@ int main(/* int argc, const char **argv */)
 
   const auto quad = qugar::create_quadrature<3>(unf_domain, cut_cells, n_quad_pts_dir);
 
-  const auto unf_bound_quad = qugar::create_unfitted_bound_quadrature<3>(unf_domain, cut_cells, n_quad_pts_dir);
+  constexpr bool include_facet_unf_bdry{ true };
+  constexpr bool exclude_ext_bdry{ true };
+  const auto unf_bound_quad = qugar::create_unfitted_bound_quadrature<3>(
+    unf_domain, cut_cells, n_quad_pts_dir, include_facet_unf_bdry, exclude_ext_bdry);
 
   std::cerr << "Volume: " << compute_volume<3>(unf_domain, *quad) << "\n";
   std::cerr << "Exact volume: " << exact_volume << "\n\n";

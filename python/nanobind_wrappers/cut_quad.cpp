@@ -195,15 +195,22 @@ namespace {
 
     module.def(
       "create_unfitted_bound_quadrature",
-      [](const UnfittedDomain<dim> &unf_domain, const CellsArray &cells_py, const int n_pts_dir) {
+      [](const UnfittedDomain<dim> &unf_domain,
+        const CellsArray &cells_py,
+        const int n_pts_dir,
+        const bool include_facet_unf_bdry,
+        const bool exclude_ext_bdry) {
         const std::span<const std::int64_t> cells_span(cells_py.data(), cells_py.size());
         const std::vector<std::int64_t> cells(cells_span.begin(), cells_span.end());
 
-        return create_unfitted_bound_quadrature<dim>(unf_domain, cells, n_pts_dir);
+        return create_unfitted_bound_quadrature<dim>(
+          unf_domain, cells, n_pts_dir, include_facet_unf_bdry, exclude_ext_bdry);
       },
       nb::arg("unf_domain"),
       nb::arg("cells"),
-      nb::arg("n_pts_dir"));
+      nb::arg("n_pts_dir"),
+      nb::arg("include_facet_unf_bdry"),
+      nb::arg("exclude_ext_bdry"));
   }
 
 

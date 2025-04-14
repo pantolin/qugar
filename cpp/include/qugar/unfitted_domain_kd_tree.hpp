@@ -27,7 +27,6 @@
 #include <cstdint>
 #include <functional>
 #include <memory>
-#include <optional>
 #include <vector>
 
 namespace qugar {
@@ -36,6 +35,7 @@ enum class ImmersedCellStatus : std::uint8_t {
   cut,
   full,
   empty,
+  unknown,
 };
 
 template<int dim> class UnfittedKDTree : public std::enable_shared_from_this<UnfittedKDTree<dim>>
@@ -72,6 +72,7 @@ public:
 
   void get_cell_ids(ImmersedCellStatus status, std::vector<std::int64_t> &cell_ids) const;
 
+
   void get_cell_ids(ImmersedCellStatus status,
     const std::vector<std::int64_t> &target_cell_ids,
     std::vector<std::int64_t> &cell_ids) const;
@@ -82,14 +83,10 @@ public:
 
   [[nodiscard]] bool is_cell(ImmersedCellStatus status, std::int64_t cell_id) const;
 
-  [[nodiscard]] static bool is_full(ImmersedCellStatus);
-  [[nodiscard]] static bool is_empty(ImmersedCellStatus);
-  [[nodiscard]] static bool is_cut(ImmersedCellStatus);
-
 
 private:
   SubGridPtr subgrid_;
-  std::optional<ImmersedCellStatus> status_;
+  ImmersedCellStatus status_;
   std::array<std::shared_ptr<UnfittedKDTree<dim>>, 2> children_;
 
   template<typename Func_0, typename Func_1> void transverse_tree(const Func_0 &func_0, const Func_1 &func_1) const;

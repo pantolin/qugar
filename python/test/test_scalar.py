@@ -153,22 +153,22 @@ def test_scalar(
 
 if __name__ == "__main__":
     clean_cache()
-    # test_measure(
-    #     N=1,
-    #     dim=2,
-    #     dx=ufl.ds,
-    #     simplex_cell=True,
-    #     dtype=np.float32,
-    #     nnz=0.3,
-    #     max_quad_sets=3,
-    # )
-    test_scalar(
+    test_measure(
         N=1,
         dim=2,
-        dx=ufl.dx,
-        p=1,
+        dx=ufl.ds,
         simplex_cell=True,
         dtype=np.float32,
         nnz=0.0,
         max_quad_sets=3,
     )
+    # test_scalar(
+    #     N=1,
+    #     dim=2,
+    #     dx=ufl.dx,
+    #     p=1,
+    #     simplex_cell=True,
+    #     dtype=np.float32,
+    #     nnz=0.0,
+    #     max_quad_sets=3,
+    # )

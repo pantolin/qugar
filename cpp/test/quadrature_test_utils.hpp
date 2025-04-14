@@ -37,7 +37,12 @@ template<int dim>
 qugar::Point<dim> compute_points_centroid(const std::vector<qugar::Point<dim>> &points,
   const std::vector<qugar::real> &weights)
 {
+  assert(points.size() == weights.size());
   qugar::Point<dim> centroid;
+  if (points.empty()) {
+    return centroid;
+  }
+
   auto w_it = weights.cbegin();
   qugar::real vol{ qugar::numbers::zero };
   for (const auto &point : points) {
@@ -212,7 +217,10 @@ void test_volume_and_centroid(const std::shared_ptr<const qugar::impl::ImplicitF
 
   const auto quad = qugar::create_quadrature(unf_domain, cut_cells, n_quad_pts_dir);
 
-  const auto unf_bound_quad = qugar::create_unfitted_bound_quadrature(unf_domain, cut_cells, n_quad_pts_dir);
+  constexpr bool include_facet_unf_bdry{ true };
+  constexpr bool exclude_ext_bdry{ true };
+  const auto unf_bound_quad = qugar::create_unfitted_bound_quadrature(
+    unf_domain, cut_cells, n_quad_pts_dir, include_facet_unf_bdry, exclude_ext_bdry);
 
   const auto volume = compute_volume(unf_domain, *quad);
   // NOLINTNEXTLINE (bugprone-chained-comparison)

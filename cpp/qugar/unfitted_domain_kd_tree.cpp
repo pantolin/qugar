@@ -15,15 +15,17 @@
 //!
 //! @copyright Copyright (c) 2025-present
 
-#include "qugar/cart_grid_tp.hpp"
 #include <qugar/unfitted_domain_kd_tree.hpp>
 
+#include <qugar/cart_grid_tp.hpp>
 #include <qugar/utils.hpp>
 
 #include <cassert>
 #include <cstddef>
 #include <cstdint>
+#include <functional>
 #include <memory>
+#include <ranges>
 #include <vector>
 
 namespace qugar {
@@ -33,7 +35,9 @@ UnfittedKDTree<dim>::UnfittedKDTree(const GridPtr grid)
   : UnfittedKDTree<dim>(std::make_shared<SubCartGridTP<dim>>(grid))
 {}
 
-template<int dim> UnfittedKDTree<dim>::UnfittedKDTree(const SubGridPtr subgrid) : subgrid_(subgrid), children_()
+template<int dim>
+UnfittedKDTree<dim>::UnfittedKDTree(const SubGridPtr subgrid)
+  : subgrid_(subgrid), status_(ImmersedCellStatus::unknown), children_()
 {
   assert(subgrid_ != nullptr);
 }
@@ -47,7 +51,7 @@ template<int dim> void UnfittedKDTree<dim>::set_status(const ImmersedCellStatus 
 {
 #ifndef NDEBUG
   assert(this->is_leaf());
-  assert(!this->status_.has_value());
+  assert(this->status_ == ImmersedCellStatus::unknown);
   if (status == ImmersedCellStatus::cut) {
     assert(this->subgrid_->is_unique_cell());
   }
@@ -58,9 +62,8 @@ template<int dim> void UnfittedKDTree<dim>::set_status(const ImmersedCellStatus 
 
 template<int dim> ImmersedCellStatus UnfittedKDTree<dim>::get_status() const
 {
-  assert(this->status_.has_value());
   assert(this->get_child(0) != nullptr && this->get_child(1) != nullptr);
-  return this->status_.value();
+  return this->status_;
 }
 
 template<int dim> auto UnfittedKDTree<dim>::get_subgrid() const -> SubGridPtr
@@ -88,7 +91,7 @@ template<int dim> auto UnfittedKDTree<dim>::get_child(const int index) const -> 
 template<int dim> void UnfittedKDTree<dim>::branch()
 {
   assert(this->is_leaf());
-  assert(!this->status_.has_value());
+  assert(this->status_ == ImmersedCellStatus::unknown);
   assert(!this->subgrid_->is_unique_cell());
 
   const auto [left, right] = this->subgrid_->split();
@@ -118,13 +121,12 @@ std::shared_ptr<const UnfittedKDTree<dim>> UnfittedKDTree<dim>::find_leaf(const 
 }
 
 
-// NOLINTNEXTLINE (misc-no-recursion)
 template<int dim>
 template<typename Func_0, typename Func_1>
+// NOLINTNEXTLINE (misc-no-recursion)
 void UnfittedKDTree<dim>::transverse_tree(const Func_0 &func_0, const Func_1 &func_1) const
 {
   if (this->is_leaf()) {
-    assert(this->status_.has_value());
     if (func_0(*this)) {
       func_1(*this);
     }
@@ -134,9 +136,9 @@ void UnfittedKDTree<dim>::transverse_tree(const Func_0 &func_0, const Func_1 &fu
   }
 }
 
-// NOLINTNEXTLINE (misc-no-recursion)
 template<int dim>
 template<typename Func_0, typename Func_1>
+// NOLINTNEXTLINE (misc-no-recursion)
 std::size_t UnfittedKDTree<dim>::reduce(const Func_0 &func_0, const Func_1 &func_1) const
 {
   if (this->is_leaf()) {
@@ -206,6 +208,7 @@ void UnfittedKDTree<dim>::get_cell_ids(const ImmersedCellStatus status,
   std::ranges::sort(cell_ids);
 }
 
+
 template<int dim> std::size_t UnfittedKDTree<dim>::get_num_cells(const ImmersedCellStatus status) const
 {
   const auto func_0 = create_leaf_checker(status);
@@ -222,22 +225,20 @@ template<int dim> std::size_t UnfittedKDTree<dim>::get_num_leaves(const Immersed
   return reduce(func_0, func_1);
 }
 
+template<int dim> bool UnfittedKDTree<dim>::is_cell(const ImmersedCellStatus status, const std::int64_t cell_id) const
+{
+  const auto leaf = this->find_leaf(cell_id);
+
+  return leaf->status_ == status;
+}
+
 template<int dim>
 auto UnfittedKDTree<dim>::create_leaf_checker(const ImmersedCellStatus status) -> std::function<bool(const Self &)>
 {
   return [status](const Self &leaf) {
     assert(leaf.is_leaf());
-    assert(leaf.status_.has_value());
-    return leaf.status_.value() == status;
+    return leaf.status_ == status;
   };
-}
-
-template<int dim> bool UnfittedKDTree<dim>::is_cell(const ImmersedCellStatus status, const std::int64_t cell_id) const
-{
-  const auto leaf = this->find_leaf(cell_id);
-  assert(leaf->status_.has_value());
-
-  return leaf->status_.value() == status;
 }
 
 // Instantiations

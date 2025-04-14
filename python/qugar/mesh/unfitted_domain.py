@@ -22,7 +22,6 @@ import qugar.cpp
 from qugar.cpp import UnfittedDomain_2D, UnfittedDomain_3D
 from qugar.mesh.mesh import Mesh
 from qugar.mesh.unfitted_domain_abc import UnfittedDomainABC
-from qugar.mesh.utils import lexicg_to_DOLFINx_faces
 from qugar.quad.custom_quad import (
     CustomQuad,
     CustomQuadFacet,
@@ -60,6 +59,15 @@ class UnfittedDomain(UnfittedDomainABC):
         self._full_cells = None
         self._empty_cells = None
         self._cut_cells = None
+        self._unf_bdry_cells = None
+
+        self._exterior_cut_facets = None
+        self._exterior_full_facets = None
+        self._exterior_empty_facets = None
+
+        self._interior_cut_facets = None
+        self._interior_full_facets = None
+        self._interior_empty_facets = None
 
     @property
     def cpp_unf_domain_object(self) -> UnfittedDomain_2D | UnfittedDomain_3D:
@@ -77,21 +85,23 @@ class UnfittedDomain(UnfittedDomainABC):
             [Optional[npt.NDArray[np.int64]]],
             npt.NDArray[np.int64],
         ],
-    ) -> npt.NDArray[np.int64]:
-        """Accesses a list of cells either through the function `cells_getter`.
+    ) -> npt.NDArray[np.int32]:
+        """Accesses a list of cells through the function `cells_getter`.
 
         Args:
-            cells_getter (Callable[[Optional[npt.NDArray[np.int64]]], npt.NDArray[np.int32]]):
+            cells_getter (Callable[[Optional[npt.NDArray[np.int64]]], npt.NDArray[np.int64]]):
                 Function to access the cells. It returns the cells following the original numbering.
 
         Returns:
-            npt.NDArray[np.int32]: Extracted cells. They are sorted.
+            npt.NDArray[np.int32]: Extracted cells (following DOLFINx local
+            numbering). They are sorted.
         """
-        if self._mesh.num_local_cells != self._cpp_unf_domain_object.num_total_cells:
-            orig_cell_ids = self._mesh.get_all_original_cell_ids()
+        if self._mesh.num_local_cells == self._cpp_unf_domain_object.num_total_cells:
+            orig_cell_ids = None  # All cells .
         else:
-            orig_cell_ids = None
-        return self._mesh.get_DOLFINx_local_cell_ids(cell_getter(orig_cell_ids))
+            orig_cell_ids = self._mesh.get_all_original_cell_ids()
+        cell_ids = self._mesh.get_DOLFINx_local_cell_ids(cell_getter(orig_cell_ids))
+        return np.sort(cell_ids)
 
     def _get_facets(
         self,
@@ -99,61 +109,73 @@ class UnfittedDomain(UnfittedDomainABC):
             [Optional[npt.NDArray[np.int64]], Optional[npt.NDArray[np.int32]]],
             tuple[npt.NDArray[np.int64], npt.NDArray[np.int32]],
         ],
-        only_exterior: bool = False,
-        only_interior: bool = False,
-    ) -> tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]:
+        exterior: bool,
+    ) -> npt.NDArray[np.int32]:
         """Accesses a list of facets through the function `facets_getter`.
 
-        The list of facets can be filtered to only exterior or interior facets.
+        The list of facets will be filtered to only exterior or interior facets.
 
         Args:
-            facets_getter (Callable[[Optional[npt.NDArray[np.int64]], Optional[npt.NDArray[np.int32]]],
+            facets_getter (Callable[npt.NDArray[np.int64], npt.NDArray[np.int32]],
               tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]]): Function to
                 access the facets. It returns the facets as pairs of cells (referred to the
                 local ordering) and local facets following lexicographical ordering.
                 Optionally, it can receive as arguments (origina) cell ids and local
                 (lexicographical) facet ids of the subsets of facets to be considered.
-            only_exterior (bool): If `True`, only the exterior facets are returned.
-                Defaults to False.
-            only_interior (bool): If `True`, only the interior facets are returned.
-                Defaults to False.
+            exterior (bool): If `True`, the exterior facets are considered.
+                Otherwise, the interior ones. Defaults to True.
 
         Returns:
-            tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]:
-            Extracted facets. The facets are returned as one array of
-            cells and another one of local facets referred to those
-            cells both with the same length and both following (local) DOLFINx ordering.
-        """  # noqa: E501
+            npt.NDArray[np.int32]: Extracted facets. The facets are
+            returned as one sorted array with the facets indices following
+            the (local) DOLFINx ordering.
+        """
 
-        assert not (only_exterior and only_interior), "Cannot be both exterior and interior."
-
-        if only_exterior or only_interior:
-            ext_facets_ids = self._mesh.get_exterior_facets()
-            if only_exterior:
-                facets_ids = ext_facets_ids
-            else:
-                topology = self._mesh.topology
-                imap = topology.index_map(topology.dim - 1)
-                all_facets = np.arange(imap.local_range[0], imap.local_range[1], dtype=np.int32)
-                facets_ids = np.setdiff1d(all_facets, ext_facets_ids, assume_unique=True)
-
-            dlf_cell_ids, dlf_local_facet_ids = (
-                self._mesh.transform_DOLFINx_local_facet_ids_to_cells_and_local_facets(facets_ids)
-            )
-            orig_cell_ids, orig_local_facet_ids = (
-                self._mesh.transform_DOLFINx_local_facet_ids_to_original(
-                    dlf_cell_ids, dlf_local_facet_ids
-                )
-            )
-
-            orig_cell_ids, orig_local_facet_ids = facets_getter(orig_cell_ids, orig_local_facet_ids)
-
-        else:
-            orig_cell_ids, orig_local_facet_ids = facets_getter(None, None)
-
-        return self._mesh.transform_original_facet_ids_to_DOLFINx_local(
-            orig_cell_ids, orig_local_facet_ids
+        facets_ids = (
+            self._mesh.get_exterior_facets() if exterior else self._mesh.get_interior_facets()
         )
+
+        # From facet ids to cells and local facets
+        dlf_cell_ids, dlf_local_facet_ids = (
+            self._mesh.transform_DOLFINx_local_facet_ids_to_cells_and_local_facets(facets_ids)
+        )
+
+        # From DOLFIN local ordering (of cells and local facets)
+        # to original ordering (of cells and lexicographical local facets)
+        orig_cell_ids, orig_local_facet_ids = (
+            self._mesh.transform_DOLFINx_local_facet_ids_to_original(
+                dlf_cell_ids, dlf_local_facet_ids
+            )
+        )
+
+        # Filtering of the original facets using the facets_getter
+        orig_cell_ids, orig_local_facet_ids = facets_getter(orig_cell_ids, orig_local_facet_ids)
+
+        # From the original ordering (of cells and lexicographical local facets)
+        # to DOLFINx local ordering (of cells and local facets)
+        dlf_cell_ids, dlf_local_facet_ids = (
+            self._mesh.transform_original_facet_ids_to_DOLFINx_local(
+                orig_cell_ids, orig_local_facet_ids
+            )
+        )
+
+        # From DOLFINx local ordering of cells and local facets
+        # to DOLFINx local ordering of facets.
+        facets_ids = self._mesh.transform_DOLFINx_cells_and_local_facets_to_local_facet_ids(
+            dlf_cell_ids, dlf_local_facet_ids
+        )
+
+        return np.sort(facets_ids)
+
+    def has_full_cells_with_unf_bdry(self) -> bool:
+        """Checks if the unfitted domain has full cells with unfitted
+        boundaries.
+
+        Returns:
+            bool: `True` if the unfitted domain has full cells with
+            unfitted boundaries, `False` otherwise.
+        """
+        return self._cpp_unf_domain_object.has_full_cells_with_unf_bdry
 
     def get_cut_cells(self) -> npt.NDArray[np.int32]:
         """Gets the ids of the cut cells.
@@ -161,25 +183,37 @@ class UnfittedDomain(UnfittedDomainABC):
         Returns:
             npt.NDArray[np.int32]: Array of cut cells associated to the
             current process following the DOLFINx local numbering.
-            The cell id are sorted.
+            The cell ids are sorted.
         """
 
         if self._cut_cells is None:
-            self._cut_cells = self._get_cells(self._cpp_unf_domain_object.get_cut_cells)
+
+            def caller(cells):
+                return self._cpp_unf_domain_object.get_cut_cells(cells)
+
+            self._cut_cells = self._get_cells(caller)
 
         return self._cut_cells
 
     def get_full_cells(self) -> npt.NDArray[np.int32]:
         """Gets the ids of the full cells.
 
+        Note:
+            We also consider as full the full cells that contain
+            unfitted boundaries on their facets.
+
         Returns:
             npt.NDArray[np.int32]: Array of full cells associated to the
             current process following the DOLFINx local numbering.
-            The cell id are sorted.
+            The cell ids are sorted.
         """
 
         if self._full_cells is None:
-            self._full_cells = self._get_cells(self._cpp_unf_domain_object.get_full_cells)
+
+            def caller(cells):
+                return self._cpp_unf_domain_object.get_full_cells(cells)
+
+            self._full_cells = self._get_cells(caller)
 
         return self._full_cells
 
@@ -189,31 +223,73 @@ class UnfittedDomain(UnfittedDomainABC):
         Returns:
             npt.NDArray[np.int32]: Array of empty cells associated to the
             current process following the DOLFINx local numbering.
-            The cell id are sorted.
+            The cell ids are sorted.
         """
 
         if self._empty_cells is None:
-            self._empty_cells = self._get_cells(self._cpp_unf_domain_object.get_empty_cells)
+            caller = self._cpp_unf_domain_object.get_empty_cells
+            self._empty_cells = self._get_cells(caller)
 
         return self._empty_cells
 
-    def get_cut_facets(
-        self,
-        only_exterior: bool = False,
-        only_interior: bool = False,
-    ) -> tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]:
-        """Gets the cut facets as pairs of cells and local facets.
-
-        The list of facets can be filtered to only exterior or interior facets.
+    def get_unf_bdry_cells(self) -> npt.NDArray[np.int32]:
+        """Gets the ids of the cells that contain unfitted boundaries.
 
         Note:
-            Cut facet may also contain unfitted boundaries parts.
+            All the cut cells (see `get_cut_cells`) have unfitted
+            boundaries, but in some particular cases, we may have full
+            cells that also contain unfitted boundaries on their boundary.
+            Those full cells are also considered as unfitted boundary
+            cells in the case the unfitted boundary does not lay on
+            exterior facets.
+
+        Returns:
+            npt.NDArray[np.int32]: Array of cells containing unfitted
+            boundaries, associated to the current process following the
+            DOLFINx local numbering. The cell ids are sorted.
+        """
+
+        if self._unf_bdry_cells is None:
+            if self.has_full_cells_with_unf_bdry():
+
+                def caller(cells):
+                    # When unfitted boundaries lay on facets, but these are
+                    # exterior facets, that part of the unfitted boundary
+                    # is treated as a cut or full facet (integrals there
+                    # will be computed as facet integrals).
+                    exclude_ext_facets = True
+                    return self._cpp_unf_domain_object.get_unf_bdry_cells(cells, exclude_ext_facets)
+
+                self._unf_bdry_cells = self._get_cells(caller)
+
+            else:
+                self._unf_bdry_cells = self.get_cut_cells()
+
+        return self._unf_bdry_cells
+
+        pass
+
+    def get_cut_facets(
+        self,
+        exterior: bool = True,
+    ) -> tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]:
+        """Gets the cut facets as DOLFINx cells and local facet ids
+
+        The list of facets will be filtered to only exterior or interior
+        facets according to the argument `exterior`.
+
+        Note:
+            The selection of cut facets is performed differently depending
+            on whether exterior or interior facets are considered.
+            For interior facets, simply facets that containg cut parts
+            are considered. While for exterior facets, on top of those
+            cut facets, facets that contain unfitted boundaries are also
+            considered as cut facets, but only if the unfitted boundary
+            does not correspond to a full facet.
 
         Args:
-            only_exterior (bool): If `True`, only the exterior facets are considered.
-                Defaults to False.
-            only_interior (bool): If `True`, only the interior facets are considered.
-                Defaults to False.
+            exterior (bool): If `True`, the exterior facets are considered.
+                Otherwise, the interior ones. Defaults to True.
 
         Returns:
             tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]:
@@ -221,197 +297,196 @@ class UnfittedDomain(UnfittedDomainABC):
             cells and another one of local facets referred to those
             cells both with the same length and both following (local) DOLFINx ordering.
         """
-        return self._get_facets(
-            self._cpp_unf_domain_object.get_cut_facets, only_exterior, only_interior
-        )
+
+        if exterior:
+            if self._exterior_cut_facets is None:
+                # We include cut facets.
+                exterior_cut_facets = self._get_facets(
+                    self._cpp_unf_domain_object.get_cut_facets, exterior
+                )
+
+                # But also facets that contain unfitted boundaries, but
+                # only when they are not full.
+                unf_facets = self._get_facets(
+                    self.cpp_unf_domain_object.get_unf_bdry_facets, exterior
+                )
+                if unf_facets.size > 0:
+                    # They may contain full unfitted boundaries that need to be removed.
+                    unf_full_facets = self._get_facets(
+                        self.cpp_unf_domain_object.get_full_unf_bdry_facets, exterior
+                    )
+                    unf_facets = np.setdiff1d(unf_facets, unf_full_facets, assume_unique=exterior)
+
+                    if unf_facets.size > 0:
+                        exterior_cut_facets = np.concatenate((exterior_cut_facets, unf_facets))
+                        exterior_cut_facets = np.unique(np.sort(exterior_cut_facets))
+
+                self._exterior_cut_facets = (
+                    self._mesh.transform_DOLFINx_local_facet_ids_to_cells_and_local_facets(
+                        exterior_cut_facets
+                    )
+                )
+
+            return self._exterior_cut_facets
+
+        else:  # Interior
+            if self._interior_cut_facets is None:
+                # Here we only include cut facets.
+                interior_cut_facets = self._get_facets(
+                    self._cpp_unf_domain_object.get_cut_facets, exterior
+                )
+                self._interior_cut_facets = (
+                    self._mesh.transform_DOLFINx_local_facet_ids_to_cells_and_local_facets(
+                        interior_cut_facets
+                    )
+                )
+
+            return self._interior_cut_facets
 
     def get_full_facets(
         self,
-        only_exterior: bool = False,
-        only_interior: bool = False,
+        exterior: bool = True,
     ) -> tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]:
-        """Gets the full facets as pairs of cells and local facets.
+        """Gets the full facets as DOLFINx cells and local facet ids
 
-        The list of facets can be filtered to only exterior or interior facets.
+        The list of facets will be filtered to only exterior or interior
+        facets according to the argument `exterior`.
 
         Note:
-            Facets contained full unfitted boundaries are not considered as full.
+            The selection of full facets is performed differently depending
+            on whether exterior or interior facets are considered.
+            For interior facets, simply facets that are fully inside
+            the domain (not touching the boundary) are considered.
+            While for exterior facets, we consider those that are fully
+            contained in the domain's boundary, including the ones
+            corresponding to unfitted boundaries, if the facet is full.
 
         Args:
-            only_exterior (bool): If `True`, only the exterior facets are considered.
-                Defaults to False.
-            only_interior (bool): If `True`, only the interior facets are considered.
-                Defaults to False.
+            exterior (bool): If `True`, the exterior facets are considered.
+                Otherwise, the interior ones. Defaults to True.
 
         Returns:
             tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]:
-            Cut facets. The facets are returned as one array of
+            Full facets. The facets are returned as one array of
             cells and another one of local facets referred to those
             cells both with the same length and both following (local) DOLFINx ordering.
         """
 
-        return self._get_facets(
-            self._cpp_unf_domain_object.get_full_facets, only_exterior, only_interior
-        )
+        if exterior:
+            if self._exterior_full_facets is None:
+                # Full facets
+                exterior_full_facets = self._get_facets(
+                    self._cpp_unf_domain_object.get_full_facets, exterior
+                )
+
+                # We also include facets that contain unfitted boudnaries
+                # if the facet is full.
+                unf_full_facets = self._get_facets(
+                    self.cpp_unf_domain_object.get_full_unf_bdry_facets, exterior
+                )
+                if unf_full_facets.size > 0:
+                    exterior_full_facets = np.unique(
+                        np.sort(np.concatenate((exterior_full_facets, unf_full_facets)))
+                    )
+
+                self._exterior_full_facets = (
+                    self._mesh.transform_DOLFINx_local_facet_ids_to_cells_and_local_facets(
+                        exterior_full_facets
+                    )
+                )
+
+            return self._exterior_full_facets
+
+        else:  # Interior
+            if self._interior_full_facets is None:
+                # Here we only the full facets, without considering the
+                # unfitted boundaries fully contained in the facet.
+                interior_full_facets = self._get_facets(
+                    self._cpp_unf_domain_object.get_full_facets, exterior
+                )
+
+                self._interior_full_facets = (
+                    self._mesh.transform_DOLFINx_local_facet_ids_to_cells_and_local_facets(
+                        interior_full_facets
+                    )
+                )
+
+            return self._interior_full_facets
 
     def get_empty_facets(
         self,
-        only_exterior: bool = False,
-        only_interior: bool = False,
+        exterior: bool = True,
     ) -> tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]:
-        """Gets the empty facets as pairs of cells and local facets.
+        """Gets the empty facets as DOLFINx cells and local facet ids
+
+        The list of facets will be filtered to only exterior or interior
+        facets according to the argument `exterior`.
+
+        Note:
+            The selection of empty facets is performed differently depending
+            on whether exterior or interior facets are considered.
+            For exterior facets we only consider empty facets that do
+            not touch the domain. While for interior facets, we consider
+            empty facets that are completely outside of the domain, but
+            also those that only touch its boundary.
 
         Args:
-            cell_ids (Optional[npt.NDArray[np.int32]]): Indices of the
-                candidate cells to get the empty facets. If follows the DOLFINx local numbering.
-                If not provided, all the empty facets are returned. Defaults to None.
-            local_facet_ids (Optional[npt.NDArray[np.int32]]): Local
-                indices of the candidate facets referred to `cell_ids` (both arrays
-                should have the same length). The face ids follow the
-                DOLFINx ordering. If not provided, all the empty facets are returned.
-                Defaults to None.
+            exterior (bool): If `True`, the exterior facets are considered.
+                Otherwise, the interior ones. Defaults to True.
 
         Returns:
             tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]:
             Empty facets. The facets are returned as one array of
             cells and another one of local facets referred to those
-            cells both with the same length and both following DOLFINx ordering.
-        """
-
-        return self._get_facets(
-            self._cpp_unf_domain_object.get_empty_facets, only_exterior, only_interior
-        )
-
-    def get_unf_bdry_facets(
-        self,
-        only_exterior: bool = False,
-        only_interior: bool = False,
-    ) -> tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]:
-        """Gets the facets that contain unfitted boundaries as pairs of cells and local facets.
-
-        The list of facets can be filtered to only exterior or interior facets.
-
-        Note:
-            Facets that unfitted boundaries may also be cut.
-
-        Args:
-            only_exterior (bool): If `True`, only the exterior facets are considered.
-                Defaults to False.
-            only_interior (bool): If `True`, only the interior facets are considered.
-                Defaults to False.
-
-        Returns:
-            tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]:
-            Facets that contain unfitted boundaries. The facets are returned as one array of
-            cells and another one of local facets referred to those
             cells both with the same length and both following (local) DOLFINx ordering.
         """
 
-        return self._get_facets(
-            self._cpp_unf_domain_object.get_unf_bdry_facets, only_exterior, only_interior
-        )
+        if exterior:
+            if self._exterior_empty_facets is None:
+                # Here we only include empty facets.
+                exterior_empty_facets = self._get_facets(
+                    self._cpp_unf_domain_object.get_empty_facets, exterior
+                )
 
-    def create_cell_subdomain_data(
-        self,
-        cut_tag: Optional[int] = None,
-        full_tag: Optional[int] = None,
-        empty_tag: Optional[int] = None,
-    ) -> list[tuple[int, npt.NDArray[np.int32]]]:
-        """Creates subdomain data that may contain the cut, full, and/or
-        empty cells.
+                self._exterior_empty_facets = (
+                    self._mesh.transform_DOLFINx_local_facet_ids_to_cells_and_local_facets(
+                        exterior_empty_facets
+                    )
+                )
 
-        If the tag for cut, full, or empty tags are not provided, those
-        cells will not be included.
+            return self._exterior_empty_facets
 
-        Args:
-            cut_tag (Optional[int]): Tag to assign to cut cells. Defaults to None.
-            full_tag (Optional[int]): Tag to assign to full cells. Defaults to None.
-            empty_tag (Optional[int]): Tag to assign to empty cells. Defaults to None.
+        else:  # Interior
+            if self._interior_empty_facets is None:
+                interior_empty_facets = self._get_facets(
+                    self._cpp_unf_domain_object.get_empty_facets, exterior
+                )
 
-        Returns:
-            list[tuple[int, npt.NDArray[np.int32]]]: Generated cells subdomain data.
-            It is a list where is entry is a tuple with a tag (identifier) and an array
-            of cell ids.
-        """
+                # Beyond the empty facets, we also need to consider
+                # the facets that are not cut but contain unfitted
+                # boundaries (full or not).
 
-        subdomain_data = {}
+                unf_facets = self._get_facets(
+                    self.cpp_unf_domain_object.get_unf_bdry_facets, exterior
+                )
+                if unf_facets.size > 0:
+                    # They may contain cut facets need to be removed.
+                    unf_facets = np.setdiff1d(
+                        unf_facets, self.get_cut_facets(exterior), assume_unique=exterior
+                    )
 
-        def add_cells(cells, tag):
-            if tag in subdomain_data:
-                subdomain_data[tag] = np.concatenate([subdomain_data[tag], cells])
-            else:
-                subdomain_data[tag] = cells
+                    if unf_facets.size > 0:
+                        interior_empty_facets = np.unique(
+                            np.sort(np.concatenate((interior_empty_facets, unf_facets)))
+                        )
 
-        if cut_tag is not None:
-            add_cells(self.get_cut_cells(), cut_tag)
+                self._interior_empty_facets = (
+                    self._mesh.transform_DOLFINx_local_facet_ids_to_cells_and_local_facets(
+                        interior_empty_facets
+                    )
+                )
 
-        if full_tag is not None:
-            add_cells(self.get_full_cells(), full_tag)
-
-        if empty_tag is not None:
-            add_cells(self.get_empty_cells(), empty_tag)
-
-        return list((tag, np.sort(cells)) for tag, cells in subdomain_data.items())
-
-    def create_exterior_facet_subdomain_data(
-        self,
-        cut_tag: Optional[int] = None,
-        full_tag: Optional[int] = None,
-        unf_bdry_tag: Optional[int] = None,
-        empty_tag: Optional[int] = None,
-    ) -> list[tuple[int, npt.NDArray[np.int32]]]:
-        """Creates subdomain data that may contain the cut, full, unfitted and/or
-        empty exterior facets
-
-        If the tag for cut, full, unfitted, or empty tags are not provided, those
-        facets will not be included.
-
-        Args:
-            cut_tag (Optional[int]): Tag to assign to cut exterior facets. Defaults to None.
-            full_tag (Optional[int]): Tag to assign to full exterior facets. Defaults to None.
-            unf_bdry_tag (Optional[int]): Tag to assign to facets that contain unfitted boundaries.
-                They are not necessarily exterior facets in the sense of exterior facets
-                of the underlying (non-cut) mesh. Defaults to None.
-            empty_tag (Optional[int]): Tag to assign to empty exterior facets. Defaults to None.
-
-        Returns:
-            list[tuple[int, npt.NDArray[np.int32]]]: Generated tags subdomain data.
-            It is a list where is entry is a tuple with a tag (identifier) and an array
-            of exterior facets. The array of facets is made of consecutive pairs of cells and
-            local facet ids.
-
-        """
-
-        subdomain_data = {}
-
-        def add_facets(cells, local_facets, tag):
-            facets = np.empty((len(cells), 2), dtype=np.int32)
-            facets[:, 0] = cells
-            facets[:, 1] = local_facets
-            facets = facets.ravel()
-
-            if tag in subdomain_data:
-                subdomain_data[tag] = np.concatenate([subdomain_data[tag], facets])
-            else:
-                subdomain_data[tag] = facets
-
-        if cut_tag is not None:
-            cells, local_facets = self.get_cut_facets(only_exterior=True, only_interior=False)
-            add_facets(cells, local_facets, cut_tag)
-
-        if full_tag is not None:
-            cells, local_facets = self.get_full_facets(only_exterior=True, only_interior=False)
-            add_facets(cells, local_facets, full_tag)
-
-        if unf_bdry_tag is not None:
-            cells, local_facets = self.get_unf_bdry_facets(only_exterior=False, only_interior=False)
-            add_facets(cells, local_facets, unf_bdry_tag)
-
-        if empty_tag is not None:
-            cells, local_facets = self.get_empty_facets(only_exterior=True, only_interior=False)
-            add_facets(cells, local_facets, cut_tag)
-
-        return list((tag, entities) for tag, entities in subdomain_data.items())
+            return self._interior_empty_facets
 
     @staticmethod
     def get_num_Gauss_points(degree: int) -> int:
@@ -445,16 +520,14 @@ class UnfittedDomain(UnfittedDomainABC):
         self,
         degree: int,
         dlf_cells: npt.NDArray[np.int32],
-        tag: Optional[int] = None,
     ) -> CustomQuad:
-        """Returns the custom quadratures for the given `cells`.
+        """Returns the custom quadratures for the given `dlf_cells`.
 
-        Among the given `cells`, it only creates quadratures for a
-        subset of those (the custom cells), while no points or
-        weights are generated for the others. Thus, the cells without
-        custom quadratures will be listed in the returned
-        `CustomQuadInterface`, but will have 0 points associated to
-        them.
+        For empty cells, no quadrature is generated and will have 0 points
+        associated to them. For full cells, the quadrature will be the
+        standard one associated to the cell type. While for
+        cut cells a custom quadrature for the cell's interior will be
+        generated.
 
         Note:
             This call may require the generation of the quadratures on
@@ -467,9 +540,6 @@ class UnfittedDomain(UnfittedDomainABC):
             dlf_cells (npt.NDArray[np.int32]): Array of DOLFINx cell ids
                 (local to current MPI process) for which quadratures
                 will be generated.
-
-            tag (Optional[int]): Mesh tag of the subdomain associated to
-                the given cells. Defaults to None.
 
         Returns:
             CustomQuadInterface: Generated custom quadrature.
@@ -487,16 +557,22 @@ class UnfittedDomain(UnfittedDomainABC):
         self,
         degree: int,
         dlf_cells: npt.NDArray[np.int32],
-        tag: Optional[int] = None,
     ) -> CustomQuadUnfBoundary:
         """Returns the custom quadrature for unfitted boundaries for the
         given `cells`.
 
-        Warning:
-            All the given cells associated should contain unfitted
-            boundaries. I.e., they must be cut cells. If not, the
-            custom coefficients generator will raise an
-            exception.
+        For cells not containing unfitted boundaries,
+        no quadrature is generated and will have 0 points associated to
+        them. While for cells containing unfitted boundaries (see
+        `get_unf_bdry_cells`), a custom quadrature for the unfitted
+        boundary will be generated.
+
+        Note:
+            Some unfitted boundary parts may lay over facets.
+            This function generates quadrature for those parts if they correspond
+            to exterior facets. For the case of interior facets,
+            the corresponding quadratures will be included in the
+            quadrature generated with the method `create_quad_custom_facets`.
 
         Note:
             This call may require the generation of the quadratures on
@@ -508,11 +584,7 @@ class UnfittedDomain(UnfittedDomainABC):
 
             dlf_cells (npt.NDArray[np.int32]): Array of DOLFINx cell ids
                 (local to current MPI process) for which quadratures
-                will be generated. It must only contain cells with
-                unfitted boundaries.
-
-            tag (int): Mesh tag of the subdomain associated to the given
-                cells.
+                will be generated.
 
         Returns:
             CustomQuadUnfBoundaryInterface: Generated custom quadrature
@@ -522,8 +594,14 @@ class UnfittedDomain(UnfittedDomainABC):
 
         orig_cells = self._mesh.get_original_cell_ids(dlf_cells)
 
+        include_facet_unf_bry = True
+        exclude_ext_bdry = True
         quad = qugar.cpp.create_unfitted_bound_quadrature(
-            self._cpp_unf_domain_object, orig_cells, n_pts_dir
+            self._cpp_unf_domain_object,
+            orig_cells,
+            n_pts_dir,
+            include_facet_unf_bry,
+            exclude_ext_bdry,
         )
 
         return CustomQuadUnfBoundary(
@@ -534,24 +612,23 @@ class UnfittedDomain(UnfittedDomainABC):
         self,
         degree: int,
         dlf_cells: npt.NDArray[np.int32],
-        dlf_local_facets: npt.NDArray[np.int32],
-        integral_type: str,
-        tag: Optional[int] = None,
+        dlf_local_faces: npt.NDArray[np.int32],
+        exterior: bool,
     ) -> CustomQuadFacet:
         """Returns the custom quadratures for the given facets.
 
-        Among the facets associated to `tag`, it only creates
-        quadratures for a subset of those (the custom facets), while no
-        points or weights are generated for the others. Thus, the facets
-        without custom quadratures will be listed in the returned
-        `CustomQuadFacetInterface`, but will have 0 points associated to
+        For empty facets, no quadrature is generated and will have 0 points
+        associated to them. For full facets, the quadrature will be the
+        standard one associated to the facet type. While for
+        cut facets a custom quadrature for the facet's interior will be
+        generated.
 
-        Among the given facets, it only creates quadratures for a
-        subset of those (the custom facets), while no points or
-        weights are generated for the others. Thus, the facets without
-        custom quadratures will be listed in the returned
-        `CustomQuadFacetInterface`, but will have 0 points associated to
-        them.
+        Note:
+            Some unfitted boundary parts may lay over facets.
+            This function generates quadrature for those parts if they correspond
+            to interior facets. For the case of exterior facets,
+            the corresponding quadratures will be included in the
+            quadrature generated with the method `create_quad_unf_boundaries`.
 
         Note:
             This call may require the generation of the quadratures on
@@ -563,58 +640,192 @@ class UnfittedDomain(UnfittedDomainABC):
 
             dlf_cells (npt.NDArray[np.int32]): Array of DOLFINx cell ids
                 (local to current MPI process) for which quadratures
-                will be generated. It must only contain cells with
-                unfitted boundaries. Beyond a cell id, for indentifying
+                will be generated. Beyond a cell id, for indentifying
                 a facet, a local facet id (from the array
-                `local_facets`) is also needed.
+                `local_faces`) is also needed.
 
-            dlf_local_facets (npt.NDArray[np.int32]): Array of local facet
+            dlf_local_faces (npt.NDArray[np.int32]): Array of local face
                 ids for which the custom quadratures are generated. Each
                 facet is identified through a value in `cells` and a
-                value in `local_facets`, having both arrays the same
+                value in `local_faces`, having both arrays the same
                 length. The numbering of these facets follows the
                 FEniCSx convention. See
                 https://github.com/FEniCS/basix/#supported-elements
 
-            integral_type (str): Type of integral to be computed. It can
-                be either 'interior_facet' or 'exterior_facet'.
-
-            tag (int): Mesh tag of the subdomain associated to the given
-                cells. Right now, it is not used. However, in the future
-                it may be used to filter the different boundaries
-                on the same cell.
+            exterior (bool): If `True` the quadratures will be generated
+                considering the given facets as exterior facets.
+                Otherwise, as interior.
+                See the documentation of `get_cut_facets`,
+                `get_full_facets`, and `get_empty_facets` methods
+                for more information about the implications of considering
+                interior or exterior facets.
 
         Returns:
             CustomQuadFacetInterface: Generated custom facet
             quadratures.
         """
 
-        assert integral_type in ["interior_facet", "exterior_facet"], "Invalid integral type."
-
         n_pts_dir = UnfittedDomain.get_num_Gauss_points(degree)
 
-        orig_cells = self._mesh.get_original_cell_ids(dlf_cells)
+        orig_cells, lex_local_faces = self._mesh.transform_DOLFINx_local_facet_ids_to_original(
+            dlf_cells, dlf_local_faces
+        )
 
-        tdim = self._cpp_unf_domain_object.dim
-        lex_to_dlf_faces = lexicg_to_DOLFINx_faces(tdim)
-        lex_local_facets = lex_to_dlf_faces[dlf_local_facets]
-
-        if integral_type == "interior_facet":
-            quad_func = qugar.cpp.create_interior_facets_quadrature
-        else:
-            quad_func = qugar.cpp.create_exterior_facets_quadrature
+        quad_func = (
+            qugar.cpp.create_exterior_facets_quadrature
+            if exterior
+            else qugar.cpp.create_interior_facets_quadrature
+        )
 
         quad = quad_func(
             self._cpp_unf_domain_object,
             orig_cells,
-            lex_local_facets,
+            lex_local_faces,
             n_pts_dir,
         )
 
         return CustomQuadFacet(
             dlf_cells,
-            dlf_local_facets,
+            dlf_local_faces,
             quad.n_pts_per_entity,
             quad.points,
             quad.weights,
         )
+
+    def create_cell_tags(
+        self,
+        cut_tag: Optional[int] = None,
+        full_tag: Optional[int] = None,
+        empty_tag: Optional[int] = None,
+        unf_bdry_tag: Optional[int] = None,
+    ) -> list[tuple[int, npt.NDArray[np.int32]]]:
+        """Creates a cell tags container to identify the cut, full,
+        empty, and/or cells containing unfitted boundaries.
+
+        These tags can be used to prescribe the `subdomain_data` to which
+        integration measure apply. E.g., `ufl.dx(subdomain_data=cell_tags)`.
+
+        Note:
+            Full cells that contain unfitted boundaries are considered as full.
+            Those cells can be explicitly tagged with the `unf_bdry_tag` tag.
+
+        Note:
+            A DOFLINX mesh tag object could be generated in a straightforward manner
+            from the information returned by this function. However, be aware
+            that if you include both the cells associated to cut or full cells, and the
+            ones that contain unfitted boundaries, the generated set of cells will not
+            be unique (breaking the DOLFINx mesh tags object requisites).
+
+        If the tag for `cut`, `full`, `empty`, or `unf_bdry_tag` tags are not provided
+        (they are set to `None`), those cells will not be included in the generated cell tags.
+
+        Args:
+            cut_tag (Optional[int]): Tag to assign to cut cells. Defaults to None.
+            full_tag (Optional[int]): Tag to assign to full cells. Defaults to None.
+            empty_tag (Optional[int]): Tag to assign to empty cells. Defaults to None.
+            unf_bdry_tag (Optional[int]): Tag to assign to cells containing
+                unfitted boundaries. In general, these cells will coincide with
+                the cut cells. However, in some cases, we may have full cells
+                that also contain unfitted boundaries on their facets. Those
+                full cells are also considered as unfitted boundary cells in
+                the case the unfitted boundary does not lay on exterior facets.
+                Defaults to None.
+
+        Returns:
+            list[tuple[int, npt.NDArray[np.int32]]]: Generated cells tags.
+            It is a list where each entry is a tuple with a tag (identifier) and an array
+            of cell ids.
+        """
+
+        cell_tags = {}
+
+        def add_cells(getter, tag):
+            cells = getter()
+            if tag in cell_tags:
+                if cells.size > 0:
+                    new_cells = np.concatenate([cell_tags[tag], cells])
+                    cell_tags[tag] = np.unique(np.sort(new_cells))
+            else:
+                cell_tags[tag] = cells
+
+        for getter, tag in {
+            self.get_cut_cells: cut_tag,
+            self.get_full_cells: full_tag,
+            self.get_empty_cells: empty_tag,
+            self.get_unf_bdry_cells: unf_bdry_tag,
+        }.items():
+            if tag is not None:
+                add_cells(getter, tag)
+
+        return list((tag, cells) for tag, cells in cell_tags.items())
+
+    def create_facet_tags(
+        self,
+        cut_tag: Optional[int] = None,
+        full_tag: Optional[int] = None,
+        empty_tag: Optional[int] = None,
+        exterior: bool = True,
+    ) -> list[tuple[int, npt.NDArray[np.int32]]]:
+        """Creates a facet tags container to identify the cut, full,
+        and/or empty cells.
+
+        These tags can be used to prescribe the `subdomain_data` to which
+        integration measure apply. E.g., `ufl.ds(subdomain_data=cell_tags)`.
+
+        Note:
+            A DOFLINX mesh tag object could be generated in a straightforward manner
+            from the information returned by this function. However, be aware
+            that in the information returned by this function, the information
+            for the interior facets is duplicated (provided information for the
+            positive and negative sides of the facet).
+
+        If the tag for cut, full, or empty tags are not provided, those
+        facets will not be included in the list.
+
+        Args:
+            cut_tag (Optional[int]): Tag to assign to cut facets. Defaults to None.
+            full_tag (Optional[int]): Tag to assign to full facets. Defaults to None.
+            empty_tag (Optional[int]): Tag to assign to empty facets. Defaults to None.
+            exterior (bool): If `True`, the exterior facets are considered.
+                Otherwise, the interior ones. Check the documentation of
+                `get_cut_facets`, `get_full_facets`, and `get_empty_facets`
+                methods for more information about the implications of
+                considering interior or exterior facets.
+                Defaults to True.
+
+        Returns:
+            list[tuple[int, npt.NDArray[np.int32]]]: Generated facet tags.
+            It is a list where is entry is a tuple with a tag (identifier) and an array
+            of facets. The array of facets is made of consecutive pairs of cells and
+            local face ids.
+        """
+
+        facet_tags = {}
+
+        def add_facets(cells, local_facets, tag):
+            facets = np.empty(len(cells) * 2, dtype=np.int32)
+            facets[::2] = cells
+            facets[1::2] = local_facets
+
+            if tag in facet_tags:
+                if facets.size > 0:
+                    # No need for unique, as the sets of cut, empty, and
+                    # full facets should be disjoint. Also, the facets
+                    # are not required to be returned in any particular order.
+                    facet_tags[tag] = np.concatenate([facet_tags[tag], facets])
+            else:
+                facet_tags[tag] = facets
+
+        if cut_tag is not None:
+            cells, local_facets = self.get_cut_facets(exterior)
+            add_facets(cells, local_facets, cut_tag)
+
+        if full_tag is not None:
+            cells, local_facets = self.get_full_facets(exterior)
+            add_facets(cells, local_facets, full_tag)
+
+        if empty_tag is not None:
+            cells, local_facets = self.get_empty_facets(exterior)
+            add_facets(cells, local_facets, cut_tag)
+
+        return list((tag, entities) for tag, entities in facet_tags.items())

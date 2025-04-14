@@ -274,7 +274,7 @@ namespace {
 
       const auto normal = at(quad.normals, pt_id);
       const auto normal_comp = normal(const_dir);
-      if (!tol.smaller_than(std::abs(normal_comp), numbers::one)) {
+      if (tol.smaller_than(std::abs(normal_comp), numbers::one)) {
         // Not normal to facet.
         continue;
       }
@@ -286,6 +286,7 @@ namespace {
 
     erase_points_in_quad<CutUnfBoundsQuad<dim>, false>(points_to_erase, quad);
   }
+
 
   template<int dim>
   // NOLINTBEGIN (bugprone-easily-swappable-parameters)
@@ -343,6 +344,48 @@ namespace {
     }
 
     erase_points_in_quad<CutIsoBoundsQuad<dim - 1>, true>(points_to_purge, quad);
+  }
+
+  template<int dim>
+  // NOLINTBEGIN (bugprone-easily-swappable-parameters)
+  void add_unf_bdry_quad(const UnfittedImplDomain<dim> &unf_domain,
+    const std::int64_t cell_id,
+    const int local_facet_id,
+    const int n_pts_dir,
+    CutUnfBoundsQuad<dim> &quad)
+  // NOLINTEND (bugprone-easily-swappable-parameters)
+  {
+    if (!unf_domain.has_unfitted_boundary(cell_id, local_facet_id)) {
+      return;
+    }
+
+    CutIsoBoundsQuad<dim - 1> facet_quad;
+    constexpr bool remove_unf_bdry = false;
+    constexpr bool remove_cut = true;
+    create_facet_quadrature(unf_domain, cell_id, local_facet_id, n_pts_dir, remove_unf_bdry, remove_cut, facet_quad);
+
+    const auto n_pts = facet_quad.n_pts_per_facet.back();
+
+    quad.points.reserve(quad.points.size() + static_cast<std::size_t>(n_pts));
+    quad.weights.reserve(quad.weights.size() + static_cast<std::size_t>(n_pts));
+    quad.normals.reserve(quad.normals.size() + static_cast<std::size_t>(n_pts));
+
+    const int const_dir = get_facet_constant_dir<dim>(local_facet_id);
+    const int side = get_facet_side<dim>(local_facet_id);
+    const auto facet_coord_0_1 = side == 0 ? numbers::zero : numbers::one;
+
+    Point<dim> normal;
+    normal(const_dir) = side == 0 ? -numbers::one : numbers::one;
+
+    for (int i = 0; i < n_pts; ++i) {
+      ++quad.n_pts_per_cell.back();
+      const auto &facet_pt = at(facet_quad.points, i);
+      const Point<dim> pt = add_component<real, dim - 1>(facet_pt, const_dir, facet_coord_0_1);
+      quad.points.push_back(pt);
+
+      quad.weights.push_back(at(facet_quad.weights, i));
+      quad.normals.push_back(normal);
+    }
   }
 
 
@@ -498,6 +541,8 @@ template<int dim>
 void create_cell_unfitted_bound_quadrature(const UnfittedImplDomain<dim> &unf_domain,
   const std::int64_t cell_id,
   const int n_pts_dir,
+  const bool include_facet_unf_bdry,
+  const bool exclude_ext_bdry,
   CutUnfBoundsQuad<dim> &quad)
 // NOLINTEND (bugprone-easily-swappable-parameters)
 {
@@ -508,22 +553,41 @@ void create_cell_unfitted_bound_quadrature(const UnfittedImplDomain<dim> &unf_do
 
   auto &n_pts_per_cell = quad.n_pts_per_cell;
 
-  if (unf_domain.is_empty_cell(cell_id) || unf_domain.is_full_cell(cell_id)) {
+  if (!unf_domain.is_cell_with_unf_bdry(cell_id)) {
     n_pts_per_cell.push_back(0);
     return;
   }
 
-  const auto grid = unf_domain.get_grid();
-  const auto domain = grid->get_cell_domain(cell_id);
-
-  const auto phi = unf_domain.get_impl_func();
-  CutUnfBoundsQuadWrapper<dim> quad_wrapper(quad, *phi, domain);
-  compute_quadrature_with_algoim<dim, true>(*phi, domain, n_pts_dir, quad_wrapper);
-
-  // Purging points on facets that must be classified as facet points.
   constexpr int n_local_facets = dim * 2;
-  for (int local_facet_id = 0; local_facet_id < n_local_facets; ++local_facet_id) {
-    purge_facet_points(*phi, unf_domain, cell_id, local_facet_id, quad);
+
+  if (unf_domain.is_cut_cell(cell_id)) {
+    const auto grid = unf_domain.get_grid();
+    const auto domain = grid->get_cell_domain(cell_id);
+
+    const auto phi = unf_domain.get_impl_func();
+    CutUnfBoundsQuadWrapper<dim> quad_wrapper(quad, *phi, domain);
+    compute_quadrature_with_algoim<dim, true>(*phi, domain, n_pts_dir, quad_wrapper);
+
+    // We remove generated points on facets.
+    for (int local_facet_id = 0; local_facet_id < n_local_facets; ++local_facet_id) {
+      if (unf_domain.has_unfitted_boundary(cell_id, local_facet_id)) {
+        purge_facet_points(*phi, unf_domain, cell_id, local_facet_id, quad);
+      }
+    }
+  } else {
+    // it's full with unfitted boundaries.
+    n_pts_per_cell.push_back(0);
+  }
+
+  // We add points on unfitted boundaries that belong to facets.
+  if (include_facet_unf_bdry) {
+    for (int local_facet_id = 0; local_facet_id < n_local_facets; ++local_facet_id) {
+      if (unf_domain.has_unfitted_boundary(cell_id, local_facet_id)) {
+        if (!exclude_ext_bdry || !unf_domain.is_exterior_facet(cell_id, local_facet_id)) {
+          add_unf_bdry_quad(unf_domain, cell_id, local_facet_id, n_pts_dir, quad);
+        }
+      }
+    }
   }
 }
 
@@ -548,7 +612,14 @@ void create_facet_quadrature(const UnfittedImplDomain<dim> &unf_domain,
   auto &weights = quad.weights;
   auto &n_pts_per_facet = quad.n_pts_per_facet;
 
-  if (unf_domain.is_full_facet(cell_id, local_facet_id) || unf_domain.is_full_unfitted_facet(cell_id, local_facet_id)) {
+  const bool is_full_unf = unf_domain.is_full_unfitted_facet(cell_id, local_facet_id);
+  if (is_full_unf || unf_domain.is_full_facet(cell_id, local_facet_id)) {
+
+    if (is_full_unf && remove_unf_bdry) {
+      n_pts_per_facet.push_back(0);
+      return;
+    }
+
     const int n_pts_per_quad_set = n_pts_dir * (dim == 3 ? n_pts_dir : 1);
 
     static auto gauss_01 = Quadrature<dim - 1>::create_Gauss_01(n_pts_dir);
@@ -588,10 +659,14 @@ template void
 template void create_cell_unfitted_bound_quadrature<2>(const UnfittedImplDomain<2> &unf_domain,
   const std::int64_t,
   const int,
+  const bool,
+  const bool,
   CutUnfBoundsQuad<2> &);
 template void create_cell_unfitted_bound_quadrature<3>(const UnfittedImplDomain<3> &unf_domain,
   const std::int64_t,
   const int,
+  const bool,
+  const bool,
   CutUnfBoundsQuad<3> &);
 
 template void create_facet_quadrature<2>(const UnfittedImplDomain<2> &,

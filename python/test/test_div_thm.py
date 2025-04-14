@@ -74,7 +74,7 @@ def create_div_thm_volume_ufl_form(domain: UnfittedCartMesh, n_quad_pts: int):
 
     full_tag = 1
     cut_tag = 0
-    cell_tags = domain.create_cell_subdomain_data(cut_tag=cut_tag, full_tag=full_tag)
+    cell_tags = domain.create_cell_tags(cut_tag=cut_tag, full_tag=full_tag)
 
     quad_degree = get_Gauss_quad_degree(n_quad_pts)
     dx_ = ufl.dx(
@@ -110,23 +110,21 @@ def create_div_thm_surface_ufl_form(domain: UnfittedCartMesh, n_quad_pts: int):
 
     cut_tag = 0
     full_tag = 1
-    unf_bdry_tag = 2
-    cell_subdomain_data = domain.create_cell_subdomain_data(cut_tag=cut_tag, full_tag=full_tag)
-    facet_tags = domain.create_exterior_facet_subdomain_data(
-        cut_tag=cut_tag, full_tag=full_tag, unf_bdry_tag=unf_bdry_tag
-    )
+    unf_bdry_tag = 0
+    cell_tags = domain.create_cell_tags(unf_bdry_tag=unf_bdry_tag)
+    facet_tags = domain.create_facet_tags(cut_tag=cut_tag, full_tag=full_tag, exterior=True)
 
     quad_degree = get_Gauss_quad_degree(n_quad_pts)
 
     ds_unf = dx_bdry_unf(
         domain=domain,
-        subdomain_data=cell_subdomain_data,
-        subdomain_id=cut_tag,
+        subdomain_data=cell_tags,
+        subdomain_id=unf_bdry_tag,
         degree=quad_degree,
     )
 
     ds_ = ufl.ds(domain=domain, subdomain_data=facet_tags)
-    ds = ds_(cut_tag, degree=quad_degree) + ds_((full_tag, unf_bdry_tag))
+    ds = ds_(cut_tag, degree=quad_degree) + ds_(full_tag)
 
     # Note: if no specific number of quadrature points is set for the cut facets,
     # it would be enough to use a single tag for both cut and full facets.
@@ -605,6 +603,6 @@ def test_tpms(
 
 
 if __name__ == "__main__":
-    test_disk(8, 6, np.float64, True, False)
+    # test_disk(8, 6, np.float64, True, False)
     # test_cylinder(8, 6, np.float64, True, False)
-    # test_tpms(2, 12, 8, np.float32, True)
+    test_tpms(2, 12, 8, np.float32, False)

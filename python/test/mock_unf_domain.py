@@ -333,30 +333,22 @@ class MockUnfittedDomain(UnfittedDomainABC):
     ) -> CustomQuad:
         """Returns the custom quadratures for the given `dlf_cells`.
 
-        Among the given `dlf_cells`, it only creates quadratures for a
-        subset of those (the custom cells), while no points or
-        weights are generated for the others. Thus, the cells without
-        custom quadratures will be listed in the returned
-        `CustomQuadProtocol`, but will have 0 points associated to
-        them.
-
-        Note:
-            This method overrides the abstract method of the parent
-            `UnfittedDomainABC` class.
+        For empty cells, no quadrature is generated and will have 0 points
+        associated to them. For full cells, the quadrature will be the
+        standard one associated to the cell type. While for
+        cut cells a custom quadrature for the cell's interior will be
+        generated.
 
         Args:
             degree (int): Expected degree of exactness of the quadrature
                 to be generated.
 
-            dlf_cells (npt.NDArray[np.int32]): Array of local DOLFINx cell ids
+            dlf_cells (npt.NDArray[np.int32]): Array of DOLFINx cell ids
                 (local to current MPI process) for which quadratures
                 will be generated.
 
-            tag (Optional[int]): Mesh tag of the subdomain associated
-                to the given cells. Defaults to None.
-
         Returns:
-            CustomQuadProtocol: Generated custom quadrature.
+            CustomQuadInterface: Generated custom quadrature.
         """
 
         subset_ids = np.searchsorted(self._get_cells_ids(), dlf_cells)
@@ -369,16 +361,13 @@ class MockUnfittedDomain(UnfittedDomainABC):
         self, degree: int, dlf_cells: npt.NDArray[np.int32], tag: Optional[int] = None
     ) -> CustomQuadUnfBoundary:
         """Returns the custom quadrature for unfitted boundaries for the
-        given `dlf_cells`.
+        given `cells`.
 
-        Warning:
-            All the given cells associated should contain unfitted
-            boundaries. If not, the custom coefficients generator will
-            raise an exception.
-
-        Note:
-            This call may require the generation of the quadratures on
-            the fly, what can be potentially expensive.
+        For cells not containing unfitted boundaries,
+        no quadrature is generated and will have 0 points associated to
+        them. While for cells containing unfitted boundaries (see
+        `get_unf_bdry_cells`), a custom quadrature for the unfitted
+        boundary will be generated.
 
         Args:
             degree (int): Expected degree of exactness of the quadrature
@@ -386,14 +375,10 @@ class MockUnfittedDomain(UnfittedDomainABC):
 
             dlf_cells (npt.NDArray[np.int32]): Array of DOLFINx cell ids
                 (local to current MPI process) for which quadratures
-                will be generated. It must only contain cells with
-                unfitted boundaries.
-
-            tag (Optional[int]): Mesh tag of the subdomain associated
-                to the given cells. Defaults to None.
+                will be generated.
 
         Returns:
-            CustomQuadUnfBoundaryProtocol: Generated custom quadrature
+            CustomQuadUnfBoundaryInterface: Generated custom quadrature
             for unfitted boundaries.
         """
 
@@ -414,28 +399,20 @@ class MockUnfittedDomain(UnfittedDomainABC):
         self,
         degree: int,
         dlf_cells: npt.NDArray[np.int32],
-        dlf_local_facets: npt.NDArray[np.int32],
-        integral_type: str,
-        tag: Optional[int] = None,
+        dlf_local_faces: npt.NDArray[np.int32],
+        exterior: bool,
     ) -> CustomQuadFacet:
         """Returns the custom quadratures for the given facets.
 
-        Among the facets associated to `tag`, it only creates
-        quadratures for a subset of those (the custom facets), while no
-        points or weights are generated for the others. Thus, the facets
-        without custom quadratures will be listed in the returned
-        `CustomQuadFacetProtocol`, but will have 0 points associated to
-
-        Among the given facets, it only creates quadratures for a
-        subset of those (the custom facets), while no points or
-        weights are generated for the others. Thus, the facets without
-        custom quadratures will be listed in the returned
-        `CustomQuadFacetProtocol`, but will have 0 points associated to
-        them.
+        For empty facets, no quadrature is generated and will have 0 points
+        associated to them. For full facets, the quadrature will be the
+        standard one associated to the facet type. While for
+        cut facets a custom quadrature for the facet's interior will be
+        generated.
 
         Note:
-            This call may require the generation of the quadratures on
-            the fly, what can be potentially expensive.
+            This is an abstract method and should be implemented in
+            derived classes.
 
         Args:
             degree (int): Expected degree of exactness of the quadrature
@@ -443,35 +420,33 @@ class MockUnfittedDomain(UnfittedDomainABC):
 
             dlf_cells (npt.NDArray[np.int32]): Array of DOLFINx cell ids
                 (local to current MPI process) for which quadratures
-                will be generated. It must only contain cells with
-                unfitted boundaries. Beyond a cell id, for indentifying
+                will be generated. Beyond a cell id, for indentifying
                 a facet, a local facet id (from the array
-                `local_facets`) is also needed.
+                `local_faces`) is also needed.
 
-            local_facets (npt.NDArray[np.int32]): Array of local facet
+            dlf_local_faces (npt.NDArray[np.int32]): Array of local face
                 ids for which the custom quadratures are generated. Each
                 facet is identified through a value in `cells` and a
-                value in `local_facets`, having both arrays the same
+                value in `local_faces`, having both arrays the same
                 length. The numbering of these facets follows the
                 FEniCSx convention. See
                 https://github.com/FEniCS/basix/#supported-elements
 
-            integral_type (str): Type of integral to be computed. It can
-                be either 'interior_facet' or 'exterior_facet'.
-                Right now it is not used.
-
-
-            tag (Optional[int]): Mesh tag of the subdomain associated
-                to the given facets. Right now it is not used.
-                Defaults to None.
+            exterior (bool): If `True` the quadratures will be generated
+                considering the given facets as exterior facets.
+                Otherwise, as interior.
+                See the documentation of `get_cut_facets`,
+                `get_full_facets`, and `get_empty_facets` methods
+                for more information about the implications of considering
+                interior or exterior facets.
 
         Returns:
-            CustomQuadFacetProtocol: Generated custom facet
+            CustomQuadFacetInterface: Generated custom facet
             quadratures.
         """
 
         self_cells_facets = np.stack([self._facet_cells_ids, self._facet_local_facets_ids], axis=1)
-        cells_facets = np.stack([dlf_cells, dlf_local_facets], axis=1)
+        cells_facets = np.stack([dlf_cells, dlf_local_faces], axis=1)
 
         # TODO: this is potentially slow and should be done faster.
         n_quad_sets = np.zeros(cells_facets.shape[0], dtype=np.int32)
@@ -480,7 +455,7 @@ class MockUnfittedDomain(UnfittedDomainABC):
             n_quad_sets[i] = self._n_quad_sets_facets[ind]
 
         n_pts_per_cell, weights, points = self._create_quadrature(degree, n_quad_sets, True)
-        return CustomQuadFacet(dlf_cells, dlf_local_facets, n_pts_per_cell, points, weights)
+        return CustomQuadFacet(dlf_cells, dlf_local_faces, n_pts_per_cell, points, weights)
 
     def get_cut_cells(self) -> npt.NDArray[np.int32]:
         """Gets the ids of the cut cells.
@@ -488,6 +463,7 @@ class MockUnfittedDomain(UnfittedDomainABC):
         Returns:
             npt.NDArray[np.int32]: Array of cut cells associated to the
             current process following the DOLFINx local numbering.
+            The cell ids are sorted.
         """
         cells_id = self._get_cells_ids()
         return cells_id[self._n_quad_sets > 0]
@@ -498,6 +474,7 @@ class MockUnfittedDomain(UnfittedDomainABC):
         Returns:
             npt.NDArray[np.int32]: Array of full cells associated to the
             current process following the DOLFINx local numbering.
+            The cell ids are sorted.
         """
         cells_id = self._get_cells_ids()
         return cells_id[self._n_quad_sets == 0]
@@ -505,33 +482,40 @@ class MockUnfittedDomain(UnfittedDomainABC):
     def get_empty_cells(self) -> npt.NDArray[np.int32]:
         """Gets the ids of the empty cells.
 
-        There are no empty cells in this mock domain, but the
-        interface is implemented for compatibility with the
-        `UnfittedDomainABC` class.
-
         Returns:
             npt.NDArray[np.int32]: Array of empty cells associated to the
             current process following the DOLFINx local numbering.
+            The cell ids are sorted.
         """
         return np.empty(0, dtype=np.int32)
 
-    def get_cut_facets(
-        self,
-        only_exterior: bool = False,
-        only_interior: bool = False,
-    ) -> tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]:
-        """Gets the cut facets as pairs of cells and local facets.
-
-        The list of facets can be filtered to only exterior or interior facets.
+    def get_unf_bdry_cells(self) -> npt.NDArray[np.int32]:
+        """Gets the ids of the cells that contain unfitted boundaries.
 
         Note:
-            Cut facet may also contain unfitted boundaries parts.
+            For this particular implementation, only cut cells contain
+            unfitted boundaries.
+
+        Returns:
+            npt.NDArray[np.int32]: Array of cells containing unfitted
+            boundaries, associated to the current process following the
+            DOLFINx local numbering. The cell ids are sorted.
+        """
+        return self.get_cut_cells()
+        pass
+
+    def get_cut_facets(
+        self,
+        exterior: bool = True,
+    ) -> tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]:
+        """Gets the cut facets as DOLFINx cells and local facet ids
+
+        The list of facets will be filtered to only exterior or interior
+        facets according to the argument `exterior`.
 
         Args:
-            only_exterior (bool): If `True`, only the exterior facets are considered.
-                Defaults to False.
-            only_interior (bool): If `True`, only the interior facets are considered.
-                Defaults to False.
+            exterior (bool): If `True`, the exterior facets are considered.
+                Otherwise, the interior ones. Defaults to True.
 
         Returns:
             tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]:
@@ -543,25 +527,20 @@ class MockUnfittedDomain(UnfittedDomainABC):
 
     def get_full_facets(
         self,
-        only_exterior: bool = False,
-        only_interior: bool = False,
+        exterior: bool = True,
     ) -> tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]:
-        """Gets the full facets as pairs of cells and local facets.
+        """Gets the full facets as DOLFINx cells and local facet ids
 
-        The list of facets can be filtered to only exterior or interior facets.
-
-        Note:
-            Facets contained full unfitted boundaries are not considered as full.
+        The list of facets will be filtered to only exterior or interior
+        facets according to the argument `exterior`.
 
         Args:
-            only_exterior (bool): If `True`, only the exterior facets are considered.
-                Defaults to False.
-            only_interior (bool): If `True`, only the interior facets are considered.
-                Defaults to False.
+            exterior (bool): If `True`, the exterior facets are considered.
+                Otherwise, the interior ones. Defaults to True.
 
         Returns:
             tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]:
-            Cut facets. The facets are returned as one array of
+            Full facets. The facets are returned as one array of
             cells and another one of local facets referred to those
             cells both with the same length and both following (local) DOLFINx ordering.
         """
@@ -570,51 +549,21 @@ class MockUnfittedDomain(UnfittedDomainABC):
 
     def get_empty_facets(
         self,
-        only_exterior: bool = False,
-        only_interior: bool = False,
+        exterior: bool = True,
     ) -> tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]:
-        """Gets the empty facets as pairs of cells and local facets.
+        """Gets the empty facets as DOLFINx cells and local facet ids
+
+        The list of facets will be filtered to only exterior or interior
+        facets according to the argument `exterior`.
 
         Args:
-            cell_ids (Optional[npt.NDArray[np.int32]]): Indices of the
-                candidate cells to get the empty facets. If follows the DOLFINx local numbering.
-                If not provided, all the empty facets are returned. Defaults to None.
-            local_facet_ids (Optional[npt.NDArray[np.int32]]): Local
-                indices of the candidate facets referred to `cell_ids` (both arrays
-                should have the same length). The face ids follow the
-                DOLFINx ordering. If not provided, all the empty facets are returned.
-                Defaults to None.
+            exterior (bool): If `True`, the exterior facets are considered.
+                Otherwise, the interior ones. Defaults to True.
 
         Returns:
             tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]:
             Empty facets. The facets are returned as one array of
             cells and another one of local facets referred to those
-            cells both with the same length and both following DOLFINx ordering.
-        """
-        return self._empty_facet_cells_ids, self._empty_facet_local_facets_ids
-
-    def get_unf_bdry_facets(
-        self,
-        only_exterior: bool = False,
-        only_interior: bool = False,
-    ) -> tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]:
-        """Gets the facets that contain unfitted boundaries as pairs of cells and local facets.
-
-        The list of facets can be filtered to only exterior or interior facets.
-
-        Note:
-            Facets that unfitted boundaries may also be cut.
-
-        Args:
-            only_exterior (bool): If `True`, only the exterior facets are considered.
-                Defaults to False.
-            only_interior (bool): If `True`, only the interior facets are considered.
-                Defaults to False.
-
-        Returns:
-            tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]:
-            Facets that contain unfitted boundaries. The facets are returned as one array of
-            cells and another one of local facets referred to those
             cells both with the same length and both following (local) DOLFINx ordering.
         """
-        return np.empty(0, dtype=np.int32), np.empty(0, dtype=np.int32)
+        return self._empty_facet_cells_ids, self._empty_facet_local_facets_ids

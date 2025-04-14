@@ -35,6 +35,7 @@ from qugar.mesh.utils import (
     DOLFINx_to_lexicg_faces,
     create_cells_to_facets_map,
     lexicg_to_DOLFINx_faces,
+    map_cells_and_local_facets_to_facets,
     map_facets_to_cells_and_local_facets,
 )
 
@@ -548,6 +549,17 @@ class Mesh(dolfinx.mesh.Mesh):
         self.topology.create_connectivity(self.tdim - 1, self.tdim)
         return dolfinx.mesh.exterior_facet_indices(self.topology)
 
+    def get_interior_facets(self) -> npt.NDArray[np.int32]:
+        """Gets the interior facets of the mesh.
+
+        Returns:
+            npt.NDArray[np.int32]: Sorted list of owned facet indices that are
+            interior facets of the mesh.
+        """
+        imap = self.topology.index_map(self.topology.dim - 1)
+        all_facets = np.arange(imap.local_range[0], imap.local_range[1], dtype=np.int32)
+        return np.setdiff1d(all_facets, self.get_exterior_facets(), assume_unique=True)
+
     def get_cell_facets(
         self,
         dlf_local_cell_id: np.int32,
@@ -571,7 +583,7 @@ class Mesh(dolfinx.mesh.Mesh):
 
     def get_all_original_cell_ids(self) -> npt.NDArray[np.int64]:
         """
-        Retrieves the all the cell ids from the mesh using the original numbering.
+        Retrieves the ids of all the cells from the mesh using the original numbering.
 
         Returns:
             npt.nDArray[np.int64]: An array containing the original cell IDs.
@@ -620,13 +632,12 @@ class Mesh(dolfinx.mesh.Mesh):
         for local facet ids.
 
         Args:
-            dlf_local_cell_ids (npt.NDArray[np.int32]): Indices of the facets
+            dlf_local_cell_ids (npt.NDArray[np.int32]): Indices of the cells
                 following the DOLFINx local ordering.
 
             dlf_local_facet_ids (npt.NDArray[np.int32]): Local indices of the
                 facets referred to `dlf_local_cell_ids` (both arrays should have
-                the same length). The face ids follow the
-                DOLFINx ordering.
+                the same length). The face ids follow the DOLFINx ordering.
 
         Returns:
             tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]:
@@ -668,3 +679,26 @@ class Mesh(dolfinx.mesh.Mesh):
                 https://github.com/FEniCS/basix/#supported-elements
         """
         return map_facets_to_cells_and_local_facets(self, dlf_local_facet_ids)
+
+    def transform_DOLFINx_cells_and_local_facets_to_local_facet_ids(
+        self,
+        dlf_local_cell_ids: npt.NDArray[np.int32],
+        dlf_local_facet_ids: npt.NDArray[np.int32],
+    ) -> npt.NDArray[np.int32]:
+        """Given the ids of (local) DOLFINx cell ids and and local facet
+        ids, returns the DOLFINx local facet ids.
+
+        Args:
+            dlf_local_cell_ids (npt.NDArray[np.int32]): Indices of the cells
+                following the DOLFINx local ordering.
+
+            dlf_local_facet_ids (npt.NDArray[np.int32]): Local indices of the
+                facets referred to `dlf_local_cell_ids` (both arrays should have
+                the same length). The face ids follow the DOLFINx ordering.
+
+        Returns:
+            npt.NDArray[np.int32]: DOLFINx local facet ids
+                corresponding to the DOLFINx cells and local facet ids
+                passed as input.
+        """
+        return map_cells_and_local_facets_to_facets(self, dlf_local_cell_ids, dlf_local_facet_ids)

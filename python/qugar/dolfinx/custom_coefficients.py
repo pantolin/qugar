@@ -256,6 +256,29 @@ class _CustomCoeffsPackerIntegral:
         """
         return self._is_exterior_facet() or self._is_interior_facet()
 
+    def _has_unfitted_boundary(self) -> bool:
+        """Checks if the current integral any integrand that is performed
+        over unfitted boundaries.
+
+        Returns:
+            bool: ``True`` if the current integral has at least one integrand
+            computed over unfitted  boundaries, ``False`` otherwise.
+        """
+
+        return any(qd.unfitted_boundary for qd in self._itg_data.quad_data_FE_tables)
+
+    def _has_no_unfitted_boundary(self) -> bool:
+        """Checks if the current integral any integrand that is not performed
+        over unfitted boundaries, i.e., that is performed in the interior of
+        a cell.
+
+        Returns:
+            bool: ``True`` if the current integral has at least one integrand
+            not computed over unfitted  boundaries, ``False`` otherwise.
+        """
+
+        return any(not qd.unfitted_boundary for qd in self._itg_data.quad_data_FE_tables)
+
     def _get_n_extra_cols(self) -> int:
         """Gets the number of columns in the coefficients array required
         for storing the coefficients offset.
@@ -560,15 +583,14 @@ class _CustomCoeffsPackerIntegral:
         assert not self._is_facet()
 
         degree = quad_data.degree
-        subdom_tag = self._get_subdomain_tag()
         all_cells = self._domain
 
         custom_cells = all_cells[self._custom_entity_ids]
 
         if quad_data.unfitted_boundary:
-            return self._unf_domain.create_quad_unf_boundaries(degree, custom_cells, subdom_tag)
+            return self._unf_domain.create_quad_unf_boundaries(degree, custom_cells)
         else:
-            return self._unf_domain.create_quad_custom_cells(degree, custom_cells, subdom_tag)
+            return self._unf_domain.create_quad_custom_cells(degree, custom_cells)
 
     def _create_quadrature_facet(
         self, quad_data: QuadratureData
@@ -595,18 +617,13 @@ class _CustomCoeffsPackerIntegral:
         assert self._is_facet()
 
         degree = quad_data.degree
-        subdom_tag = self._get_subdomain_tag()
 
         all_cells, all_facets = self._get_single_facets()
         custom_cells = all_cells[self._custom_entity_ids]
         custom_facets = all_facets[self._custom_entity_ids]
 
         quad_facet = self._unf_domain.create_quad_custom_facets(
-            degree,
-            custom_cells,
-            custom_facets,
-            self._integral_type,
-            subdom_tag,
+            degree, custom_cells, custom_facets, self._is_exterior_facet()
         )
 
         quad = self._map_facet_quadrature(quad_facet, custom_cells, custom_facets)
@@ -688,14 +705,11 @@ class _CustomCoeffsPackerIntegral:
         """
 
         if self._is_facet():
-            interior_facet = self._is_interior_facet()
+            exterior_facet = not self._is_interior_facet()
 
             all_cells, all_facets = self._get_single_facets()
 
-            if interior_facet:
-                empty_cells, empty_facets = self._unf_domain.get_empty_facets(only_interior=True)
-            else:
-                empty_cells, empty_facets = self._unf_domain.get_empty_facets(only_exterior=True)
+            empty_cells, empty_facets = self._unf_domain.get_empty_facets(exterior=exterior_facet)
 
             all_cells_facets = np.column_stack((all_cells, all_facets))
             empty_cells_facets = np.column_stack((empty_cells, empty_facets))
@@ -722,18 +736,10 @@ class _CustomCoeffsPackerIntegral:
         """
 
         if self._is_facet():
-            interior_facet = self._is_interior_facet()
+            exterior_facet = not self._is_interior_facet()
 
             all_cells, all_facets = self._get_single_facets()
-
-            if interior_facet:
-                target_cells, target_facets = self._unf_domain.get_cut_facets(only_interior=True)
-            else:
-                target_cells, target_facets = self._unf_domain.get_cut_facets(only_exterior=True)
-                unf_bdry_cells, unf_bdry_facets = self._unf_domain.get_unf_bdry_facets()
-
-                target_cells = np.concatenate((target_cells, unf_bdry_cells))
-                target_facets = np.concatenate((target_facets, unf_bdry_facets))
+            target_cells, target_facets = self._unf_domain.get_cut_facets(exterior=exterior_facet)
 
             all_cells_facets = np.column_stack((all_cells, all_facets))
             target_cells_facets = np.column_stack((target_cells, target_facets))
@@ -742,10 +748,17 @@ class _CustomCoeffsPackerIntegral:
 
         else:
             all_cells = self._domain
-            cut_cells = self._unf_domain.get_cut_cells()
+
+            if self._has_unfitted_boundary():
+                custom_cells = self._unf_domain.get_unf_bdry_cells()
+                if self._has_no_unfitted_boundary():
+                    custom_cells = np.append(custom_cells, self._unf_domain.get_cut_cells())
+                    custom_cells = np.unique(custom_cells)
+            else:
+                custom_cells = self._unf_domain.get_cut_cells()
 
             _, custom_entity_ids, _ = np.intersect1d(
-                all_cells, cut_cells, assume_unique=True, return_indices=True
+                all_cells, custom_cells, assume_unique=True, return_indices=True
             )
             return custom_entity_ids
 
