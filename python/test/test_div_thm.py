@@ -30,7 +30,7 @@ from utils import (
 
 import qugar.cpp
 import qugar.impl
-from qugar.dolfinx import CustomForm, dx_bdry_unf, form_custom, mapped_normal
+from qugar.dolfinx import CustomForm, ds_bdry_unf, form_custom, mapped_normal
 from qugar.impl import ImplicitFunc
 from qugar.mesh import UnfittedCartMesh, create_unfitted_impl_Cartesian_mesh
 
@@ -116,7 +116,7 @@ def create_div_thm_surface_ufl_form(domain: UnfittedCartMesh, n_quad_pts: int):
 
     quad_degree = get_Gauss_quad_degree(n_quad_pts)
 
-    ds_unf = dx_bdry_unf(
+    ds_unf = ds_bdry_unf(
         domain=domain,
         subdomain_data=cell_tags,
         subdomain_id=unf_bdry_tag,

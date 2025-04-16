@@ -100,7 +100,7 @@ def mapped_normal(domain: ufl.AbstractDomain | dolfinx.mesh.Mesh, normalize: boo
         return n
 
 
-class dx_bdry_unf(ufl.Measure):
+class ds_bdry_unf(ufl.Measure):
     """This is a new ufl Measure class for an unfitted custom boundary.
 
     It has the same functionalities as ufl.dx with the only difference
@@ -167,7 +167,7 @@ class dx_bdry_unf(ufl.Measure):
         self._measure_complement = _compute_vector_norm(n)
 
         self._integral_type_mod = "unfitted_custom_boundary"
-        self._measure_name = "dx_bdry_unf"
+        self._measure_name = "ds_bdry_unf"
 
     def _create_custom_metadata(self, domain: ufl.AbstractDomain) -> dict:
         """Creates the custom measure metadata. It has an associated
@@ -247,10 +247,10 @@ class dx_bdry_unf(ufl.Measure):
         return hash(hashdata)
 
     def __eq__(self, other) -> bool:
-        """Checks if two `dx_bdry_unf` measures are equal.
+        """Checks if two `ds_bdry_unf` measures are equal.
 
         Returns:
             bool: ``True`` if both measures are equal, ``False``
             otherwise.
         """
-        return isinstance(other, dx_bdry_unf) and super().__eq__(other)
+        return isinstance(other, ds_bdry_unf) and super().__eq__(other)
