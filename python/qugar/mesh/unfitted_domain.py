@@ -97,7 +97,7 @@ class UnfittedDomain(UnfittedDomainABC):
             numbering). They are sorted.
         """
         if self._mesh.num_local_cells == self._cpp_unf_domain_object.num_total_cells:
-            orig_cell_ids = None  # All cells .
+            orig_cell_ids = None  # All cells.
         else:
             orig_cell_ids = self._mesh.get_all_original_cell_ids()
         cell_ids = self._mesh.get_DOLFINx_local_cell_ids(cell_getter(orig_cell_ids))
