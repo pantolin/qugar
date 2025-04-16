@@ -370,9 +370,9 @@ def _create_quad_facet_points_grid(
 
 
 if has_FEniCSx:
-    from qugar.mesh import TensorProductMesh
+    from qugar.mesh import Mesh
 
-    def _append_DOLFINx_cell_ids(grid: pv.UnstructuredGrid, mesh: TensorProductMesh) -> None:
+    def _append_DOLFINx_cell_ids(grid: pv.UnstructuredGrid, mesh: Mesh) -> None:
         """
         Appends DOLFINx local and global cell IDs to the given PyVista UnstructuredGrid.
 
@@ -384,7 +384,7 @@ if has_FEniCSx:
         Args:
             grid (pv.UnstructuredGrid): The PyVista UnstructuredGrid to which the
                 DOLFINx cell IDs will be appended.
-            mesh (TensorProductMesh): The TensorProductMesh object containing the DOLFINx
+            mesh (Mesh): The QUGaR Mesh object containing the DOLFINx
                 cell ID information.
 
         Raises:
@@ -489,10 +489,10 @@ def quadrature_to_PyVista(
     )
 
     if not is_cpp:
-        _append_DOLFINx_cell_ids(cells_points_set, domain)
-        _append_DOLFINx_cell_ids(unf_bdry_points_set, domain)
-        _append_DOLFINx_cell_ids(facets_points_set, domain)
-        _append_DOLFINx_facets_ids(facets_points_set, domain.tdim)
+        _append_DOLFINx_cell_ids(cells_points_set, domain)  # type: ignore
+        _append_DOLFINx_cell_ids(unf_bdry_points_set, domain)  # type: ignore
+        _append_DOLFINx_cell_ids(facets_points_set, domain)  # type: ignore
+        _append_DOLFINx_facets_ids(facets_points_set, domain.tdim)  # type: ignore
 
     return pv.MultiBlock(
         {
