@@ -108,7 +108,7 @@ def create_unfitted_impl_Cartesian_mesh(
 
     assert dim == xmin_.size and dim == xmax_.size
     assert xmin_.dtype == xmax_.dtype and xmin_.dtype in [np.float32, np.float64]
-    assert np.all(xmax > xmin_)
+    assert np.all(xmax_ > xmin_)
 
     cell_breaks = []
     for dir in range(dim):
