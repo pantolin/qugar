@@ -70,6 +70,15 @@ class UnfittedDomain(UnfittedDomainABC):
         self._interior_empty_facets = None
 
     @property
+    def mesh(self) -> Mesh:
+        """Gets the mesh object associated to the unfitted domain.
+
+        Returns:
+            Mesh: Mesh object associated to the unfitted domain.
+        """
+        return self._mesh
+
+    @property
     def cpp_unf_domain_object(self) -> UnfittedDomain_2D | UnfittedDomain_3D:
         """Gets the internal C++ unfitted domain.
 

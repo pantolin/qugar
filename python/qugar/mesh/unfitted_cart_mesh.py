@@ -39,6 +39,7 @@ class UnfittedCartMesh(CartesianMesh, UnfittedDomain):
         cpp_unf_domain: UnfittedDomain_2D | UnfittedDomain_3D,
         cpp_cart_grid_tp: CartGridTP_2D | CartGridTP_3D,
         degree: int = 1,
+        exclude_empty_cells: bool = True,
         ghost_mode: GhostMode = GhostMode.none,
         dtype: type[np.float32 | np.float64] = np.float64,
     ):
@@ -57,12 +58,23 @@ class UnfittedCartMesh(CartesianMesh, UnfittedDomain):
                 C++ Cartesian grid object.
             degree (int, optional): Degree of the mesh. Defaults to 1.
                 It must be greater than zero.
+            exclude_empty_cells (bool, optional): If True, empty cells
+                are excluded from the mesh. Defaults to True.
             ghost_mode (GhostMode, optional): Ghost mode used for mesh
                 partitioning. Defaults to `none`.
             dtype (type[np.float32 | np.float64], optional): Type to
                 be used in the grid. Defaults to `np.float64`.
         """
-        CartesianMesh.__init__(self, comm, cpp_cart_grid_tp, degree, ghost_mode, dtype)
+
+        if exclude_empty_cells:
+            active_cells = cpp_unf_domain.get_full_cells()
+            active_cells = np.sort(np.append(active_cells, cpp_unf_domain.get_cut_cells()))
+        else:
+            active_cells = None
+
+        CartesianMesh.__init__(
+            self, comm, cpp_cart_grid_tp, degree, active_cells, ghost_mode, dtype
+        )
         UnfittedDomain.__init__(self, self, cpp_unf_domain)
 
 
@@ -73,6 +85,7 @@ def create_unfitted_impl_Cartesian_mesh(
     xmin: Optional[npt.NDArray[np.float32 | np.float64]] = None,
     xmax: Optional[npt.NDArray[np.float32 | np.float64]] = None,
     degree: int = 1,
+    exclude_empty_cells: bool = True,
     ghost_mode: GhostMode = GhostMode.none,
 ) -> UnfittedCartMesh:
     """Creates an uniftted Cartesian mesh generated with a bounding box and the number of
@@ -91,6 +104,8 @@ def create_unfitted_impl_Cartesian_mesh(
             coordinates of the mesh's bounding box. Defaults to a vector
             of ones with double floating precision.
         degree (int, optional): Degree of the mesh. Defaults to 1.
+        exclude_empty_cells (bool, optional): If True, empty cells
+            are excluded from the mesh. Defaults to True.
         ghost_mode (GhostMode, optional): Ghost mode used for mesh
             partitioning. Defaults to `none`.
 
@@ -121,4 +136,6 @@ def create_unfitted_impl_Cartesian_mesh(
         cpp_grid,
     )
 
-    return UnfittedCartMesh(comm, cpp_unf_domain, cpp_grid, degree, ghost_mode, xmin_.dtype.type)
+    return UnfittedCartMesh(
+        comm, cpp_unf_domain, cpp_grid, degree, exclude_empty_cells, ghost_mode, xmin_.dtype.type
+    )

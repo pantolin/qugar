@@ -168,7 +168,14 @@ def check_div_thm(
     n_cells = [n_cells_dir] * dim
     xmin = np.zeros(dim, dtype)
     xmax = np.ones(dim, dtype)
-    unf_mesh = create_unfitted_impl_Cartesian_mesh(comm, dom_func, n_cells, xmin, xmax)
+    unf_mesh = create_unfitted_impl_Cartesian_mesh(
+        comm,
+        dom_func,
+        n_cells,
+        xmin,
+        xmax,
+        exclude_empty_cells=True,
+    )
 
     ufl_form_vol = create_div_thm_volume_ufl_form(unf_mesh, n_quad_pts)
     ufl_form_srf = create_div_thm_surface_ufl_form(unf_mesh, n_quad_pts)
@@ -214,7 +221,7 @@ def test_disk(
         negative (bool): Flag to indicate whether the negative of the implicit function
             should be used.
     """
-    radius = 0.6
+    radius = 0.35
     center = np.array([0.51, 0.45], dtype=dtype)
 
     func = qugar.impl.create_disk(radius=radius, center=center, use_bzr=use_bzr)

@@ -173,6 +173,7 @@ class Mesh(dolfinx.mesh.Mesh):
         conn: npt.NDArray[np.int64],
         cell_type: CellType,
         degree: int = 1,
+        active_cells: Optional[npt.NDArray[np.int64]] = None,
         ghost_mode: GhostMode = GhostMode.none,
         merge_nodes: bool = False,
         merge_tol: Optional[type[np.float32 | np.float64]] = None,
@@ -188,6 +189,10 @@ class Mesh(dolfinx.mesh.Mesh):
             conn (npt.NDArray[np.int64]): Connectivity of the mesh.
             cell_type (CellType): Type of the mesh cell.
             degree (int): Degree of the mesh.
+            active_cells (Optional[npt.NDArray[np.int64]]): Array of
+                active cells. If not set, all the cells are considered
+                active. The cells are referred to the original numbering
+                used to create the mesh.
             ghost_mode (GhostMode, optional): Ghost mode used for mesh
                 partitioning. Defaults to `none`.
             merge_nodes (bool, optional): If `True`, coincident nodes
@@ -204,7 +209,9 @@ class Mesh(dolfinx.mesh.Mesh):
         self._degree = degree
         assert 1 <= self.degree, "Invalid degree."
 
-        self._create_mesh(comm, nodes_coords, conn, cell_type, ghost_mode, merge_nodes, merge_tol)
+        self._create_mesh(
+            comm, nodes_coords, conn, cell_type, active_cells, ghost_mode, merge_nodes, merge_tol
+        )
 
     @property
     def dtype(self) -> np.dtype[np.float32] | np.dtype[np.float64]:
@@ -253,6 +260,26 @@ class Mesh(dolfinx.mesh.Mesh):
         return self._merged_nodes_map.size > 0
 
     @property
+    def has_inactive_cells(self) -> bool:
+        """Checks if the mesh has inactive cells.
+
+        Returns:
+            bool: Whether the mesh has inactive cells.
+        """
+        return self._original_active_cells is not None
+
+    @property
+    def original_active_cells(self) -> npt.NDArray[np.int64]:
+        """Gets the original active cells of the mesh.
+
+        Returns:
+            npt.NDArray[np.int64]: Original active cells.
+        """
+        if self._original_active_cells is None:
+            raise ValueError("No original active cells.")
+        return self._original_active_cells
+
+    @property
     def merged_nodes_map(self) -> npt.NDArray[np.int64]:
         """Gets the map of original merged nodes: from original
         ids to unique ones.
@@ -287,6 +314,7 @@ class Mesh(dolfinx.mesh.Mesh):
         nodes_coords: npt.NDArray[np.float32 | np.float64],
         conn: npt.NDArray[np.int64],
         cell_type: CellType,
+        active_cells: Optional[npt.NDArray[np.int64]],
         ghost_mode: GhostMode,
         merge_nodes: bool,
         merge_tol: Optional[type[np.float32 | np.float64]],
@@ -301,6 +329,10 @@ class Mesh(dolfinx.mesh.Mesh):
                 and the columns to the coordinates of each point.
             conn (npt.NDArray[np.int64]): Connectivity of the mesh.
             cell_type (CellType): Type of the mesh cell.
+            active_cells (Optional[npt.NDArray[np.int64]]): Array of
+                active cells. If not set, all the cells are considered
+                active. The cells are referred to the original numbering
+                used to create the mesh.
             ghost_mode (GhostMode, optional): Ghost mode used for mesh
                 partitioning.
             merge_nodes (bool, optional): If `True`, coincident nodes
@@ -331,7 +363,17 @@ class Mesh(dolfinx.mesh.Mesh):
         # TODO: Resolve UFL vs Basix geometric dimension issue
         # assert domain.geometric_dimension() == gdim
 
+        # TODO: to manage active cells for the case of
+        # distributed meshes.
+
+        if active_cells is not None and active_cells.size == conn.shape[0]:
+            active_cells = None
+        self._original_active_cells = active_cells
+
         if comm.rank == 0:
+            if self._original_active_cells is not None:
+                conn = conn[self._original_active_cells]
+
             if merge_nodes:
                 nodes_coords, conn, self._merged_nodes_map = _merge_coincident_points_in_mesh(
                     nodes_coords, conn, merge_tol
@@ -378,6 +420,9 @@ class Mesh(dolfinx.mesh.Mesh):
             in the subdomain. The length of the output
             array is the same as the input.
         """
+
+        if self._original_active_cells is not None:
+            orig_cell_ids = _find_in_array(orig_cell_ids, self._original_active_cells)
 
         dlf_to_orig = self.topology.original_cell_index
         return _find_in_array(orig_cell_ids, dlf_to_orig).astype(np.int32)
@@ -447,7 +492,10 @@ class Mesh(dolfinx.mesh.Mesh):
             "Cells not contained in subdomain"
         )
 
-        return dlf_to_orig[dlf_local_cell_ids]
+        orig_cells = dlf_to_orig[dlf_local_cell_ids]
+        if self._original_active_cells is not None:
+            orig_cells = self._original_active_cells[orig_cells]
+        return orig_cells
 
     def get_DOLFINx_local_node_ids(
         self,

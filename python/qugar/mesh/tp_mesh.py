@@ -257,6 +257,7 @@ class TensorProductMesh(Mesh):
         nodes_coords: npt.NDArray[np.float32 | np.float64],
         n_cells: npt.NDArray[np.int32] | list[np.int32] | list[int],
         degree: int = 1,
+        active_cells: Optional[npt.NDArray[np.int64]] = None,
         ghost_mode: GhostMode = GhostMode.none,
         merge_nodes: bool = False,
         merge_tol: Optional[type[np.float32 | np.float64]] = None,
@@ -273,6 +274,9 @@ class TensorProductMesh(Mesh):
                 (following lexicographical ordering), and the columns to
                 the coordinates of each point.
             degree (int): Degree of the mesh.
+            active_cells (Optional[npt.NDArray[np.int64]]): Array
+                storing the active cells of the mesh. If not set, all
+                the cells are considered active. Defaults to `None`.
             ghost_mode (GhostMode, optional): Ghost mode used for mesh
                 partitioning. Defaults to `none`.
             merge_nodes (bool, optional): If `True`, coincident nodes
@@ -313,7 +317,16 @@ class TensorProductMesh(Mesh):
             conn = np.empty((0, n_nodes_per_cell), dtype=np.int64, order="C")
 
         Mesh.__init__(
-            self, comm, nodes_coords, conn, cell_type, degree, ghost_mode, merge_nodes, merge_tol
+            self,
+            comm,
+            nodes_coords,
+            conn,
+            cell_type,
+            degree,
+            active_cells,
+            ghost_mode,
+            merge_nodes,
+            merge_tol,
         )
 
     @property
@@ -455,6 +468,7 @@ class CartesianMesh(TensorProductMesh):
         comm: MPI.Comm,
         cart_grid_tp_cpp: qugar.cpp.CartGridTP_2D | qugar.cpp.CartGridTP_3D,
         degree: int = 1,
+        active_cells: Optional[npt.NDArray[np.int64]] = None,
         ghost_mode: GhostMode = GhostMode.none,
         dtype: type[np.float32 | np.float64] = np.float64,
     ):
@@ -471,6 +485,9 @@ class CartesianMesh(TensorProductMesh):
                 C++ Cartesian grid object.
             degree (int, optional): Degree of the mesh. Defaults to 1.
                 It must be greater than zero.
+            active_cells (Optional[npt.NDArray[np.int64]]): Array
+                storing the active cells of the Cartesian mesh
+                `cart_grid_tp_cpp`. If not set, all the cells are considered active.
             ghost_mode (GhostMode, optional): Ghost mode used for mesh
                 partitioning. Defaults to `none`.
             dtype (type[np.float32 | np.float64], optional): Type to
@@ -495,7 +512,9 @@ class CartesianMesh(TensorProductMesh):
         self._cart_grid_tp_cpp_object = cart_grid_tp_cpp
         n_cells = cart_grid_tp_cpp.num_cells_dir
 
-        TensorProductMesh.__init__(self, comm, nodes_coords, n_cells, degree, ghost_mode)
+        TensorProductMesh.__init__(
+            self, comm, nodes_coords, n_cells, degree, active_cells, ghost_mode
+        )
 
     @property
     def cart_grid_tp_cpp_object(self) -> qugar.cpp.CartGridTP_2D | qugar.cpp.CartGridTP_2D:

@@ -391,7 +391,6 @@ if has_FEniCSx:
             AssertionError: If the number of global cells in the mesh does not match
             the number of local cells. This is not implemented yet.
         """
-        assert mesh.num_cells_tp == mesh.num_local_cells, "Not implemented case."
 
         lex_cell_ids = grid.cell_data["Lexicographical cell ids"]
 
@@ -548,25 +547,13 @@ def unfitted_domain_facets_to_PyVista(
 
     active_facets = np.empty(0, dtype=np.int32)
 
-    is_cpp = isinstance(domain, (UnfittedDomain_2D, UnfittedDomain_3D))
-
-    if is_cpp:
-        domain_ = domain
-    else:
-        assert has_FEniCSx, "FEniCSx is required to convert a TensorProductMesh to PyVista."
-        from qugar.mesh import UnfittedDomain
-
-        assert isinstance(domain, UnfittedDomain), "Invalid type."
-
-        domain_ = domain.cpp_unf_domain_object
-
     facets = {}
     if full:
-        facets[0] = domain_.get_full_facets()
+        facets[0] = domain.get_full_facets()
     if cut:
-        facets[1] = domain_.get_cut_facets()
+        facets[1] = domain.get_cut_facets()
     if empty:
-        facets[2] = domain_.get_empty_facets()
+        facets[2] = domain.get_empty_facets()
 
     for status, lex_cells_facets in facets.items():
         vtk_facets = vtk_lex_mask[lex_cells_facets[1]]
@@ -581,6 +568,8 @@ def unfitted_domain_facets_to_PyVista(
     vtk_facets = facets_grid.cell_data.pop("VTK local facets ids")
     lex_facets = lex_vtk_mask[vtk_facets]
     facets_grid.cell_data["Lexicographical local facets ids"] = lex_facets
+
+    is_cpp = isinstance(domain, (UnfittedDomain_2D, UnfittedDomain_3D))
 
     if not is_cpp:
         _append_DOLFINx_facets_ids(facets_grid, dim)
@@ -614,20 +603,21 @@ def unfitted_domain_to_PyVista(
 
     if is_cpp:
         grid = cart_grid_tp_to_PyVista(domain.grid)
-        domain_ = domain
+        n_cells = domain.num_total_cells
     else:
         assert has_FEniCSx, "FEniCSx is required to convert a TensorProductMesh to PyVista."
         from qugar.mesh import UnfittedDomain
 
         assert isinstance(domain, UnfittedDomain), "Invalid type."
 
-        grid = grid_tp_to_PyVista(domain)
-        domain_ = domain.cpp_unf_domain_object
+        n_cells = domain.mesh.num_global_cells
 
-    value = np.full(grid.n_cells, empty, dtype=bool)
-    status = np.full(grid.n_cells, 2, dtype=np.uint8)
-    cut_cells = domain_.get_cut_cells()
-    full_cells = domain_.get_full_cells()
+        grid = grid_tp_to_PyVista(domain.mesh)
+
+    value = np.full(n_cells, empty, dtype=bool)
+    status = np.full(n_cells, 2, dtype=np.uint8)
+    cut_cells = domain.get_cut_cells()
+    full_cells = domain.get_full_cells()
     value[cut_cells] = cut
     status[cut_cells] = 1
     value[full_cells] = full
@@ -671,6 +661,10 @@ def cart_grid_tp_to_PyVista(grid: Any) -> pv.RectilinearGrid:
 
     if not is_cpp:
         assert has_FEniCSx, "FEniCSx is required to convert a TensorProductMesh to PyVista."
+
+        if grid.has_inactive_cells:
+            pv_grid = pv_grid.extract_cells(grid.original_active_cells)
+
         _append_DOLFINx_cell_ids(pv_grid, grid)
 
     return pv_grid
@@ -697,7 +691,7 @@ def grid_tp_to_PyVista(grid: Any) -> pv.Grid:
         if isinstance(grid, CartesianMesh):
             return cart_grid_tp_to_PyVista(grid)
         else:
-            assert False, "Not impleented yet."
+            assert False, "Not implemented yet."
 
 
 def reparam_mesh_to_PyVista(reparam: Any) -> pv.MultiBlock:
