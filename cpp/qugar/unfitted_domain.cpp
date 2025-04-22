@@ -292,7 +292,7 @@ template<int dim>
 void UnfittedDomain<dim>::get_unfitted_facets(std::vector<std::int64_t> &cell_ids,
   std::vector<int> &local_facets_ids) const
 {
-  const auto n_facets_estimate = this->facets_status_.size() * n_facets_per_cell;
+  const auto n_facets_estimate = this->facets_status_.size() * n_facets_per_cell;// An overestimation.
 
   cell_ids.clear();
   local_facets_ids.clear();
