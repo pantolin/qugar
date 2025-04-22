@@ -23,6 +23,7 @@
 #include <qugar/domain_function.hpp>
 #include <qugar/impl_unfitted_domain.hpp>
 
+#include <cstdint>
 #include <memory>
 #include <vector>
 
