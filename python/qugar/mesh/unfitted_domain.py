@@ -720,7 +720,7 @@ class UnfittedDomain(UnfittedDomainABC):
         integration measure apply. E.g., `ufl.ds(subdomain_data=cell_tags)`.
 
         Note:
-            A DOFLINX mesh tag object could be generated in a straightforward manner
+            A DOFLINx mesh tag object could be generated in a straightforward manner
             from the information returned by this function. However, be aware
             that in the information returned by this function, the information
             for the interior facets is duplicated (provided information for the
