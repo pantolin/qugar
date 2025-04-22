@@ -365,9 +365,8 @@ class MockUnfittedDomain(UnfittedDomainABC):
 
         For cells not containing unfitted boundaries,
         no quadrature is generated and will have 0 points associated to
-        them. While for cells containing unfitted boundaries (see
-        `get_unf_bdry_cells`), a custom quadrature for the unfitted
-        boundary will be generated.
+        them. While for cells containing unfitted boundaries a custom
+        quadrature for the unfitted boundary will be generated.
 
         Args:
             degree (int): Expected degree of exactness of the quadrature
@@ -488,21 +487,6 @@ class MockUnfittedDomain(UnfittedDomainABC):
             The cell ids are sorted.
         """
         return np.empty(0, dtype=np.int32)
-
-    def get_unf_bdry_cells(self) -> npt.NDArray[np.int32]:
-        """Gets the ids of the cells that contain unfitted boundaries.
-
-        Note:
-            For this particular implementation, only cut cells contain
-            unfitted boundaries.
-
-        Returns:
-            npt.NDArray[np.int32]: Array of cells containing unfitted
-            boundaries, associated to the current process following the
-            DOLFINx local numbering. The cell ids are sorted.
-        """
-        return self.get_cut_cells()
-        pass
 
     def get_cut_facets(
         self,

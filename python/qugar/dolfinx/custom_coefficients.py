@@ -748,14 +748,7 @@ class _CustomCoeffsPackerIntegral:
 
         else:
             all_cells = self._domain
-
-            if self._has_unfitted_boundary():
-                custom_cells = self._unf_domain.get_unf_bdry_cells()
-                if self._has_no_unfitted_boundary():
-                    custom_cells = np.append(custom_cells, self._unf_domain.get_cut_cells())
-                    custom_cells = np.unique(custom_cells)
-            else:
-                custom_cells = self._unf_domain.get_cut_cells()
+            custom_cells = self._unf_domain.get_cut_cells()
 
             _, custom_entity_ids, _ = np.intersect1d(
                 all_cells, custom_cells, assume_unique=True, return_indices=True

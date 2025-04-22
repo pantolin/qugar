@@ -30,7 +30,7 @@ class UnfittedDomainABC(ABC):
 
     Classes that inherit from this class should implement the
     `get_cut_cells`, `get_full_cells`, `get_empty_cells`, `get_cut_facets`,
-    `get_full_facets`, `get_empty_facets`, and `get_unf_bdry_cells` methods
+    `get_full_facets`, and `get_empty_facets` methods
     to access the cut, full, empty cells and facets, and the cells
     containing unfitted boundaries, respectively. The `create_quad_custom_cells`,
     `create_quad_unf_boundaries`, and `create_quad_custom_facets` methods
@@ -92,29 +92,6 @@ class UnfittedDomainABC(ABC):
             npt.NDArray[np.int32]: Array of empty cells associated to the
             current process following the DOLFINx local numbering.
             The cell ids are sorted.
-        """
-        pass
-
-    @abstractmethod
-    def get_unf_bdry_cells(self) -> npt.NDArray[np.int32]:
-        """Gets the ids of the cells that contain unfitted boundaries.
-
-        Note:
-            All the cut cells (see `get_cut_cells`) have unfitted
-            boundaries, but in some particular cases, we may have full
-            cells that also contain unfitted boundaries on their boundary.
-            Those full cells are also considered as unfitted boundary
-            cells in the case the unfitted boundary does not lay on
-            exterior facets.
-
-        Note:
-            This is an abstract method and should be implemented in
-            derived classes.
-
-        Returns:
-            npt.NDArray[np.int32]: Array of cells containing unfitted
-            boundaries, associated to the current process following the
-            DOLFINx local numbering. The cell ids are sorted.
         """
         pass
 
@@ -268,9 +245,8 @@ class UnfittedDomainABC(ABC):
 
         For cells not containing unfitted boundaries,
         no quadrature is generated and will have 0 points associated to
-        them. While for cells containing unfitted boundaries (see
-        `get_unf_bdry_cells`), a custom quadrature for the unfitted
-        boundary will be generated.
+        them. While for cells containing unfitted boundaries a custom
+        quadrature for the unfitted boundary will be generated.
 
         Note:
             Some unfitted boundary parts may lay over facets.

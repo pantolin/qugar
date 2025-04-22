@@ -241,43 +241,6 @@ class UnfittedDomain(UnfittedDomainABC):
 
         return self._empty_cells
 
-    def get_unf_bdry_cells(self) -> npt.NDArray[np.int32]:
-        """Gets the ids of the cells that contain unfitted boundaries.
-
-        Note:
-            All the cut cells (see `get_cut_cells`) have unfitted
-            boundaries, but in some particular cases, we may have full
-            cells that also contain unfitted boundaries on their boundary.
-            Those full cells are also considered as unfitted boundary
-            cells in the case the unfitted boundary does not lay on
-            exterior facets.
-
-        Returns:
-            npt.NDArray[np.int32]: Array of cells containing unfitted
-            boundaries, associated to the current process following the
-            DOLFINx local numbering. The cell ids are sorted.
-        """
-
-        if self._unf_bdry_cells is None:
-            if self.has_full_cells_with_unf_bdry():
-
-                def caller(cells):
-                    # When unfitted boundaries lay on facets, but these are
-                    # exterior facets, that part of the unfitted boundary
-                    # is treated as a cut or full facet (integrals there
-                    # will be computed as facet integrals).
-                    exclude_ext_facets = True
-                    return self._cpp_unf_domain_object.get_unf_bdry_cells(cells, exclude_ext_facets)
-
-                self._unf_bdry_cells = self._get_cells(caller)
-
-            else:
-                self._unf_bdry_cells = self.get_cut_cells()
-
-        return self._unf_bdry_cells
-
-        pass
-
     def get_cut_facets(
         self,
         exterior: bool = True,
@@ -572,9 +535,8 @@ class UnfittedDomain(UnfittedDomainABC):
 
         For cells not containing unfitted boundaries,
         no quadrature is generated and will have 0 points associated to
-        them. While for cells containing unfitted boundaries (see
-        `get_unf_bdry_cells`), a custom quadrature for the unfitted
-        boundary will be generated.
+        them. While for cells containing unfitted boundaries a custom
+        quadrature for the unfitted boundary will be generated.
 
         Note:
             Some unfitted boundary parts may lay over facets.
@@ -706,24 +668,14 @@ class UnfittedDomain(UnfittedDomainABC):
         cut_tag: Optional[int] = None,
         full_tag: Optional[int] = None,
         empty_tag: Optional[int] = None,
-        unf_bdry_tag: Optional[int] = None,
     ) -> list[tuple[int, npt.NDArray[np.int32]]]:
         """Creates a cell tags container to identify the cut, full,
-        empty, and/or cells containing unfitted boundaries.
+        and/or empty cells.
 
         These tags can be used to prescribe the `subdomain_data` to which
         integration measure apply. E.g., `ufl.dx(subdomain_data=cell_tags)`.
 
-        Note:
-            Full cells that contain unfitted boundaries are considered as full.
-            Those cells can be explicitly tagged with the `unf_bdry_tag` tag.
-
-        Note:
-            A DOFLINX mesh tag object could be generated in a straightforward manner
-            from the information returned by this function. However, be aware
-            that if you include both the cells associated to cut or full cells, and the
-            ones that contain unfitted boundaries, the generated set of cells will not
-            be unique (breaking the DOLFINx mesh tags object requisites).
+        TODO: transform this into a mesh tag object.
 
         If the tag for `cut`, `full`, `empty`, or `unf_bdry_tag` tags are not provided
         (they are set to `None`), those cells will not be included in the generated cell tags.
@@ -732,13 +684,6 @@ class UnfittedDomain(UnfittedDomainABC):
             cut_tag (Optional[int]): Tag to assign to cut cells. Defaults to None.
             full_tag (Optional[int]): Tag to assign to full cells. Defaults to None.
             empty_tag (Optional[int]): Tag to assign to empty cells. Defaults to None.
-            unf_bdry_tag (Optional[int]): Tag to assign to cells containing
-                unfitted boundaries. In general, these cells will coincide with
-                the cut cells. However, in some cases, we may have full cells
-                that also contain unfitted boundaries on their facets. Those
-                full cells are also considered as unfitted boundary cells in
-                the case the unfitted boundary does not lay on exterior facets.
-                Defaults to None.
 
         Returns:
             list[tuple[int, npt.NDArray[np.int32]]]: Generated cells tags.
@@ -761,7 +706,6 @@ class UnfittedDomain(UnfittedDomainABC):
             self.get_cut_cells: cut_tag,
             self.get_full_cells: full_tag,
             self.get_empty_cells: empty_tag,
-            self.get_unf_bdry_cells: unf_bdry_tag,
         }.items():
             if tag is not None:
                 add_cells(getter, tag)

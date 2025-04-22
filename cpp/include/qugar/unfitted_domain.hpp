@@ -86,14 +86,10 @@ public:
   void get_full_cells(std::vector<std::int64_t> &cell_ids) const;
   void get_empty_cells(std::vector<std::int64_t> &cell_ids) const;
   void get_cut_cells(std::vector<std::int64_t> &cell_ids) const;
-  void get_unf_bdry_cells(std::vector<std::int64_t> &cell_ids, bool exclude_ext_facets) const;
 
   void get_full_cells(const std::vector<std::int64_t> &target_cell_ids, std::vector<std::int64_t> &cell_ids) const;
   void get_empty_cells(const std::vector<std::int64_t> &target_cell_ids, std::vector<std::int64_t> &cell_ids) const;
   void get_cut_cells(const std::vector<std::int64_t> &target_cell_ids, std::vector<std::int64_t> &cell_ids) const;
-  void get_unf_bdry_cells(const std::vector<std::int64_t> &target_cell_ids,
-    std::vector<std::int64_t> &cell_ids,
-    bool exclude_ext_facets) const;
 
   void get_empty_facets(std::vector<std::int64_t> &cell_ids, std::vector<int> &local_facets_ids) const;
   void get_full_facets(std::vector<std::int64_t> &cell_ids, std::vector<int> &local_facets_ids) const;
