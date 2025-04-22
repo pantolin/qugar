@@ -17,6 +17,7 @@ if not has_FEniCSx:
 
 import numpy as np
 import numpy.typing as npt
+from dolfinx.mesh import MeshTags, meshtags
 
 import qugar.cpp
 from qugar.cpp import UnfittedDomain_2D, UnfittedDomain_3D
@@ -533,20 +534,17 @@ class UnfittedDomain(UnfittedDomainABC):
         """Returns the custom quadrature for unfitted boundaries for the
         given `cells`.
 
-        For cells not containing unfitted boundaries,
-        no quadrature is generated and will have 0 points associated to
-        them. While for cells containing unfitted boundaries a custom
-        quadrature for the unfitted boundary will be generated.
-
         Note:
             Some unfitted boundary parts may lay over facets.
-            This function generates quadrature for those parts if they correspond
-            to exterior facets. For the case of interior facets,
-            the corresponding quadratures will be included in the
-            quadrature generated with the method `create_quad_custom_facets`.
+            The quadrature corresponding to those facets will be generated
+            with the method `create_quad_custom_facets`.
 
         Note:
-            This call may require the generation of the quadratures on
+            For cells not containing unfitted boundaries, no quadrature
+            is generated and will have 0 points associated to them.
+
+        Note:
+            This requires the generation of the quadratures on
             the fly, what can be potentially expensive.
 
         Args:
@@ -663,22 +661,21 @@ class UnfittedDomain(UnfittedDomainABC):
             quad.weights,
         )
 
-    def create_cell_tags(
+    def create_cell_meshtags(
         self,
         cut_tag: Optional[int] = None,
         full_tag: Optional[int] = None,
         empty_tag: Optional[int] = None,
-    ) -> list[tuple[int, npt.NDArray[np.int32]]]:
-        """Creates a cell tags container to identify the cut, full,
+    ) -> MeshTags:
+        """Creates a cell mesh tags container to identify the cut, full,
         and/or empty cells.
 
         These tags can be used to prescribe the `subdomain_data` to which
-        integration measure apply. E.g., `ufl.dx(subdomain_data=cell_tags)`.
+        integration measure apply. E.g., `ufl.dx(subdomain_data=cell_meshtags)`.
 
-        TODO: transform this into a mesh tag object.
-
-        If the tag for `cut`, `full`, `empty`, or `unf_bdry_tag` tags are not provided
-        (they are set to `None`), those cells will not be included in the generated cell tags.
+        If the tag for `cut`, `full`, or `empty` tags are not provided
+        (they are set to `None`), those cells will not be included in the
+        generated mesh tags.
 
         Args:
             cut_tag (Optional[int]): Tag to assign to cut cells. Defaults to None.
@@ -686,21 +683,18 @@ class UnfittedDomain(UnfittedDomainABC):
             empty_tag (Optional[int]): Tag to assign to empty cells. Defaults to None.
 
         Returns:
-            list[tuple[int, npt.NDArray[np.int32]]]: Generated cells tags.
-            It is a list where each entry is a tuple with a tag (identifier) and an array
-            of cell ids.
+            MeshTags: Generated mesh tags.
         """
 
-        cell_tags = {}
+        cells = np.empty(0, dtype=np.int32)
+        values = np.empty(0, dtype=np.int32)
 
         def add_cells(getter, tag):
-            cells = getter()
-            if tag in cell_tags:
-                if cells.size > 0:
-                    new_cells = np.concatenate([cell_tags[tag], cells])
-                    cell_tags[tag] = np.unique(np.sort(new_cells))
-            else:
-                cell_tags[tag] = cells
+            nonlocal cells, values
+
+            new_cells = getter()
+            cells = np.append(cells, new_cells)
+            values = np.append(values, np.full_like(new_cells, tag))
 
         for getter, tag in {
             self.get_cut_cells: cut_tag,
@@ -710,7 +704,7 @@ class UnfittedDomain(UnfittedDomainABC):
             if tag is not None:
                 add_cells(getter, tag)
 
-        return list((tag, cells) for tag, cells in cell_tags.items())
+        return meshtags(self.mesh, self.mesh.tdim, cells, values)
 
     def create_facet_tags(
         self,

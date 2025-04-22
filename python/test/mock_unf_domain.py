@@ -363,11 +363,6 @@ class MockUnfittedDomain(UnfittedDomainABC):
         """Returns the custom quadrature for unfitted boundaries for the
         given `cells`.
 
-        For cells not containing unfitted boundaries,
-        no quadrature is generated and will have 0 points associated to
-        them. While for cells containing unfitted boundaries a custom
-        quadrature for the unfitted boundary will be generated.
-
         Args:
             degree (int): Expected degree of exactness of the quadrature
                 to be generated.

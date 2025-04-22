@@ -222,7 +222,7 @@ div_F = ufl.div(F)
 # We also define tags for the cells containing unfitted boundaries (that in this
 # case correspond to the cut cells).
 
-cell_tags = unf_mesh.create_cell_tags(cut_tag=0, full_tag=0, unf_bdry_tag=1)
+cell_tags = unf_mesh.create_cell_meshtags(cut_tag=0, full_tag=0, unf_bdry_tag=1)
 facet_tags = unf_mesh.create_facet_tags(cut_tag=0, full_tag=0, exterior=True)
 
 

@@ -74,7 +74,7 @@ def create_div_thm_volume_ufl_form(domain: UnfittedCartMesh, n_quad_pts: int):
 
     full_tag = 1
     cut_tag = 0
-    cell_tags = domain.create_cell_tags(cut_tag=cut_tag, full_tag=full_tag)
+    cell_tags = domain.create_cell_meshtags(cut_tag=cut_tag, full_tag=full_tag)
 
     quad_degree = get_Gauss_quad_degree(n_quad_pts)
     dx_ = ufl.dx(
@@ -111,7 +111,7 @@ def create_div_thm_surface_ufl_form(domain: UnfittedCartMesh, n_quad_pts: int):
     cut_tag = 0
     full_tag = 1
     unf_bdry_tag = 0
-    cell_tags = domain.create_cell_tags(unf_bdry_tag=unf_bdry_tag)
+    cell_tags = domain.create_cell_meshtags(unf_bdry_tag=unf_bdry_tag)
     facet_tags = domain.create_facet_tags(cut_tag=cut_tag, full_tag=full_tag, exterior=True)
 
     quad_degree = get_Gauss_quad_degree(n_quad_pts)

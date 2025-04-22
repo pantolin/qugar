@@ -243,17 +243,14 @@ class UnfittedDomainABC(ABC):
         """Returns the custom quadrature for unfitted boundaries for the
         given `cells`.
 
-        For cells not containing unfitted boundaries,
-        no quadrature is generated and will have 0 points associated to
-        them. While for cells containing unfitted boundaries a custom
-        quadrature for the unfitted boundary will be generated.
-
         Note:
             Some unfitted boundary parts may lay over facets.
-            This function generates quadrature for those parts if they correspond
-            to exterior facets. For the case of interior facets,
-            the corresponding quadratures will be included in the
-            quadrature generated with the method `create_quad_custom_facets`.
+            The quadrature corresponding to those facets will be generated
+            with the method `create_quad_custom_facets`.
+
+        Note:
+            For cells not containing unfitted boundaries, no quadrature
+            is generated and will have 0 points associated to them.
 
         Note:
             This call may require the generation of the quadratures on

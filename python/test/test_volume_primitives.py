@@ -57,7 +57,7 @@ def compute_volume(
 
     cut_tag = 0
     full_tag = 1
-    cell_tags = unf_mesh.create_cell_tags(cut_tag=cut_tag, full_tag=full_tag)
+    cell_tags = unf_mesh.create_cell_meshtags(cut_tag=cut_tag, full_tag=full_tag)
 
     one = dolfinx.fem.Constant(unf_mesh, dtype(1.0))
 
@@ -94,7 +94,7 @@ def compute_boundary_area(
     """
 
     bdry_tag = 0
-    cell_tags = unf_mesh.create_cell_tags(cut_tag=bdry_tag)
+    cell_tags = unf_mesh.create_cell_meshtags(cut_tag=bdry_tag)
 
     one = dolfinx.fem.Constant(unf_mesh, dtype(1.0))
 
