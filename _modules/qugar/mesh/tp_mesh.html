@@ -337,6 +337,7 @@
         <span class="n">nodes_coords</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">],</span>
         <span class="n">n_cells</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">]</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">]</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span>
         <span class="n">degree</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="n">active_cells</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">ghost_mode</span><span class="p">:</span> <span class="n">GhostMode</span> <span class="o">=</span> <span class="n">GhostMode</span><span class="o">.</span><span class="n">none</span><span class="p">,</span>
         <span class="n">merge_nodes</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
         <span class="n">merge_tol</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">type</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -353,6 +354,9 @@
 <span class="sd">                (following lexicographical ordering), and the columns to</span>
 <span class="sd">                the coordinates of each point.</span>
 <span class="sd">            degree (int): Degree of the mesh.</span>
+<span class="sd">            active_cells (Optional[npt.NDArray[np.int64]]): Array</span>
+<span class="sd">                storing the active cells of the mesh. If not set, all</span>
+<span class="sd">                the cells are considered active. Defaults to `None`.</span>
 <span class="sd">            ghost_mode (GhostMode, optional): Ghost mode used for mesh</span>
 <span class="sd">                partitioning. Defaults to `none`.</span>
 <span class="sd">            merge_nodes (bool, optional): If `True`, coincident nodes</span>
@@ -393,7 +397,16 @@
             <span class="n">conn</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="n">n_nodes_per_cell</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="s2">&quot;C&quot;</span><span class="p">)</span>
 
         <span class="n">Mesh</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
-            <span class="bp">self</span><span class="p">,</span> <span class="n">comm</span><span class="p">,</span> <span class="n">nodes_coords</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">cell_type</span><span class="p">,</span> <span class="n">degree</span><span class="p">,</span> <span class="n">ghost_mode</span><span class="p">,</span> <span class="n">merge_nodes</span><span class="p">,</span> <span class="n">merge_tol</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">comm</span><span class="p">,</span>
+            <span class="n">nodes_coords</span><span class="p">,</span>
+            <span class="n">conn</span><span class="p">,</span>
+            <span class="n">cell_type</span><span class="p">,</span>
+            <span class="n">degree</span><span class="p">,</span>
+            <span class="n">active_cells</span><span class="p">,</span>
+            <span class="n">ghost_mode</span><span class="p">,</span>
+            <span class="n">merge_nodes</span><span class="p">,</span>
+            <span class="n">merge_tol</span><span class="p">,</span>
         <span class="p">)</span>
 
     <span class="nd">@property</span>
@@ -550,6 +563,7 @@
         <span class="n">comm</span><span class="p">:</span> <span class="n">MPI</span><span class="o">.</span><span class="n">Comm</span><span class="p">,</span>
         <span class="n">cart_grid_tp_cpp</span><span class="p">:</span> <span class="n">qugar</span><span class="o">.</span><span class="n">cpp</span><span class="o">.</span><span class="n">CartGridTP_2D</span> <span class="o">|</span> <span class="n">qugar</span><span class="o">.</span><span class="n">cpp</span><span class="o">.</span><span class="n">CartGridTP_3D</span><span class="p">,</span>
         <span class="n">degree</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="n">active_cells</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">ghost_mode</span><span class="p">:</span> <span class="n">GhostMode</span> <span class="o">=</span> <span class="n">GhostMode</span><span class="o">.</span><span class="n">none</span><span class="p">,</span>
         <span class="n">dtype</span><span class="p">:</span> <span class="nb">type</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">,</span>
     <span class="p">):</span>
@@ -566,6 +580,9 @@
 <span class="sd">                C++ Cartesian grid object.</span>
 <span class="sd">            degree (int, optional): Degree of the mesh. Defaults to 1.</span>
 <span class="sd">                It must be greater than zero.</span>
+<span class="sd">            active_cells (Optional[npt.NDArray[np.int64]]): Array</span>
+<span class="sd">                storing the active cells of the Cartesian mesh</span>
+<span class="sd">                `cart_grid_tp_cpp`. If not set, all the cells are considered active.</span>
 <span class="sd">            ghost_mode (GhostMode, optional): Ghost mode used for mesh</span>
 <span class="sd">                partitioning. Defaults to `none`.</span>
 <span class="sd">            dtype (type[np.float32 | np.float64], optional): Type to</span>
@@ -590,7 +607,9 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_cart_grid_tp_cpp_object</span> <span class="o">=</span> <span class="n">cart_grid_tp_cpp</span>
         <span class="n">n_cells</span> <span class="o">=</span> <span class="n">cart_grid_tp_cpp</span><span class="o">.</span><span class="n">num_cells_dir</span>
 
-        <span class="n">TensorProductMesh</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">comm</span><span class="p">,</span> <span class="n">nodes_coords</span><span class="p">,</span> <span class="n">n_cells</span><span class="p">,</span> <span class="n">degree</span><span class="p">,</span> <span class="n">ghost_mode</span><span class="p">)</span>
+        <span class="n">TensorProductMesh</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span> <span class="n">comm</span><span class="p">,</span> <span class="n">nodes_coords</span><span class="p">,</span> <span class="n">n_cells</span><span class="p">,</span> <span class="n">degree</span><span class="p">,</span> <span class="n">active_cells</span><span class="p">,</span> <span class="n">ghost_mode</span>
+        <span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">cart_grid_tp_cpp_object</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">qugar</span><span class="o">.</span><span class="n">cpp</span><span class="o">.</span><span class="n">CartGridTP_2D</span> <span class="o">|</span> <span class="n">qugar</span><span class="o">.</span><span class="n">cpp</span><span class="o">.</span><span class="n">CartGridTP_2D</span><span class="p">:</span>
@@ -680,7 +699,7 @@
 
     <span class="k">assert</span> <span class="n">dim</span> <span class="o">==</span> <span class="n">xmin_</span><span class="o">.</span><span class="n">size</span> <span class="ow">and</span> <span class="n">dim</span> <span class="o">==</span> <span class="n">xmax_</span><span class="o">.</span><span class="n">size</span>
     <span class="k">assert</span> <span class="n">xmin_</span><span class="o">.</span><span class="n">dtype</span> <span class="o">==</span> <span class="n">xmax_</span><span class="o">.</span><span class="n">dtype</span> <span class="ow">and</span> <span class="n">xmin_</span><span class="o">.</span><span class="n">dtype</span> <span class="ow">in</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]</span>
-    <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">xmax</span> <span class="o">&gt;</span> <span class="n">xmin_</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">xmax_</span> <span class="o">&gt;</span> <span class="n">xmin_</span><span class="p">)</span>
 
     <span class="n">cell_breaks</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="nb">dir</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">dim</span><span class="p">):</span>

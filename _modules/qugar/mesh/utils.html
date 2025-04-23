@@ -91,8 +91,6 @@
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">numpy.typing</span> <span class="k">as</span> <span class="nn">npt</span>
 
-<span class="kn">import</span> <span class="nn">qugar.utils</span>
-
 
 <span class="k">def</span> <span class="nf">_invert_map</span><span class="p">(</span><span class="n">map_ind</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Inverts a 1 to 1 map of indices.</span>
@@ -787,6 +785,8 @@
 
 
 
+<span class="kn">import</span> <span class="nn">qugar.utils</span>
+
 <span class="k">if</span> <span class="n">qugar</span><span class="o">.</span><span class="n">has_FEniCSx</span><span class="p">:</span>
     <span class="kn">from</span> <span class="nn">mpi4py</span> <span class="kn">import</span> <span class="n">MPI</span>
 
@@ -831,124 +831,6 @@
         <span class="n">rank_dest</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="n">cells</span><span class="o">.</span><span class="n">num_nodes</span><span class="p">,</span> <span class="n">comm</span><span class="o">.</span><span class="n">rank</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">dolfinx</span><span class="o">.</span><span class="n">cpp</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">AdjacencyList_int32</span><span class="p">(</span><span class="n">rank_dest</span><span class="p">)</span>
-
-<div class="viewcode-block" id="create_cells_to_facets_map">
-<a class="viewcode-back" href="../../../generated/qugar.mesh.html#qugar.mesh.create_cells_to_facets_map">[docs]</a>
-    <span class="k">def</span> <span class="nf">create_cells_to_facets_map</span><span class="p">(</span>
-        <span class="n">mesh</span><span class="p">:</span> <span class="n">dolfinx</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">Mesh</span><span class="p">,</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Creates a map that allows to find the facets ids in a mesh</span>
-<span class="sd">        from their cell ids and the local facet ids referred to that</span>
-<span class="sd">        cells.</span>
-
-<span class="sd">        Args:</span>
-<span class="sd">            mesh (dolfinx.mesh.Mesh): Mesh from which facet ids are</span>
-<span class="sd">                extracted.</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            npt.NDArray[np.int32]: Map from the cells and local facet</span>
-<span class="sd">                ids to the facet ids. It is a 2D array where the first</span>
-<span class="sd">                column corresponds to the cells and the second one to the</span>
-<span class="sd">                local facet ids.</span>
-
-<span class="sd">                Thus, given the cell and local facet ids of a particular</span>
-<span class="sd">                facet, the facet id can be accessed as</span>
-<span class="sd">                `facet_id = facets_map[cell_id, local_facet_id]`, where</span>
-<span class="sd">                `facets_map` is the generated 2D array.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-
-        <span class="n">topology</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">topology</span>
-        <span class="n">tdim</span> <span class="o">=</span> <span class="n">topology</span><span class="o">.</span><span class="n">dim</span>
-        <span class="n">topology</span><span class="o">.</span><span class="n">create_connectivity</span><span class="p">(</span><span class="n">tdim</span><span class="p">,</span> <span class="n">tdim</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
-        <span class="n">conn</span> <span class="o">=</span> <span class="n">topology</span><span class="o">.</span><span class="n">connectivity</span><span class="p">(</span><span class="n">tdim</span><span class="p">,</span> <span class="n">tdim</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
-
-        <span class="k">return</span> <span class="n">conn</span><span class="o">.</span><span class="n">array</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">conn</span><span class="o">.</span><span class="n">num_nodes</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span></div>
-
-
-<div class="viewcode-block" id="map_cells_and_local_facets_to_facets">
-<a class="viewcode-back" href="../../../generated/qugar.mesh.html#qugar.mesh.map_cells_and_local_facets_to_facets">[docs]</a>
-    <span class="k">def</span> <span class="nf">map_cells_and_local_facets_to_facets</span><span class="p">(</span>
-        <span class="n">mesh</span><span class="p">:</span> <span class="n">dolfinx</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">Mesh</span><span class="p">,</span>
-        <span class="n">cells</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">],</span>
-        <span class="n">local_facets</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">],</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Given cell ids and local face ids referred to those cells,</span>
-<span class="sd">        returns the facet ids.</span>
-
-<span class="sd">        Args:</span>
-<span class="sd">            mesh (dolfinx.mesh.Mesh): Mesh to which the facets belong</span>
-<span class="sd">                to.</span>
-<span class="sd">            cells (npt.NDArray[np.int32]): Array of DOLFINx cell ids</span>
-<span class="sd">                (local to the current process) to be transformed.</span>
-<span class="sd">            local_facets (npt.NDArray[np.int32]): Array of local facets</span>
-<span class="sd">                referred to the `cells`. They follow the FEniCSx</span>
-<span class="sd">                convention. See</span>
-<span class="sd">                https://github.com/FEniCS/basix/#supported-elements</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            npt.NDArray[np.int32]: Computed DOLFINx facet ids (local to</span>
-<span class="sd">            the current process).</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-
-        <span class="k">assert</span> <span class="n">cells</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="n">local_facets</span><span class="o">.</span><span class="n">size</span>
-        <span class="n">cells_to_facets</span> <span class="o">=</span> <span class="n">create_cells_to_facets_map</span><span class="p">(</span><span class="n">mesh</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">cells_to_facets</span><span class="p">[</span><span class="n">cells</span><span class="p">,</span> <span class="n">local_facets</span><span class="p">]</span></div>
-
-
-<div class="viewcode-block" id="map_facets_to_cells_and_local_facets">
-<a class="viewcode-back" href="../../../generated/qugar.mesh.html#qugar.mesh.map_facets_to_cells_and_local_facets">[docs]</a>
-    <span class="k">def</span> <span class="nf">map_facets_to_cells_and_local_facets</span><span class="p">(</span>
-        <span class="n">mesh</span><span class="p">:</span> <span class="n">dolfinx</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">Mesh</span><span class="p">,</span> <span class="n">facets</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">]</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">],</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">]]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Given the ids of facets, returns the cells and local facet</span>
-<span class="sd">        ids corresponding to those facets.</span>
-
-<span class="sd">        Note:</span>
-<span class="sd">            Interior facets belong to more whan one cell, in those cases</span>
-<span class="sd">            only one cell (and local facet) is returned for that</span>
-<span class="sd">            particular facet. The one chosen depends on the way in which</span>
-<span class="sd">            that information is stored in the mesh connectivity.</span>
-
-<span class="sd">        Args:</span>
-<span class="sd">            mesh (dolfinx.mesh.Mesh): Mesh to which the facets belong</span>
-<span class="sd">                to.</span>
-<span class="sd">            facets (npt.NDArray[np.int32]): Array of DOLFINx facets</span>
-<span class="sd">                (local to the current process) to be transformed.</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]: Cells</span>
-<span class="sd">                and local facet ids the associated to the facets. The first</span>
-<span class="sd">                entry of the tuple corresponds to the cells and the second</span>
-<span class="sd">                to the the local facets.</span>
-
-<span class="sd">                The local facets indices follow the FEniCSx convention. See</span>
-<span class="sd">                https://github.com/FEniCS/basix/#supported-elements</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-
-        <span class="c1"># TODO: this implementation can be likely improved.</span>
-        <span class="c1"># Checking in dolfinx code.</span>
-
-        <span class="n">topology</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">topology</span>
-        <span class="n">tdim</span> <span class="o">=</span> <span class="n">topology</span><span class="o">.</span><span class="n">dim</span>
-        <span class="n">topology</span><span class="o">.</span><span class="n">create_connectivity</span><span class="p">(</span><span class="n">tdim</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">tdim</span><span class="p">)</span>
-        <span class="n">conn</span> <span class="o">=</span> <span class="n">topology</span><span class="o">.</span><span class="n">connectivity</span><span class="p">(</span><span class="n">tdim</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">tdim</span><span class="p">)</span>
-
-        <span class="n">cells_to_facets</span> <span class="o">=</span> <span class="n">create_cells_to_facets_map</span><span class="p">(</span><span class="n">mesh</span><span class="p">)</span>
-
-        <span class="n">cells</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">facets</span><span class="p">)</span>
-        <span class="n">local_facets</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">facets</span><span class="p">)</span>
-
-        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">facet</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">facets</span><span class="p">):</span>
-            <span class="c1"># Only the first cell is considered</span>
-            <span class="n">cell</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">links</span><span class="p">(</span><span class="n">facet</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
-            <span class="n">ind</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">cells_to_facets</span><span class="p">[</span><span class="n">cell</span><span class="p">]</span> <span class="o">==</span> <span class="n">facet</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
-            <span class="k">assert</span> <span class="n">ind</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">1</span>
-
-            <span class="n">cells</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">cell</span>
-            <span class="n">local_facets</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">ind</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-
-        <span class="k">return</span> <span class="n">cells</span><span class="p">,</span> <span class="n">local_facets</span></div>
-
 </pre></div>
 
            </div>

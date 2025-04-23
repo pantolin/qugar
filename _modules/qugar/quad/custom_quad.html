@@ -95,6 +95,8 @@
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">numpy.typing</span> <span class="k">as</span> <span class="nn">npt</span>
 
+<span class="kn">from</span> <span class="nn">qugar.mesh.mesh_facets</span> <span class="kn">import</span> <span class="n">MeshFacets</span>
+
 
 <div class="viewcode-block" id="CellState">
 <a class="viewcode-back" href="../../../generated/qugar.quad.html#qugar.quad.CellState">[docs]</a>
@@ -163,11 +165,9 @@
 <span class="sd">    coordinate, while for for tetrahedra or hexahedra they will have 2.</span>
 
 <span class="sd">    Parameters:</span>
-<span class="sd">        cells (npt.NDArray[np.int32]): Array of cell ids to which the</span>
-<span class="sd">            quadrature points and weights are associated to.</span>
-<span class="sd">            This is a unique array. The ids are local to the MPI rank.</span>
-<span class="sd">        facets (npt.NDArray[np.int32]): Array of local facet ids for</span>
-<span class="sd">            every cell index in the `cells` array.</span>
+<span class="sd">        facest (MeshFacets): Mesh facets object that stores the</span>
+<span class="sd">            information of the facets. The facets are local</span>
+<span class="sd">            to the MPI rank.</span>
 <span class="sd">        n_pts_per_entity (npt.NDArray[np.int32]): Array indicating the</span>
 <span class="sd">            number of quadrature points and weights for every facet.</span>
 <span class="sd">        points (npt.NDArray[np.float64]): Array of custom quadrature</span>
@@ -182,8 +182,7 @@
 
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="n">cells</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">]</span>
-    <span class="n">facets</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">]</span>
+    <span class="n">facets</span><span class="p">:</span> <span class="n">MeshFacets</span>
     <span class="n">n_pts_per_entity</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">]</span>
     <span class="n">points</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]</span>
     <span class="n">weights</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]</span></div>
@@ -325,8 +324,7 @@
     <span class="k">def</span> <span class="nf">create_quad_custom_facets</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">degree</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
-        <span class="n">dlf_cells</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">],</span>
-        <span class="n">dlf_local_facets</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">],</span>
+        <span class="n">dlf_facets</span><span class="p">:</span> <span class="n">MeshFacets</span><span class="p">,</span>
         <span class="n">integral_type</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
         <span class="n">tag</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">CustomQuadFacet</span><span class="p">:</span>
@@ -353,20 +351,9 @@
 <span class="sd">            degree (int): Expected degree of exactness of the quadrature</span>
 <span class="sd">                to be generated.</span>
 
-<span class="sd">            dlf_cells (npt.NDArray[np.int32]): Array of DOLFINx cell ids</span>
-<span class="sd">                (local to current MPI process) for which quadratures</span>
-<span class="sd">                will be generated. It must only contain cells with</span>
-<span class="sd">                unfitted boundaries. Beyond a cell id, for indentifying</span>
-<span class="sd">                a facet, a local facet id (from the array</span>
-<span class="sd">                `local_facets`) is also needed.</span>
-
-<span class="sd">            dlf_local_facets (npt.NDArray[np.int32]): Array of local facet</span>
-<span class="sd">                ids for which the custom quadratures are generated. Each</span>
-<span class="sd">                facet is identified through a value in `cells` and a</span>
-<span class="sd">                value in `local_facets`, having both arrays the same</span>
-<span class="sd">                length. The numbering of these facets follows the</span>
-<span class="sd">                FEniCSx convention. See</span>
-<span class="sd">                https://github.com/FEniCS/basix/#supported-elements</span>
+<span class="sd">            dlf_facets (MeshFacets): Mesh facets object that stores the</span>
+<span class="sd">                information of the facets. The facets are local</span>
+<span class="sd">                to the MPI rank.</span>
 
 <span class="sd">            integral_type (str): Type of integral to be computed. It can</span>
 <span class="sd">                be either &#39;interior_facet&#39; or &#39;exterior_facet&#39;.</span>

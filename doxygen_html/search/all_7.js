@@ -2,7 +2,7 @@ var searchData=
 [
   ['half_0',['half',['../dd/dcc/namespacequgar_1_1numbers.html#a1bfff86496fba786b2ece152acf8185b',1,'qugar::numbers']]],
   ['has_5fexternal_5fboundary_1',['has_external_boundary',['../df/d58/classqugar_1_1UnfittedDomain.html#aa05e05c30a600f066e7478f09aca7693',1,'qugar::UnfittedDomain::has_external_boundary(std::int64_t cell_id, int local_facet_id) const'],['../df/d58/classqugar_1_1UnfittedDomain.html#a8a4ed9bf18420f65f2f4a8b2f8e15f5f',1,'qugar::UnfittedDomain::has_external_boundary(ImmersedFacetStatus status)']]],
-  ['has_5ffull_5fcells_5fwith_5funf_5fbdry_2',['has_full_cells_with_unf_bdry',['../df/d58/classqugar_1_1UnfittedDomain.html#a6ea329e5b8dfc6de5cb6704676547754',1,'qugar::UnfittedDomain']]],
+  ['has_5ffacets_5fwith_5funf_5fbdry_2',['has_facets_with_unf_bdry',['../df/d58/classqugar_1_1UnfittedDomain.html#a2613add214080110fed8aa4b30fb97d2',1,'qugar::UnfittedDomain']]],
   ['has_5funfitted_5fboundary_3',['has_unfitted_boundary',['../df/d58/classqugar_1_1UnfittedDomain.html#af9f5372b19e35ae1f03e565b62d3920e',1,'qugar::UnfittedDomain::has_unfitted_boundary(std::int64_t cell_id, int local_facet_id) const'],['../df/d58/classqugar_1_1UnfittedDomain.html#a96eaef601240922800158eda786c1094',1,'qugar::UnfittedDomain::has_unfitted_boundary(ImmersedFacetStatus status)']]],
   ['hash_4',['hash',['../de/d1b/classqugar_1_1TensorIndexTP.html#abe4b367b27f5c5640730dead39178a15',1,'qugar::TensorIndexTP']]],
   ['hash_3c_20qugar_3a_3atensorindextp_3c_20dim_20_3e_20_3e_5',['hash&lt; qugar::TensorIndexTP&lt; dim &gt; &gt;',['../d6/dc2/structstd_1_1hash_3_01qugar_1_1TensorIndexTP_3_01dim_01_4_01_4.html',1,'std']]],

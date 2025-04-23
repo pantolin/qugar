@@ -185,8 +185,6 @@
 </li>
         <li><a href="generated/qugar.quad.html#qugar.quad.CustomQuad.cells">(qugar.quad.CustomQuad attribute)</a>
 </li>
-        <li><a href="generated/qugar.quad.html#qugar.quad.CustomQuadFacet.cells">(qugar.quad.CustomQuadFacet attribute)</a>
-</li>
         <li><a href="generated/qugar.quad.html#qugar.quad.CustomQuadUnfBoundary.cells">(qugar.quad.CustomQuadUnfBoundary attribute)</a>
 </li>
       </ul></li>
@@ -252,13 +250,9 @@
 </li>
       <li><a href="generated/qugar.impl.html#qugar.impl.create_box">create_box() (in module qugar.impl)</a>
 </li>
-      <li><a href="generated/qugar.mesh.html#qugar.mesh.create_Cartesian_mesh">create_Cartesian_mesh() (in module qugar.mesh)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="generated/qugar.mesh.html#qugar.mesh.UnfittedDomain.create_cell_tags">create_cell_tags() (qugar.mesh.UnfittedDomain method)</a>
-</li>
-      <li><a href="generated/qugar.mesh.html#qugar.mesh.create_cells_to_facets_map">create_cells_to_facets_map() (in module qugar.mesh)</a>
+      <li><a href="generated/qugar.mesh.html#qugar.mesh.create_Cartesian_mesh">create_Cartesian_mesh() (in module qugar.mesh)</a>
 </li>
       <li><a href="generated/qugar.impl.html#qugar.impl.create_constant">create_constant() (in module qugar.impl)</a>
 </li>
@@ -273,8 +267,6 @@
       <li><a href="generated/qugar.impl.html#qugar.impl.create_ellipsoid">create_ellipsoid() (in module qugar.impl)</a>
 </li>
       <li><a href="generated/qugar.mesh.html#qugar.mesh.TensorProductMesh.create_facet_bdry_tags">create_facet_bdry_tags() (qugar.mesh.TensorProductMesh method)</a>
-</li>
-      <li><a href="generated/qugar.mesh.html#qugar.mesh.UnfittedDomain.create_facet_tags">create_facet_tags() (qugar.mesh.UnfittedDomain method)</a>
 </li>
       <li><a href="generated/qugar.impl.html#qugar.impl.create_Fischer_Koch_S">create_Fischer_Koch_S() (in module qugar.impl)</a>
 </li>
@@ -360,6 +352,8 @@
 <h2 id="D">D</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="generated/qugar.mesh.html#qugar.mesh.Mesh.degree">degree (qugar.mesh.Mesh property)</a>
+</li>
       <li><a href="generated/qugar.cpp.html#qugar.cpp.CartGridTP_2D.dim">dim (qugar.cpp.CartGridTP_2D property)</a>
 
       <ul>
@@ -408,7 +402,9 @@
         <li><a href="generated/qugar.cpp.html#qugar.cpp.CartGridTP_3D.domain">(qugar.cpp.CartGridTP_3D property)</a>
 </li>
       </ul></li>
-      <li><a href="generated/qugar.dolfinx.html#qugar.dolfinx.dx_bdry_unf">dx_bdry_unf (class in qugar.dolfinx)</a>
+      <li><a href="generated/qugar.dolfinx.html#qugar.dolfinx.ds_bdry_unf">ds_bdry_unf (class in qugar.dolfinx)</a>
+</li>
+      <li><a href="generated/qugar.mesh.html#qugar.mesh.Mesh.dtype">dtype (qugar.mesh.Mesh property)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -466,6 +462,8 @@
 <h2 id="G">G</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="generated/qugar.mesh.html#qugar.mesh.Mesh.gdim">gdim (qugar.mesh.Mesh property)</a>
+</li>
       <li><a href="generated/qugar.mesh.html#qugar.mesh.TensorProdIndex.get_all_corners">get_all_corners() (qugar.mesh.TensorProdIndex static method)</a>
 </li>
       <li><a href="generated/qugar.mesh.html#qugar.mesh.TensorProdIndex.get_all_edges">get_all_edges() (qugar.mesh.TensorProdIndex static method)</a>
@@ -473,6 +471,8 @@
       <li><a href="generated/qugar.mesh.html#qugar.mesh.TensorProdIndex.get_all_faces">get_all_faces() (qugar.mesh.TensorProdIndex static method)</a>
 </li>
       <li><a href="generated/qugar.mesh.html#qugar.mesh.TensorProdIndex.get_all_internal">get_all_internal() (qugar.mesh.TensorProdIndex static method)</a>
+</li>
+      <li><a href="generated/qugar.mesh.html#qugar.mesh.Mesh.get_all_original_cell_ids">get_all_original_cell_ids() (qugar.mesh.Mesh method)</a>
 </li>
       <li><a href="generated/qugar.cpp.html#qugar.cpp.CartGridTP_2D.get_boundary_cells">get_boundary_cells (qugar.cpp.CartGridTP_2D attribute)</a>
 
@@ -488,6 +488,8 @@
         <li><a href="generated/qugar.cpp.html#qugar.cpp.CartGridTP_3D.get_cell_domain">(qugar.cpp.CartGridTP_3D attribute)</a>
 </li>
       </ul></li>
+      <li><a href="generated/qugar.mesh.html#qugar.mesh.Mesh.get_cell_facets">get_cell_facets() (qugar.mesh.Mesh method)</a>
+</li>
       <li><a href="generated/qugar.mesh.html#qugar.mesh.TensorProductMesh.get_cell_tensor_index">get_cell_tensor_index() (qugar.mesh.TensorProductMesh method)</a>
 </li>
       <li><a href="generated/qugar.mesh.html#qugar.mesh.TensorProdIndex.get_corner">get_corner() (qugar.mesh.TensorProdIndex static method)</a>
@@ -508,8 +510,18 @@
       </ul></li>
       <li><a href="generated/qugar.mesh.html#qugar.mesh.UnfittedDomain.get_cut_facets">get_cut_facets() (qugar.mesh.UnfittedDomain method)</a>
 </li>
+      <li><a href="generated/qugar.mesh.html#qugar.mesh.Mesh.get_DOLFINx_global_cell_ids">get_DOLFINx_global_cell_ids() (qugar.mesh.Mesh method)</a>
+</li>
+      <li><a href="generated/qugar.mesh.html#qugar.mesh.Mesh.get_DOLFINx_local_cell_ids">get_DOLFINx_local_cell_ids() (qugar.mesh.Mesh method)</a>
+</li>
+      <li><a href="generated/qugar.mesh.html#qugar.mesh.Mesh.get_DOLFINx_local_node_ids">get_DOLFINx_local_node_ids() (qugar.mesh.Mesh method)</a>
+</li>
+      <li><a href="generated/qugar.mesh.html#qugar.mesh.Mesh.get_DOLFINx_local_to_global_cell_ids">get_DOLFINx_local_to_global_cell_ids() (qugar.mesh.Mesh method)</a>
+</li>
       <li><a href="generated/qugar.mesh.html#qugar.mesh.TensorProdIndex.get_edge">get_edge() (qugar.mesh.TensorProdIndex static method)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="generated/qugar.cpp.html#qugar.cpp.UnfittedDomain_2D.get_empty_cells">get_empty_cells (qugar.cpp.UnfittedDomain_2D attribute)</a>
 
       <ul>
@@ -524,8 +536,6 @@
         <li><a href="generated/qugar.cpp.html#qugar.cpp.UnfittedDomain_3D.get_empty_facets">(qugar.cpp.UnfittedDomain_3D attribute)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="generated/qugar.mesh.html#qugar.mesh.UnfittedDomain.get_empty_facets">get_empty_facets() (qugar.mesh.UnfittedDomain method)</a>
 </li>
       <li><a href="generated/qugar.mesh.html#qugar.mesh.TensorProdIndex.get_face">get_face() (qugar.mesh.TensorProdIndex static method)</a>
@@ -560,15 +570,11 @@
       </ul></li>
       <li><a href="generated/qugar.mesh.html#qugar.mesh.UnfittedDomain.get_num_Gauss_points">get_num_Gauss_points() (qugar.mesh.UnfittedDomain static method)</a>
 </li>
+      <li><a href="generated/qugar.mesh.html#qugar.mesh.Mesh.get_original_cell_ids">get_original_cell_ids() (qugar.mesh.Mesh method)</a>
+</li>
+      <li><a href="generated/qugar.mesh.html#qugar.mesh.Mesh.get_original_node_ids">get_original_node_ids() (qugar.mesh.Mesh method)</a>
+</li>
       <li><a href="generated/qugar.mesh.html#qugar.mesh.TensorProdIndex.get_tensor_index">get_tensor_index() (qugar.mesh.TensorProdIndex static method)</a>
-</li>
-      <li><a href="generated/qugar.cpp.html#qugar.cpp.UnfittedDomain_2D.get_unf_bdry_cells">get_unf_bdry_cells (qugar.cpp.UnfittedDomain_2D attribute)</a>
-
-      <ul>
-        <li><a href="generated/qugar.cpp.html#qugar.cpp.UnfittedDomain_3D.get_unf_bdry_cells">(qugar.cpp.UnfittedDomain_3D attribute)</a>
-</li>
-      </ul></li>
-      <li><a href="generated/qugar.mesh.html#qugar.mesh.UnfittedDomain.get_unf_bdry_cells">get_unf_bdry_cells() (qugar.mesh.UnfittedDomain method)</a>
 </li>
       <li><a href="generated/qugar.cpp.html#qugar.cpp.UnfittedDomain_2D.get_unf_bdry_facets">get_unf_bdry_facets (qugar.cpp.UnfittedDomain_2D attribute)</a>
 
@@ -588,15 +594,17 @@
 <h2 id="H">H</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="generated/qugar.cpp.html#qugar.cpp.UnfittedDomain_2D.has_full_cells_with_unf_bdry">has_full_cells_with_unf_bdry (qugar.cpp.UnfittedDomain_2D property)</a>
+      <li><a href="generated/qugar.cpp.html#qugar.cpp.UnfittedDomain_2D.has_facets_with_unf_bdry">has_facets_with_unf_bdry (qugar.cpp.UnfittedDomain_2D property)</a>
 
       <ul>
-        <li><a href="generated/qugar.cpp.html#qugar.cpp.UnfittedDomain_3D.has_full_cells_with_unf_bdry">(qugar.cpp.UnfittedDomain_3D property)</a>
+        <li><a href="generated/qugar.cpp.html#qugar.cpp.UnfittedDomain_3D.has_facets_with_unf_bdry">(qugar.cpp.UnfittedDomain_3D property)</a>
 </li>
       </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="generated/qugar.mesh.html#qugar.mesh.UnfittedDomain.has_full_cells_with_unf_bdry">has_full_cells_with_unf_bdry() (qugar.mesh.UnfittedDomain method)</a>
+      <li><a href="generated/qugar.mesh.html#qugar.mesh.Mesh.has_inactive_cells">has_inactive_cells (qugar.mesh.Mesh property)</a>
+</li>
+      <li><a href="generated/qugar.mesh.html#qugar.mesh.Mesh.has_merged_nodes">has_merged_nodes (qugar.mesh.Mesh property)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -666,10 +674,6 @@
         <li><a href="generated/qugar.cpp.html#qugar.cpp.TorusBzr.major_radius">(qugar.cpp.TorusBzr property)</a>
 </li>
       </ul></li>
-      <li><a href="generated/qugar.mesh.html#qugar.mesh.map_cells_and_local_facets_to_facets">map_cells_and_local_facets_to_facets() (in module qugar.mesh)</a>
-</li>
-      <li><a href="generated/qugar.mesh.html#qugar.mesh.map_facets_to_cells_and_local_facets">map_facets_to_cells_and_local_facets() (in module qugar.mesh)</a>
-</li>
       <li><a href="generated/qugar.dolfinx.html#qugar.dolfinx.mapped_normal">mapped_normal() (in module qugar.dolfinx)</a>
 </li>
       <li><a href="generated/qugar.cpp.html#qugar.cpp.BoundBox_2D.max_corner">max_corner (qugar.cpp.BoundBox_2D property)</a>
@@ -678,6 +682,12 @@
         <li><a href="generated/qugar.cpp.html#qugar.cpp.BoundBox_3D.max_corner">(qugar.cpp.BoundBox_3D property)</a>
 </li>
       </ul></li>
+      <li><a href="generated/qugar.mesh.html#qugar.mesh.Mesh.merged_nodes_map">merged_nodes_map (qugar.mesh.Mesh property)</a>
+</li>
+      <li><a href="generated/qugar.mesh.html#qugar.mesh.Mesh">Mesh (class in qugar.mesh)</a>
+</li>
+      <li><a href="generated/qugar.mesh.html#qugar.mesh.UnfittedDomain.mesh">mesh (qugar.mesh.UnfittedDomain property)</a>
+</li>
       <li><a href="generated/qugar.cpp.html#qugar.cpp.BoundBox_2D.mid_point">mid_point (qugar.cpp.BoundBox_2D property)</a>
 
       <ul>
@@ -779,6 +789,10 @@
       </ul></li>
       <li><a href="generated/qugar.mesh.html#qugar.mesh.TensorProductMesh.num_cells_tp">num_cells_tp (qugar.mesh.TensorProductMesh property)</a>
 </li>
+      <li><a href="generated/qugar.mesh.html#qugar.mesh.Mesh.num_global_cells">num_global_cells (qugar.mesh.Mesh property)</a>
+</li>
+      <li><a href="generated/qugar.mesh.html#qugar.mesh.Mesh.num_local_cells">num_local_cells (qugar.mesh.Mesh property)</a>
+</li>
       <li><a href="generated/qugar.mesh.html#qugar.mesh.TensorProductMesh.num_pts_dir">num_pts_dir (qugar.mesh.TensorProductMesh property)</a>
 </li>
       <li><a href="generated/qugar.cpp.html#qugar.cpp.UnfittedDomain_2D.num_total_cells">num_total_cells (qugar.cpp.UnfittedDomain_2D property)</a>
@@ -819,6 +833,8 @@
       </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="generated/qugar.mesh.html#qugar.mesh.Mesh.original_active_cells">original_active_cells (qugar.mesh.Mesh property)</a>
+</li>
       <li><a href="generated/qugar.cpp.html#qugar.cpp.Annulus.outer_radius">outer_radius (qugar.cpp.Annulus property)</a>
 
       <ul>
@@ -1007,9 +1023,9 @@
 </li>
       <li><a href="api_cpp.html#_CPPv4NK5qugar10CartGridTP9to_tensorENSt7int64_tE">qugar::CartGridTP::to_tensor (C++ function)</a>
 </li>
-      <li><a href="api_cpp.html#_CPPv4I_iEN5qugar33create_exterior_facets_quadratureENSt10shared_ptrIK16CutIsoBoundsQuadIXmi3dimL1EEEEERK14UnfittedDomainI3dimERKNSt6vectorINSt7int64_tEEERKNSt6vectorIiEEi">qugar::create_exterior_facets_quadrature (C++ function)</a>
+      <li><a href="api_cpp.html#_CPPv4I_iEN5qugar42create_facets_quadrature_exterior_integralENSt10shared_ptrIK16CutIsoBoundsQuadIXmi3dimL1EEEEERK14UnfittedDomainI3dimERKNSt6vectorINSt7int64_tEEERKNSt6vectorIiEEi">qugar::create_facets_quadrature_exterior_integral (C++ function)</a>
 </li>
-      <li><a href="api_cpp.html#_CPPv4I_iEN5qugar33create_interior_facets_quadratureENSt10shared_ptrIK16CutIsoBoundsQuadIXmi3dimL1EEEEERK14UnfittedDomainI3dimERKNSt6vectorINSt7int64_tEEERKNSt6vectorIiEEi">qugar::create_interior_facets_quadrature (C++ function)</a>
+      <li><a href="api_cpp.html#_CPPv4I_iEN5qugar42create_facets_quadrature_interior_integralENSt10shared_ptrIK16CutIsoBoundsQuadIXmi3dimL1EEEEERK14UnfittedDomainI3dimERKNSt6vectorINSt7int64_tEEERKNSt6vectorIiEEi">qugar::create_facets_quadrature_interior_integral (C++ function)</a>
 </li>
       <li><a href="api_cpp.html#_CPPv4I_iEN5qugar17create_quadratureENSt10shared_ptrIK12CutCellsQuadI3dimEEERK14UnfittedDomainI3dimERKNSt6vectorINSt7int64_tEEEi">qugar::create_quadrature (C++ function)</a>
 </li>
@@ -1941,14 +1957,16 @@
 <h2 id="T">T</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="generated/qugar.mesh.html#qugar.mesh.Mesh.tdim">tdim (qugar.mesh.Mesh property)</a>
+</li>
       <li><a href="generated/qugar.mesh.html#qugar.mesh.TensorProdIndex">TensorProdIndex (class in qugar.mesh)</a>
 </li>
       <li><a href="generated/qugar.mesh.html#qugar.mesh.TensorProductMesh">TensorProductMesh (class in qugar.mesh)</a>
 </li>
-      <li><a href="generated/qugar.cpp.html#qugar.cpp.Torus">Torus (class in qugar.cpp)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="generated/qugar.cpp.html#qugar.cpp.Torus">Torus (class in qugar.cpp)</a>
+</li>
       <li><a href="generated/qugar.cpp.html#qugar.cpp.TorusBzr">TorusBzr (class in qugar.cpp)</a>
 </li>
       <li><a href="generated/qugar.cpp.html#qugar.cpp.TransformedFunction_2D">TransformedFunction_2D (class in qugar.cpp)</a>

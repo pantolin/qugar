@@ -86,7 +86,7 @@
 <span class="c1">#</span>
 <span class="c1"># --------------------------------------------------------------------------</span>
 
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Optional</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">cast</span>
 
 <span class="kn">from</span> <span class="nn">qugar</span> <span class="kn">import</span> <span class="n">has_FEniCSx</span>
 
@@ -99,12 +99,45 @@
 <span class="kn">import</span> <span class="nn">qugar.cpp</span>
 <span class="kn">from</span> <span class="nn">qugar.cpp</span> <span class="kn">import</span> <span class="n">UnfittedDomain_2D</span><span class="p">,</span> <span class="n">UnfittedDomain_3D</span>
 <span class="kn">from</span> <span class="nn">qugar.mesh.mesh</span> <span class="kn">import</span> <span class="n">Mesh</span>
+<span class="kn">from</span> <span class="nn">qugar.mesh.mesh_facets</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">MeshFacets</span><span class="p">,</span>
+    <span class="n">create_facet_manager_all</span><span class="p">,</span>
+    <span class="n">create_facet_manager_exterior</span><span class="p">,</span>
+    <span class="n">create_facet_manager_interior</span><span class="p">,</span>
+<span class="p">)</span>
 <span class="kn">from</span> <span class="nn">qugar.mesh.unfitted_domain_abc</span> <span class="kn">import</span> <span class="n">UnfittedDomainABC</span>
 <span class="kn">from</span> <span class="nn">qugar.quad.custom_quad</span> <span class="kn">import</span> <span class="p">(</span>
     <span class="n">CustomQuad</span><span class="p">,</span>
     <span class="n">CustomQuadFacet</span><span class="p">,</span>
     <span class="n">CustomQuadUnfBoundary</span><span class="p">,</span>
 <span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_sort_facets</span><span class="p">(</span>
+    <span class="n">cell_ids</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">],</span> <span class="n">local_facet_ids</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">]</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">],</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Sorts facets based on cell ids and local facet ids.</span>
+
+<span class="sd">    The sorting is performed first based on cell ids (increasing order)</span>
+<span class="sd">    and then based on local facet ids (increasing order).</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        cell_ids (npt.NDArray[np.int32]): Array of cell ids.</span>
+<span class="sd">        local_facet_ids (npt.NDArray[np.int32]): Array of local facet ids.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]:</span>
+<span class="sd">        Sorted cell ids and local facet ids.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Use lexsort to sort primarily by cell_ids and secondarily by local_facet_ids</span>
+    <span class="c1"># Note: lexsort sorts by the last key first, so we provide local_facet_ids then cell_ids</span>
+    <span class="n">sorted_indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">lexsort</span><span class="p">((</span><span class="n">local_facet_ids</span><span class="p">,</span> <span class="n">cell_ids</span><span class="p">))</span>
+
+    <span class="c1"># Apply the sorted indices to both arrays</span>
+    <span class="n">sorted_cell_ids</span> <span class="o">=</span> <span class="n">cell_ids</span><span class="p">[</span><span class="n">sorted_indices</span><span class="p">]</span>
+    <span class="n">sorted_local_facet_ids</span> <span class="o">=</span> <span class="n">local_facet_ids</span><span class="p">[</span><span class="n">sorted_indices</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">sorted_cell_ids</span><span class="p">,</span> <span class="n">sorted_local_facet_ids</span>
 
 
 <div class="viewcode-block" id="UnfittedDomain">
@@ -133,6 +166,8 @@
 <span class="sd">                Already generated unfitted domain binary object.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">mesh</span><span class="p">)</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">_mesh</span> <span class="o">=</span> <span class="n">mesh</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_cpp_unf_domain_object</span> <span class="o">=</span> <span class="n">cpp_unf_domain_object</span>
 
@@ -148,6 +183,15 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_interior_cut_facets</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_interior_full_facets</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_interior_empty_facets</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">mesh</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Mesh</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Gets the mesh object associated to the unfitted domain.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Mesh: Mesh object associated to the unfitted domain.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mesh</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">cpp_unf_domain_object</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">UnfittedDomain_2D</span> <span class="o">|</span> <span class="n">UnfittedDomain_3D</span><span class="p">:</span>
@@ -177,88 +221,11 @@
 <span class="sd">            numbering). They are sorted.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mesh</span><span class="o">.</span><span class="n">num_local_cells</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cpp_unf_domain_object</span><span class="o">.</span><span class="n">num_total_cells</span><span class="p">:</span>
-            <span class="n">orig_cell_ids</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># All cells .</span>
+            <span class="n">orig_cell_ids</span> <span class="o">=</span> <span class="n">cell_getter</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>  <span class="c1"># All cells.</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">orig_cell_ids</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mesh</span><span class="o">.</span><span class="n">get_all_original_cell_ids</span><span class="p">()</span>
-        <span class="n">cell_ids</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mesh</span><span class="o">.</span><span class="n">get_DOLFINx_local_cell_ids</span><span class="p">(</span><span class="n">cell_getter</span><span class="p">(</span><span class="n">orig_cell_ids</span><span class="p">))</span>
-        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">cell_ids</span><span class="p">)</span>
+            <span class="n">orig_cell_ids</span> <span class="o">=</span> <span class="n">cell_getter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_mesh</span><span class="o">.</span><span class="n">get_all_original_cell_ids</span><span class="p">())</span>
 
-    <span class="k">def</span> <span class="nf">_get_facets</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span>
-        <span class="n">facets_getter</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[</span>
-            <span class="p">[</span><span class="n">Optional</span><span class="p">[</span><span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">]],</span> <span class="n">Optional</span><span class="p">[</span><span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">]]],</span>
-            <span class="nb">tuple</span><span class="p">[</span><span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">],</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">]],</span>
-        <span class="p">],</span>
-        <span class="n">exterior</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Accesses a list of facets through the function `facets_getter`.</span>
-
-<span class="sd">        The list of facets will be filtered to only exterior or interior facets.</span>
-
-<span class="sd">        Args:</span>
-<span class="sd">            facets_getter (Callable[npt.NDArray[np.int64], npt.NDArray[np.int32]],</span>
-<span class="sd">              tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]]): Function to</span>
-<span class="sd">                access the facets. It returns the facets as pairs of cells (referred to the</span>
-<span class="sd">                local ordering) and local facets following lexicographical ordering.</span>
-<span class="sd">                Optionally, it can receive as arguments (origina) cell ids and local</span>
-<span class="sd">                (lexicographical) facet ids of the subsets of facets to be considered.</span>
-<span class="sd">            exterior (bool): If `True`, the exterior facets are considered.</span>
-<span class="sd">                Otherwise, the interior ones. Defaults to True.</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            npt.NDArray[np.int32]: Extracted facets. The facets are</span>
-<span class="sd">            returned as one sorted array with the facets indices following</span>
-<span class="sd">            the (local) DOLFINx ordering.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-
-        <span class="n">facets_ids</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_mesh</span><span class="o">.</span><span class="n">get_exterior_facets</span><span class="p">()</span> <span class="k">if</span> <span class="n">exterior</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mesh</span><span class="o">.</span><span class="n">get_interior_facets</span><span class="p">()</span>
-        <span class="p">)</span>
-
-        <span class="c1"># From facet ids to cells and local facets</span>
-        <span class="n">dlf_cell_ids</span><span class="p">,</span> <span class="n">dlf_local_facet_ids</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_mesh</span><span class="o">.</span><span class="n">transform_DOLFINx_local_facet_ids_to_cells_and_local_facets</span><span class="p">(</span><span class="n">facets_ids</span><span class="p">)</span>
-        <span class="p">)</span>
-
-        <span class="c1"># From DOLFIN local ordering (of cells and local facets)</span>
-        <span class="c1"># to original ordering (of cells and lexicographical local facets)</span>
-        <span class="n">orig_cell_ids</span><span class="p">,</span> <span class="n">orig_local_facet_ids</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_mesh</span><span class="o">.</span><span class="n">transform_DOLFINx_local_facet_ids_to_original</span><span class="p">(</span>
-                <span class="n">dlf_cell_ids</span><span class="p">,</span> <span class="n">dlf_local_facet_ids</span>
-            <span class="p">)</span>
-        <span class="p">)</span>
-
-        <span class="c1"># Filtering of the original facets using the facets_getter</span>
-        <span class="n">orig_cell_ids</span><span class="p">,</span> <span class="n">orig_local_facet_ids</span> <span class="o">=</span> <span class="n">facets_getter</span><span class="p">(</span><span class="n">orig_cell_ids</span><span class="p">,</span> <span class="n">orig_local_facet_ids</span><span class="p">)</span>
-
-        <span class="c1"># From the original ordering (of cells and lexicographical local facets)</span>
-        <span class="c1"># to DOLFINx local ordering (of cells and local facets)</span>
-        <span class="n">dlf_cell_ids</span><span class="p">,</span> <span class="n">dlf_local_facet_ids</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_mesh</span><span class="o">.</span><span class="n">transform_original_facet_ids_to_DOLFINx_local</span><span class="p">(</span>
-                <span class="n">orig_cell_ids</span><span class="p">,</span> <span class="n">orig_local_facet_ids</span>
-            <span class="p">)</span>
-        <span class="p">)</span>
-
-        <span class="c1"># From DOLFINx local ordering of cells and local facets</span>
-        <span class="c1"># to DOLFINx local ordering of facets.</span>
-        <span class="n">facets_ids</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mesh</span><span class="o">.</span><span class="n">transform_DOLFINx_cells_and_local_facets_to_local_facet_ids</span><span class="p">(</span>
-            <span class="n">dlf_cell_ids</span><span class="p">,</span> <span class="n">dlf_local_facet_ids</span>
-        <span class="p">)</span>
-
-        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">facets_ids</span><span class="p">)</span>
-
-<div class="viewcode-block" id="UnfittedDomain.has_full_cells_with_unf_bdry">
-<a class="viewcode-back" href="../../../generated/qugar.mesh.html#qugar.mesh.UnfittedDomain.has_full_cells_with_unf_bdry">[docs]</a>
-    <span class="k">def</span> <span class="nf">has_full_cells_with_unf_bdry</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Checks if the unfitted domain has full cells with unfitted</span>
-<span class="sd">        boundaries.</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            bool: `True` if the unfitted domain has full cells with</span>
-<span class="sd">            unfitted boundaries, `False` otherwise.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cpp_unf_domain_object</span><span class="o">.</span><span class="n">has_full_cells_with_unf_bdry</span></div>
-
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_mesh</span><span class="o">.</span><span class="n">get_DOLFINx_local_cell_ids</span><span class="p">(</span><span class="n">orig_cell_ids</span><span class="p">))</span>
 
 <div class="viewcode-block" id="UnfittedDomain.get_cut_cells">
 <a class="viewcode-back" href="../../../generated/qugar.mesh.html#qugar.mesh.UnfittedDomain.get_cut_cells">[docs]</a>
@@ -272,10 +239,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cut_cells</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-
-            <span class="k">def</span> <span class="nf">caller</span><span class="p">(</span><span class="n">cells</span><span class="p">):</span>
-                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cpp_unf_domain_object</span><span class="o">.</span><span class="n">get_cut_cells</span><span class="p">(</span><span class="n">cells</span><span class="p">)</span>
-
+            <span class="n">caller</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cpp_unf_domain_object</span><span class="o">.</span><span class="n">get_cut_cells</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_cut_cells</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_cells</span><span class="p">(</span><span class="n">caller</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cut_cells</span></div>
@@ -286,10 +250,6 @@
     <span class="k">def</span> <span class="nf">get_full_cells</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Gets the ids of the full cells.</span>
 
-<span class="sd">        Note:</span>
-<span class="sd">            We also consider as full the full cells that contain</span>
-<span class="sd">            unfitted boundaries on their facets.</span>
-
 <span class="sd">        Returns:</span>
 <span class="sd">            npt.NDArray[np.int32]: Array of full cells associated to the</span>
 <span class="sd">            current process following the DOLFINx local numbering.</span>
@@ -297,10 +257,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_full_cells</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-
-            <span class="k">def</span> <span class="nf">caller</span><span class="p">(</span><span class="n">cells</span><span class="p">):</span>
-                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cpp_unf_domain_object</span><span class="o">.</span><span class="n">get_full_cells</span><span class="p">(</span><span class="n">cells</span><span class="p">)</span>
-
+            <span class="n">caller</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cpp_unf_domain_object</span><span class="o">.</span><span class="n">get_full_cells</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_full_cells</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_cells</span><span class="p">(</span><span class="n">caller</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_full_cells</span></div>
@@ -324,272 +281,391 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_empty_cells</span></div>
 
 
-<div class="viewcode-block" id="UnfittedDomain.get_unf_bdry_cells">
-<a class="viewcode-back" href="../../../generated/qugar.mesh.html#qugar.mesh.UnfittedDomain.get_unf_bdry_cells">[docs]</a>
-    <span class="k">def</span> <span class="nf">get_unf_bdry_cells</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Gets the ids of the cells that contain unfitted boundaries.</span>
-
-<span class="sd">        Note:</span>
-<span class="sd">            All the cut cells (see `get_cut_cells`) have unfitted</span>
-<span class="sd">            boundaries, but in some particular cases, we may have full</span>
-<span class="sd">            cells that also contain unfitted boundaries on their boundary.</span>
-<span class="sd">            Those full cells are also considered as unfitted boundary</span>
-<span class="sd">            cells in the case the unfitted boundary does not lay on</span>
-<span class="sd">            exterior facets.</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            npt.NDArray[np.int32]: Array of cells containing unfitted</span>
-<span class="sd">            boundaries, associated to the current process following the</span>
-<span class="sd">            DOLFINx local numbering. The cell ids are sorted.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unf_bdry_cells</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_full_cells_with_unf_bdry</span><span class="p">():</span>
-
-                <span class="k">def</span> <span class="nf">caller</span><span class="p">(</span><span class="n">cells</span><span class="p">):</span>
-                    <span class="c1"># When unfitted boundaries lay on facets, but these are</span>
-                    <span class="c1"># exterior facets, that part of the unfitted boundary</span>
-                    <span class="c1"># is treated as a cut or full facet (integrals there</span>
-                    <span class="c1"># will be computed as facet integrals).</span>
-                    <span class="n">exclude_ext_facets</span> <span class="o">=</span> <span class="kc">True</span>
-                    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cpp_unf_domain_object</span><span class="o">.</span><span class="n">get_unf_bdry_cells</span><span class="p">(</span><span class="n">cells</span><span class="p">,</span> <span class="n">exclude_ext_facets</span><span class="p">)</span>
-
-                <span class="bp">self</span><span class="o">.</span><span class="n">_unf_bdry_cells</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_cells</span><span class="p">(</span><span class="n">caller</span><span class="p">)</span>
-
-            <span class="k">else</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_unf_bdry_cells</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_cut_cells</span><span class="p">()</span>
-
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unf_bdry_cells</span>
-
-        <span class="k">pass</span></div>
-
-
-<div class="viewcode-block" id="UnfittedDomain.get_cut_facets">
-<a class="viewcode-back" href="../../../generated/qugar.mesh.html#qugar.mesh.UnfittedDomain.get_cut_facets">[docs]</a>
-    <span class="k">def</span> <span class="nf">get_cut_facets</span><span class="p">(</span>
+    <span class="k">def</span> <span class="nf">_get_facets</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
-        <span class="n">exterior</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">],</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">]]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Gets the cut facets as DOLFINx cells and local facet ids</span>
+        <span class="n">facets_getter</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[</span>
+            <span class="p">[</span><span class="n">Optional</span><span class="p">[</span><span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">]],</span> <span class="n">Optional</span><span class="p">[</span><span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">]]],</span>
+            <span class="nb">tuple</span><span class="p">[</span><span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">],</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">]],</span>
+        <span class="p">],</span>
+        <span class="n">facets_type</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MeshFacets</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Retrieves and filters mesh facets using a custom filtering function.</span>
 
-<span class="sd">        The list of facets will be filtered to only exterior or interior</span>
-<span class="sd">        facets according to the argument `exterior`.</span>
-
-<span class="sd">        Note:</span>
-<span class="sd">            The selection of cut facets is performed differently depending</span>
-<span class="sd">            on whether exterior or interior facets are considered.</span>
-<span class="sd">            For interior facets, simply facets that containg cut parts</span>
-<span class="sd">            are considered. While for exterior facets, on top of those</span>
-<span class="sd">            cut facets, facets that contain unfitted boundaries are also</span>
-<span class="sd">            considered as cut facets, but only if the unfitted boundary</span>
-<span class="sd">            does not correspond to a full facet.</span>
+<span class="sd">        This internal method orchestrates the process of selecting facets based on</span>
+<span class="sd">        their type (all, interior, or exterior), transforming them into a</span>
+<span class="sd">        representation based on original cell IDs and lexicographical local facet</span>
+<span class="sd">        IDs, applying a user-provided filtering function (`facets_getter`) on this</span>
+<span class="sd">        representation, and finally converting the filtered facets back to the</span>
+<span class="sd">        standard DOLFINx local cell and facet indices.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            exterior (bool): If `True`, the exterior facets are considered.</span>
-<span class="sd">                Otherwise, the interior ones. Defaults to True.</span>
+<span class="sd">            facets_getter: A callable that accepts two optional NumPy arrays</span>
+<span class="sd">                (original cell IDs `np.int64`, original lexicographical local</span>
+<span class="sd">                facet IDs `np.int32`) and returns a tuple containing the filtered</span>
+<span class="sd">                versions of these arrays. This function defines the custom</span>
+<span class="sd">                filtering logic.</span>
+<span class="sd">            facets_type: An optional string specifying the initial type of facets</span>
+<span class="sd">                to retrieve. Valid options are:</span>
+<span class="sd">                - `None`: Retrieve all facets. (Default)</span>
+<span class="sd">                - `&#39;interior&#39;`: Retrieve only facets shared between two cells.</span>
+<span class="sd">                - `&#39;exterior&#39;`: Retrieve only facets on the boundary (belonging</span>
+<span class="sd">                  to a single cell).</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            FacetManager: A `FacetManager` instance containing the filtered facets,</span>
+<span class="sd">                represented by DOLFINx local cell indices and local facet indices,</span>
+<span class="sd">                sorted lexicographically.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">facets_type</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="n">facets_type</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;interior&quot;</span><span class="p">,</span> <span class="s2">&quot;exterior&quot;</span><span class="p">],</span> <span class="s2">&quot;Invalid facets type.&quot;</span>
+            <span class="k">if</span> <span class="n">facets_type</span> <span class="o">==</span> <span class="s2">&quot;interior&quot;</span><span class="p">:</span>
+                <span class="n">facets</span> <span class="o">=</span> <span class="n">create_facet_manager_interior</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_mesh</span><span class="p">,</span> <span class="n">single_interior_facet</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">facets</span> <span class="o">=</span> <span class="n">create_facet_manager_exterior</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_mesh</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">facets</span> <span class="o">=</span> <span class="n">create_facet_manager_all</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_mesh</span><span class="p">,</span> <span class="n">single_interior_facet</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+        <span class="n">orig_facets</span> <span class="o">=</span> <span class="n">facets</span><span class="o">.</span><span class="n">to_original</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_mesh</span><span class="p">)</span>
+
+        <span class="c1"># Filtering of the original facets using the facets_getter</span>
+        <span class="n">filtered_facets</span> <span class="o">=</span> <span class="n">facets_getter</span><span class="p">(</span>
+            <span class="n">cast</span><span class="p">(</span><span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">],</span> <span class="n">orig_facets</span><span class="o">.</span><span class="n">cell_ids</span><span class="p">),</span> <span class="n">orig_facets</span><span class="o">.</span><span class="n">local_facet_ids</span>
+        <span class="p">)</span>
+
+        <span class="n">dlf_facets</span> <span class="o">=</span> <span class="n">MeshFacets</span><span class="p">(</span><span class="o">*</span><span class="n">filtered_facets</span><span class="p">)</span><span class="o">.</span><span class="n">to_DOLFINx</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_mesh</span><span class="p">)</span>
+        <span class="n">dlf_facets</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">dlf_facets</span>
+
+    <span class="k">def</span> <span class="nf">_get_cut_facets_ext_integral</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MeshFacets</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Gets the cut facets as a FacetManager object for exterior integrals.</span>
+
+<span class="sd">        Here we consider either interior or exterior (that belong to a</span>
+<span class="sd">        single cell) facets that partially belong to the domain&#39;s</span>
+<span class="sd">        boundary (either the mesh&#39;s domain or the unfitted boundary).</span>
+<span class="sd">        If a facet is fully contained in an unfitted boundary, it is</span>
+<span class="sd">        considered as full.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]:</span>
 <span class="sd">            Cut facets. The facets are returned as one array of</span>
 <span class="sd">            cells and another one of local facets referred to those</span>
-<span class="sd">            cells both with the same length and both following (local) DOLFINx ordering.</span>
+<span class="sd">            cells both with the same length and both following (local</span>
+<span class="sd">            DOLFINx ordering.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="k">if</span> <span class="n">exterior</span><span class="p">:</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_exterior_cut_facets</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="c1"># We include cut facets.</span>
-                <span class="n">exterior_cut_facets</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_facets</span><span class="p">(</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">_cpp_unf_domain_object</span><span class="o">.</span><span class="n">get_cut_facets</span><span class="p">,</span> <span class="n">exterior</span>
-                <span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_exterior_cut_facets</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># We include cut facets.</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_exterior_cut_facets</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_facets</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_cpp_unf_domain_object</span><span class="o">.</span><span class="n">get_cut_facets</span><span class="p">,</span>
+                <span class="n">facets_type</span><span class="o">=</span><span class="s2">&quot;exterior&quot;</span><span class="p">,</span>
+            <span class="p">)</span>
 
-                <span class="c1"># But also facets that contain unfitted boundaries, but</span>
-                <span class="c1"># only when they are not full.</span>
-                <span class="n">unf_facets</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_facets</span><span class="p">(</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">cpp_unf_domain_object</span><span class="o">.</span><span class="n">get_unf_bdry_facets</span><span class="p">,</span> <span class="n">exterior</span>
+            <span class="c1"># But also facets (exterior or interior) that contain</span>
+            <span class="c1"># unfitted boundaries, but only when they are not full.</span>
+            <span class="n">unf_facets</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_facets</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">cpp_unf_domain_object</span><span class="o">.</span><span class="n">get_unf_bdry_facets</span><span class="p">,</span> <span class="n">facets_type</span><span class="o">=</span><span class="kc">None</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">unf_facets</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
+                <span class="c1"># They may contain full unfitted boundaries that need to be removed.</span>
+                <span class="n">unf_full_facets</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_facets</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">cpp_unf_domain_object</span><span class="o">.</span><span class="n">get_full_unf_bdry_facets</span><span class="p">,</span> <span class="n">facets_type</span><span class="o">=</span><span class="kc">None</span>
                 <span class="p">)</span>
-                <span class="k">if</span> <span class="n">unf_facets</span><span class="o">.</span><span class="n">size</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-                    <span class="c1"># They may contain full unfitted boundaries that need to be removed.</span>
-                    <span class="n">unf_full_facets</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_facets</span><span class="p">(</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">cpp_unf_domain_object</span><span class="o">.</span><span class="n">get_full_unf_bdry_facets</span><span class="p">,</span> <span class="n">exterior</span>
+                <span class="n">unf_partial_facets</span> <span class="o">=</span> <span class="n">unf_facets</span><span class="o">.</span><span class="n">difference</span><span class="p">(</span><span class="n">unf_full_facets</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">unf_partial_facets</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_exterior_cut_facets</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_exterior_cut_facets</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span>
+                        <span class="n">unf_partial_facets</span>
                     <span class="p">)</span>
-                    <span class="n">unf_facets</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">setdiff1d</span><span class="p">(</span><span class="n">unf_facets</span><span class="p">,</span> <span class="n">unf_full_facets</span><span class="p">,</span> <span class="n">assume_unique</span><span class="o">=</span><span class="n">exterior</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_exterior_cut_facets</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_exterior_cut_facets</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span>
 
-                    <span class="k">if</span> <span class="n">unf_facets</span><span class="o">.</span><span class="n">size</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-                        <span class="n">exterior_cut_facets</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">exterior_cut_facets</span><span class="p">,</span> <span class="n">unf_facets</span><span class="p">))</span>
-                        <span class="n">exterior_cut_facets</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">exterior_cut_facets</span><span class="p">))</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_exterior_cut_facets</span>
 
-                <span class="bp">self</span><span class="o">.</span><span class="n">_exterior_cut_facets</span> <span class="o">=</span> <span class="p">(</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">_mesh</span><span class="o">.</span><span class="n">transform_DOLFINx_local_facet_ids_to_cells_and_local_facets</span><span class="p">(</span>
-                        <span class="n">exterior_cut_facets</span>
-                    <span class="p">)</span>
-                <span class="p">)</span>
+    <span class="k">def</span> <span class="nf">_get_cut_facets_int_integral</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MeshFacets</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Gets the cut facets as a FacetManager object for interior integrals.</span>
 
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_exterior_cut_facets</span>
+<span class="sd">        Hwere we consider interior facets (shared by two cells) that are</span>
+<span class="sd">        cut (i.e., they are partially inside the domain).</span>
 
-        <span class="k">else</span><span class="p">:</span>  <span class="c1"># Interior</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_interior_cut_facets</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="c1"># Here we only include cut facets.</span>
-                <span class="n">interior_cut_facets</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_facets</span><span class="p">(</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">_cpp_unf_domain_object</span><span class="o">.</span><span class="n">get_cut_facets</span><span class="p">,</span> <span class="n">exterior</span>
-                <span class="p">)</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_interior_cut_facets</span> <span class="o">=</span> <span class="p">(</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">_mesh</span><span class="o">.</span><span class="n">transform_DOLFINx_local_facet_ids_to_cells_and_local_facets</span><span class="p">(</span>
-                        <span class="n">interior_cut_facets</span>
-                    <span class="p">)</span>
-                <span class="p">)</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]:</span>
+<span class="sd">            Cut facets. The facets are returned as one array of</span>
+<span class="sd">            cells and another one of local facets referred to those</span>
+<span class="sd">            cells both with the same length and both following (local</span>
+<span class="sd">            DOLFINx ordering.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_interior_cut_facets</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_interior_cut_facets</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_facets</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_cpp_unf_domain_object</span><span class="o">.</span><span class="n">get_cut_facets</span><span class="p">,</span>
+                <span class="n">facets_type</span><span class="o">=</span><span class="s2">&quot;interior&quot;</span><span class="p">,</span>
+            <span class="p">)</span>
 
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_interior_cut_facets</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_interior_cut_facets</span>
 
-
-<div class="viewcode-block" id="UnfittedDomain.get_full_facets">
-<a class="viewcode-back" href="../../../generated/qugar.mesh.html#qugar.mesh.UnfittedDomain.get_full_facets">[docs]</a>
-    <span class="k">def</span> <span class="nf">get_full_facets</span><span class="p">(</span>
+<div class="viewcode-block" id="UnfittedDomain.get_cut_facets">
+<a class="viewcode-back" href="../../../generated/qugar.mesh.html#qugar.mesh.UnfittedDomain.get_cut_facets">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_cut_facets</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
-        <span class="n">exterior</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">],</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">]]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Gets the full facets as DOLFINx cells and local facet ids</span>
+        <span class="n">exterior_integral</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MeshFacets</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Gets the cut facets as a FacetManager object.</span>
 
-<span class="sd">        The list of facets will be filtered to only exterior or interior</span>
-<span class="sd">        facets according to the argument `exterior`.</span>
+<span class="sd">        The list of facets will be filtered for exterior or interior</span>
+<span class="sd">        integrals according to the argument `exterior_integral`.</span>
 
 <span class="sd">        Note:</span>
-<span class="sd">            The selection of full facets is performed differently depending</span>
-<span class="sd">            on whether exterior or interior facets are considered.</span>
-<span class="sd">            For interior facets, simply facets that are fully inside</span>
-<span class="sd">            the domain (not touching the boundary) are considered.</span>
-<span class="sd">            While for exterior facets, we consider those that are fully</span>
-<span class="sd">            contained in the domain&#39;s boundary, including the ones</span>
-<span class="sd">            corresponding to unfitted boundaries, if the facet is full.</span>
+<span class="sd">            The selection of facets is performed differently depending</span>
+<span class="sd">            on whether exterior or interior integrals are to be</span>
+<span class="sd">            computed.</span>
+<span class="sd">            For interior integrals we consider interior facets (shared</span>
+<span class="sd">            by two cells) that are cut (i.e., they are partially inside</span>
+<span class="sd">            the domain).</span>
+<span class="sd">            For exterior integrals we consider either interior or</span>
+<span class="sd">            exterior (that belong to a single cell) facets that</span>
+<span class="sd">            partially belong to the domain&#39;s boundary (either the mesh&#39;s</span>
+<span class="sd">            domain or the unfitted boundary).</span>
+<span class="sd">            In the case of exterior integrals, if a facet is fully</span>
+<span class="sd">            contained in an unfitted boundary, it is considered as full.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            exterior (bool): If `True`, the exterior facets are considered.</span>
-<span class="sd">                Otherwise, the interior ones. Defaults to True.</span>
+<span class="sd">            exterior_integral (bool): Whether the list of facets is</span>
+<span class="sd">                retrieved for computing exterior or interior integrals</span>
+<span class="sd">                (see note above).</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]:</span>
+<span class="sd">            Cut facets. The facets are returned as one array of</span>
+<span class="sd">            cells and another one of local facets referred to those</span>
+<span class="sd">            cells both with the same length and both following (local</span>
+<span class="sd">            DOLFINx ordering.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_get_cut_facets_ext_integral</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">exterior_integral</span>
+            <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_cut_facets_int_integral</span><span class="p">()</span>
+        <span class="p">)</span></div>
+
+
+    <span class="k">def</span> <span class="nf">_get_full_facets_ext_integral</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MeshFacets</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Gets the full facets as a FacetManager object for</span>
+<span class="sd">        exterior integrals.</span>
+
+<span class="sd">        Here we consider facets (interior or exterior) that are fully</span>
+<span class="sd">        contained in the domain&#39;s boundary (either the mesh&#39;s domain or</span>
+<span class="sd">        the unfitted boundary).</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]:</span>
 <span class="sd">            Full facets. The facets are returned as one array of</span>
 <span class="sd">            cells and another one of local facets referred to those</span>
-<span class="sd">            cells both with the same length and both following (local) DOLFINx ordering.</span>
+<span class="sd">            cells both with the same length and both following (local</span>
+<span class="sd">            DOLFINx ordering.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="k">if</span> <span class="n">exterior</span><span class="p">:</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_exterior_full_facets</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="c1"># Full facets</span>
-                <span class="n">exterior_full_facets</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_facets</span><span class="p">(</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">_cpp_unf_domain_object</span><span class="o">.</span><span class="n">get_full_facets</span><span class="p">,</span> <span class="n">exterior</span>
-                <span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_exterior_full_facets</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># Full facets for exterior facets.</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_exterior_full_facets</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_facets</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_cpp_unf_domain_object</span><span class="o">.</span><span class="n">get_full_facets</span><span class="p">,</span>
+                <span class="n">facets_type</span><span class="o">=</span><span class="s2">&quot;exterior&quot;</span><span class="p">,</span>
+            <span class="p">)</span>
 
-                <span class="c1"># We also include facets that contain unfitted boudnaries</span>
-                <span class="c1"># if the facet is full.</span>
-                <span class="n">unf_full_facets</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_facets</span><span class="p">(</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">cpp_unf_domain_object</span><span class="o">.</span><span class="n">get_full_unf_bdry_facets</span><span class="p">,</span> <span class="n">exterior</span>
-                <span class="p">)</span>
-                <span class="k">if</span> <span class="n">unf_full_facets</span><span class="o">.</span><span class="n">size</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-                    <span class="n">exterior_full_facets</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span>
-                        <span class="n">np</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">exterior_full_facets</span><span class="p">,</span> <span class="n">unf_full_facets</span><span class="p">)))</span>
-                    <span class="p">)</span>
+            <span class="c1"># We also include facets that contain unfitted boudnaries</span>
+            <span class="c1"># if the facet is full for both exterior and interior facets.</span>
+            <span class="n">unf_full_facets</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_facets</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">cpp_unf_domain_object</span><span class="o">.</span><span class="n">get_full_unf_bdry_facets</span><span class="p">,</span>
+                <span class="n">facets_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">unf_full_facets</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_exterior_full_facets</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_exterior_full_facets</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span><span class="n">unf_full_facets</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_exterior_full_facets</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_exterior_full_facets</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span>
 
-                <span class="bp">self</span><span class="o">.</span><span class="n">_exterior_full_facets</span> <span class="o">=</span> <span class="p">(</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">_mesh</span><span class="o">.</span><span class="n">transform_DOLFINx_local_facet_ids_to_cells_and_local_facets</span><span class="p">(</span>
-                        <span class="n">exterior_full_facets</span>
-                    <span class="p">)</span>
-                <span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_exterior_full_facets</span>
 
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_exterior_full_facets</span>
+    <span class="k">def</span> <span class="nf">_get_full_facets_int_integral</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MeshFacets</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Gets the full facets as a FacetManager object for</span>
+<span class="sd">        interior integrals.</span>
 
-        <span class="k">else</span><span class="p">:</span>  <span class="c1"># Interior</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_interior_full_facets</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="c1"># Here we only the full facets, without considering the</span>
-                <span class="c1"># unfitted boundaries fully contained in the facet.</span>
-                <span class="n">interior_full_facets</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_facets</span><span class="p">(</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">_cpp_unf_domain_object</span><span class="o">.</span><span class="n">get_full_facets</span><span class="p">,</span> <span class="n">exterior</span>
-                <span class="p">)</span>
+<span class="sd">        Here we consider interior facets (shared by two cells) that are</span>
+<span class="sd">        fully inside the domain (and not contained in any unfitted</span>
+<span class="sd">        boundary).</span>
 
-                <span class="bp">self</span><span class="o">.</span><span class="n">_interior_full_facets</span> <span class="o">=</span> <span class="p">(</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">_mesh</span><span class="o">.</span><span class="n">transform_DOLFINx_local_facet_ids_to_cells_and_local_facets</span><span class="p">(</span>
-                        <span class="n">interior_full_facets</span>
-                    <span class="p">)</span>
-                <span class="p">)</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]:</span>
+<span class="sd">            Full facets. The facets are returned as one array of</span>
+<span class="sd">            cells and another one of local facets referred to those</span>
+<span class="sd">            cells both with the same length and both following (local</span>
+<span class="sd">            DOLFINx ordering.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
 
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_interior_full_facets</span></div>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_interior_full_facets</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># Here we only the full facets, without considering the</span>
+            <span class="c1"># unfitted boundaries fully contained in the facet.</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_interior_full_facets</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_facets</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_cpp_unf_domain_object</span><span class="o">.</span><span class="n">get_full_facets</span><span class="p">,</span>
+                <span class="n">facets_type</span><span class="o">=</span><span class="s2">&quot;interior&quot;</span><span class="p">,</span>
+            <span class="p">)</span>
 
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_interior_full_facets</span>
 
-<div class="viewcode-block" id="UnfittedDomain.get_empty_facets">
-<a class="viewcode-back" href="../../../generated/qugar.mesh.html#qugar.mesh.UnfittedDomain.get_empty_facets">[docs]</a>
-    <span class="k">def</span> <span class="nf">get_empty_facets</span><span class="p">(</span>
+<div class="viewcode-block" id="UnfittedDomain.get_full_facets">
+<a class="viewcode-back" href="../../../generated/qugar.mesh.html#qugar.mesh.UnfittedDomain.get_full_facets">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_full_facets</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
-        <span class="n">exterior</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">],</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">]]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Gets the empty facets as DOLFINx cells and local facet ids</span>
+        <span class="n">exterior_integral</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MeshFacets</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Gets the full facets as a FacetManager object.</span>
 
-<span class="sd">        The list of facets will be filtered to only exterior or interior</span>
-<span class="sd">        facets according to the argument `exterior`.</span>
+<span class="sd">        The list of facets will be filtered for exterior or interior</span>
+<span class="sd">        integrals according to the argument `exterior_integral`.</span>
 
 <span class="sd">        Note:</span>
-<span class="sd">            The selection of empty facets is performed differently depending</span>
-<span class="sd">            on whether exterior or interior facets are considered.</span>
-<span class="sd">            For exterior facets we only consider empty facets that do</span>
-<span class="sd">            not touch the domain. While for interior facets, we consider</span>
-<span class="sd">            empty facets that are completely outside of the domain, but</span>
-<span class="sd">            also those that only touch its boundary.</span>
+<span class="sd">            The selection of facets is performed differently depending</span>
+<span class="sd">            on whether exterior or interior integrals are to be</span>
+<span class="sd">            computed.</span>
+<span class="sd">            For interior integrals we consider interior facets (shared</span>
+<span class="sd">            by two cells) that are fully inside the domain (and not</span>
+<span class="sd">            contained in any unfitted boundary).</span>
+<span class="sd">            For exterior integrals we consider facets (interior or</span>
+<span class="sd">            exterior) that are fully contained in the domain&#39;s boundary</span>
+<span class="sd">            (either the mesh&#39;s domain or the unfitted boundary).</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            exterior (bool): If `True`, the exterior facets are considered.</span>
-<span class="sd">                Otherwise, the interior ones. Defaults to True.</span>
+<span class="sd">            exterior_integral (bool): Whether the list of facets is</span>
+<span class="sd">                retrieved for computing exterior or interior integrals</span>
+<span class="sd">                (see note above).</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]:</span>
+<span class="sd">            Full facets. The facets are returned as one array of</span>
+<span class="sd">            cells and another one of local facets referred to those</span>
+<span class="sd">            cells both with the same length and both following (local</span>
+<span class="sd">            DOLFINx ordering.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_get_full_facets_ext_integral</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">exterior_integral</span>
+            <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_full_facets_int_integral</span><span class="p">()</span>
+        <span class="p">)</span></div>
+
+
+    <span class="k">def</span> <span class="nf">_get_empty_facets_ext_integral</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MeshFacets</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Gets the empty facets as a FacetManager object</span>
+<span class="sd">        for exterior integrals.</span>
+
+<span class="sd">        Here we consider exterior facets (that belong to a single cell)</span>
+<span class="sd">        that are not contained in the domain or its boundary.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]:</span>
 <span class="sd">            Empty facets. The facets are returned as one array of</span>
 <span class="sd">            cells and another one of local facets referred to those</span>
-<span class="sd">            cells both with the same length and both following (local) DOLFINx ordering.</span>
+<span class="sd">            cells both with the same length and both following (local)</span>
+<span class="sd">            DOLFINx ordering.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="k">if</span> <span class="n">exterior</span><span class="p">:</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_exterior_empty_facets</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="c1"># Here we only include empty facets.</span>
-                <span class="n">exterior_empty_facets</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_facets</span><span class="p">(</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">_cpp_unf_domain_object</span><span class="o">.</span><span class="n">get_empty_facets</span><span class="p">,</span> <span class="n">exterior</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_exterior_empty_facets</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># Here we only include empty facets.</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_exterior_empty_facets</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_facets</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_cpp_unf_domain_object</span><span class="o">.</span><span class="n">get_empty_facets</span><span class="p">,</span>
+                <span class="n">facets_type</span><span class="o">=</span><span class="s2">&quot;exterior&quot;</span><span class="p">,</span>
+            <span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_exterior_empty_facets</span>
+
+    <span class="k">def</span> <span class="nf">_get_empty_facets_int_integral</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MeshFacets</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Gets the empty facets as a FacetManager object</span>
+<span class="sd">        for interior integrals.</span>
+
+<span class="sd">        Here we consider interior facets (shared by two cells) that are</span>
+<span class="sd">        not contained in the domain (they may be contained (fully or</span>
+<span class="sd">        partially) in the unfitted boundary).</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]:</span>
+<span class="sd">            Empty facets. The facets are returned as one array of</span>
+<span class="sd">            cells and another one of local facets referred to those</span>
+<span class="sd">            cells both with the same length and both following (local)</span>
+<span class="sd">            DOLFINx ordering.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_interior_empty_facets</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_interior_empty_facets</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_facets</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_cpp_unf_domain_object</span><span class="o">.</span><span class="n">get_empty_facets</span><span class="p">,</span>
+                <span class="n">facets_type</span><span class="o">=</span><span class="s2">&quot;interior&quot;</span><span class="p">,</span>
+            <span class="p">)</span>
+
+            <span class="c1"># Beyond the empty facets, we also need to consider</span>
+            <span class="c1"># facets that are not cut but contain unfitted boundaries</span>
+            <span class="c1"># (full or not).</span>
+
+            <span class="n">unf_facets</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_facets</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">cpp_unf_domain_object</span><span class="o">.</span><span class="n">get_unf_bdry_facets</span><span class="p">,</span>
+                <span class="n">facets_type</span><span class="o">=</span><span class="s2">&quot;interior&quot;</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">unf_facets</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
+                <span class="c1"># They may contain cut facets need to be removed.</span>
+                <span class="n">unf_non_cut_facets</span> <span class="o">=</span> <span class="n">unf_facets</span><span class="o">.</span><span class="n">difference</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">get_cut_facets</span><span class="p">(</span><span class="n">exterior_integral</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span> <span class="n">assume_unique</span><span class="o">=</span><span class="kc">True</span>
                 <span class="p">)</span>
 
-                <span class="bp">self</span><span class="o">.</span><span class="n">_exterior_empty_facets</span> <span class="o">=</span> <span class="p">(</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">_mesh</span><span class="o">.</span><span class="n">transform_DOLFINx_local_facet_ids_to_cells_and_local_facets</span><span class="p">(</span>
-                        <span class="n">exterior_empty_facets</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">unf_non_cut_facets</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_interior_cut_facets</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_interior_empty_facets</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span>
+                        <span class="n">unf_non_cut_facets</span>
                     <span class="p">)</span>
-                <span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_interior_cut_facets</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_interior_cut_facets</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span>
 
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_exterior_empty_facets</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_interior_empty_facets</span>
 
-        <span class="k">else</span><span class="p">:</span>  <span class="c1"># Interior</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_interior_empty_facets</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">interior_empty_facets</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_facets</span><span class="p">(</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">_cpp_unf_domain_object</span><span class="o">.</span><span class="n">get_empty_facets</span><span class="p">,</span> <span class="n">exterior</span>
-                <span class="p">)</span>
+<div class="viewcode-block" id="UnfittedDomain.get_empty_facets">
+<a class="viewcode-back" href="../../../generated/qugar.mesh.html#qugar.mesh.UnfittedDomain.get_empty_facets">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_empty_facets</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">exterior_integral</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MeshFacets</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Gets the empty facets as a FacetManager object</span>
 
-                <span class="c1"># Beyond the empty facets, we also need to consider</span>
-                <span class="c1"># the facets that are not cut but contain unfitted</span>
-                <span class="c1"># boundaries (full or not).</span>
+<span class="sd">        The list of facets will be filtered to only exterior or interior</span>
+<span class="sd">        facets according to the argument `exterior`.</span>
 
-                <span class="n">unf_facets</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_facets</span><span class="p">(</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">cpp_unf_domain_object</span><span class="o">.</span><span class="n">get_unf_bdry_facets</span><span class="p">,</span> <span class="n">exterior</span>
-                <span class="p">)</span>
-                <span class="k">if</span> <span class="n">unf_facets</span><span class="o">.</span><span class="n">size</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-                    <span class="c1"># They may contain cut facets need to be removed.</span>
-                    <span class="n">unf_facets</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">setdiff1d</span><span class="p">(</span>
-                        <span class="n">unf_facets</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_cut_facets</span><span class="p">(</span><span class="n">exterior</span><span class="p">),</span> <span class="n">assume_unique</span><span class="o">=</span><span class="n">exterior</span>
-                    <span class="p">)</span>
+<span class="sd">        Note:</span>
+<span class="sd">            The selection of facets is performed differently depending</span>
+<span class="sd">            on whether exterior or interior integrals are to be</span>
+<span class="sd">            computed.</span>
+<span class="sd">            For interior integrals we consider interior facets (shared</span>
+<span class="sd">            by two cells) that are not contained in the domain (they</span>
+<span class="sd">            may be contained (fully or partially) in the unfitted</span>
+<span class="sd">            boundary).</span>
+<span class="sd">            For exterior integrals we consider exterior facets (that</span>
+<span class="sd">            belong to a single cell) that are not contained in the</span>
+<span class="sd">            domain or its boundary.</span>
 
-                    <span class="k">if</span> <span class="n">unf_facets</span><span class="o">.</span><span class="n">size</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-                        <span class="n">interior_empty_facets</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span>
-                            <span class="n">np</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">interior_empty_facets</span><span class="p">,</span> <span class="n">unf_facets</span><span class="p">)))</span>
-                        <span class="p">)</span>
+<span class="sd">        Args:</span>
+<span class="sd">            exterior_integral (bool): Whether the list of facets is</span>
+<span class="sd">                retrieved for computing exterior or interior integrals</span>
+<span class="sd">                (see note above).</span>
 
-                <span class="bp">self</span><span class="o">.</span><span class="n">_interior_empty_facets</span> <span class="o">=</span> <span class="p">(</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">_mesh</span><span class="o">.</span><span class="n">transform_DOLFINx_local_facet_ids_to_cells_and_local_facets</span><span class="p">(</span>
-                        <span class="n">interior_empty_facets</span>
-                    <span class="p">)</span>
-                <span class="p">)</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]:</span>
+<span class="sd">            Empty facets. The facets are returned as one array of</span>
+<span class="sd">            cells and another one of local facets referred to those</span>
+<span class="sd">            cells both with the same length and both following (local)</span>
+<span class="sd">            DOLFINx ordering.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
 
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_interior_empty_facets</span></div>
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_get_empty_facets_ext_integral</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">exterior_integral</span>
+            <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_empty_facets_int_integral</span><span class="p">()</span>
+        <span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="UnfittedDomain.get_num_Gauss_points">
@@ -639,13 +715,12 @@
 <span class="sd">        generated.</span>
 
 <span class="sd">        Note:</span>
-<span class="sd">            This call may require the generation of the quadratures on</span>
+<span class="sd">            This call requires the generation of the quadratures on</span>
 <span class="sd">            the fly, what can be potentially expensive.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            degree (int): Expected degree of exactness of the quadrature</span>
 <span class="sd">                to be generated.</span>
-
 <span class="sd">            dlf_cells (npt.NDArray[np.int32]): Array of DOLFINx cell ids</span>
 <span class="sd">                (local to current MPI process) for which quadratures</span>
 <span class="sd">                will be generated.</span>
@@ -654,11 +729,11 @@
 <span class="sd">            CustomQuadInterface: Generated custom quadrature.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="n">n_pts_dir</span> <span class="o">=</span> <span class="n">UnfittedDomain</span><span class="o">.</span><span class="n">get_num_Gauss_points</span><span class="p">(</span><span class="n">degree</span><span class="p">)</span>
-
-        <span class="n">orig_cells</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mesh</span><span class="o">.</span><span class="n">get_original_cell_ids</span><span class="p">(</span><span class="n">dlf_cells</span><span class="p">)</span>
-
-        <span class="n">quad</span> <span class="o">=</span> <span class="n">qugar</span><span class="o">.</span><span class="n">cpp</span><span class="o">.</span><span class="n">create_quadrature</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cpp_unf_domain_object</span><span class="p">,</span> <span class="n">orig_cells</span><span class="p">,</span> <span class="n">n_pts_dir</span><span class="p">)</span>
+        <span class="n">quad</span> <span class="o">=</span> <span class="n">qugar</span><span class="o">.</span><span class="n">cpp</span><span class="o">.</span><span class="n">create_quadrature</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cpp_unf_domain_object</span><span class="p">,</span>
+            <span class="n">cells</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_mesh</span><span class="o">.</span><span class="n">get_original_cell_ids</span><span class="p">(</span><span class="n">dlf_cells</span><span class="p">),</span>
+            <span class="n">n_pts_dir</span><span class="o">=</span><span class="n">UnfittedDomain</span><span class="o">.</span><span class="n">get_num_Gauss_points</span><span class="p">(</span><span class="n">degree</span><span class="p">),</span>
+        <span class="p">)</span>
 
         <span class="k">return</span> <span class="n">CustomQuad</span><span class="p">(</span><span class="n">dlf_cells</span><span class="p">,</span> <span class="n">quad</span><span class="o">.</span><span class="n">n_pts_per_entity</span><span class="p">,</span> <span class="n">quad</span><span class="o">.</span><span class="n">points</span><span class="p">,</span> <span class="n">quad</span><span class="o">.</span><span class="n">weights</span><span class="p">)</span></div>
 
@@ -673,27 +748,24 @@
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the custom quadrature for unfitted boundaries for the</span>
 <span class="sd">        given `cells`.</span>
 
-<span class="sd">        For cells not containing unfitted boundaries,</span>
-<span class="sd">        no quadrature is generated and will have 0 points associated to</span>
-<span class="sd">        them. While for cells containing unfitted boundaries (see</span>
-<span class="sd">        `get_unf_bdry_cells`), a custom quadrature for the unfitted</span>
-<span class="sd">        boundary will be generated.</span>
-
 <span class="sd">        Note:</span>
 <span class="sd">            Some unfitted boundary parts may lay over facets.</span>
-<span class="sd">            This function generates quadrature for those parts if they correspond</span>
-<span class="sd">            to exterior facets. For the case of interior facets,</span>
-<span class="sd">            the corresponding quadratures will be included in the</span>
-<span class="sd">            quadrature generated with the method `create_quad_custom_facets`.</span>
+<span class="sd">            The quadrature corresponding to those parts will not be</span>
+<span class="sd">            included in the quadrature generated by this function, but</span>
+<span class="sd">            in the one generated with the method</span>
+<span class="sd">            `create_quad_custom_facets`.</span>
 
 <span class="sd">        Note:</span>
-<span class="sd">            This call may require the generation of the quadratures on</span>
+<span class="sd">            For cells not containing unfitted boundaries, no quadrature</span>
+<span class="sd">            is generated and will have 0 points associated to them.</span>
+
+<span class="sd">        Note:</span>
+<span class="sd">            This call requires the generation of the quadratures on</span>
 <span class="sd">            the fly, what can be potentially expensive.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            degree (int): Expected degree of exactness of the quadrature</span>
 <span class="sd">                to be generated.</span>
-
 <span class="sd">            dlf_cells (npt.NDArray[np.int32]): Array of DOLFINx cell ids</span>
 <span class="sd">                (local to current MPI process) for which quadratures</span>
 <span class="sd">                will be generated.</span>
@@ -702,18 +774,13 @@
 <span class="sd">            CustomQuadUnfBoundaryInterface: Generated custom quadrature</span>
 <span class="sd">            for unfitted boundaries.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">n_pts_dir</span> <span class="o">=</span> <span class="n">UnfittedDomain</span><span class="o">.</span><span class="n">get_num_Gauss_points</span><span class="p">(</span><span class="n">degree</span><span class="p">)</span>
 
-        <span class="n">orig_cells</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mesh</span><span class="o">.</span><span class="n">get_original_cell_ids</span><span class="p">(</span><span class="n">dlf_cells</span><span class="p">)</span>
-
-        <span class="n">include_facet_unf_bry</span> <span class="o">=</span> <span class="kc">True</span>
-        <span class="n">exclude_ext_bdry</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="n">quad</span> <span class="o">=</span> <span class="n">qugar</span><span class="o">.</span><span class="n">cpp</span><span class="o">.</span><span class="n">create_unfitted_bound_quadrature</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_cpp_unf_domain_object</span><span class="p">,</span>
-            <span class="n">orig_cells</span><span class="p">,</span>
-            <span class="n">n_pts_dir</span><span class="p">,</span>
-            <span class="n">include_facet_unf_bry</span><span class="p">,</span>
-            <span class="n">exclude_ext_bdry</span><span class="p">,</span>
+            <span class="n">cells</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_mesh</span><span class="o">.</span><span class="n">get_original_cell_ids</span><span class="p">(</span><span class="n">dlf_cells</span><span class="p">),</span>
+            <span class="n">n_pts_dir</span><span class="o">=</span><span class="n">UnfittedDomain</span><span class="o">.</span><span class="n">get_num_Gauss_points</span><span class="p">(</span><span class="n">degree</span><span class="p">),</span>
+            <span class="n">include_facet_unf_bdry</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">exclude_ext_bdry</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
         <span class="p">)</span>
 
         <span class="k">return</span> <span class="n">CustomQuadUnfBoundary</span><span class="p">(</span>
@@ -726,9 +793,8 @@
     <span class="k">def</span> <span class="nf">create_quad_custom_facets</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">degree</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
-        <span class="n">dlf_cells</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">],</span>
-        <span class="n">dlf_local_faces</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">],</span>
-        <span class="n">exterior</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+        <span class="n">dlf_facets</span><span class="p">:</span> <span class="n">MeshFacets</span><span class="p">,</span>
+        <span class="n">exterior_integral</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">CustomQuadFacet</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the custom quadratures for the given facets.</span>
 
@@ -739,26 +805,17 @@
 <span class="sd">        generated.</span>
 
 <span class="sd">        Note:</span>
-<span class="sd">            Some unfitted boundary parts may lay over facets.</span>
-<span class="sd">            This function generates quadrature for those parts if they correspond</span>
-<span class="sd">            to interior facets. For the case of exterior facets,</span>
-<span class="sd">            the corresponding quadratures will be included in the</span>
-<span class="sd">            quadrature generated with the method `create_quad_unf_boundaries`.</span>
-
-<span class="sd">        Note:</span>
-<span class="sd">            This call may require the generation of the quadratures on</span>
+<span class="sd">            This call requires the generation of the quadratures on</span>
 <span class="sd">            the fly, what can be potentially expensive.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            degree (int): Expected degree of exactness of the quadrature</span>
 <span class="sd">                to be generated.</span>
-
 <span class="sd">            dlf_cells (npt.NDArray[np.int32]): Array of DOLFINx cell ids</span>
 <span class="sd">                (local to current MPI process) for which quadratures</span>
 <span class="sd">                will be generated. Beyond a cell id, for indentifying</span>
 <span class="sd">                a facet, a local facet id (from the array</span>
 <span class="sd">                `local_faces`) is also needed.</span>
-
 <span class="sd">            dlf_local_faces (npt.NDArray[np.int32]): Array of local face</span>
 <span class="sd">                ids for which the custom quadratures are generated. Each</span>
 <span class="sd">                facet is identified through a value in `cells` and a</span>
@@ -766,14 +823,14 @@
 <span class="sd">                length. The numbering of these facets follows the</span>
 <span class="sd">                FEniCSx convention. See</span>
 <span class="sd">                https://github.com/FEniCS/basix/#supported-elements</span>
-
-<span class="sd">            exterior (bool): If `True` the quadratures will be generated</span>
-<span class="sd">                considering the given facets as exterior facets.</span>
-<span class="sd">                Otherwise, as interior.</span>
-<span class="sd">                See the documentation of `get_cut_facets`,</span>
-<span class="sd">                `get_full_facets`, and `get_empty_facets` methods</span>
-<span class="sd">                for more information about the implications of considering</span>
-<span class="sd">                interior or exterior facets.</span>
+<span class="sd">            exterior_integral (bool): Whether exterior integrals are</span>
+<span class="sd">                to be computed using the generated quadratures.</span>
+<span class="sd">                If `True`, the quadrature will be generated for the</span>
+<span class="sd">                facets that belong to the domain&#39;s boundary (either</span>
+<span class="sd">                the mesh&#39;s domain or the unfitted boundary).</span>
+<span class="sd">                Otherwise, the quadrature will be generated only for</span>
+<span class="sd">                the parts of the interior facets that are inside the</span>
+<span class="sd">                domain (but not its boundary).</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            CustomQuadFacetInterface: Generated custom facet</span>
@@ -782,174 +839,27 @@
 
         <span class="n">n_pts_dir</span> <span class="o">=</span> <span class="n">UnfittedDomain</span><span class="o">.</span><span class="n">get_num_Gauss_points</span><span class="p">(</span><span class="n">degree</span><span class="p">)</span>
 
-        <span class="n">orig_cells</span><span class="p">,</span> <span class="n">lex_local_faces</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mesh</span><span class="o">.</span><span class="n">transform_DOLFINx_local_facet_ids_to_original</span><span class="p">(</span>
-            <span class="n">dlf_cells</span><span class="p">,</span> <span class="n">dlf_local_faces</span>
-        <span class="p">)</span>
+        <span class="n">orig_facets</span> <span class="o">=</span> <span class="n">dlf_facets</span><span class="o">.</span><span class="n">to_original</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_mesh</span><span class="p">)</span>
 
         <span class="n">quad_func</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="n">qugar</span><span class="o">.</span><span class="n">cpp</span><span class="o">.</span><span class="n">create_exterior_facets_quadrature</span>
-            <span class="k">if</span> <span class="n">exterior</span>
-            <span class="k">else</span> <span class="n">qugar</span><span class="o">.</span><span class="n">cpp</span><span class="o">.</span><span class="n">create_interior_facets_quadrature</span>
+            <span class="n">qugar</span><span class="o">.</span><span class="n">cpp</span><span class="o">.</span><span class="n">create_facets_quadrature_exterior_integral</span>
+            <span class="k">if</span> <span class="n">exterior_integral</span>
+            <span class="k">else</span> <span class="n">qugar</span><span class="o">.</span><span class="n">cpp</span><span class="o">.</span><span class="n">create_facets_quadrature_interior_integral</span>
         <span class="p">)</span>
 
         <span class="n">quad</span> <span class="o">=</span> <span class="n">quad_func</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_cpp_unf_domain_object</span><span class="p">,</span>
-            <span class="n">orig_cells</span><span class="p">,</span>
-            <span class="n">lex_local_faces</span><span class="p">,</span>
+            <span class="n">orig_facets</span><span class="o">.</span><span class="n">cell_ids</span><span class="p">,</span>
+            <span class="n">orig_facets</span><span class="o">.</span><span class="n">local_facet_ids</span><span class="p">,</span>
             <span class="n">n_pts_dir</span><span class="p">,</span>
         <span class="p">)</span>
 
         <span class="k">return</span> <span class="n">CustomQuadFacet</span><span class="p">(</span>
-            <span class="n">dlf_cells</span><span class="p">,</span>
-            <span class="n">dlf_local_faces</span><span class="p">,</span>
+            <span class="n">dlf_facets</span><span class="p">,</span>
             <span class="n">quad</span><span class="o">.</span><span class="n">n_pts_per_entity</span><span class="p">,</span>
             <span class="n">quad</span><span class="o">.</span><span class="n">points</span><span class="p">,</span>
             <span class="n">quad</span><span class="o">.</span><span class="n">weights</span><span class="p">,</span>
         <span class="p">)</span></div>
-
-
-<div class="viewcode-block" id="UnfittedDomain.create_cell_tags">
-<a class="viewcode-back" href="../../../generated/qugar.mesh.html#qugar.mesh.UnfittedDomain.create_cell_tags">[docs]</a>
-    <span class="k">def</span> <span class="nf">create_cell_tags</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span>
-        <span class="n">cut_tag</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">full_tag</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">empty_tag</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">unf_bdry_tag</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">]]]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Creates a cell tags container to identify the cut, full,</span>
-<span class="sd">        empty, and/or cells containing unfitted boundaries.</span>
-
-<span class="sd">        These tags can be used to prescribe the `subdomain_data` to which</span>
-<span class="sd">        integration measure apply. E.g., `ufl.dx(subdomain_data=cell_tags)`.</span>
-
-<span class="sd">        Note:</span>
-<span class="sd">            Full cells that contain unfitted boundaries are considered as full.</span>
-<span class="sd">            Those cells can be explicitly tagged with the `unf_bdry_tag` tag.</span>
-
-<span class="sd">        Note:</span>
-<span class="sd">            A DOFLINX mesh tag object could be generated in a straightforward manner</span>
-<span class="sd">            from the information returned by this function. However, be aware</span>
-<span class="sd">            that if you include both the cells associated to cut or full cells, and the</span>
-<span class="sd">            ones that contain unfitted boundaries, the generated set of cells will not</span>
-<span class="sd">            be unique (breaking the DOLFINx mesh tags object requisites).</span>
-
-<span class="sd">        If the tag for `cut`, `full`, `empty`, or `unf_bdry_tag` tags are not provided</span>
-<span class="sd">        (they are set to `None`), those cells will not be included in the generated cell tags.</span>
-
-<span class="sd">        Args:</span>
-<span class="sd">            cut_tag (Optional[int]): Tag to assign to cut cells. Defaults to None.</span>
-<span class="sd">            full_tag (Optional[int]): Tag to assign to full cells. Defaults to None.</span>
-<span class="sd">            empty_tag (Optional[int]): Tag to assign to empty cells. Defaults to None.</span>
-<span class="sd">            unf_bdry_tag (Optional[int]): Tag to assign to cells containing</span>
-<span class="sd">                unfitted boundaries. In general, these cells will coincide with</span>
-<span class="sd">                the cut cells. However, in some cases, we may have full cells</span>
-<span class="sd">                that also contain unfitted boundaries on their facets. Those</span>
-<span class="sd">                full cells are also considered as unfitted boundary cells in</span>
-<span class="sd">                the case the unfitted boundary does not lay on exterior facets.</span>
-<span class="sd">                Defaults to None.</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            list[tuple[int, npt.NDArray[np.int32]]]: Generated cells tags.</span>
-<span class="sd">            It is a list where each entry is a tuple with a tag (identifier) and an array</span>
-<span class="sd">            of cell ids.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-
-        <span class="n">cell_tags</span> <span class="o">=</span> <span class="p">{}</span>
-
-        <span class="k">def</span> <span class="nf">add_cells</span><span class="p">(</span><span class="n">getter</span><span class="p">,</span> <span class="n">tag</span><span class="p">):</span>
-            <span class="n">cells</span> <span class="o">=</span> <span class="n">getter</span><span class="p">()</span>
-            <span class="k">if</span> <span class="n">tag</span> <span class="ow">in</span> <span class="n">cell_tags</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">cells</span><span class="o">.</span><span class="n">size</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-                    <span class="n">new_cells</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">cell_tags</span><span class="p">[</span><span class="n">tag</span><span class="p">],</span> <span class="n">cells</span><span class="p">])</span>
-                    <span class="n">cell_tags</span><span class="p">[</span><span class="n">tag</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">new_cells</span><span class="p">))</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">cell_tags</span><span class="p">[</span><span class="n">tag</span><span class="p">]</span> <span class="o">=</span> <span class="n">cells</span>
-
-        <span class="k">for</span> <span class="n">getter</span><span class="p">,</span> <span class="n">tag</span> <span class="ow">in</span> <span class="p">{</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">get_cut_cells</span><span class="p">:</span> <span class="n">cut_tag</span><span class="p">,</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">get_full_cells</span><span class="p">:</span> <span class="n">full_tag</span><span class="p">,</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">get_empty_cells</span><span class="p">:</span> <span class="n">empty_tag</span><span class="p">,</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">get_unf_bdry_cells</span><span class="p">:</span> <span class="n">unf_bdry_tag</span><span class="p">,</span>
-        <span class="p">}</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="k">if</span> <span class="n">tag</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">add_cells</span><span class="p">(</span><span class="n">getter</span><span class="p">,</span> <span class="n">tag</span><span class="p">)</span>
-
-        <span class="k">return</span> <span class="nb">list</span><span class="p">((</span><span class="n">tag</span><span class="p">,</span> <span class="n">cells</span><span class="p">)</span> <span class="k">for</span> <span class="n">tag</span><span class="p">,</span> <span class="n">cells</span> <span class="ow">in</span> <span class="n">cell_tags</span><span class="o">.</span><span class="n">items</span><span class="p">())</span></div>
-
-
-<div class="viewcode-block" id="UnfittedDomain.create_facet_tags">
-<a class="viewcode-back" href="../../../generated/qugar.mesh.html#qugar.mesh.UnfittedDomain.create_facet_tags">[docs]</a>
-    <span class="k">def</span> <span class="nf">create_facet_tags</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span>
-        <span class="n">cut_tag</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">full_tag</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">empty_tag</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">exterior</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">]]]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Creates a facet tags container to identify the cut, full,</span>
-<span class="sd">        and/or empty cells.</span>
-
-<span class="sd">        These tags can be used to prescribe the `subdomain_data` to which</span>
-<span class="sd">        integration measure apply. E.g., `ufl.ds(subdomain_data=cell_tags)`.</span>
-
-<span class="sd">        Note:</span>
-<span class="sd">            A DOFLINX mesh tag object could be generated in a straightforward manner</span>
-<span class="sd">            from the information returned by this function. However, be aware</span>
-<span class="sd">            that in the information returned by this function, the information</span>
-<span class="sd">            for the interior facets is duplicated (provided information for the</span>
-<span class="sd">            positive and negative sides of the facet).</span>
-
-<span class="sd">        If the tag for cut, full, or empty tags are not provided, those</span>
-<span class="sd">        facets will not be included in the list.</span>
-
-<span class="sd">        Args:</span>
-<span class="sd">            cut_tag (Optional[int]): Tag to assign to cut facets. Defaults to None.</span>
-<span class="sd">            full_tag (Optional[int]): Tag to assign to full facets. Defaults to None.</span>
-<span class="sd">            empty_tag (Optional[int]): Tag to assign to empty facets. Defaults to None.</span>
-<span class="sd">            exterior (bool): If `True`, the exterior facets are considered.</span>
-<span class="sd">                Otherwise, the interior ones. Check the documentation of</span>
-<span class="sd">                `get_cut_facets`, `get_full_facets`, and `get_empty_facets`</span>
-<span class="sd">                methods for more information about the implications of</span>
-<span class="sd">                considering interior or exterior facets.</span>
-<span class="sd">                Defaults to True.</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            list[tuple[int, npt.NDArray[np.int32]]]: Generated facet tags.</span>
-<span class="sd">            It is a list where is entry is a tuple with a tag (identifier) and an array</span>
-<span class="sd">            of facets. The array of facets is made of consecutive pairs of cells and</span>
-<span class="sd">            local face ids.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-
-        <span class="n">facet_tags</span> <span class="o">=</span> <span class="p">{}</span>
-
-        <span class="k">def</span> <span class="nf">add_facets</span><span class="p">(</span><span class="n">cells</span><span class="p">,</span> <span class="n">local_facets</span><span class="p">,</span> <span class="n">tag</span><span class="p">):</span>
-            <span class="n">facets</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">cells</span><span class="p">)</span> <span class="o">*</span> <span class="mi">2</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
-            <span class="n">facets</span><span class="p">[::</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">cells</span>
-            <span class="n">facets</span><span class="p">[</span><span class="mi">1</span><span class="p">::</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">local_facets</span>
-
-            <span class="k">if</span> <span class="n">tag</span> <span class="ow">in</span> <span class="n">facet_tags</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">facets</span><span class="o">.</span><span class="n">size</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-                    <span class="c1"># No need for unique, as the sets of cut, empty, and</span>
-                    <span class="c1"># full facets should be disjoint. Also, the facets</span>
-                    <span class="c1"># are not required to be returned in any particular order.</span>
-                    <span class="n">facet_tags</span><span class="p">[</span><span class="n">tag</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">facet_tags</span><span class="p">[</span><span class="n">tag</span><span class="p">],</span> <span class="n">facets</span><span class="p">])</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">facet_tags</span><span class="p">[</span><span class="n">tag</span><span class="p">]</span> <span class="o">=</span> <span class="n">facets</span>
-
-        <span class="k">if</span> <span class="n">cut_tag</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">cells</span><span class="p">,</span> <span class="n">local_facets</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_cut_facets</span><span class="p">(</span><span class="n">exterior</span><span class="p">)</span>
-            <span class="n">add_facets</span><span class="p">(</span><span class="n">cells</span><span class="p">,</span> <span class="n">local_facets</span><span class="p">,</span> <span class="n">cut_tag</span><span class="p">)</span>
-
-        <span class="k">if</span> <span class="n">full_tag</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">cells</span><span class="p">,</span> <span class="n">local_facets</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_full_facets</span><span class="p">(</span><span class="n">exterior</span><span class="p">)</span>
-            <span class="n">add_facets</span><span class="p">(</span><span class="n">cells</span><span class="p">,</span> <span class="n">local_facets</span><span class="p">,</span> <span class="n">full_tag</span><span class="p">)</span>
-
-        <span class="k">if</span> <span class="n">empty_tag</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">cells</span><span class="p">,</span> <span class="n">local_facets</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_empty_facets</span><span class="p">(</span><span class="n">exterior</span><span class="p">)</span>
-            <span class="n">add_facets</span><span class="p">(</span><span class="n">cells</span><span class="p">,</span> <span class="n">local_facets</span><span class="p">,</span> <span class="n">cut_tag</span><span class="p">)</span>
-
-        <span class="k">return</span> <span class="nb">list</span><span class="p">((</span><span class="n">tag</span><span class="p">,</span> <span class="n">entities</span><span class="p">)</span> <span class="k">for</span> <span class="n">tag</span><span class="p">,</span> <span class="n">entities</span> <span class="ow">in</span> <span class="n">facet_tags</span><span class="o">.</span><span class="n">items</span><span class="p">())</span></div>
 </div>
 
 </pre></div>

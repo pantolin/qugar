@@ -16,5 +16,5 @@
    .. autosummary::
    
       CustomForm
-      dx_bdry_unf
+      ds_bdry_unf
    

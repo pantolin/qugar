@@ -248,7 +248,7 @@ a sphere in 3D), with</p>
 
 <span class="kn">import</span> <span class="nn">qugar</span>
 <span class="kn">import</span> <span class="nn">qugar.impl</span>
-<span class="kn">from</span> <span class="nn">qugar.dolfinx</span> <span class="kn">import</span> <span class="n">CustomForm</span><span class="p">,</span> <span class="n">dx_bdry_unf</span><span class="p">,</span> <span class="n">form_custom</span><span class="p">,</span> <span class="n">mapped_normal</span>
+<span class="kn">from</span> <span class="nn">qugar.dolfinx</span> <span class="kn">import</span> <span class="n">CustomForm</span><span class="p">,</span> <span class="n">ds_bdry_unf</span><span class="p">,</span> <span class="n">form_custom</span><span class="p">,</span> <span class="n">mapped_normal</span>
 <span class="kn">from</span> <span class="nn">qugar.mesh</span> <span class="kn">import</span> <span class="n">create_unfitted_impl_Cartesian_mesh</span>
 </pre></div>
 </div>
@@ -301,17 +301,15 @@ Uncomment the one you want to use.</p>
 </pre></div>
 </div>
 <p>In order to be able to integrate over the different families of cells and facets,
-we create tags for the cut and full cells and facets using QUGaR built-in functions.
-We also define tags for the cells containing unfitted boundaries (that in this
-case correspond to the cut cells).</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">cell_tags</span> <span class="o">=</span> <span class="n">unf_mesh</span><span class="o">.</span><span class="n">create_cell_tags</span><span class="p">(</span><span class="n">cut_tag</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">full_tag</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">unf_bdry_tag</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-<span class="n">facet_tags</span> <span class="o">=</span> <span class="n">unf_mesh</span><span class="o">.</span><span class="n">create_facet_tags</span><span class="p">(</span><span class="n">cut_tag</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">full_tag</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">exterior</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+we create tags for the cut and full cells and facets using QUGaR built-in functions.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">cell_tags</span> <span class="o">=</span> <span class="n">unf_mesh</span><span class="o">.</span><span class="n">create_cell_meshtags</span><span class="p">(</span><span class="n">cut_tag</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">full_tag</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">facet_tags</span> <span class="o">=</span> <span class="n">unf_mesh</span><span class="o">.</span><span class="n">create_facet_tags</span><span class="p">(</span><span class="n">cut_tag</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">full_tag</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">exterior_integral</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>For computing volumetric integrals, we use standard UFL measures with the
 defined cell tags.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">dx</span> <span class="o">=</span> <span class="n">ufl</span><span class="o">.</span><span class="n">dx</span><span class="p">(</span>
-    <span class="n">subdomain_id</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+    <span class="n">subdomain_id</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
     <span class="n">domain</span><span class="o">=</span><span class="n">unf_mesh</span><span class="p">,</span>
     <span class="n">subdomain_data</span><span class="o">=</span><span class="n">cell_tags</span><span class="p">,</span>
 <span class="p">)</span>
@@ -320,9 +318,9 @@ defined cell tags.</p>
 </div>
 <p>While in the case of the surface integrals, the procedure is twofold:
 for <span class="math notranslate nohighlight">\(\Gamma_{\text{unf}}\)</span> we use the
-<a class="reference internal" href="../qugar.dolfinx.html#qugar.dolfinx.dx_bdry_unf" title="qugar.dolfinx.dx_bdry_unf"><code class="xref py py-class docutils literal notranslate"><span class="pre">dx_bdry_unf</span></code></a> measure introduced in QUGaR
+<a class="reference internal" href="../qugar.dolfinx.html#qugar.dolfinx.ds_bdry_unf" title="qugar.dolfinx.ds_bdry_unf"><code class="xref py py-class docutils literal notranslate"><span class="pre">ds_bdry_unf</span></code></a> measure introduced in QUGaR
 (note that we integrate over the cut cells only)</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">ds_unf</span> <span class="o">=</span> <span class="n">dx_bdry_unf</span><span class="p">(</span><span class="n">subdomain_id</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">domain</span><span class="o">=</span><span class="n">unf_mesh</span><span class="p">,</span> <span class="n">subdomain_data</span><span class="o">=</span><span class="n">cell_tags</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">ds_unf</span> <span class="o">=</span> <span class="n">ds_bdry_unf</span><span class="p">(</span><span class="n">subdomain_id</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">domain</span><span class="o">=</span><span class="n">unf_mesh</span><span class="p">,</span> <span class="n">subdomain_data</span><span class="o">=</span><span class="n">cell_tags</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>and the standard UFL external facet measure for (both parts of) <span class="math notranslate nohighlight">\(\Gamma_{\text{ext}}\)</span>.</p>

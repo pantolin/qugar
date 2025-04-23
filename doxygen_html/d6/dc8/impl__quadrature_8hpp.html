@@ -118,12 +118,13 @@ $(function(){initNavTree('d6/dc8/impl__quadrature_8hpp.html','../../'); initResi
 <code>#include &lt;<a class="el" href="../../d1/daf/cut__quadrature_8hpp_source.html">qugar/cut_quadrature.hpp</a>&gt;</code><br />
 <code>#include &lt;<a class="el" href="../../dc/d7c/domain__function_8hpp_source.html">qugar/domain_function.hpp</a>&gt;</code><br />
 <code>#include &lt;<a class="el" href="../../d6/d03/impl__unfitted__domain_8hpp_source.html">qugar/impl_unfitted_domain.hpp</a>&gt;</code><br />
+<code>#include &lt;cstdint&gt;</code><br />
 <code>#include &lt;memory&gt;</code><br />
 <code>#include &lt;vector&gt;</code><br />
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for impl_quadrature.hpp:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="../../d1/d7f/impl__quadrature_8hpp__incl.svg" width="2359" height="682"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" frameborder="0" src="../../d1/d7f/impl__quadrature_8hpp__incl.svg" width="2378" height="682"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 </div><div class="textblock"><div class="dynheader">
 This graph shows which files directly or indirectly include this file:</div>
@@ -145,6 +146,7 @@ Namespaces</h2></td></tr>
 Functions</h2></td></tr>
 <tr class="memitem:a957bc2864404a1de1e2f3047337a3c38" id="r_a957bc2864404a1de1e2f3047337a3c38"><td class="memTemplParams" colspan="2">template&lt;int dim&gt; </td></tr>
 <tr class="memitem:a957bc2864404a1de1e2f3047337a3c38"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="../../d2/d5e/namespacequgar_1_1impl.html#a957bc2864404a1de1e2f3047337a3c38">qugar::impl::create_cell_quadrature</a> (const <a class="el" href="../../da/de2/classqugar_1_1impl_1_1UnfittedImplDomain.html">UnfittedImplDomain</a>&lt; dim &gt; &amp;unf_domain, std::int64_t cell_id, int n_pts_dir, <a class="el" href="../../d8/dd5/structqugar_1_1CutCellsQuad.html">CutCellsQuad</a>&lt; dim &gt; &amp;quad)</td></tr>
+<tr class="memdesc:a957bc2864404a1de1e2f3047337a3c38"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates a quadrature for cut cells.  <br /></td></tr>
 <tr class="separator:a957bc2864404a1de1e2f3047337a3c38"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aade04127c99db26bfd44c12ee1a457bc" id="r_aade04127c99db26bfd44c12ee1a457bc"><td class="memTemplParams" colspan="2">template&lt;int dim&gt; </td></tr>
 <tr class="memitem:aade04127c99db26bfd44c12ee1a457bc"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="../../d2/d5e/namespacequgar_1_1impl.html#aade04127c99db26bfd44c12ee1a457bc">qugar::impl::create_cell_unfitted_bound_quadrature</a> (const <a class="el" href="../../da/de2/classqugar_1_1impl_1_1UnfittedImplDomain.html">UnfittedImplDomain</a>&lt; dim &gt; &amp;unf_domain, std::int64_t cell_id, int n_pts_dir, bool include_facet_unf_bdry, bool exclude_ext_bdry, <a class="el" href="../../d2/d41/structqugar_1_1CutUnfBoundsQuad.html">CutUnfBoundsQuad</a>&lt; dim &gt; &amp;quad)</td></tr>

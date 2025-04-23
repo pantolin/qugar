@@ -20,9 +20,6 @@
       lexicg_to_VTK_faces
       lexicg_to_DOLFINx_nodes
       lexicg_to_VTK_nodes
-      create_cells_to_facets_map
-      map_cells_and_local_facets_to_facets
-      map_facets_to_cells_and_local_facets
       create_Cartesian_mesh
       create_unfitted_impl_Cartesian_mesh
    
@@ -30,6 +27,7 @@
 
    .. autosummary::
    
+      Mesh
       UnfittedDomain
       CartesianMesh
       TensorProductMesh

@@ -119,6 +119,7 @@
         <span class="n">cpp_unf_domain</span><span class="p">:</span> <span class="n">UnfittedDomain_2D</span> <span class="o">|</span> <span class="n">UnfittedDomain_3D</span><span class="p">,</span>
         <span class="n">cpp_cart_grid_tp</span><span class="p">:</span> <span class="n">CartGridTP_2D</span> <span class="o">|</span> <span class="n">CartGridTP_3D</span><span class="p">,</span>
         <span class="n">degree</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="n">exclude_empty_cells</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
         <span class="n">ghost_mode</span><span class="p">:</span> <span class="n">GhostMode</span> <span class="o">=</span> <span class="n">GhostMode</span><span class="o">.</span><span class="n">none</span><span class="p">,</span>
         <span class="n">dtype</span><span class="p">:</span> <span class="nb">type</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">,</span>
     <span class="p">):</span>
@@ -137,12 +138,23 @@
 <span class="sd">                C++ Cartesian grid object.</span>
 <span class="sd">            degree (int, optional): Degree of the mesh. Defaults to 1.</span>
 <span class="sd">                It must be greater than zero.</span>
+<span class="sd">            exclude_empty_cells (bool, optional): If True, empty cells</span>
+<span class="sd">                are excluded from the mesh. Defaults to True.</span>
 <span class="sd">            ghost_mode (GhostMode, optional): Ghost mode used for mesh</span>
 <span class="sd">                partitioning. Defaults to `none`.</span>
 <span class="sd">            dtype (type[np.float32 | np.float64], optional): Type to</span>
 <span class="sd">                be used in the grid. Defaults to `np.float64`.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">CartesianMesh</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">comm</span><span class="p">,</span> <span class="n">cpp_cart_grid_tp</span><span class="p">,</span> <span class="n">degree</span><span class="p">,</span> <span class="n">ghost_mode</span><span class="p">,</span> <span class="n">dtype</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">exclude_empty_cells</span><span class="p">:</span>
+            <span class="n">active_cells</span> <span class="o">=</span> <span class="n">cpp_unf_domain</span><span class="o">.</span><span class="n">get_full_cells</span><span class="p">()</span>
+            <span class="n">active_cells</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">active_cells</span><span class="p">,</span> <span class="n">cpp_unf_domain</span><span class="o">.</span><span class="n">get_cut_cells</span><span class="p">()))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">active_cells</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="n">CartesianMesh</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span> <span class="n">comm</span><span class="p">,</span> <span class="n">cpp_cart_grid_tp</span><span class="p">,</span> <span class="n">degree</span><span class="p">,</span> <span class="n">active_cells</span><span class="p">,</span> <span class="n">ghost_mode</span><span class="p">,</span> <span class="n">dtype</span>
+        <span class="p">)</span>
         <span class="n">UnfittedDomain</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">self</span><span class="p">,</span> <span class="n">cpp_unf_domain</span><span class="p">)</span></div>
 
 
@@ -156,6 +168,7 @@
     <span class="n">xmin</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">xmax</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">degree</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="n">exclude_empty_cells</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
     <span class="n">ghost_mode</span><span class="p">:</span> <span class="n">GhostMode</span> <span class="o">=</span> <span class="n">GhostMode</span><span class="o">.</span><span class="n">none</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">UnfittedCartMesh</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Creates an uniftted Cartesian mesh generated with a bounding box and the number of</span>
@@ -174,6 +187,8 @@
 <span class="sd">            coordinates of the mesh&#39;s bounding box. Defaults to a vector</span>
 <span class="sd">            of ones with double floating precision.</span>
 <span class="sd">        degree (int, optional): Degree of the mesh. Defaults to 1.</span>
+<span class="sd">        exclude_empty_cells (bool, optional): If True, empty cells</span>
+<span class="sd">            are excluded from the mesh. Defaults to True.</span>
 <span class="sd">        ghost_mode (GhostMode, optional): Ghost mode used for mesh</span>
 <span class="sd">            partitioning. Defaults to `none`.</span>
 
@@ -191,7 +206,7 @@
 
     <span class="k">assert</span> <span class="n">dim</span> <span class="o">==</span> <span class="n">xmin_</span><span class="o">.</span><span class="n">size</span> <span class="ow">and</span> <span class="n">dim</span> <span class="o">==</span> <span class="n">xmax_</span><span class="o">.</span><span class="n">size</span>
     <span class="k">assert</span> <span class="n">xmin_</span><span class="o">.</span><span class="n">dtype</span> <span class="o">==</span> <span class="n">xmax_</span><span class="o">.</span><span class="n">dtype</span> <span class="ow">and</span> <span class="n">xmin_</span><span class="o">.</span><span class="n">dtype</span> <span class="ow">in</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]</span>
-    <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">xmax</span> <span class="o">&gt;</span> <span class="n">xmin_</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">xmax_</span> <span class="o">&gt;</span> <span class="n">xmin_</span><span class="p">)</span>
 
     <span class="n">cell_breaks</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="nb">dir</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">dim</span><span class="p">):</span>
@@ -204,7 +219,9 @@
         <span class="n">cpp_grid</span><span class="p">,</span>
     <span class="p">)</span>
 
-    <span class="k">return</span> <span class="n">UnfittedCartMesh</span><span class="p">(</span><span class="n">comm</span><span class="p">,</span> <span class="n">cpp_unf_domain</span><span class="p">,</span> <span class="n">cpp_grid</span><span class="p">,</span> <span class="n">degree</span><span class="p">,</span> <span class="n">ghost_mode</span><span class="p">,</span> <span class="n">xmin_</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">type</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">UnfittedCartMesh</span><span class="p">(</span>
+        <span class="n">comm</span><span class="p">,</span> <span class="n">cpp_unf_domain</span><span class="p">,</span> <span class="n">cpp_grid</span><span class="p">,</span> <span class="n">degree</span><span class="p">,</span> <span class="n">exclude_empty_cells</span><span class="p">,</span> <span class="n">ghost_mode</span><span class="p">,</span> <span class="n">xmin_</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">type</span>
+    <span class="p">)</span></div>
 
 </pre></div>
 
