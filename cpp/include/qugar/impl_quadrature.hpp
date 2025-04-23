@@ -23,12 +23,21 @@
 #include <qugar/domain_function.hpp>
 #include <qugar/impl_unfitted_domain.hpp>
 
+#include <cstdint>
 #include <memory>
 #include <vector>
 
 
 namespace qugar::impl {
 
+/**
+ * @brief Creates a quadrature for cut cells.
+ * @tparam dim Dimension of the domain.
+ * @param unf_domain  Unfitted domain.
+ * @param cell_id Cell for which the quadrature is created.
+ * @param n_pts_dir Number of points in each direction for generated custom quadratures.
+ * @param quad Quadrature object to be filled with the generated quadrature.
+ */
 template<int dim>
 void create_cell_quadrature(const UnfittedImplDomain<dim> &unf_domain,
   std::int64_t cell_id,

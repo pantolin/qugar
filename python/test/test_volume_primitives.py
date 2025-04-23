@@ -34,7 +34,7 @@ from utils import (
 
 import qugar.cpp
 import qugar.impl
-from qugar.dolfinx import CustomForm, dx_bdry_unf, form_custom
+from qugar.dolfinx import CustomForm, ds_bdry_unf, form_custom
 from qugar.impl import ImplicitFunc
 from qugar.mesh import UnfittedDomain, create_unfitted_impl_Cartesian_mesh
 
@@ -57,7 +57,7 @@ def compute_volume(
 
     cut_tag = 0
     full_tag = 1
-    cell_tags = unf_mesh.create_cell_tags(cut_tag=cut_tag, full_tag=full_tag)
+    cell_tags = unf_mesh.create_cell_meshtags(cut_tag=cut_tag, full_tag=full_tag)
 
     one = dolfinx.fem.Constant(unf_mesh, dtype(1.0))
 
@@ -94,12 +94,12 @@ def compute_boundary_area(
     """
 
     bdry_tag = 0
-    cell_tags = unf_mesh.create_cell_tags(cut_tag=bdry_tag)
+    cell_tags = unf_mesh.create_cell_meshtags(cut_tag=bdry_tag)
 
     one = dolfinx.fem.Constant(unf_mesh, dtype(1.0))
 
     quad_degree = get_Gauss_quad_degree(n_quad_pts)
-    ds = dx_bdry_unf(
+    ds = ds_bdry_unf(
         domain=unf_mesh,
         subdomain_data=cell_tags,
         subdomain_id=bdry_tag,

@@ -220,7 +220,7 @@ namespace {
     using FacetsArray = nb::ndarray<const int, nb::numpy, nb::shape<-1>>;
 
     module.def(
-      "create_interior_facets_quadrature",
+      "create_facets_quadrature_interior_integral",
       [](const UnfittedDomain<dim> &unf_domain,
         const CellsArray &cells_py,
         const FacetsArray &facets_py,
@@ -231,7 +231,7 @@ namespace {
         const std::span<const int> facets_span(facets_py.data(), facets_py.size());
         const std::vector<int> facets(facets_span.begin(), facets_span.end());
 
-        return create_interior_facets_quadrature<dim>(unf_domain, cells, facets, n_pts_dir);
+        return create_facets_quadrature_interior_integral<dim>(unf_domain, cells, facets, n_pts_dir);
       },
       nb::arg("unf_domain"),
       nb::arg("cells"),
@@ -239,7 +239,7 @@ namespace {
       nb::arg("n_pts_dir"));
 
     module.def(
-      "create_exterior_facets_quadrature",
+      "create_facets_quadrature_exterior_integral",
       [](const UnfittedDomain<dim> &unf_domain,
         const CellsArray &cells_py,
         const FacetsArray &facets_py,
@@ -250,7 +250,7 @@ namespace {
         const std::span<const int> facets_span(facets_py.data(), facets_py.size());
         const std::vector<int> facets(facets_span.begin(), facets_span.end());
 
-        return create_exterior_facets_quadrature<dim>(unf_domain, cells, facets, n_pts_dir);
+        return create_facets_quadrature_exterior_integral<dim>(unf_domain, cells, facets, n_pts_dir);
       },
       nb::arg("unf_domain"),
       nb::arg("cells"),

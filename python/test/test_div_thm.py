@@ -30,7 +30,7 @@ from utils import (
 
 import qugar.cpp
 import qugar.impl
-from qugar.dolfinx import CustomForm, dx_bdry_unf, form_custom, mapped_normal
+from qugar.dolfinx import CustomForm, ds_bdry_unf, form_custom, mapped_normal
 from qugar.impl import ImplicitFunc
 from qugar.mesh import UnfittedCartMesh, create_unfitted_impl_Cartesian_mesh
 
@@ -74,7 +74,7 @@ def create_div_thm_volume_ufl_form(domain: UnfittedCartMesh, n_quad_pts: int):
 
     full_tag = 1
     cut_tag = 0
-    cell_tags = domain.create_cell_tags(cut_tag=cut_tag, full_tag=full_tag)
+    cell_tags = domain.create_cell_meshtags(cut_tag=cut_tag, full_tag=full_tag)
 
     quad_degree = get_Gauss_quad_degree(n_quad_pts)
     dx_ = ufl.dx(
@@ -110,16 +110,17 @@ def create_div_thm_surface_ufl_form(domain: UnfittedCartMesh, n_quad_pts: int):
 
     cut_tag = 0
     full_tag = 1
-    unf_bdry_tag = 0
-    cell_tags = domain.create_cell_tags(unf_bdry_tag=unf_bdry_tag)
-    facet_tags = domain.create_facet_tags(cut_tag=cut_tag, full_tag=full_tag, exterior=True)
+    cell_tags = domain.create_cell_meshtags(cut_tag=cut_tag)
+    facet_tags = domain.create_facet_tags(
+        cut_tag=cut_tag, full_tag=full_tag, exterior_integral=True
+    )
 
     quad_degree = get_Gauss_quad_degree(n_quad_pts)
 
-    ds_unf = dx_bdry_unf(
+    ds_unf = ds_bdry_unf(
         domain=domain,
         subdomain_data=cell_tags,
-        subdomain_id=unf_bdry_tag,
+        subdomain_id=cut_tag,
         degree=quad_degree,
     )
 
@@ -142,6 +143,7 @@ def check_div_thm(
     dom_func: ImplicitFunc,
     n_cells_dir: int,
     n_quad_pts: int,
+    exclude_empty_cells: bool = True,
     dtype: type[np.float32 | np.float64] = np.float64,
     rtol: float = 1e-5,
     atol: float = 1e-8,
@@ -153,6 +155,8 @@ def check_div_thm(
         dom_func (ImplicitFunc): The implicit function defining the unfitted domain.
         n_cells_dir (int): Number of cells in each direction.
         n_quad_pts (int): Number of quadrature points for cut cells and facets.
+        exclude_empty_cells (bool, optional): Flag to exclude empty cells in the
+            unfitted mesh. Defaults to True.
         dtype (type[np.float32 | np.float64], optional): Data type for computations.
             Defaults to np.float64.
         rtol (float, optional): Relative tolerance for comparison. Defaults to 1e-5.
@@ -168,7 +172,14 @@ def check_div_thm(
     n_cells = [n_cells_dir] * dim
     xmin = np.zeros(dim, dtype)
     xmax = np.ones(dim, dtype)
-    unf_mesh = create_unfitted_impl_Cartesian_mesh(comm, dom_func, n_cells, xmin, xmax)
+    unf_mesh = create_unfitted_impl_Cartesian_mesh(
+        comm,
+        dom_func,
+        n_cells,
+        xmin,
+        xmax,
+        exclude_empty_cells=exclude_empty_cells,
+    )
 
     ufl_form_vol = create_div_thm_volume_ufl_form(unf_mesh, n_quad_pts)
     ufl_form_srf = create_div_thm_surface_ufl_form(unf_mesh, n_quad_pts)
@@ -187,12 +198,14 @@ def check_div_thm(
 
 @pytest.mark.parametrize("n_cells", [8])
 @pytest.mark.parametrize("n_quad_pts", [5])
+@pytest.mark.parametrize("exclude_empty_cells", [True])
 @pytest.mark.parametrize("dtype", dtypes)
 @pytest.mark.parametrize("use_bzr", [True, False])
 @pytest.mark.parametrize("negative", [False, True])
 def test_disk(
     n_cells: int,
     n_quad_pts: int,
+    exclude_empty_cells: bool,
     dtype: type[np.float32 | np.float64],
     use_bzr: bool,
     negative: bool,
@@ -208,30 +221,34 @@ def test_disk(
         n_cells (int): Number of cells per direction in the Cartesian mesh to use in the test.
         n_quad_pts (int): Number of quadrature points per direction to use for the cut cells
             and facets in the test.
+        exclude_empty_cells (bool, optional): Flag to exclude empty cells in the
+            unfitted mesh. Defaults to True.
         dtype (type): Data type to use for numerical operations (np.float32 or np.float64).
         use_bzr (bool): Flag to indicate whether to use Bezier representation for the implicit
             function.
         negative (bool): Flag to indicate whether the negative of the implicit function
             should be used.
     """
-    radius = 0.6
+    radius = 0.55
     center = np.array([0.51, 0.45], dtype=dtype)
 
     func = qugar.impl.create_disk(radius=radius, center=center, use_bzr=use_bzr)
     if negative:
         func = qugar.impl.create_negative(func)
 
-    check_div_thm(func, n_cells, n_quad_pts, dtype)
+    check_div_thm(func, n_cells, n_quad_pts, exclude_empty_cells, dtype)
 
 
 @pytest.mark.parametrize("n_cells", [8])
 @pytest.mark.parametrize("n_quad_pts", [5])
+@pytest.mark.parametrize("exclude_empty_cells", [True])
 @pytest.mark.parametrize("dtype", dtypes)
 @pytest.mark.parametrize("use_bzr", [True, False])
 @pytest.mark.parametrize("negative", [False, True])
 def test_sphere(
     n_cells: int,
     n_quad_pts: int,
+    exclude_empty_cells: bool,
     dtype: type[np.float32 | np.float64],
     use_bzr: bool,
     negative: bool,
@@ -247,6 +264,8 @@ def test_sphere(
         n_cells (int): Number of cells per direction in the Cartesian mesh to use in the test.
         n_quad_pts (int): Number of quadrature points per direction to use for the cut cells
             and facets in the test.
+        exclude_empty_cells (bool, optional): Flag to exclude empty cells in the
+            unfitted mesh. Defaults to True.
         dtype (type): Data type to use for numerical operations (np.float32 or np.float64).
         use_bzr (bool): Flag to indicate whether to use Bezier representation for the implicit
             function.
@@ -260,17 +279,19 @@ def test_sphere(
     if negative:
         func = qugar.impl.create_negative(func)
 
-    check_div_thm(func, n_cells, n_quad_pts, dtype)
+    check_div_thm(func, n_cells, n_quad_pts, exclude_empty_cells, dtype)
 
 
 @pytest.mark.parametrize("n_cells", [8])
 @pytest.mark.parametrize("n_quad_pts", [6])
+@pytest.mark.parametrize("exclude_empty_cells", [True])
 @pytest.mark.parametrize("dtype", dtypes)
 @pytest.mark.parametrize("use_bzr", [True, False])
 @pytest.mark.parametrize("negative", [False, True])
 def test_line(
     n_cells: int,
     n_quad_pts: int,
+    exclude_empty_cells: bool,
     dtype: type[np.float32 | np.float64],
     use_bzr: bool,
     negative: bool,
@@ -286,6 +307,8 @@ def test_line(
         n_cells (int): Number of cells per direction in the Cartesian mesh to use in the test.
         n_quad_pts (int): Number of quadrature points per direction to use for the cut cells
             and facets in the test.
+        exclude_empty_cells (bool, optional): Flag to exclude empty cells in the
+            unfitted mesh. Defaults to True.
         dtype (type): Data type to use for numerical operations (np.float32 or np.float64).
         use_bzr (bool): Flag to indicate whether to use Bezier representation for the implicit
             function.
@@ -301,17 +324,19 @@ def test_line(
     if negative:
         func = qugar.impl.create_negative(func)
 
-    check_div_thm(func, n_cells, n_quad_pts, dtype)
+    check_div_thm(func, n_cells, n_quad_pts, exclude_empty_cells, dtype)
 
 
 @pytest.mark.parametrize("n_cells", [8])
 @pytest.mark.parametrize("n_quad_pts", [6])
+@pytest.mark.parametrize("exclude_empty_cells", [True])
 @pytest.mark.parametrize("dtype", dtypes)
 @pytest.mark.parametrize("use_bzr", [True, False])
 @pytest.mark.parametrize("negative", [False, True])
 def test_plane(
     n_cells: int,
     n_quad_pts: int,
+    exclude_empty_cells: bool,
     dtype: type[np.float32 | np.float64],
     use_bzr: bool,
     negative: bool,
@@ -327,6 +352,8 @@ def test_plane(
         n_cells (int): Number of cells per direction in the Cartesian mesh to use in the test.
         n_quad_pts (int): Number of quadrature points per direction to use for the cut cells
             and facets in the test.
+        exclude_empty_cells (bool, optional): Flag to exclude empty cells in the
+            unfitted mesh. Defaults to True.
         dtype (type): Data type to use for numerical operations (np.float32 or np.float64).
         use_bzr (bool): Flag to indicate whether to use Bezier representation for the implicit
             function.
@@ -341,17 +368,19 @@ def test_plane(
     if negative:
         func = qugar.impl.create_negative(func)
 
-    check_div_thm(func, n_cells, n_quad_pts, dtype)
+    check_div_thm(func, n_cells, n_quad_pts, exclude_empty_cells, dtype)
 
 
 @pytest.mark.parametrize("n_cells", [8])
 @pytest.mark.parametrize("n_quad_pts", [5])
+@pytest.mark.parametrize("exclude_empty_cells", [True])
 @pytest.mark.parametrize("dtype", dtypes)
 @pytest.mark.parametrize("use_bzr", [True, False])
 @pytest.mark.parametrize("negative", [False, True])
 def test_cylinder(
     n_cells: int,
     n_quad_pts: int,
+    exclude_empty_cells: bool,
     dtype: type[np.float32 | np.float64],
     use_bzr: bool,
     negative: bool,
@@ -367,6 +396,8 @@ def test_cylinder(
         n_cells (int): Number of cells per direction in the Cartesian mesh to use in the test.
         n_quad_pts (int): Number of quadrature points per direction to use for the cut cells
             and facets in the test.
+        exclude_empty_cells (bool, optional): Flag to exclude empty cells in the
+            unfitted mesh. Defaults to True.
         dtype (type): Data type to use for numerical operations (np.float32 or np.float64).
         use_bzr (bool): Flag to indicate whether to use Bezier representation for the implicit
             function.
@@ -382,17 +413,19 @@ def test_cylinder(
     if negative:
         func = qugar.impl.create_negative(func)
 
-    check_div_thm(func, n_cells, n_quad_pts, dtype)
+    check_div_thm(func, n_cells, n_quad_pts, exclude_empty_cells, dtype)
 
 
 @pytest.mark.parametrize("n_cells", [8])
 @pytest.mark.parametrize("n_quad_pts", [6])
+@pytest.mark.parametrize("exclude_empty_cells", [True])
 @pytest.mark.parametrize("dtype", dtypes)
 @pytest.mark.parametrize("use_bzr", [True, False])
 @pytest.mark.parametrize("negative", [False, True])
 def test_annulus(
     n_cells: int,
     n_quad_pts: int,
+    exclude_empty_cells: bool,
     dtype: type[np.float32 | np.float64],
     use_bzr: bool,
     negative: bool,
@@ -408,6 +441,8 @@ def test_annulus(
         n_cells (int): Number of cells per direction in the Cartesian mesh to use in the test.
         n_quad_pts (int): Number of quadrature points per direction to use for the cut cells
             and facets in the test.
+        exclude_empty_cells (bool, optional): Flag to exclude empty cells in the
+            unfitted mesh. Defaults to True.
         dtype (type): Data type to use for numerical operations (np.float32 or np.float64).
         use_bzr (bool): Flag to indicate whether to use Bezier representation for the implicit
             function.
@@ -423,17 +458,19 @@ def test_annulus(
     if negative:
         func = qugar.impl.create_negative(func)
 
-    check_div_thm(func, n_cells, n_quad_pts, dtype)
+    check_div_thm(func, n_cells, n_quad_pts, exclude_empty_cells, dtype)
 
 
 @pytest.mark.parametrize("n_cells", [8])
 @pytest.mark.parametrize("n_quad_pts", [5])
+@pytest.mark.parametrize("exclude_empty_cells", [True])
 @pytest.mark.parametrize("dtype", dtypes)
 @pytest.mark.parametrize("use_bzr", [True, False])
 @pytest.mark.parametrize("negative", [False, True])
 def test_ellipse(
     n_cells: int,
     n_quad_pts: int,
+    exclude_empty_cells: bool,
     dtype: type[np.float32 | np.float64],
     use_bzr: bool,
     negative: bool,
@@ -449,6 +486,8 @@ def test_ellipse(
         n_cells (int): Number of cells per direction in the Cartesian mesh to use in the test.
         n_quad_pts (int): Number of quadrature points per direction to use for the cut cells
             and facets in the test.
+        exclude_empty_cells (bool, optional): Flag to exclude empty cells in the
+            unfitted mesh. Defaults to True.
         dtype (type): Data type to use for numerical operations (np.float32 or np.float64).
         use_bzr (bool): Flag to indicate whether to use Bezier representation for the implicit
             function.
@@ -465,17 +504,19 @@ def test_ellipse(
     if negative:
         func = qugar.impl.create_negative(func)
 
-    check_div_thm(func, n_cells, n_quad_pts, dtype)
+    check_div_thm(func, n_cells, n_quad_pts, exclude_empty_cells, dtype)
 
 
 @pytest.mark.parametrize("n_cells", [8])
 @pytest.mark.parametrize("n_quad_pts", [5])
+@pytest.mark.parametrize("exclude_empty_cells", [True])
 @pytest.mark.parametrize("dtype", dtypes)
 @pytest.mark.parametrize("use_bzr", [True, False])
 @pytest.mark.parametrize("negative", [False, True])
 def test_ellipsoid(
     n_cells: int,
     n_quad_pts: int,
+    exclude_empty_cells: bool,
     dtype: type[np.float32 | np.float64],
     use_bzr: bool,
     negative: bool,
@@ -491,6 +532,8 @@ def test_ellipsoid(
         n_cells (int): Number of cells per direction in the Cartesian mesh to use in the test.
         n_quad_pts (int): Number of quadrature points per direction to use for the cut cells
             and facets in the test.
+        exclude_empty_cells (bool, optional): Flag to exclude empty cells in the
+            unfitted mesh. Defaults to True.
         dtype (type): Data type to use for numerical operations (np.float32 or np.float64).
         use_bzr (bool): Flag to indicate whether to use Bezier representation for the implicit
             function.
@@ -508,17 +551,19 @@ def test_ellipsoid(
     if negative:
         func = qugar.impl.create_negative(func)
 
-    check_div_thm(func, n_cells, n_quad_pts, dtype)
+    check_div_thm(func, n_cells, n_quad_pts, exclude_empty_cells, dtype)
 
 
 @pytest.mark.parametrize("n_cells", [12])
 @pytest.mark.parametrize("n_quad_pts", [8])
+@pytest.mark.parametrize("exclude_empty_cells", [True])
 @pytest.mark.parametrize("dtype", dtypes)
 @pytest.mark.parametrize("use_bzr", [True, False])
 @pytest.mark.parametrize("negative", [False, True])
 def test_torus(
     n_cells: int,
     n_quad_pts: int,
+    exclude_empty_cells: bool,
     dtype: type[np.float32 | np.float64],
     use_bzr: bool,
     negative: bool,
@@ -534,6 +579,8 @@ def test_torus(
         n_cells (int): Number of cells per direction in the Cartesian mesh to use in the test.
         n_quad_pts (int): Number of quadrature points per direction to use for the cut cells
             and facets in the test.
+        exclude_empty_cells (bool, optional): Flag to exclude empty cells in the
+            unfitted mesh. Defaults to True.
         dtype (type): Data type to use for numerical operations (np.float32 or np.float64).
         use_bzr (bool): Flag to indicate whether to use Bezier representation for the implicit
             function.
@@ -552,18 +599,20 @@ def test_torus(
 
     rtol = 1e-4
     atol = 1e-8
-    check_div_thm(func, n_cells, n_quad_pts, dtype, rtol, atol)
+    check_div_thm(func, n_cells, n_quad_pts, exclude_empty_cells, dtype, rtol, atol)
 
 
 @pytest.mark.parametrize("dim", [2, 3])
 @pytest.mark.parametrize("n_cells", [11, 12])
 @pytest.mark.parametrize("n_quad_pts", [8])
+@pytest.mark.parametrize("exclude_empty_cells", [False, True])
 @pytest.mark.parametrize("dtype", dtypes)
 @pytest.mark.parametrize("negative", [False, True])
 def test_tpms(
     dim: int,
     n_cells: int,
     n_quad_pts: int,
+    exclude_empty_cells: bool,
     dtype: type[np.float32 | np.float64],
     negative: bool,
 ):
@@ -579,6 +628,8 @@ def test_tpms(
         n_cells (int): Number of cells per direction in the Cartesian mesh to use in the test.
         n_quad_pts (int): Number of quadrature points per direction to use for the cut cells
             and facets in the test.
+        exclude_empty_cells (bool, optional): Flag to exclude empty cells in the
+            unfitted mesh. Defaults to True.
         dtype (type): Data type to use for numerical operations (np.float32 or np.float64).
         negative (bool): Flag to indicate whether the negative of the implicit function
             should be used.
@@ -599,10 +650,11 @@ def test_tpms(
 
         rtol = 1e-5 if dim == 2 else 1e-3
         atol = 1e-8 if dim == 2 else 5.0e-3
-        check_div_thm(func, n_cells, n_quad_pts, dtype, rtol=rtol, atol=atol)
+        check_div_thm(func, n_cells, n_quad_pts, exclude_empty_cells, dtype, rtol=rtol, atol=atol)
 
 
 if __name__ == "__main__":
     # test_disk(8, 6, np.float64, True, False)
     # test_cylinder(8, 6, np.float64, True, False)
-    test_tpms(2, 12, 8, np.float32, False)
+    # test_tpms(2, 12, 8, False, np.float32, False)
+    test_tpms(2, 4, 8, False, np.float32, False)

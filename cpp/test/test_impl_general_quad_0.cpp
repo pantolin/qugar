@@ -40,8 +40,7 @@ template<int dim>
 void check_num_cells(const qugar::UnfittedDomain<dim> &domain,
   const std::size_t n_full_cells,
   const std::size_t n_empty_cells,
-  const std::size_t n_cut_cells,
-  const std::size_t n_unf_bdry_cells)
+  const std::size_t n_cut_cells)
 {
   // NOLINTBEGIN (bugprone-chained-comparison)
   std::vector<std::int64_t> full_cells;
@@ -55,10 +54,6 @@ void check_num_cells(const qugar::UnfittedDomain<dim> &domain,
   std::vector<std::int64_t> cut_cells;
   domain.get_cut_cells(cut_cells);
   REQUIRE(cut_cells.size() == n_cut_cells);
-
-  std::vector<std::int64_t> unf_bry_cells;
-  domain.get_unf_bdry_cells(unf_bry_cells, true);
-  REQUIRE(unf_bry_cells.size() == n_unf_bdry_cells);
   // NOLINTEND (bugprone-chained-comparison)
 }
 
@@ -74,7 +69,7 @@ TEST_CASE("Schwarz-Diamond 2D function quadrature", "[impl]")
   const UnfittedImplDomain<2> unf_domain(func, grid);
 
   // NOLINTNEXTLINE (cppcoreguidelines-avoid-magic-numbers)
-  check_num_cells(unf_domain, 72, 72, 0, 40);
+  check_num_cells(unf_domain, 72, 72, 0);
 
   const int n_pts_dir{ 3 };
 
@@ -121,27 +116,36 @@ TEST_CASE("Schwarz-Diamond 2D function quadrature", "[impl]")
   // NOLINTNEXTLINE (cppcoreguidelines-avoid-do-while)
   REQUIRE(tol.coincident(centroid, target_centroid));
 
-  std::vector<std::int64_t> unf_bry_cells;
-  constexpr bool exclude_bdry{ true };
-  unf_domain.get_unf_bdry_cells(unf_bry_cells, exclude_bdry);
-
-
   constexpr bool include_facet_unf_bdry{ true };
   constexpr bool exclude_ext_bdry{ true };
   const auto unf_bound_quad =
-    create_unfitted_bound_quadrature<2>(unf_domain, unf_bry_cells, n_pts_dir, include_facet_unf_bdry, exclude_ext_bdry);
+    create_unfitted_bound_quadrature<2>(unf_domain, cut_cells, n_pts_dir, include_facet_unf_bdry, exclude_ext_bdry);
   // NOLINTNEXTLINE (bugprone-chained-comparison)
-  REQUIRE(unf_bound_quad->points.size() == 144);
+  REQUIRE(unf_bound_quad->points.size() == 0);
 
-  const auto unf_bound_centroid = compute_points_centroid<2>(unf_bound_quad->points, unf_bound_quad->weights);
-  const Point<2> target_unf_bound_centroid(0.5, 0.5);
-  // // NOLINTNEXTLINE (cppcoreguidelines-avoid-do-while)
-  REQUIRE(tol.coincident(unf_bound_centroid, target_unf_bound_centroid));
-
-  const auto facet_quad =
-    create_exterior_facets_quadrature<2>(unf_domain, cut_facets_cells, cut_facets_local_facets_ids, n_pts_dir);
+  auto facet_quad =
+    create_facets_quadrature_exterior_integral<2>(unf_domain, cut_facets_cells, cut_facets_local_facets_ids, n_pts_dir);
   // NOLINTNEXTLINE (bugprone-chained-comparison)
   REQUIRE(facet_quad->points.size() == 0);
+
+  facet_quad = create_facets_quadrature_exterior_integral<2>(
+    unf_domain, full_unfitted_facets_cells, full_unfitted_facets_local_facets_ids, n_pts_dir);
+  // NOLINTNEXTLINE (bugprone-chained-comparison)
+  REQUIRE(facet_quad->points.size() == 144);
+
+  auto facet_centroid = compute_points_centroid<1>(facet_quad->points, facet_quad->weights);
+  const Point<1> target_facet_centroid(0.5);
+  // NOLINTNEXTLINE (cppcoreguidelines-avoid-do-while)
+  REQUIRE(tol.coincident(facet_centroid, target_facet_centroid));
+
+  facet_quad = create_facets_quadrature_exterior_integral<2>(
+    unf_domain, unfitted_facets_cells, unfitted_facets_local_facets_ids, n_pts_dir);
+  // NOLINTNEXTLINE (bugprone-chained-comparison)
+  REQUIRE(facet_quad->points.size() == 144);
+
+  facet_centroid = compute_points_centroid<1>(facet_quad->points, facet_quad->weights);
+  // NOLINTNEXTLINE (cppcoreguidelines-avoid-do-while)
+  REQUIRE(tol.coincident(facet_centroid, target_facet_centroid));
 }
 
 
@@ -157,7 +161,7 @@ TEST_CASE("Schoen Gyroid 2D function quadrature", "[impl]")
   const UnfittedImplDomain<2> unf_domain(func, grid);
 
   // NOLINTNEXTLINE (cppcoreguidelines-avoid-magic-numbers)
-  check_num_cells(unf_domain, 4, 4, 8, 8);
+  check_num_cells(unf_domain, 4, 4, 8);
 
   const int n_pts_dir{ 3 };
 
@@ -218,7 +222,7 @@ TEST_CASE("Schoen Gyroid 2D function quadrature", "[impl]")
   REQUIRE(tol.coincident(unf_bound_centroid, target_unf_bound_centroid));
 
   const auto facet_quad =
-    create_exterior_facets_quadrature<2>(unf_domain, cut_facets_cells, cut_facets_local_facets_ids, n_pts_dir);
+    create_facets_quadrature_exterior_integral<2>(unf_domain, cut_facets_cells, cut_facets_local_facets_ids, n_pts_dir);
   // NOLINTNEXTLINE (bugprone-chained-comparison)
   REQUIRE(facet_quad->points.size() == 0);
 
@@ -240,7 +244,7 @@ TEST_CASE("General function quadrature", "[impl]")
   const UnfittedImplDomain<3> unf_domain(func, grid);
 
   // NOLINTNEXTLINE (cppcoreguidelines-avoid-magic-numbers)
-  check_num_cells(unf_domain, 896, 896, 2304, 2304);
+  check_num_cells(unf_domain, 896, 896, 2304);
 
   const int n_pts_dir{ 3 };
 
@@ -291,7 +295,7 @@ TEST_CASE("General function quadrature", "[impl]")
   REQUIRE(tol.coincident(unf_bound_centroid, target_unf_bound_centroid));
 
   const auto facet_quad =
-    create_exterior_facets_quadrature<3>(unf_domain, cut_facets_cells, cut_facets_local_facets_ids, n_pts_dir);
+    create_facets_quadrature_exterior_integral<3>(unf_domain, cut_facets_cells, cut_facets_local_facets_ids, n_pts_dir);
   // NOLINTNEXTLINE (bugprone-chained-comparison)
   REQUIRE(facet_quad->points.size() == 4626);
 

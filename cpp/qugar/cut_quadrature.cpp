@@ -174,74 +174,91 @@ std::shared_ptr<const CutUnfBoundsQuad<dim>> create_unfitted_bound_quadrature(co
   return quad;
 }
 
+
 // NOLINTBEGIN (bugprone-easily-swappable-parameters)
 template<int dim>
-std::shared_ptr<const CutIsoBoundsQuad<dim - 1>> create_facets_quadrature_generic(const UnfittedDomain<dim> &unf_domain,
+std::shared_ptr<const CutIsoBoundsQuad<dim - 1>> create_facets_quadrature_interior_integral(
+  const UnfittedDomain<dim> &unf_domain,
   const std::vector<std::int64_t> &cells,
   const std::vector<int> &facets,
-  const int n_pts_dir,
-  const bool remove_unf,
-  const bool remove_cut,
-  const bool exterior)
+  const int n_pts_dir)
 // NOLINTEND (bugprone-easily-swappable-parameters)
 {
   static_assert(dim == 2 || dim == 3, "Invalid dimension.");
 
   assert(0 < n_pts_dir);
 
+  using QuadCreator = FacetQuadCreator<dim, impl::UnfittedImplDomain<dim>>;
+  QuadCreator facet_quad_creator;
+
   const auto *unf_impl_domain = dynamic_cast<const impl::UnfittedImplDomain<dim> *>(&unf_domain);
 
   if (unf_impl_domain != nullptr) {
-    using QuadCreator = FacetQuadCreator<dim, impl::UnfittedImplDomain<dim>>;
-    const QuadCreator facet_quad_creator =
-      [unf_impl_domain, n_pts_dir, remove_unf, remove_cut, exterior, &unf_domain](
-        const std::int64_t cell_id, const int local_facet_id, CutIsoBoundsQuad<dim - 1> &quad) {
-        const bool cell_exterior = unf_domain.is_exterior_facet(cell_id, local_facet_id);
-        if (exterior == cell_exterior) {
-          impl::create_facet_quadrature<dim>(
-            *unf_impl_domain, cell_id, local_facet_id, n_pts_dir, remove_unf, remove_cut, quad);
-        } else {
-          quad.n_pts_per_facet.push_back(0);
-        }
-      };
+    facet_quad_creator = [unf_impl_domain, n_pts_dir, &unf_domain](
+                           const std::int64_t cell_id, const int local_facet_id, CutIsoBoundsQuad<dim - 1> &quad) {
+      const bool int_facet = !unf_domain.is_exterior_facet(cell_id, local_facet_id);
+      if (int_facet) {
+        constexpr bool remove_unf{ true };
+        constexpr bool remove_cut{ false };
+        impl::create_facet_quadrature<dim>(
+          *unf_impl_domain, cell_id, local_facet_id, n_pts_dir, remove_unf, remove_cut, quad);
+      } else {
+        quad.n_pts_per_facet.push_back(0);
+      }
+    };
 
-    return create_facets_quadrature_generic<dim>(cells, facets, n_pts_dir, facet_quad_creator);
   } else {
     // Not implemented for non-implicit domains.
     assert(false);
-    return nullptr;// To avoid warning.
   }
+
+  return create_facets_quadrature_generic<dim>(cells, facets, n_pts_dir, facet_quad_creator);
 }
+
 
 // NOLINTBEGIN (bugprone-easily-swappable-parameters)
 template<int dim>
-std::shared_ptr<const CutIsoBoundsQuad<dim - 1>> create_interior_facets_quadrature(
+std::shared_ptr<const CutIsoBoundsQuad<dim - 1>> create_facets_quadrature_exterior_integral(
   const UnfittedDomain<dim> &unf_domain,
   const std::vector<std::int64_t> &cells,
   const std::vector<int> &facets,
   const int n_pts_dir)
 // NOLINTEND (bugprone-easily-swappable-parameters)
 {
-  constexpr bool remove_unf = { true };
-  constexpr bool remove_cut{ false };
-  constexpr bool exterior{ false };
-  return create_facets_quadrature_generic(unf_domain, cells, facets, n_pts_dir, remove_unf, remove_cut, exterior);
-}
+  static_assert(dim == 2 || dim == 3, "Invalid dimension.");
 
+  assert(0 < n_pts_dir);
 
-// NOLINTBEGIN (bugprone-easily-swappable-parameters)
-template<int dim>
-std::shared_ptr<const CutIsoBoundsQuad<dim - 1>> create_exterior_facets_quadrature(
-  const UnfittedDomain<dim> &unf_domain,
-  const std::vector<std::int64_t> &cells,
-  const std::vector<int> &facets,
-  const int n_pts_dir)
-// NOLINTEND (bugprone-easily-swappable-parameters)
-{
-  constexpr bool remove_unf = { false };
-  constexpr bool remove_cut{ false };
-  constexpr bool exterior{ true };
-  return create_facets_quadrature_generic(unf_domain, cells, facets, n_pts_dir, remove_unf, remove_cut, exterior);
+  using QuadCreator = FacetQuadCreator<dim, impl::UnfittedImplDomain<dim>>;
+  QuadCreator facet_quad_creator;
+
+  const auto *unf_impl_domain = dynamic_cast<const impl::UnfittedImplDomain<dim> *>(&unf_domain);
+
+  if (unf_impl_domain != nullptr) {
+    facet_quad_creator = [unf_impl_domain, n_pts_dir, &unf_domain](
+                           const std::int64_t cell_id, const int local_facet_id, CutIsoBoundsQuad<dim - 1> &quad) {
+      const bool ext_facet = unf_domain.is_exterior_facet(cell_id, local_facet_id);
+      if (ext_facet) {
+        constexpr bool remove_unf{ false };
+        constexpr bool remove_cut{ false };
+        impl::create_facet_quadrature<dim>(
+          *unf_impl_domain, cell_id, local_facet_id, n_pts_dir, remove_unf, remove_cut, quad);
+      } else if (unf_domain.has_unfitted_boundary(cell_id, local_facet_id)) {
+        constexpr bool remove_unf = { false };
+        constexpr bool remove_cut{ true };
+        impl::create_facet_quadrature<dim>(
+          *unf_impl_domain, cell_id, local_facet_id, n_pts_dir, remove_unf, remove_cut, quad);
+      } else {
+        quad.n_pts_per_facet.push_back(0);
+      }
+    };
+
+  } else {
+    // Not implemented for non-implicit domains.
+    assert(false);
+  }
+
+  return create_facets_quadrature_generic<dim>(cells, facets, n_pts_dir, facet_quad_creator);
 }
 
 
@@ -276,20 +293,24 @@ template std::shared_ptr<const CutUnfBoundsQuad<3>> create_unfitted_bound_quadra
   const bool,
   const bool);
 
-template std::shared_ptr<const CutIsoBoundsQuad<1>> create_interior_facets_quadrature<2>(const UnfittedDomain<2> &,
+template std::shared_ptr<const CutIsoBoundsQuad<1>> create_facets_quadrature_interior_integral<2>(
+  const UnfittedDomain<2> &,
   const std::vector<std::int64_t> &,
   const std::vector<int> &,
   const int);
-template std::shared_ptr<const CutIsoBoundsQuad<2>> create_interior_facets_quadrature<3>(const UnfittedDomain<3> &,
+template std::shared_ptr<const CutIsoBoundsQuad<2>> create_facets_quadrature_interior_integral<3>(
+  const UnfittedDomain<3> &,
   const std::vector<std::int64_t> &,
   const std::vector<int> &,
   const int);
 
-template std::shared_ptr<const CutIsoBoundsQuad<1>> create_exterior_facets_quadrature<2>(const UnfittedDomain<2> &,
+template std::shared_ptr<const CutIsoBoundsQuad<1>> create_facets_quadrature_exterior_integral<2>(
+  const UnfittedDomain<2> &,
   const std::vector<std::int64_t> &,
   const std::vector<int> &,
   const int);
-template std::shared_ptr<const CutIsoBoundsQuad<2>> create_exterior_facets_quadrature<3>(const UnfittedDomain<3> &,
+template std::shared_ptr<const CutIsoBoundsQuad<2>> create_facets_quadrature_exterior_integral<3>(
+  const UnfittedDomain<3> &,
   const std::vector<std::int64_t> &,
   const std::vector<int> &,
   const int);

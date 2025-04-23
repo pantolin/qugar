@@ -13,6 +13,7 @@ from qugar.utils import has_FEniCSx
 if not has_FEniCSx:
     raise ValueError("FEniCSx installation not found is required.")
 
+from typing import cast
 
 import dolfinx.cpp.fem
 import dolfinx.cpp.fem as cpp_fem
@@ -27,6 +28,7 @@ from qugar.dolfinx.fe_table import FETable
 from qugar.dolfinx.fe_table_eval import evaluate_FE_tables
 from qugar.dolfinx.integral_data import IntegralData
 from qugar.dolfinx.quadrature_data import QuadratureData
+from qugar.mesh.mesh_facets import MeshFacets
 from qugar.mesh.unfitted_domain_abc import UnfittedDomainABC
 from qugar.quad import CustomQuad, CustomQuadFacet, CustomQuadUnfBoundary
 
@@ -618,30 +620,33 @@ class _CustomCoeffsPackerIntegral:
 
         degree = quad_data.degree
 
-        all_cells, all_facets = self._get_single_facets()
-        custom_cells = all_cells[self._custom_entity_ids]
-        custom_facets = all_facets[self._custom_entity_ids]
-
-        quad_facet = self._unf_domain.create_quad_custom_facets(
-            degree, custom_cells, custom_facets, self._is_exterior_facet()
+        all_facets = self._get_single_facets()
+        custom_facets = MeshFacets(
+            all_facets.cell_ids[self._custom_entity_ids],
+            all_facets.local_facet_ids[self._custom_entity_ids],
         )
 
-        quad = self._map_facet_quadrature(quad_facet, custom_cells, custom_facets)
+        quad_facet = self._unf_domain.create_quad_custom_facets(
+            degree, custom_facets, self._is_exterior_facet()
+        )
+
+        quad = self._map_facet_quadrature(quad_facet, custom_facets)
 
         if not self._is_interior_facet():
             return quad_facet, quad
 
-        custom_cells_1 = self._domain[:, 1, 0].reshape(-1)[self._custom_entity_ids]
-        custom_facets_1 = self._domain[:, 1, 1].reshape(-1)[self._custom_entity_ids]
-        quad_1 = self._map_facet_quadrature(quad_facet, custom_cells_1, custom_facets_1)
+        custom_facets_1 = MeshFacets(
+            self._domain[:, 1, 0].reshape(-1)[self._custom_entity_ids],
+            self._domain[:, 1, 1].reshape(-1)[self._custom_entity_ids],
+        )
+        quad_1 = self._map_facet_quadrature(quad_facet, custom_facets_1)
 
         return quad_facet, (quad, quad_1)
 
     def _map_facet_quadrature(
         self,
         quad_facet: CustomQuadFacet,
-        cells: npt.NDArray[np.int32],
-        facets: npt.NDArray[np.int32],
+        facets: MeshFacets,
     ) -> CustomQuad:
         """Maps the given quadrature from a facet to the parent cell
         domain.
@@ -649,10 +654,8 @@ class _CustomCoeffsPackerIntegral:
         Args:
             quad_facet (CustomQuadFacet): Facet quadrature to
                 map.
-            cells (npt.NDArray[np.int32]): Cells associated to the facet
-                quadrature.
-            facets (npt.NDArray[np.int32]): Facets to which the facet
-                quadrature is associated to.
+            facets (MeshFacets): Facets to which the facet quadrature is
+                associated to.
 
         Returns:
             CustomQuad: Generated cell quadrature.
@@ -666,8 +669,10 @@ class _CustomCoeffsPackerIntegral:
         n_pts_per_entity = quad_facet.n_pts_per_entity
         points = quad_facet.points
 
+        cells = cast(npt.NDArray[np.int32], facets.cell_ids)
+        local_facets = facets.local_facet_ids
         cells_rep = np.repeat(cells.reshape(-1), n_pts_per_entity)
-        facets_rep = np.repeat(facets.reshape(-1), n_pts_per_entity)
+        facets_rep = np.repeat(local_facets.reshape(-1), n_pts_per_entity)
 
         if needs_permutations:
             points = permute_facet_points(points, mesh, cells_rep, facets_rep)
@@ -676,23 +681,21 @@ class _CustomCoeffsPackerIntegral:
 
         return CustomQuad(cells, n_pts_per_entity, mapped_points, quad_facet.weights)
 
-    def _get_single_facets(self) -> tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]:
+    def _get_single_facets(self) -> MeshFacets:
         """Returns the facets associated to the current integral.
 
         In the case of interior facets, only the first facet is
         returned.
 
         Returns:
-            tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]: Tuple
-            containing the cell ids and the local facet ids for the
-            facets associated to the current integral.
+            MeshFacets: Facets associated to the current integral.
         """
         assert self._is_facet()
 
         if self._is_interior_facet():
-            return self._domain[:, 0, 0].reshape(-1), self._domain[:, 0, 1].reshape(-1)
+            return MeshFacets(self._domain[:, 0, 0].reshape(-1), self._domain[:, 0, 1].reshape(-1))
         else:
-            return self._domain[:, 0].reshape(-1), self._domain[:, 1].reshape(-1)
+            return MeshFacets(self._domain[:, 0].reshape(-1), self._domain[:, 1].reshape(-1))
 
     def _get_empty_entities_ids(
         self,
@@ -707,12 +710,11 @@ class _CustomCoeffsPackerIntegral:
         if self._is_facet():
             exterior_facet = not self._is_interior_facet()
 
-            all_cells, all_facets = self._get_single_facets()
+            all_facets = self._get_single_facets()
+            empty_facets = self._unf_domain.get_empty_facets(exterior_integral=exterior_facet)
 
-            empty_cells, empty_facets = self._unf_domain.get_empty_facets(exterior=exterior_facet)
-
-            all_cells_facets = np.column_stack((all_cells, all_facets))
-            empty_cells_facets = np.column_stack((empty_cells, empty_facets))
+            all_cells_facets = cast(npt.NDArray[np.int32], all_facets.as_array().reshape(-1, 2))
+            empty_cells_facets = cast(npt.NDArray[np.int32], empty_facets.as_array().reshape(-1, 2))
 
             return _find_common_rows(all_cells_facets, empty_cells_facets)
 
@@ -738,24 +740,19 @@ class _CustomCoeffsPackerIntegral:
         if self._is_facet():
             exterior_facet = not self._is_interior_facet()
 
-            all_cells, all_facets = self._get_single_facets()
-            target_cells, target_facets = self._unf_domain.get_cut_facets(exterior=exterior_facet)
+            all_facets = self._get_single_facets()
+            target_facets = self._unf_domain.get_cut_facets(exterior_integral=exterior_facet)
 
-            all_cells_facets = np.column_stack((all_cells, all_facets))
-            target_cells_facets = np.column_stack((target_cells, target_facets))
+            all_cells_facets = cast(npt.NDArray[np.int32], all_facets.as_array().reshape(-1, 2))
+            target_cells_facets = cast(
+                npt.NDArray[np.int32], target_facets.as_array().reshape(-1, 2)
+            )
 
             return _find_common_rows(all_cells_facets, target_cells_facets)
 
         else:
             all_cells = self._domain
-
-            if self._has_unfitted_boundary():
-                custom_cells = self._unf_domain.get_unf_bdry_cells()
-                if self._has_no_unfitted_boundary():
-                    custom_cells = np.append(custom_cells, self._unf_domain.get_cut_cells())
-                    custom_cells = np.unique(custom_cells)
-            else:
-                custom_cells = self._unf_domain.get_cut_cells()
+            custom_cells = self._unf_domain.get_cut_cells()
 
             _, custom_entity_ids, _ = np.intersect1d(
                 all_cells, custom_cells, assume_unique=True, return_indices=True

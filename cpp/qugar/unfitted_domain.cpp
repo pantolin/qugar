@@ -72,9 +72,11 @@ template<int dim> std::size_t UnfittedDomain<dim>::get_num_cut_cells() const
   return this->kd_tree_->get_num_cells(ImmersedCellStatus::cut);
 }
 
-template<int dim> bool UnfittedDomain<dim>::has_full_cells_with_unf_bdry() const
+template<int dim> bool UnfittedDomain<dim>::has_facets_with_unf_bdry() const
 {
-  return !this->full_cells_with_unf_bdry_.empty();
+  return std::ranges::any_of(this->facets_status_, [](const auto &pair) {
+    return std::ranges::any_of(pair.second, [](const auto &status) { return has_unfitted_boundary(status); });
+  });
 }
 
 template<int dim> void UnfittedDomain<dim>::get_full_cells(std::vector<std::int64_t> &cell_ids) const
@@ -90,34 +92,6 @@ template<int dim> void UnfittedDomain<dim>::get_empty_cells(std::vector<std::int
 template<int dim> void UnfittedDomain<dim>::get_cut_cells(std::vector<std::int64_t> &cell_ids) const
 {
   this->kd_tree_->get_cell_ids(ImmersedCellStatus::cut, cell_ids);
-}
-
-template<int dim>
-void UnfittedDomain<dim>::get_unf_bdry_cells(std::vector<std::int64_t> &cell_ids, const bool exclude_ext_facets) const
-{
-  this->get_cut_cells(cell_ids);
-
-  if (!this->has_full_cells_with_unf_bdry()) {
-    return;
-  }
-
-  cell_ids.reserve(cell_ids.size() + this->full_cells_with_unf_bdry_.size());
-
-  const auto excl_bdry = [exclude_ext_facets, this](const auto &cell_id, const auto &local_facet_id) {
-    return exclude_ext_facets && this->is_exterior_facet(cell_id, local_facet_id);
-  };
-
-  std::ranges::copy_if(
-    this->full_cells_with_unf_bdry_, std::back_inserter(cell_ids), [excl_bdry, this](const auto &cell_id) {
-      for (int local_facet_id = 0; local_facet_id < n_facets_per_cell; ++local_facet_id) {
-        if (this->is_full_unfitted_facet(cell_id, local_facet_id)) {
-          return !excl_bdry(cell_id, local_facet_id);
-        }
-      }
-      return false;
-    });
-
-  std::ranges::sort(cell_ids);
 }
 
 
@@ -140,44 +114,6 @@ void UnfittedDomain<dim>::get_cut_cells(const std::vector<std::int64_t> &target_
   std::vector<std::int64_t> &cell_ids) const
 {
   this->kd_tree_->get_cell_ids(ImmersedCellStatus::cut, target_cell_ids, cell_ids);
-}
-
-template<int dim>
-void UnfittedDomain<dim>::get_unf_bdry_cells(const std::vector<std::int64_t> &target_cell_ids,
-  std::vector<std::int64_t> &cell_ids,
-  const bool exclude_ext_facets) const
-{
-  this->get_cut_cells(target_cell_ids, cell_ids);
-
-  if (!this->has_full_cells_with_unf_bdry()) {
-    return;
-  }
-
-  std::vector<std::int64_t> target_full_cell_with_unf_bdry_ids;
-  std::ranges::set_intersection(
-    target_cell_ids, this->full_cells_with_unf_bdry_, std::back_inserter(target_full_cell_with_unf_bdry_ids));
-
-  if (target_full_cell_with_unf_bdry_ids.empty()) {
-    return;
-  }
-
-  cell_ids.reserve(cell_ids.size() + target_full_cell_with_unf_bdry_ids.size());
-
-  const auto excl_bdry = [exclude_ext_facets, this](const auto &cell_id, const auto &local_facet_id) {
-    return exclude_ext_facets && this->is_exterior_facet(cell_id, local_facet_id);
-  };
-
-  std::ranges::copy_if(
-    target_full_cell_with_unf_bdry_ids, std::back_inserter(cell_ids), [excl_bdry, this](const auto &cell_id) {
-      for (int local_facet_id = 0; local_facet_id < n_facets_per_cell; ++local_facet_id) {
-        if (this->is_full_unfitted_facet(cell_id, local_facet_id)) {
-          return !excl_bdry(cell_id, local_facet_id);
-        }
-      }
-      return false;
-    });
-
-  std::ranges::sort(cell_ids);
 }
 
 template<int dim>
@@ -292,7 +228,7 @@ template<int dim>
 void UnfittedDomain<dim>::get_unfitted_facets(std::vector<std::int64_t> &cell_ids,
   std::vector<int> &local_facets_ids) const
 {
-  const auto n_facets_estimate = this->facets_status_.size() * n_facets_per_cell;
+  const auto n_facets_estimate = this->facets_status_.size() * n_facets_per_cell;// An overestimation.
 
   cell_ids.clear();
   local_facets_ids.clear();

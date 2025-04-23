@@ -31,13 +31,6 @@ from dolfinx.cpp.mesh import GhostMode
 from dolfinx.fem import coordinate_element as _coordinate_element
 
 import qugar.cpp
-from qugar.mesh.utils import (
-    DOLFINx_to_lexicg_faces,
-    create_cells_to_facets_map,
-    lexicg_to_DOLFINx_faces,
-    map_cells_and_local_facets_to_facets,
-    map_facets_to_cells_and_local_facets,
-)
 
 
 def _merge_coincident_points_in_mesh(
@@ -173,6 +166,7 @@ class Mesh(dolfinx.mesh.Mesh):
         conn: npt.NDArray[np.int64],
         cell_type: CellType,
         degree: int = 1,
+        active_cells: Optional[npt.NDArray[np.int64]] = None,
         ghost_mode: GhostMode = GhostMode.none,
         merge_nodes: bool = False,
         merge_tol: Optional[type[np.float32 | np.float64]] = None,
@@ -188,6 +182,10 @@ class Mesh(dolfinx.mesh.Mesh):
             conn (npt.NDArray[np.int64]): Connectivity of the mesh.
             cell_type (CellType): Type of the mesh cell.
             degree (int): Degree of the mesh.
+            active_cells (Optional[npt.NDArray[np.int64]]): Array of
+                active cells. If not set, all the cells are considered
+                active. The cells are referred to the original numbering
+                used to create the mesh.
             ghost_mode (GhostMode, optional): Ghost mode used for mesh
                 partitioning. Defaults to `none`.
             merge_nodes (bool, optional): If `True`, coincident nodes
@@ -204,7 +202,9 @@ class Mesh(dolfinx.mesh.Mesh):
         self._degree = degree
         assert 1 <= self.degree, "Invalid degree."
 
-        self._create_mesh(comm, nodes_coords, conn, cell_type, ghost_mode, merge_nodes, merge_tol)
+        self._create_mesh(
+            comm, nodes_coords, conn, cell_type, active_cells, ghost_mode, merge_nodes, merge_tol
+        )
 
     @property
     def dtype(self) -> np.dtype[np.float32] | np.dtype[np.float64]:
@@ -253,6 +253,26 @@ class Mesh(dolfinx.mesh.Mesh):
         return self._merged_nodes_map.size > 0
 
     @property
+    def has_inactive_cells(self) -> bool:
+        """Checks if the mesh has inactive cells.
+
+        Returns:
+            bool: Whether the mesh has inactive cells.
+        """
+        return self._original_active_cells is not None
+
+    @property
+    def original_active_cells(self) -> npt.NDArray[np.int64]:
+        """Gets the original active cells of the mesh.
+
+        Returns:
+            npt.NDArray[np.int64]: Original active cells.
+        """
+        if self._original_active_cells is None:
+            raise ValueError("No original active cells.")
+        return self._original_active_cells
+
+    @property
     def merged_nodes_map(self) -> npt.NDArray[np.int64]:
         """Gets the map of original merged nodes: from original
         ids to unique ones.
@@ -287,6 +307,7 @@ class Mesh(dolfinx.mesh.Mesh):
         nodes_coords: npt.NDArray[np.float32 | np.float64],
         conn: npt.NDArray[np.int64],
         cell_type: CellType,
+        active_cells: Optional[npt.NDArray[np.int64]],
         ghost_mode: GhostMode,
         merge_nodes: bool,
         merge_tol: Optional[type[np.float32 | np.float64]],
@@ -301,6 +322,10 @@ class Mesh(dolfinx.mesh.Mesh):
                 and the columns to the coordinates of each point.
             conn (npt.NDArray[np.int64]): Connectivity of the mesh.
             cell_type (CellType): Type of the mesh cell.
+            active_cells (Optional[npt.NDArray[np.int64]]): Array of
+                active cells. If not set, all the cells are considered
+                active. The cells are referred to the original numbering
+                used to create the mesh.
             ghost_mode (GhostMode, optional): Ghost mode used for mesh
                 partitioning.
             merge_nodes (bool, optional): If `True`, coincident nodes
@@ -331,7 +356,17 @@ class Mesh(dolfinx.mesh.Mesh):
         # TODO: Resolve UFL vs Basix geometric dimension issue
         # assert domain.geometric_dimension() == gdim
 
+        # TODO: to manage active cells for the case of
+        # distributed meshes.
+
+        if active_cells is not None and active_cells.size == conn.shape[0]:
+            active_cells = None
+        self._original_active_cells = active_cells
+
         if comm.rank == 0:
+            if self._original_active_cells is not None:
+                conn = conn[self._original_active_cells]
+
             if merge_nodes:
                 nodes_coords, conn, self._merged_nodes_map = _merge_coincident_points_in_mesh(
                     nodes_coords, conn, merge_tol
@@ -378,6 +413,9 @@ class Mesh(dolfinx.mesh.Mesh):
             in the subdomain. The length of the output
             array is the same as the input.
         """
+
+        if self._original_active_cells is not None:
+            orig_cell_ids = _find_in_array(orig_cell_ids, self._original_active_cells)
 
         dlf_to_orig = self.topology.original_cell_index
         return _find_in_array(orig_cell_ids, dlf_to_orig).astype(np.int32)
@@ -447,7 +485,10 @@ class Mesh(dolfinx.mesh.Mesh):
             "Cells not contained in subdomain"
         )
 
-        return dlf_to_orig[dlf_local_cell_ids]
+        orig_cells = dlf_to_orig[dlf_local_cell_ids]
+        if self._original_active_cells is not None:
+            orig_cells = self._original_active_cells[orig_cells]
+        return orig_cells
 
     def get_DOLFINx_local_node_ids(
         self,
@@ -508,58 +549,6 @@ class Mesh(dolfinx.mesh.Mesh):
         else:
             return orig_nodes
 
-    def get_exterior_facets_as_cells_and_facets(
-        self,
-        dlf_local_cell_ids: npt.NDArray[np.int32],
-    ) -> npt.NDArray[np.int32]:
-        """Extracts the exterior facets of associated to a list of
-        (local) DOLFINx cell ids.
-
-        The exterior facets are those that belong to one single cell
-        (they are not at the interface between two cells, but on the
-        mesh boundary).
-
-        Args:
-            dlf_local_cell_ids (npt.NDArray[np.int32] | np.int32):
-                Array of cells whose exterior facets are extracted.
-                They are (local to the current subdomain) DOLFINx cell
-                indices.
-
-        Returns:
-            npt.NDArray[np.int32]: Sorted unique array of exterior
-            facets present in the current subdomain.
-        """
-
-        self.topology.create_connectivity(self.tdim - 1, self.tdim)
-
-        cells_to_facets = create_cells_to_facets_map(self)
-
-        facets_in_cells = np.sort(np.unique(cells_to_facets[dlf_local_cell_ids].ravel()))
-
-        exterior_facets = dolfinx.mesh.exterior_facet_indices(self.topology)
-        return np.setdiff1d(exterior_facets, facets_in_cells)
-
-    def get_exterior_facets(self) -> npt.NDArray[np.int32]:
-        """Gets the exterior facets of the mesh.
-
-        Returns:
-            npt.NDArray[np.int32]: Sorted list of owned facet indices that are
-            exterior facets of the mesh.
-        """
-        self.topology.create_connectivity(self.tdim - 1, self.tdim)
-        return dolfinx.mesh.exterior_facet_indices(self.topology)
-
-    def get_interior_facets(self) -> npt.NDArray[np.int32]:
-        """Gets the interior facets of the mesh.
-
-        Returns:
-            npt.NDArray[np.int32]: Sorted list of owned facet indices that are
-            interior facets of the mesh.
-        """
-        imap = self.topology.index_map(self.topology.dim - 1)
-        all_facets = np.arange(imap.local_range[0], imap.local_range[1], dtype=np.int32)
-        return np.setdiff1d(all_facets, self.get_exterior_facets(), assume_unique=True)
-
     def get_cell_facets(
         self,
         dlf_local_cell_id: np.int32,
@@ -590,115 +579,3 @@ class Mesh(dolfinx.mesh.Mesh):
         """
         all_local_dlf_cell_ids = np.arange(self.num_local_cells, dtype=np.int32)
         return self.get_original_cell_ids(all_local_dlf_cell_ids)
-
-    def transform_original_facet_ids_to_DOLFINx_local(
-        self,
-        orig_cell_ids: npt.NDArray[np.int64],
-        lex_facet_ids: npt.NDArray[np.int32],
-    ) -> tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]:
-        """Transforms the given original facets indices to
-        DOLFINx local numbering (otherwise)
-
-        Args:
-            orig_cell_ids (npt.NDArray[np.int64]): Indices of the cell
-                ids referred to the original numbering used to create the
-                mesh. All the cell indices must be associated to the current process.
-
-            lex_facet_ids (npt.NDArray[np.int32]): Local indices of the
-                facets referred to `orig_cell_ids` (both arrays should have
-                the same length). The face ids follow the
-                lexicographical ordering.
-
-        Returns:
-            tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]:
-            Transformed facets returned as one array of cells and another
-            one of local facets referred to those cells. The indices of the cells
-            and local facets follow the DOLFINx local numbering.
-        """
-
-        dlf_cells = self.get_DOLFINx_local_cell_ids(orig_cell_ids)
-
-        dlf_to_orig_facets = DOLFINx_to_lexicg_faces(self.tdim)
-        dlf_facets = dlf_to_orig_facets[lex_facet_ids]
-        return dlf_cells, dlf_facets
-
-    def transform_DOLFINx_local_facet_ids_to_original(
-        self,
-        dlf_local_cell_ids: npt.NDArray[np.int32],
-        dlf_local_facet_ids: npt.NDArray[np.int32],
-    ) -> tuple[npt.NDArray[np.int64], npt.NDArray[np.int32]]:
-        """Transforms the given local DOLFINx facets indices to
-        either original numbering for cells and lexicographical one
-        for local facet ids.
-
-        Args:
-            dlf_local_cell_ids (npt.NDArray[np.int32]): Indices of the cells
-                following the DOLFINx local ordering.
-
-            dlf_local_facet_ids (npt.NDArray[np.int32]): Local indices of the
-                facets referred to `dlf_local_cell_ids` (both arrays should have
-                the same length). The face ids follow the DOLFINx ordering.
-
-        Returns:
-            tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]:
-            Transformed facets returned as one array of cells and another
-            one of local facets referred to those cells. The indices of the cells
-            follow the original numbering (used to create the mesh) and
-            the local facets follow the lexicographical ordering.
-        """
-
-        orig_cell_ids = self.get_original_cell_ids(dlf_local_cell_ids)
-        lex_to_dlf_facets = lexicg_to_DOLFINx_faces(self.tdim)
-        lex_facet_ids = lex_to_dlf_facets[dlf_local_facet_ids]
-        return orig_cell_ids, lex_facet_ids
-
-    def transform_DOLFINx_local_facet_ids_to_cells_and_local_facets(
-        self,
-        dlf_local_facet_ids: npt.NDArray[np.int32],
-    ) -> tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]:
-        """Given the ids of (local) DOLFINx facets, returns the DOLFINx
-        cells and local facet ids corresponding to those facets.
-
-        Note:
-            Interior facets belong to more whan one cell, in those cases
-            only one cell (and local facet) is returned for that
-            particular facet. The one chosen depends on the way in which
-            that information is stored in the mesh connectivity.
-
-        Args:
-            dlf_local_facet_ids (npt.NDArray[np.int32]): Array of DOLFINx facets
-                (local to the current process) to be transformed.
-
-        Returns:
-            tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]: DOLFINx cells
-                and local facet ids the associated to the facets. The first
-                entry of the tuple corresponds to the cells and the second
-                to the the local facets.
-
-                The local facets indices follow the FEniCSx convention. See
-                https://github.com/FEniCS/basix/#supported-elements
-        """
-        return map_facets_to_cells_and_local_facets(self, dlf_local_facet_ids)
-
-    def transform_DOLFINx_cells_and_local_facets_to_local_facet_ids(
-        self,
-        dlf_local_cell_ids: npt.NDArray[np.int32],
-        dlf_local_facet_ids: npt.NDArray[np.int32],
-    ) -> npt.NDArray[np.int32]:
-        """Given the ids of (local) DOLFINx cell ids and and local facet
-        ids, returns the DOLFINx local facet ids.
-
-        Args:
-            dlf_local_cell_ids (npt.NDArray[np.int32]): Indices of the cells
-                following the DOLFINx local ordering.
-
-            dlf_local_facet_ids (npt.NDArray[np.int32]): Local indices of the
-                facets referred to `dlf_local_cell_ids` (both arrays should have
-                the same length). The face ids follow the DOLFINx ordering.
-
-        Returns:
-            npt.NDArray[np.int32]: DOLFINx local facet ids
-                corresponding to the DOLFINx cells and local facet ids
-                passed as input.
-        """
-        return map_cells_and_local_facets_to_facets(self, dlf_local_cell_ids, dlf_local_facet_ids)

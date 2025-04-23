@@ -119,9 +119,9 @@ std::shared_ptr<const CutUnfBoundsQuad<dim>> create_unfitted_bound_quadrature(co
   bool exclude_ext_bdry);
 
 /**
- * @brief Creates quadrature for interior facets (those that do not belong to the external boundary of the grid).
+ * @brief Creates quadrature for interior integrals.
  *
- * For interior facets, only the part of the facet that is inside the domain is considered.
+ * It creates quadratures for the internal part of interior facets.
  * I.e., fully internal facets or the cut (interior) part of cut facets.
  * Unfitted boundaries laying on the facet are not considered.
  *
@@ -136,20 +136,18 @@ std::shared_ptr<const CutUnfBoundsQuad<dim>> create_unfitted_bound_quadrature(co
  * @return Generated quadratures.
  */
 template<int dim>
-std::shared_ptr<const CutIsoBoundsQuad<dim - 1>> create_interior_facets_quadrature(
+std::shared_ptr<const CutIsoBoundsQuad<dim - 1>> create_facets_quadrature_interior_integral(
   const UnfittedDomain<dim> &unf_domain,
   const std::vector<std::int64_t> &cells,
   const std::vector<int> &facets,
   int n_pts_dir);
 
 /**
- * @brief Creates quadrature for exterior facets (those that belong to the external boundary of the grid).
+ * @brief Creates quadrature for exterior integrals.
  *
- * For exterior facets, the cut part of the domain, as well as the unfitted boundary that lays on the facet, are
- * considered in the quadrature.
- *
- * @warning The provided facets are not checked to be exterior facets. It is the caller's responsibility to
- *          provide the correct facets.
+ * It creates quadrature for the active part of the facets that belong
+ * to the external boundary of the domain.
+ * The external boundary of the domain may be the external boundary of the grid or the unfitted boundary.
  *
  * @tparam dim Dimension of the domain.
  * @param unf_domain Unfitted domain.
@@ -159,7 +157,7 @@ std::shared_ptr<const CutIsoBoundsQuad<dim - 1>> create_interior_facets_quadratu
  * @return Generated quadratures.
  */
 template<int dim>
-std::shared_ptr<const CutIsoBoundsQuad<dim - 1>> create_exterior_facets_quadrature(
+std::shared_ptr<const CutIsoBoundsQuad<dim - 1>> create_facets_quadrature_exterior_integral(
   const UnfittedDomain<dim> &unf_domain,
   const std::vector<std::int64_t> &cells,
   const std::vector<int> &facets,

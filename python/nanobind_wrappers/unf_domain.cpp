@@ -110,7 +110,7 @@ namespace {
         "grid", [](const UnfDomain &domain) { return domain.get_grid(); }, nb::rv_policy::reference_internal)
       .def_prop_ro("num_total_cells", [](const UnfDomain &domain) { return domain.get_num_total_cells(); })
       .def_prop_ro(
-        "has_full_cells_with_unf_bdry", [](const UnfDomain &domain) { return domain.has_full_cells_with_unf_bdry(); })
+        "has_facets_with_unf_bdry", [](const UnfDomain &domain) { return domain.has_facets_with_unf_bdry(); })
       .def(
         "get_full_cells",
         [&get_cells](const UnfDomain &domain,
@@ -147,21 +147,6 @@ namespace {
           return get_cells(accessor_0, accessor_1, target_cell_ids_py);
         },
         nb::arg("target_cell_ids") = nb::none())
-      .def(
-        "get_unf_bdry_cells",
-        [&get_cells](const UnfDomain &domain,
-          const std::optional<nb::ndarray<const std::int64_t, nb::numpy, nb::shape<-1>>> &target_cell_ids_py,
-          const bool exclude_ext_facets) {
-          const auto accessor_0 = [&domain, exclude_ext_facets](const auto &target_cell_ids, auto &cell_ids) {
-            domain.get_unf_bdry_cells(target_cell_ids, cell_ids, exclude_ext_facets);
-          };
-          const auto accessor_1 = [&domain, exclude_ext_facets](
-                                    auto &cell_ids) { domain.get_unf_bdry_cells(cell_ids, exclude_ext_facets); };
-
-          return get_cells(accessor_0, accessor_1, target_cell_ids_py);
-        },
-        nb::arg("target_cell_ids") = nb::none(),
-        nb::arg("exclude_ext_facets"))
       .def(
         "get_empty_facets",
         [&get_facets](const UnfDomain &domain,
