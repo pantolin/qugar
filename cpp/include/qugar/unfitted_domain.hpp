@@ -81,7 +81,7 @@ public:
   [[nodiscard]] std::size_t get_num_full_cells() const;
   [[nodiscard]] std::size_t get_num_empty_cells() const;
   [[nodiscard]] std::size_t get_num_cut_cells() const;
-  [[nodiscard]] bool has_full_cells_with_unf_bdry() const;
+  [[nodiscard]] bool has_facets_with_unf_bdry() const;
 
   void get_full_cells(std::vector<std::int64_t> &cell_ids) const;
   void get_empty_cells(std::vector<std::int64_t> &cell_ids) const;

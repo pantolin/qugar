@@ -470,14 +470,14 @@ def quadrature_to_PyVista(
     unf_bdry_points_set = _cut_quad_to_PyVista(domain_.grid, unf_bdry_quad)
 
     cut_facets_cells, cut_facets_local_facets = domain_.get_cut_facets()
-    cut_facets_quad = qugar.cpp.create_exterior_facets_quadrature(
+    cut_facets_quad = qugar.cpp.create_facets_quadrature_exterior_integral(
         domain_,
         cut_facets_cells,
         cut_facets_local_facets,
         n_pts_dir,
     )
     unf_bdry_facets_cells, unf_bdry_facets_local_facets = domain_.get_unf_bdry_facets()
-    unf_bdry_facets_quad = qugar.cpp.create_exterior_facets_quadrature(
+    unf_bdry_facets_quad = qugar.cpp.create_facets_quadrature_exterior_integral(
         domain_,
         unf_bdry_facets_cells,
         unf_bdry_facets_local_facets,
@@ -556,8 +556,8 @@ def unfitted_domain_facets_to_PyVista(
         facets[2] = domain.get_empty_facets()
 
     for status, lex_cells_facets in facets.items():
-        vtk_facets = vtk_lex_mask[lex_cells_facets[1]]
-        vtk_cells = lex_cells_facets[0] * n_facets_per_cell + vtk_facets
+        vtk_facets = vtk_lex_mask[lex_cells_facets.local_facet_ids]
+        vtk_cells = lex_cells_facets.cell_ids * n_facets_per_cell + vtk_facets
         grid.cell_data["Facet status (0: full, 1: cut, 2: empty)"][vtk_cells] = status
         active_facets = np.append(active_facets, vtk_cells)
 
@@ -676,7 +676,8 @@ def grid_tp_to_PyVista(grid: Any) -> pv.Grid:
 
     Args:
         grid (CartGridTP_2D | CartGridTP_3D | TensorProductMesh): The input grid, which can
-            be either a CartGridTP_2D, CartGridTP_3D, or TensorProductMesh (if FEniCSx is available).
+            be either a CartGridTP_2D, CartGridTP_3D, or TensorProductMesh
+            (if FEniCSx is available).
 
     Returns:
         pv.Grid: The converted PyVista `Grid`.

@@ -13,8 +13,6 @@
 import numpy as np
 import numpy.typing as npt
 
-import qugar.utils
-
 
 def _invert_map(map_ind: npt.NDArray[np.int32]) -> npt.NDArray[np.int32]:
     """Inverts a 1 to 1 map of indices.
@@ -673,6 +671,8 @@ def DOLFINx_to_lexicg_edges(dim: int) -> npt.NDArray[np.int32]:
         return np.array([2, 6, 4, 7, 1, 3, 9, 10, 0, 5, 8, 11], dtype=np.int32)
 
 
+import qugar.utils
+
 if qugar.has_FEniCSx:
     from mpi4py import MPI
 
@@ -717,112 +717,3 @@ if qugar.has_FEniCSx:
         rank_dest = np.full(cells.num_nodes, comm.rank, dtype=np.int32)
 
         return dolfinx.cpp.graph.AdjacencyList_int32(rank_dest)
-
-    def create_cells_to_facets_map(
-        mesh: dolfinx.mesh.Mesh,
-    ) -> npt.NDArray[np.int32]:
-        """Creates a map that allows to find the facets ids in a mesh
-        from their cell ids and the local facet ids referred to that
-        cells.
-
-        Args:
-            mesh (dolfinx.mesh.Mesh): Mesh from which facet ids are
-                extracted.
-
-        Returns:
-            npt.NDArray[np.int32]: Map from the cells and local facet
-                ids to the facet ids. It is a 2D array where the first
-                column corresponds to the cells and the second one to the
-                local facet ids.
-
-                Thus, given the cell and local facet ids of a particular
-                facet, the facet id can be accessed as
-                `facet_id = facets_map[cell_id, local_facet_id]`, where
-                `facets_map` is the generated 2D array.
-        """
-
-        topology = mesh.topology
-        tdim = topology.dim
-        topology.create_connectivity(tdim, tdim - 1)
-        conn = topology.connectivity(tdim, tdim - 1)
-
-        return conn.array.reshape(conn.num_nodes, -1)
-
-    def map_cells_and_local_facets_to_facets(
-        mesh: dolfinx.mesh.Mesh,
-        cells: npt.NDArray[np.int32],
-        local_facets: npt.NDArray[np.int32],
-    ) -> npt.NDArray[np.int32]:
-        """Given cell ids and local face ids referred to those cells,
-        returns the facet ids.
-
-        Args:
-            mesh (dolfinx.mesh.Mesh): Mesh to which the facets belong
-                to.
-            cells (npt.NDArray[np.int32]): Array of DOLFINx cell ids
-                (local to the current process) to be transformed.
-            local_facets (npt.NDArray[np.int32]): Array of local facets
-                referred to the `cells`. They follow the FEniCSx
-                convention. See
-                https://github.com/FEniCS/basix/#supported-elements
-
-        Returns:
-            npt.NDArray[np.int32]: Computed DOLFINx facet ids (local to
-            the current process).
-        """
-
-        assert cells.size == local_facets.size
-        cells_to_facets = create_cells_to_facets_map(mesh)
-        return cells_to_facets[cells, local_facets]
-
-    def map_facets_to_cells_and_local_facets(
-        mesh: dolfinx.mesh.Mesh, facets: npt.NDArray[np.int32]
-    ) -> tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]:
-        """Given the ids of facets, returns the cells and local facet
-        ids corresponding to those facets.
-
-        Note:
-            Interior facets belong to more whan one cell, in those cases
-            only one cell (and local facet) is returned for that
-            particular facet. The one chosen depends on the way in which
-            that information is stored in the mesh connectivity.
-
-        Args:
-            mesh (dolfinx.mesh.Mesh): Mesh to which the facets belong
-                to.
-            facets (npt.NDArray[np.int32]): Array of DOLFINx facets
-                (local to the current process) to be transformed.
-
-        Returns:
-            tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]: Cells
-                and local facet ids the associated to the facets. The first
-                entry of the tuple corresponds to the cells and the second
-                to the the local facets.
-
-                The local facets indices follow the FEniCSx convention. See
-                https://github.com/FEniCS/basix/#supported-elements
-        """
-
-        # TODO: this implementation can be likely improved.
-        # Checking in dolfinx code.
-
-        topology = mesh.topology
-        tdim = topology.dim
-        topology.create_connectivity(tdim - 1, tdim)
-        conn = topology.connectivity(tdim - 1, tdim)
-
-        cells_to_facets = create_cells_to_facets_map(mesh)
-
-        cells = np.zeros_like(facets)
-        local_facets = np.zeros_like(facets)
-
-        for i, facet in enumerate(facets):
-            # Only the first cell is considered
-            cell = conn.links(facet)[0]
-            ind = np.where(cells_to_facets[cell] == facet)[0]
-            assert ind.size == 1
-
-            cells[i] = cell
-            local_facets[i] = ind[0]
-
-        return cells, local_facets

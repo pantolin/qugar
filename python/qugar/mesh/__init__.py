@@ -47,11 +47,6 @@ if has_FEniCSx:
     from qugar.mesh.tp_mesh import CartesianMesh, Mesh, TensorProductMesh, create_Cartesian_mesh
     from qugar.mesh.unfitted_cart_mesh import UnfittedCartMesh, create_unfitted_impl_Cartesian_mesh
     from qugar.mesh.unfitted_domain import UnfittedDomain
-    from qugar.mesh.utils import (
-        create_cells_to_facets_map,
-        map_cells_and_local_facets_to_facets,
-        map_facets_to_cells_and_local_facets,
-    )
 
     __all__ += [
         "Mesh",
@@ -60,9 +55,6 @@ if has_FEniCSx:
         "TensorProductMesh",
         "TensorProdIndex",
         "UnfittedCartMesh",
-        "create_cells_to_facets_map",
-        "map_cells_and_local_facets_to_facets",
-        "map_facets_to_cells_and_local_facets",
         "create_Cartesian_mesh",
         "create_unfitted_impl_Cartesian_mesh",
     ]

@@ -110,7 +110,7 @@ namespace {
         "grid", [](const UnfDomain &domain) { return domain.get_grid(); }, nb::rv_policy::reference_internal)
       .def_prop_ro("num_total_cells", [](const UnfDomain &domain) { return domain.get_num_total_cells(); })
       .def_prop_ro(
-        "has_full_cells_with_unf_bdry", [](const UnfDomain &domain) { return domain.has_full_cells_with_unf_bdry(); })
+        "has_facets_with_unf_bdry", [](const UnfDomain &domain) { return domain.has_facets_with_unf_bdry(); })
       .def(
         "get_full_cells",
         [&get_cells](const UnfDomain &domain,

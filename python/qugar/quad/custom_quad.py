@@ -17,6 +17,8 @@ from typing import NamedTuple, Optional, Protocol
 import numpy as np
 import numpy.typing as npt
 
+from qugar.mesh.mesh_facets import MeshFacets
+
 
 class CellState(Enum):
     cut = 1
@@ -77,11 +79,9 @@ class CustomQuadFacet(NamedTuple):
     coordinate, while for for tetrahedra or hexahedra they will have 2.
 
     Parameters:
-        cells (npt.NDArray[np.int32]): Array of cell ids to which the
-            quadrature points and weights are associated to.
-            This is a unique array. The ids are local to the MPI rank.
-        facets (npt.NDArray[np.int32]): Array of local facet ids for
-            every cell index in the `cells` array.
+        facest (MeshFacets): Mesh facets object that stores the
+            information of the facets. The facets are local
+            to the MPI rank.
         n_pts_per_entity (npt.NDArray[np.int32]): Array indicating the
             number of quadrature points and weights for every facet.
         points (npt.NDArray[np.float64]): Array of custom quadrature
@@ -96,8 +96,7 @@ class CustomQuadFacet(NamedTuple):
 
     """
 
-    cells: npt.NDArray[np.int32]
-    facets: npt.NDArray[np.int32]
+    facets: MeshFacets
     n_pts_per_entity: npt.NDArray[np.int32]
     points: npt.NDArray[np.float64]
     weights: npt.NDArray[np.float64]
@@ -225,8 +224,7 @@ class QuadGenerator(Protocol):
     def create_quad_custom_facets(
         self,
         degree: int,
-        dlf_cells: npt.NDArray[np.int32],
-        dlf_local_facets: npt.NDArray[np.int32],
+        dlf_facets: MeshFacets,
         integral_type: str,
         tag: Optional[int] = None,
     ) -> CustomQuadFacet:
@@ -253,20 +251,9 @@ class QuadGenerator(Protocol):
             degree (int): Expected degree of exactness of the quadrature
                 to be generated.
 
-            dlf_cells (npt.NDArray[np.int32]): Array of DOLFINx cell ids
-                (local to current MPI process) for which quadratures
-                will be generated. It must only contain cells with
-                unfitted boundaries. Beyond a cell id, for indentifying
-                a facet, a local facet id (from the array
-                `local_facets`) is also needed.
-
-            dlf_local_facets (npt.NDArray[np.int32]): Array of local facet
-                ids for which the custom quadratures are generated. Each
-                facet is identified through a value in `cells` and a
-                value in `local_facets`, having both arrays the same
-                length. The numbering of these facets follows the
-                FEniCSx convention. See
-                https://github.com/FEniCS/basix/#supported-elements
+            dlf_facets (MeshFacets): Mesh facets object that stores the
+                information of the facets. The facets are local
+                to the MPI rank.
 
             integral_type (str): Type of integral to be computed. It can
                 be either 'interior_facet' or 'exterior_facet'.

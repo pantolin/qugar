@@ -72,9 +72,11 @@ template<int dim> std::size_t UnfittedDomain<dim>::get_num_cut_cells() const
   return this->kd_tree_->get_num_cells(ImmersedCellStatus::cut);
 }
 
-template<int dim> bool UnfittedDomain<dim>::has_full_cells_with_unf_bdry() const
+template<int dim> bool UnfittedDomain<dim>::has_facets_with_unf_bdry() const
 {
-  return !this->full_cells_with_unf_bdry_.empty();
+  return std::ranges::any_of(this->facets_status_, [](const auto &pair) {
+    return std::ranges::any_of(pair.second, [](const auto &status) { return has_unfitted_boundary(status); });
+  });
 }
 
 template<int dim> void UnfittedDomain<dim>::get_full_cells(std::vector<std::int64_t> &cell_ids) const

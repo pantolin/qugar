@@ -123,11 +123,29 @@ TEST_CASE("Schwarz-Diamond 2D function quadrature", "[impl]")
   // NOLINTNEXTLINE (bugprone-chained-comparison)
   REQUIRE(unf_bound_quad->points.size() == 0);
 
-  const auto facet_quad =
-    create_exterior_facets_quadrature<2>(unf_domain, cut_facets_cells, cut_facets_local_facets_ids, n_pts_dir);
+  auto facet_quad =
+    create_facets_quadrature_exterior_integral<2>(unf_domain, cut_facets_cells, cut_facets_local_facets_ids, n_pts_dir);
   // NOLINTNEXTLINE (bugprone-chained-comparison)
-  REQUIRE(false);// To be fixed
   REQUIRE(facet_quad->points.size() == 0);
+
+  facet_quad = create_facets_quadrature_exterior_integral<2>(
+    unf_domain, full_unfitted_facets_cells, full_unfitted_facets_local_facets_ids, n_pts_dir);
+  // NOLINTNEXTLINE (bugprone-chained-comparison)
+  REQUIRE(facet_quad->points.size() == 144);
+
+  auto facet_centroid = compute_points_centroid<1>(facet_quad->points, facet_quad->weights);
+  const Point<1> target_facet_centroid(0.5);
+  // NOLINTNEXTLINE (cppcoreguidelines-avoid-do-while)
+  REQUIRE(tol.coincident(facet_centroid, target_facet_centroid));
+
+  facet_quad = create_facets_quadrature_exterior_integral<2>(
+    unf_domain, unfitted_facets_cells, unfitted_facets_local_facets_ids, n_pts_dir);
+  // NOLINTNEXTLINE (bugprone-chained-comparison)
+  REQUIRE(facet_quad->points.size() == 144);
+
+  facet_centroid = compute_points_centroid<1>(facet_quad->points, facet_quad->weights);
+  // NOLINTNEXTLINE (cppcoreguidelines-avoid-do-while)
+  REQUIRE(tol.coincident(facet_centroid, target_facet_centroid));
 }
 
 
@@ -204,7 +222,7 @@ TEST_CASE("Schoen Gyroid 2D function quadrature", "[impl]")
   REQUIRE(tol.coincident(unf_bound_centroid, target_unf_bound_centroid));
 
   const auto facet_quad =
-    create_exterior_facets_quadrature<2>(unf_domain, cut_facets_cells, cut_facets_local_facets_ids, n_pts_dir);
+    create_facets_quadrature_exterior_integral<2>(unf_domain, cut_facets_cells, cut_facets_local_facets_ids, n_pts_dir);
   // NOLINTNEXTLINE (bugprone-chained-comparison)
   REQUIRE(facet_quad->points.size() == 0);
 
@@ -277,7 +295,7 @@ TEST_CASE("General function quadrature", "[impl]")
   REQUIRE(tol.coincident(unf_bound_centroid, target_unf_bound_centroid));
 
   const auto facet_quad =
-    create_exterior_facets_quadrature<3>(unf_domain, cut_facets_cells, cut_facets_local_facets_ids, n_pts_dir);
+    create_facets_quadrature_exterior_integral<3>(unf_domain, cut_facets_cells, cut_facets_local_facets_ids, n_pts_dir);
   // NOLINTNEXTLINE (bugprone-chained-comparison)
   REQUIRE(facet_quad->points.size() == 4626);
 
