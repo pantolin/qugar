@@ -308,14 +308,14 @@ class MeshFacets:
 
 
 def create_facets_from_ids(
-    mesh: Mesh,
+    mesh: dolfinx.mesh.Mesh,
     facet_ids: npt.NDArray[np.int32],
     single_interior_facet: bool = False,
 ) -> MeshFacets:
     """Creates a MeshFacets instance from facet ids of a DOLFINx mesh.
 
     Args:
-        mesh (Mesh): The mesh.
+        mesh (dolfinx.mesh.Mesh): The mesh.
         facet_ids (npt.NDArray[np.int32]): Array of facet ids.
         single_interior_facet (bool): If `True`, only one cell and
             local facet is returned for each interior facet. If
@@ -369,11 +369,11 @@ def create_facets_from_ids(
     )
 
 
-def create_facet_manager_exterior(mesh: Mesh) -> MeshFacets:
+def create_facet_manager_exterior(mesh: dolfinx.mesh.Mesh) -> MeshFacets:
     """Creates a MeshFacets instance including only the exterior facets of the mesh.
 
     Args:
-        mesh (Mesh): The mesh.
+        mesh (dolfinx.mesh.Mesh): The mesh.
 
     Returns:
         MeshFacets: A MeshFacets instance with exterior facets.
@@ -389,7 +389,7 @@ def create_facet_manager_interior(mesh: Mesh, single_interior_facet: bool = Fals
     """Creates a MeshFacets instance including only the interior facets of the mesh.
 
     Args:
-        mesh (Mesh): The mesh.
+        mesh (dolfinx.mesh.Mesh): The mesh.
         single_interior_facet (bool): If `True`, only one cell and
             local facet is returned for each interior facet. If
             `False`, both cells and local facets are returned.
@@ -415,11 +415,13 @@ def create_facet_manager_interior(mesh: Mesh, single_interior_facet: bool = Fals
     return create_facets_from_ids(mesh, int_facets, single_interior_facet)
 
 
-def create_facet_manager_all(mesh: Mesh, single_interior_facet: bool = False) -> MeshFacets:
+def create_facet_manager_all(
+    mesh: dolfinx.mesh.Mesh, single_interior_facet: bool = False
+) -> MeshFacets:
     """Creates a MeshFacets instance including all the facets of the mesh.
 
     Args:
-        mesh (Mesh): The mesh.
+        mesh (dolfinx.mesh.Mesh): The mesh.
         single_interior_facet (bool): If `True`, only one cell and
             local facet is returned for each interior facet. If
             `False`, both cells and local facets are returned.
