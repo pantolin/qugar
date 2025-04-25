@@ -115,7 +115,7 @@ class UnfittedDomainABC(ABC):
         self,
         exterior_integral: bool = True,
     ) -> MeshFacets:
-        """Gets the cut facets as a FacetManager object following
+        """Gets the cut facets as a MeshFacets object following
         the DOLFINx local numbering.
 
         The list of facets will be filtered for exterior or interior
@@ -145,10 +145,7 @@ class UnfittedDomainABC(ABC):
                 (see note above).
 
         Returns:
-            FacetManager: Cut facets. The facets are returned as one
-            array of cells and another one of local facets referred to
-            those cells both with the same length and both following
-            (local) DOLFINx ordering.
+            MeshFacets: Cut facets (following DOLFINx local ordering).
         """
         pass
 
@@ -157,7 +154,7 @@ class UnfittedDomainABC(ABC):
         self,
         exterior_integral: bool = True,
     ) -> MeshFacets:
-        """Gets the full facets as a FacetManager object following
+        """Gets the full facets as a MeshFacets object following
         the DOLFINx local numbering.
 
         The list of facets will be filtered for exterior or interior
@@ -184,10 +181,7 @@ class UnfittedDomainABC(ABC):
                 (see note above).
 
         Returns:
-            FacetManager: Full facets. The facets are returned as one
-            array of cells and another one of local facets referred to
-            those cells both with the same length and both following
-            (local) DOLFINx ordering.
+            MeshFacets: Full facets (following DOLFINx local ordering).
         """
         pass
 
@@ -196,7 +190,7 @@ class UnfittedDomainABC(ABC):
         self,
         exterior_integral: bool = True,
     ) -> MeshFacets:
-        """Gets the empty facets as a FacetManager object following
+        """Gets the empty facets as a MeshFacets object following
         the DOLFINx local numbering.
 
         The list of facets will be filtered to only exterior or interior
@@ -224,10 +218,7 @@ class UnfittedDomainABC(ABC):
                 (see note above).
 
         Returns:
-            FacetManager: Empty facets. The facets are returned as one
-            array of cells and another one of local facets referred to
-            those cells both with the same length and both following
-            (local) DOLFINx ordering.
+            MeshFacets: Empty facets (following DOLFINx local ordering).
         """
         pass
 
@@ -256,7 +247,7 @@ class UnfittedDomainABC(ABC):
                 (see note above).
 
         Returns:
-            FacetManager: All facets.
+            MeshFacets: All facets (following DOLFINx local ordering).
         """
 
         ext_facets = self.get_cut_facets(exterior_integral=True)
@@ -368,8 +359,9 @@ class UnfittedDomainABC(ABC):
         Args:
             degree (int): Expected degree of exactness of the quadrature
                 to be generated.
-            dlf_facets (MeshFacets): FacetManager object containing the
-               DOLFINx (local) facets as a pairs of cells and local facet ids.
+            dlf_facets (MeshFacets): MeshFacets object containing the
+                DOLFINx (local) facets for which quadratures will be
+                generated.
             exterior_integral (bool): Whether exterior integrals are
                 to be computed using the generated quadratures.
                 If `True`, the quadrature will be generated for the

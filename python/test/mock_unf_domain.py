@@ -413,8 +413,9 @@ class MockUnfittedDomain(UnfittedDomainABC):
         Args:
             degree (int): Expected degree of exactness of the quadrature
                 to be generated.
-            dlf_facets (MeshFacets): FacetManager object containing the
-               DOLFINx (local) facets as a pairs of cells and local facet ids.
+            dlf_facets (MeshFacets): MeshFacets object containing the
+                DOLFINx (local) facets for which quadratures will be
+                generated.
             exterior_integral (bool): If `True` the quadratures will be generated
                 considering the given facets as exterior facets.
                 Otherwise, as interior.
@@ -483,7 +484,7 @@ class MockUnfittedDomain(UnfittedDomainABC):
         self,
         exterior_integral: bool = True,
     ) -> MeshFacets:
-        """Gets the cut facets as a FacetManager object following
+        """Gets the cut facets as a MeshFacets object following
         the DOLFINx local numbering.
 
         Args:
@@ -492,10 +493,7 @@ class MockUnfittedDomain(UnfittedDomainABC):
                 (see note above).
 
         Returns:
-            FacetManager: Cut facets. The facets are returned as one
-            array of cells and another one of local facets referred to
-            those cells both with the same length and both following
-            (local) DOLFINx ordering.
+            MeshFacets: Cut facets (following DOLFINx local ordering).
         """
         return MeshFacets(self._custom_facet_cells_ids, self._custom_facet_local_facets_ids)
 
@@ -503,9 +501,8 @@ class MockUnfittedDomain(UnfittedDomainABC):
         self,
         exterior_integral: bool = True,
     ) -> MeshFacets:
-        """Gets the full facets as a FacetManager object following
+        """Gets the full facets as a MeshFacets object following
         the DOLFINx local numbering.
-
 
         Args:
             exterior_integral (bool): Whether the list of facets is
@@ -513,10 +510,7 @@ class MockUnfittedDomain(UnfittedDomainABC):
                 (see note above).
 
         Returns:
-            FacetManager: Full facets. The facets are returned as one
-            array of cells and another one of local facets referred to
-            those cells both with the same length and both following
-            (local) DOLFINx ordering.
+            MeshFacets: Full facets (following DOLFINx local ordering).
         """
         pass
         assert False, "This method is not implemented yet."
@@ -525,23 +519,8 @@ class MockUnfittedDomain(UnfittedDomainABC):
         self,
         exterior_integral: bool = True,
     ) -> MeshFacets:
-        """Gets the empty facets as a FacetManager object following
+        """Gets the empty facets as a MeshFacets object following
         the DOLFINx local numbering.
-
-        The list of facets will be filtered to only exterior or interior
-        facets according to the argument `exterior`.
-
-        Note:
-            The selection of facets is performed differently depending
-            on whether exterior or interior integrals are to be
-            computed.
-            For interior integrals we consider interior facets (shared
-            by two cells) that are not contained in the domain (they
-            may be contained (fully or partially) in the unfitted
-            boundary).
-            For exterior integrals we consider exterior facets (that
-            belong to a single cell) that are not contained in the
-            domain or its boundary.
 
         Note:
             This is an abstract method and should be implemented in
@@ -553,9 +532,6 @@ class MockUnfittedDomain(UnfittedDomainABC):
                 (see note above).
 
         Returns:
-            FacetManager: Empty facets. The facets are returned as one
-            array of cells and another one of local facets referred to
-            those cells both with the same length and both following
-            (local) DOLFINx ordering.
+            MeshFacets: Empty facets (following DOLFINx local ordering).
         """
         return MeshFacets(self._empty_facet_cells_ids, self._empty_facet_local_facets_ids)
