@@ -8,7 +8,7 @@
 #
 # --------------------------------------------------------------------------
 
-from typing import Callable, Optional, Tuple, cast
+from typing import Callable, Optional, cast
 
 from qugar import has_FEniCSx
 
@@ -33,33 +33,6 @@ from qugar.quad.custom_quad import (
     CustomQuadFacet,
     CustomQuadUnfBoundary,
 )
-
-
-def _sort_facets(
-    cell_ids: npt.NDArray[np.int32], local_facet_ids: npt.NDArray[np.int32]
-) -> Tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]:
-    """Sorts facets based on cell ids and local facet ids.
-
-    The sorting is performed first based on cell ids (increasing order)
-    and then based on local facet ids (increasing order).
-
-    Args:
-        cell_ids (npt.NDArray[np.int32]): Array of cell ids.
-        local_facet_ids (npt.NDArray[np.int32]): Array of local facet ids.
-
-    Returns:
-        Tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]:
-        Sorted cell ids and local facet ids.
-    """
-    # Use lexsort to sort primarily by cell_ids and secondarily by local_facet_ids
-    # Note: lexsort sorts by the last key first, so we provide local_facet_ids then cell_ids
-    sorted_indices = np.lexsort((local_facet_ids, cell_ids))
-
-    # Apply the sorted indices to both arrays
-    sorted_cell_ids = cell_ids[sorted_indices]
-    sorted_local_facet_ids = local_facet_ids[sorted_indices]
-
-    return sorted_cell_ids, sorted_local_facet_ids
 
 
 class UnfittedDomain(UnfittedDomainABC):
