@@ -13,7 +13,6 @@ MeshFacets: A helper class for managing facets of DOLFINx meshes.
 
 This module provides the following functionalities:
 
-- Sorting facets by cell and local facet IDs.
 - Concatenating facets from multiple instances.
 - Computing intersections and differences of facets.
 - Keeping unique facets.
@@ -86,9 +85,9 @@ class MeshFacets:
     ):
         """Initializes the MeshFacets with arrays of cell ids and local facet ids.
 
-        In principle, the generated list of facets (cells and local facets) is neither sorted
-        nor unique. The user can choose apply the methods `sort` and `unique` to
-        sort the list and/or make it unique.
+        In principle, the generated list of facets (cells and local facets) is not unique
+        nor unique. The user can remove duplicates
+        by calling the method `unique`.
 
         Args:
             cell_ids (npt.NDArray[np.int_]): Array of cell ids (can be np.int32 or np.int64).
@@ -120,12 +119,6 @@ class MeshFacets:
     def local_facet_ids(self) -> npt.NDArray[np.int32]:
         """Gets the local facet ids."""
         return self._local_facet_ids
-
-    def sort(self):
-        """Sorts the facets first by cell id and then by local facet id."""
-        sorted_indices = np.lexsort((self._local_facet_ids, self._cell_ids))
-        self._cell_ids = self._cell_ids[sorted_indices]
-        self._local_facet_ids = self._local_facet_ids[sorted_indices]
 
     def unique(self):
         """Keeps only unique facets."""
@@ -328,7 +321,7 @@ def create_facets_from_ids(
 
     Returns:
         MeshFacets: A MeshFacets instance with the specified facet ids.
-        The entries in the manager are sorted and unique.
+        The entries in the manager are unique.
     """
 
     # TODO: this implementation can be likely improved.

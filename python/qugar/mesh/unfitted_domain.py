@@ -244,7 +244,6 @@ class UnfittedDomain(UnfittedDomainABC):
         )
 
         dlf_facets = MeshFacets(*filtered_facets).to_DOLFINx(self._mesh)
-        dlf_facets.sort()
 
         return dlf_facets
 
@@ -288,7 +287,6 @@ class UnfittedDomain(UnfittedDomainABC):
                     self._exterior_cut_facets = self._exterior_cut_facets.concatenate(
                         unf_partial_facets
                     )
-                    self._exterior_cut_facets.sort()
                     self._exterior_cut_facets.unique()
 
         return self._exterior_cut_facets
@@ -387,7 +385,6 @@ class UnfittedDomain(UnfittedDomainABC):
             )
             if not unf_full_facets.empty:
                 self._exterior_full_facets = self._exterior_full_facets.concatenate(unf_full_facets)
-                self._exterior_full_facets.sort()
                 self._exterior_full_facets.unique()
 
         return self._exterior_full_facets
@@ -525,7 +522,6 @@ class UnfittedDomain(UnfittedDomainABC):
                     self._interior_cut_facets = self._interior_empty_facets.concatenate(
                         unf_non_cut_facets
                     )
-                    self._interior_cut_facets.sort()
                     self._interior_cut_facets.unique()
 
         return self._interior_empty_facets
