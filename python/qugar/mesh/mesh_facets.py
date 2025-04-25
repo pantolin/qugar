@@ -378,7 +378,9 @@ def create_facet_manager_exterior(mesh: dolfinx.mesh.Mesh) -> MeshFacets:
     return create_facets_from_ids(mesh, facet_ids, single_interior_facet=True)
 
 
-def create_facet_manager_interior(mesh: Mesh, single_interior_facet: bool = False) -> MeshFacets:
+def create_facet_manager_interior(
+    mesh: dolfinx.mesh.Mesh, single_interior_facet: bool = False
+) -> MeshFacets:
     """Creates a MeshFacets instance including only the interior facets of the mesh.
 
     Args:
