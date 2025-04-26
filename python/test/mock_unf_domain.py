@@ -22,7 +22,11 @@ import numpy as np
 import numpy.typing as npt
 from ffcx.ir.representationutils import create_quadrature_points_and_weights
 
-from qugar.mesh.mesh_facets import MeshFacets
+from qugar.mesh.mesh_facets import (
+    MeshFacets,
+    create_exterior_mesh_facets,
+    create_interior_mesh_facets,
+)
 from qugar.mesh.unfitted_domain_abc import UnfittedDomainABC
 from qugar.quad import CustomQuad, CustomQuadFacet, CustomQuadUnfBoundary
 

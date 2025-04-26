@@ -23,7 +23,7 @@ import numpy.typing as npt
 from dolfinx.mesh import MeshTags, meshtags
 
 from qugar import has_FEniCSx
-from qugar.mesh.mesh_facets import MeshFacets, create_facet_manager_all
+from qugar.mesh.mesh_facets import MeshFacets, create_all_mesh_facets
 from qugar.quad.custom_quad import (
     CustomQuad,
     CustomQuadFacet,
@@ -257,7 +257,7 @@ class UnfittedDomainABC(ABC):
         if exterior_integral:
             return ext_facets
         else:
-            all_facets = create_facet_manager_all(self._mesh, single_interior_facet=False)
+            all_facets = create_all_mesh_facets(self._mesh, single_interior_facet=False)
             return all_facets.difference(ext_facets)
 
     @abstractmethod

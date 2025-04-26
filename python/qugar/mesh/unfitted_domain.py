@@ -23,9 +23,9 @@ from qugar.cpp import UnfittedDomain_2D, UnfittedDomain_3D
 from qugar.mesh.mesh import Mesh
 from qugar.mesh.mesh_facets import (
     MeshFacets,
-    create_facet_manager_all,
-    create_facet_manager_exterior,
-    create_facet_manager_interior,
+    create_all_mesh_facets,
+    create_exterior_mesh_facets,
+    create_interior_mesh_facets,
 )
 from qugar.mesh.unfitted_domain_abc import UnfittedDomainABC
 from qugar.quad.custom_quad import (
@@ -195,11 +195,11 @@ class UnfittedDomain(UnfittedDomainABC):
         if facets_type is not None:
             assert facets_type in ["interior", "exterior"], "Invalid facets type."
             if facets_type == "interior":
-                facets = create_facet_manager_interior(self._mesh, single_interior_facet=False)
+                facets = create_interior_mesh_facets(self._mesh, single_interior_facet=False)
             else:
-                facets = create_facet_manager_exterior(self._mesh)
+                facets = create_exterior_mesh_facets(self._mesh)
         else:
-            facets = create_facet_manager_all(self._mesh, single_interior_facet=False)
+            facets = create_all_mesh_facets(self._mesh, single_interior_facet=False)
 
         orig_facets = facets.to_original(self._mesh)
 

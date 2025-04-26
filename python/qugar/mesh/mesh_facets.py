@@ -362,7 +362,7 @@ def create_facets_from_ids(
     )
 
 
-def create_facet_manager_exterior(mesh: dolfinx.mesh.Mesh) -> MeshFacets:
+def create_exterior_mesh_facets(mesh: dolfinx.mesh.Mesh) -> MeshFacets:
     """Creates a MeshFacets instance including only the exterior facets of the mesh.
 
     Args:
@@ -378,7 +378,7 @@ def create_facet_manager_exterior(mesh: dolfinx.mesh.Mesh) -> MeshFacets:
     return create_facets_from_ids(mesh, facet_ids, single_interior_facet=True)
 
 
-def create_facet_manager_interior(
+def create_interior_mesh_facets(
     mesh: dolfinx.mesh.Mesh, single_interior_facet: bool = False
 ) -> MeshFacets:
     """Creates a MeshFacets instance including only the interior facets of the mesh.
@@ -410,7 +410,7 @@ def create_facet_manager_interior(
     return create_facets_from_ids(mesh, int_facets, single_interior_facet)
 
 
-def create_facet_manager_all(
+def create_all_mesh_facets(
     mesh: dolfinx.mesh.Mesh, single_interior_facet: bool = False
 ) -> MeshFacets:
     """Creates a MeshFacets instance including all the facets of the mesh.
