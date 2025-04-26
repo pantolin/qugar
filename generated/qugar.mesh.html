@@ -1296,18 +1296,9 @@ the fly, what can be potentially expensive.</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>degree</strong> (<em>int</em>) – Expected degree of exactness of the quadrature
 to be generated.</p></li>
-<li><p><strong>dlf_cells</strong> (<em>npt.NDArray</em><em>[</em><em>np.int32</em><em>]</em>) – Array of DOLFINx cell ids
-(local to current MPI process) for which quadratures
-will be generated. Beyond a cell id, for indentifying
-a facet, a local facet id (from the array
-<cite>local_faces</cite>) is also needed.</p></li>
-<li><p><strong>dlf_local_faces</strong> (<em>npt.NDArray</em><em>[</em><em>np.int32</em><em>]</em>) – Array of local face
-ids for which the custom quadratures are generated. Each
-facet is identified through a value in <cite>cells</cite> and a
-value in <cite>local_faces</cite>, having both arrays the same
-length. The numbering of these facets follows the
-FEniCSx convention. See
-<a class="reference external" href="https://github.com/FEniCS/basix/#supported-elements">https://github.com/FEniCS/basix/#supported-elements</a></p></li>
+<li><p><strong>dlf_facets</strong> (<em>MeshFacets</em>) – MeshFacets object containing the
+DOLFINx (local) facets for which quadratures will be
+generated.</p></li>
 <li><p><strong>exterior_integral</strong> (<em>bool</em>) – Whether exterior integrals are
 to be computed using the generated quadratures.
 If <cite>True</cite>, the quadrature will be generated for the
@@ -1390,7 +1381,8 @@ The cell ids are sorted.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="qugar.mesh.UnfittedDomain.get_cut_facets">
 <span class="sig-name descname"><span class="pre">get_cut_facets</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">exterior_integral</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">MeshFacets</span></span></span><a class="reference internal" href="../_modules/qugar/mesh/unfitted_domain.html#UnfittedDomain.get_cut_facets"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qugar.mesh.UnfittedDomain.get_cut_facets" title="Link to this definition"></a></dt>
-<dd><p>Gets the cut facets as a FacetManager object.</p>
+<dd><p>Gets the cut facets as a MeshFacets object following
+the DOLFINx local numbering.</p>
 <p>The list of facets will be filtered for exterior or interior
 integrals according to the argument <cite>exterior_integral</cite>.</p>
 <div class="admonition note">
@@ -1415,13 +1407,10 @@ retrieved for computing exterior or interior integrals
 (see note above).</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Cut facets. The facets are returned as one array of
-cells and another one of local facets referred to those
-cells both with the same length and both following (local
-DOLFINx ordering.</p>
+<dd class="field-even"><p>Cut facets (following DOLFINx local ordering).</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]</p>
+<dd class="field-odd"><p>MeshFacets</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1445,7 +1434,8 @@ The cell ids are sorted.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="qugar.mesh.UnfittedDomain.get_empty_facets">
 <span class="sig-name descname"><span class="pre">get_empty_facets</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">exterior_integral</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">MeshFacets</span></span></span><a class="reference internal" href="../_modules/qugar/mesh/unfitted_domain.html#UnfittedDomain.get_empty_facets"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qugar.mesh.UnfittedDomain.get_empty_facets" title="Link to this definition"></a></dt>
-<dd><p>Gets the empty facets as a FacetManager object</p>
+<dd><p>Gets the empty facets as a MeshFacets object following
+the DOLFINx local numbering.</p>
 <p>The list of facets will be filtered to only exterior or interior
 facets according to the argument <cite>exterior</cite>.</p>
 <div class="admonition note">
@@ -1468,13 +1458,10 @@ retrieved for computing exterior or interior integrals
 (see note above).</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Empty facets. The facets are returned as one array of
-cells and another one of local facets referred to those
-cells both with the same length and both following (local)
-DOLFINx ordering.</p>
+<dd class="field-even"><p>Empty facets (following DOLFINx local ordering).</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]</p>
+<dd class="field-odd"><p>MeshFacets</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1498,7 +1485,8 @@ The cell ids are sorted.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="qugar.mesh.UnfittedDomain.get_full_facets">
 <span class="sig-name descname"><span class="pre">get_full_facets</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">exterior_integral</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">MeshFacets</span></span></span><a class="reference internal" href="../_modules/qugar/mesh/unfitted_domain.html#UnfittedDomain.get_full_facets"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qugar.mesh.UnfittedDomain.get_full_facets" title="Link to this definition"></a></dt>
-<dd><p>Gets the full facets as a FacetManager object.</p>
+<dd><p>Gets the full facets as a MeshFacets object following
+the DOLFINx local numbering.</p>
 <p>The list of facets will be filtered for exterior or interior
 integrals according to the argument <cite>exterior_integral</cite>.</p>
 <div class="admonition note">
@@ -1520,13 +1508,10 @@ retrieved for computing exterior or interior integrals
 (see note above).</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Full facets. The facets are returned as one array of
-cells and another one of local facets referred to those
-cells both with the same length and both following (local
-DOLFINx ordering.</p>
+<dd class="field-even"><p>Full facets (following DOLFINx local ordering).</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]</p>
+<dd class="field-odd"><p>MeshFacets</p>
 </dd>
 </dl>
 </dd></dl>

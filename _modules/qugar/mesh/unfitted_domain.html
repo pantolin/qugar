@@ -86,7 +86,7 @@
 <span class="c1">#</span>
 <span class="c1"># --------------------------------------------------------------------------</span>
 
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">cast</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">cast</span>
 
 <span class="kn">from</span> <span class="nn">qugar</span> <span class="kn">import</span> <span class="n">has_FEniCSx</span>
 
@@ -101,9 +101,9 @@
 <span class="kn">from</span> <span class="nn">qugar.mesh.mesh</span> <span class="kn">import</span> <span class="n">Mesh</span>
 <span class="kn">from</span> <span class="nn">qugar.mesh.mesh_facets</span> <span class="kn">import</span> <span class="p">(</span>
     <span class="n">MeshFacets</span><span class="p">,</span>
-    <span class="n">create_facet_manager_all</span><span class="p">,</span>
-    <span class="n">create_facet_manager_exterior</span><span class="p">,</span>
-    <span class="n">create_facet_manager_interior</span><span class="p">,</span>
+    <span class="n">create_all_mesh_facets</span><span class="p">,</span>
+    <span class="n">create_exterior_mesh_facets</span><span class="p">,</span>
+    <span class="n">create_interior_mesh_facets</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="kn">from</span> <span class="nn">qugar.mesh.unfitted_domain_abc</span> <span class="kn">import</span> <span class="n">UnfittedDomainABC</span>
 <span class="kn">from</span> <span class="nn">qugar.quad.custom_quad</span> <span class="kn">import</span> <span class="p">(</span>
@@ -111,33 +111,6 @@
     <span class="n">CustomQuadFacet</span><span class="p">,</span>
     <span class="n">CustomQuadUnfBoundary</span><span class="p">,</span>
 <span class="p">)</span>
-
-
-<span class="k">def</span> <span class="nf">_sort_facets</span><span class="p">(</span>
-    <span class="n">cell_ids</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">],</span> <span class="n">local_facet_ids</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">]</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">],</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">]]:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Sorts facets based on cell ids and local facet ids.</span>
-
-<span class="sd">    The sorting is performed first based on cell ids (increasing order)</span>
-<span class="sd">    and then based on local facet ids (increasing order).</span>
-
-<span class="sd">    Args:</span>
-<span class="sd">        cell_ids (npt.NDArray[np.int32]): Array of cell ids.</span>
-<span class="sd">        local_facet_ids (npt.NDArray[np.int32]): Array of local facet ids.</span>
-
-<span class="sd">    Returns:</span>
-<span class="sd">        Tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]:</span>
-<span class="sd">        Sorted cell ids and local facet ids.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c1"># Use lexsort to sort primarily by cell_ids and secondarily by local_facet_ids</span>
-    <span class="c1"># Note: lexsort sorts by the last key first, so we provide local_facet_ids then cell_ids</span>
-    <span class="n">sorted_indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">lexsort</span><span class="p">((</span><span class="n">local_facet_ids</span><span class="p">,</span> <span class="n">cell_ids</span><span class="p">))</span>
-
-    <span class="c1"># Apply the sorted indices to both arrays</span>
-    <span class="n">sorted_cell_ids</span> <span class="o">=</span> <span class="n">cell_ids</span><span class="p">[</span><span class="n">sorted_indices</span><span class="p">]</span>
-    <span class="n">sorted_local_facet_ids</span> <span class="o">=</span> <span class="n">local_facet_ids</span><span class="p">[</span><span class="n">sorted_indices</span><span class="p">]</span>
-
-    <span class="k">return</span> <span class="n">sorted_cell_ids</span><span class="p">,</span> <span class="n">sorted_local_facet_ids</span>
 
 
 <div class="viewcode-block" id="UnfittedDomain">
@@ -291,13 +264,6 @@
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MeshFacets</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Retrieves and filters mesh facets using a custom filtering function.</span>
 
-<span class="sd">        This internal method orchestrates the process of selecting facets based on</span>
-<span class="sd">        their type (all, interior, or exterior), transforming them into a</span>
-<span class="sd">        representation based on original cell IDs and lexicographical local facet</span>
-<span class="sd">        IDs, applying a user-provided filtering function (`facets_getter`) on this</span>
-<span class="sd">        representation, and finally converting the filtered facets back to the</span>
-<span class="sd">        standard DOLFINx local cell and facet indices.</span>
-
 <span class="sd">        Args:</span>
 <span class="sd">            facets_getter: A callable that accepts two optional NumPy arrays</span>
 <span class="sd">                (original cell IDs `np.int64`, original lexicographical local</span>
@@ -312,18 +278,17 @@
 <span class="sd">                  to a single cell).</span>
 
 <span class="sd">        Returns:</span>
-<span class="sd">            FacetManager: A `FacetManager` instance containing the filtered facets,</span>
-<span class="sd">                represented by DOLFINx local cell indices and local facet indices,</span>
-<span class="sd">                sorted lexicographically.</span>
+<span class="sd">            MeshFacets: A `MeshFacets` instance containing the filtered facets,</span>
+<span class="sd">                following DOLFINx local ordering.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">facets_type</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">assert</span> <span class="n">facets_type</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;interior&quot;</span><span class="p">,</span> <span class="s2">&quot;exterior&quot;</span><span class="p">],</span> <span class="s2">&quot;Invalid facets type.&quot;</span>
             <span class="k">if</span> <span class="n">facets_type</span> <span class="o">==</span> <span class="s2">&quot;interior&quot;</span><span class="p">:</span>
-                <span class="n">facets</span> <span class="o">=</span> <span class="n">create_facet_manager_interior</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_mesh</span><span class="p">,</span> <span class="n">single_interior_facet</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+                <span class="n">facets</span> <span class="o">=</span> <span class="n">create_interior_mesh_facets</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_mesh</span><span class="p">,</span> <span class="n">single_interior_facet</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">facets</span> <span class="o">=</span> <span class="n">create_facet_manager_exterior</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_mesh</span><span class="p">)</span>
+                <span class="n">facets</span> <span class="o">=</span> <span class="n">create_exterior_mesh_facets</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_mesh</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">facets</span> <span class="o">=</span> <span class="n">create_facet_manager_all</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_mesh</span><span class="p">,</span> <span class="n">single_interior_facet</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="n">facets</span> <span class="o">=</span> <span class="n">create_all_mesh_facets</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_mesh</span><span class="p">,</span> <span class="n">single_interior_facet</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
         <span class="n">orig_facets</span> <span class="o">=</span> <span class="n">facets</span><span class="o">.</span><span class="n">to_original</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_mesh</span><span class="p">)</span>
 
@@ -333,12 +298,11 @@
         <span class="p">)</span>
 
         <span class="n">dlf_facets</span> <span class="o">=</span> <span class="n">MeshFacets</span><span class="p">(</span><span class="o">*</span><span class="n">filtered_facets</span><span class="p">)</span><span class="o">.</span><span class="n">to_DOLFINx</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_mesh</span><span class="p">)</span>
-        <span class="n">dlf_facets</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
 
         <span class="k">return</span> <span class="n">dlf_facets</span>
 
     <span class="k">def</span> <span class="nf">_get_cut_facets_ext_integral</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MeshFacets</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Gets the cut facets as a FacetManager object for exterior integrals.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Gets the cut facets as a MeshFacets object for exterior integrals.</span>
 
 <span class="sd">        Here we consider either interior or exterior (that belong to a</span>
 <span class="sd">        single cell) facets that partially belong to the domain&#39;s</span>
@@ -347,11 +311,7 @@
 <span class="sd">        considered as full.</span>
 
 <span class="sd">        Returns:</span>
-<span class="sd">            tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]:</span>
-<span class="sd">            Cut facets. The facets are returned as one array of</span>
-<span class="sd">            cells and another one of local facets referred to those</span>
-<span class="sd">            cells both with the same length and both following (local</span>
-<span class="sd">            DOLFINx ordering.</span>
+<span class="sd">            MeshFacets: Cut (exterior integral) facets (following DOLFINx local ordering).</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_exterior_cut_facets</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -377,23 +337,18 @@
                     <span class="bp">self</span><span class="o">.</span><span class="n">_exterior_cut_facets</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_exterior_cut_facets</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span>
                         <span class="n">unf_partial_facets</span>
                     <span class="p">)</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">_exterior_cut_facets</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">_exterior_cut_facets</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span>
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_exterior_cut_facets</span>
 
     <span class="k">def</span> <span class="nf">_get_cut_facets_int_integral</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MeshFacets</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Gets the cut facets as a FacetManager object for interior integrals.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Gets the cut facets as a MeshFacets object for interior integrals.</span>
 
 <span class="sd">        Hwere we consider interior facets (shared by two cells) that are</span>
 <span class="sd">        cut (i.e., they are partially inside the domain).</span>
 
 <span class="sd">        Returns:</span>
-<span class="sd">            tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]:</span>
-<span class="sd">            Cut facets. The facets are returned as one array of</span>
-<span class="sd">            cells and another one of local facets referred to those</span>
-<span class="sd">            cells both with the same length and both following (local</span>
-<span class="sd">            DOLFINx ordering.</span>
+<span class="sd">            MeshFacets: Cut (interior integral) facets (following DOLFINx local ordering).</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_interior_cut_facets</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_interior_cut_facets</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_facets</span><span class="p">(</span>
@@ -409,7 +364,8 @@
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">exterior_integral</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MeshFacets</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Gets the cut facets as a FacetManager object.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Gets the cut facets as a MeshFacets object following</span>
+<span class="sd">        the DOLFINx local numbering.</span>
 
 <span class="sd">        The list of facets will be filtered for exterior or interior</span>
 <span class="sd">        integrals according to the argument `exterior_integral`.</span>
@@ -434,11 +390,7 @@
 <span class="sd">                (see note above).</span>
 
 <span class="sd">        Returns:</span>
-<span class="sd">            tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]:</span>
-<span class="sd">            Cut facets. The facets are returned as one array of</span>
-<span class="sd">            cells and another one of local facets referred to those</span>
-<span class="sd">            cells both with the same length and both following (local</span>
-<span class="sd">            DOLFINx ordering.</span>
+<span class="sd">            MeshFacets: Cut facets (following DOLFINx local ordering).</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">return</span> <span class="p">(</span>
@@ -449,7 +401,7 @@
 
 
     <span class="k">def</span> <span class="nf">_get_full_facets_ext_integral</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MeshFacets</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Gets the full facets as a FacetManager object for</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Gets the full facets as a MeshFacets object for</span>
 <span class="sd">        exterior integrals.</span>
 
 <span class="sd">        Here we consider facets (interior or exterior) that are fully</span>
@@ -457,11 +409,7 @@
 <span class="sd">        the unfitted boundary).</span>
 
 <span class="sd">        Returns:</span>
-<span class="sd">            tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]:</span>
-<span class="sd">            Full facets. The facets are returned as one array of</span>
-<span class="sd">            cells and another one of local facets referred to those</span>
-<span class="sd">            cells both with the same length and both following (local</span>
-<span class="sd">            DOLFINx ordering.</span>
+<span class="sd">            MeshFacets: Full (exterior integral) facets (following DOLFINx local ordering).</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_exterior_full_facets</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -479,13 +427,12 @@
             <span class="p">)</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">unf_full_facets</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_exterior_full_facets</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_exterior_full_facets</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span><span class="n">unf_full_facets</span><span class="p">)</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_exterior_full_facets</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_exterior_full_facets</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span>
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_exterior_full_facets</span>
 
     <span class="k">def</span> <span class="nf">_get_full_facets_int_integral</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MeshFacets</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Gets the full facets as a FacetManager object for</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Gets the full facets as a MeshFacets object for</span>
 <span class="sd">        interior integrals.</span>
 
 <span class="sd">        Here we consider interior facets (shared by two cells) that are</span>
@@ -493,11 +440,7 @@
 <span class="sd">        boundary).</span>
 
 <span class="sd">        Returns:</span>
-<span class="sd">            tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]:</span>
-<span class="sd">            Full facets. The facets are returned as one array of</span>
-<span class="sd">            cells and another one of local facets referred to those</span>
-<span class="sd">            cells both with the same length and both following (local</span>
-<span class="sd">            DOLFINx ordering.</span>
+<span class="sd">            MeshFacets: Full (interior integral) facets (following DOLFINx local ordering).</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_interior_full_facets</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -516,7 +459,8 @@
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">exterior_integral</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MeshFacets</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Gets the full facets as a FacetManager object.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Gets the full facets as a MeshFacets object following</span>
+<span class="sd">        the DOLFINx local numbering.</span>
 
 <span class="sd">        The list of facets will be filtered for exterior or interior</span>
 <span class="sd">        integrals according to the argument `exterior_integral`.</span>
@@ -538,11 +482,7 @@
 <span class="sd">                (see note above).</span>
 
 <span class="sd">        Returns:</span>
-<span class="sd">            tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]:</span>
-<span class="sd">            Full facets. The facets are returned as one array of</span>
-<span class="sd">            cells and another one of local facets referred to those</span>
-<span class="sd">            cells both with the same length and both following (local</span>
-<span class="sd">            DOLFINx ordering.</span>
+<span class="sd">            MeshFacets: Full facets (following DOLFINx local ordering).</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">return</span> <span class="p">(</span>
@@ -555,18 +495,14 @@
     <span class="k">def</span> <span class="nf">_get_empty_facets_ext_integral</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MeshFacets</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Gets the empty facets as a FacetManager object</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Gets the empty facets as a MeshFacets object</span>
 <span class="sd">        for exterior integrals.</span>
 
 <span class="sd">        Here we consider exterior facets (that belong to a single cell)</span>
 <span class="sd">        that are not contained in the domain or its boundary.</span>
 
 <span class="sd">        Returns:</span>
-<span class="sd">            tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]:</span>
-<span class="sd">            Empty facets. The facets are returned as one array of</span>
-<span class="sd">            cells and another one of local facets referred to those</span>
-<span class="sd">            cells both with the same length and both following (local)</span>
-<span class="sd">            DOLFINx ordering.</span>
+<span class="sd">            MeshFacets: Empty (exterior integral) facets (following DOLFINx local ordering).</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_exterior_empty_facets</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -581,7 +517,7 @@
     <span class="k">def</span> <span class="nf">_get_empty_facets_int_integral</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MeshFacets</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Gets the empty facets as a FacetManager object</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Gets the empty facets as a MeshFacets object</span>
 <span class="sd">        for interior integrals.</span>
 
 <span class="sd">        Here we consider interior facets (shared by two cells) that are</span>
@@ -589,11 +525,7 @@
 <span class="sd">        partially) in the unfitted boundary).</span>
 
 <span class="sd">        Returns:</span>
-<span class="sd">            tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]:</span>
-<span class="sd">            Empty facets. The facets are returned as one array of</span>
-<span class="sd">            cells and another one of local facets referred to those</span>
-<span class="sd">            cells both with the same length and both following (local)</span>
-<span class="sd">            DOLFINx ordering.</span>
+<span class="sd">            MeshFacets: Empty (interior integral) facets (following DOLFINx local ordering).</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_interior_empty_facets</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -620,7 +552,6 @@
                     <span class="bp">self</span><span class="o">.</span><span class="n">_interior_cut_facets</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_interior_empty_facets</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span>
                         <span class="n">unf_non_cut_facets</span>
                     <span class="p">)</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">_interior_cut_facets</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">_interior_cut_facets</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span>
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_interior_empty_facets</span>
@@ -631,7 +562,8 @@
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">exterior_integral</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MeshFacets</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Gets the empty facets as a FacetManager object</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Gets the empty facets as a MeshFacets object following</span>
+<span class="sd">        the DOLFINx local numbering.</span>
 
 <span class="sd">        The list of facets will be filtered to only exterior or interior</span>
 <span class="sd">        facets according to the argument `exterior`.</span>
@@ -654,11 +586,7 @@
 <span class="sd">                (see note above).</span>
 
 <span class="sd">        Returns:</span>
-<span class="sd">            tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]:</span>
-<span class="sd">            Empty facets. The facets are returned as one array of</span>
-<span class="sd">            cells and another one of local facets referred to those</span>
-<span class="sd">            cells both with the same length and both following (local)</span>
-<span class="sd">            DOLFINx ordering.</span>
+<span class="sd">            MeshFacets: Empty facets (following DOLFINx local ordering).</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">return</span> <span class="p">(</span>
@@ -811,18 +739,9 @@
 <span class="sd">        Args:</span>
 <span class="sd">            degree (int): Expected degree of exactness of the quadrature</span>
 <span class="sd">                to be generated.</span>
-<span class="sd">            dlf_cells (npt.NDArray[np.int32]): Array of DOLFINx cell ids</span>
-<span class="sd">                (local to current MPI process) for which quadratures</span>
-<span class="sd">                will be generated. Beyond a cell id, for indentifying</span>
-<span class="sd">                a facet, a local facet id (from the array</span>
-<span class="sd">                `local_faces`) is also needed.</span>
-<span class="sd">            dlf_local_faces (npt.NDArray[np.int32]): Array of local face</span>
-<span class="sd">                ids for which the custom quadratures are generated. Each</span>
-<span class="sd">                facet is identified through a value in `cells` and a</span>
-<span class="sd">                value in `local_faces`, having both arrays the same</span>
-<span class="sd">                length. The numbering of these facets follows the</span>
-<span class="sd">                FEniCSx convention. See</span>
-<span class="sd">                https://github.com/FEniCS/basix/#supported-elements</span>
+<span class="sd">            dlf_facets (MeshFacets): MeshFacets object containing the</span>
+<span class="sd">                DOLFINx (local) facets for which quadratures will be</span>
+<span class="sd">                generated.</span>
 <span class="sd">            exterior_integral (bool): Whether exterior integrals are</span>
 <span class="sd">                to be computed using the generated quadratures.</span>
 <span class="sd">                If `True`, the quadrature will be generated for the</span>
