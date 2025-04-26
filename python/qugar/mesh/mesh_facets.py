@@ -101,9 +101,14 @@ class MeshFacets:
         self._local_facet_ids = local_facet_ids
 
     @property
+    def size(self) -> bool:
+        """Returns number of facets."""
+        return self._cell_ids.size
+
+    @property
     def empty(self) -> bool:
         """Checks if the facets are empty."""
-        return self._cell_ids.size == 0
+        return self.size == 0
 
     @property
     def cells_dtype(self) -> np.dtype:
@@ -119,6 +124,17 @@ class MeshFacets:
     def local_facet_ids(self) -> npt.NDArray[np.int32]:
         """Gets the local facet ids."""
         return self._local_facet_ids
+
+    def __getitem__(self, index: int) -> tuple[int, int]:
+        """Gets the cell id and local facet id at the specified index.
+
+        Args:
+            index (int): Index of the facet.
+
+        Returns:
+            tuple[int, int]: A tuple containing the cell id and local facet id.
+        """
+        return self._cell_ids[index], self._local_facet_ids[index]
 
     def unique(self):
         """Keeps only unique facets."""
@@ -171,31 +187,41 @@ class MeshFacets:
 
         Args:
             other (MeshFacets): Another MeshFacets instance.
-            assume_unique (bool): If `True`, assumes that the facets are
-                both in the current object and in `other`.
-                This can help speed up the intersection calculation.
-                Default is `False`.
+            assume_unique (bool): If `True`, assumes that the facets are unique
+                within each object (`self` and `other`). This can speed up
+                the intersection calculation. Default is `False`.
 
         Returns:
             MeshFacets: A new MeshFacets instance with intersected facets.
         """
 
         assert self.cells_dtype == other.cells_dtype, (
-            "Cannot concatenate facets with different cell id types."
+            "Cannot compute intersection for facets with different cell id types."
         )
 
-        combined = np.vstack((self._cell_ids, self._local_facet_ids)).T
-        other_combined = np.vstack((other._cell_ids, other._local_facet_ids)).T
-        intersection = np.intersect1d(
-            combined.view([("cell", combined.dtype), ("facet", combined.dtype)]),
-            other_combined.view([("cell", other_combined.dtype), ("facet", other_combined.dtype)]),
-            assume_unique=assume_unique,
+        # Combine cell_ids and local_facet_ids into structured arrays for set operations
+        # Ensure local_facet_ids has the same dtype as cell_ids for comparison
+        combined_dtype = [("cell", self._cell_ids.dtype), ("facet", self._cell_ids.dtype)]
+
+        combined = np.empty(len(self._cell_ids), dtype=combined_dtype)
+        combined["cell"] = self._cell_ids
+        combined["facet"] = self._local_facet_ids.astype(self._cell_ids.dtype)
+
+        other_combined = np.empty(len(other._cell_ids), dtype=combined_dtype)
+        other_combined["cell"] = other._cell_ids
+        other_combined["facet"] = other._local_facet_ids.astype(other._cell_ids.dtype)
+
+        # Compute the intersection
+        intersection_structured = np.intersect1d(
+            combined, other_combined, assume_unique=assume_unique
         )
-        intersection = intersection.view(combined.dtype).reshape(-1, 2)
-        return MeshFacets(
-            intersection[:, 0].astype(dtype=self.cells_dtype),
-            intersection[:, 1].astype(np.int32),
-        )
+
+        # Extract cell_ids and local_facet_ids from the structured array
+        intersect_cell_ids = intersection_structured["cell"]
+        # Cast local_facet_ids back to int32
+        intersect_local_facet_ids = intersection_structured["facet"].astype(np.int32)
+
+        return MeshFacets(intersect_cell_ids, intersect_local_facet_ids)
 
     def difference(self, other: "MeshFacets", assume_unique: bool = False) -> "MeshFacets":
         """Computes the difference of facets with another MeshFacets instance.
@@ -298,6 +324,52 @@ class MeshFacets:
 
         cells_to_facets = _create_cells_to_facets_map(mesh)
         return cells_to_facets[self._cell_ids, self._local_facet_ids]
+
+    def find(self, other: "MeshFacets") -> npt.NDArray[np.int32]:
+        """Finds the positions of facets in `other` relative to `self`.
+
+        Assumes that `self` contains unique facets. If not, the behavior for
+        duplicate facets is undefined (it will return the index of the first
+        occurrence found).
+
+        Args:
+            other (MeshFacets): Another MeshFacets instance whose facets are
+                                expected to be a subset of `self`.
+
+        Returns:
+            npt.NDArray[np.int32]: An array of indices where each entry corresponds
+                                   to the position of the facet (cell + local facet)
+                                   of `other` in `self`.
+
+        Raises:
+            ValueError: If a facet in `other` is not found in `self`.
+        """
+        assert self.cells_dtype == other.cells_dtype, (
+            "Cannot find facets with different cell id types."
+        )
+
+        # Create a mapping from (cell_id, local_facet_id) tuple to index in self
+        # Using tuples as dict keys is efficient and handles different dtypes correctly.
+        self_map = {
+            (cell, facet): idx
+            for idx, (cell, facet) in enumerate(zip(self._cell_ids, self._local_facet_ids))
+        }
+
+        # Find the indices for each facet in other
+        indices = np.empty(other.size, dtype=np.int32)
+        for i, (other_cell, other_facet) in enumerate(zip(other._cell_ids, other._local_facet_ids)):
+            key = (other_cell, other_facet)
+            idx = self_map.get(key)
+            if idx is None:
+                # If an element from other is not found, raise an error.
+                # The previous implementation asserted this, here we make it explicit.
+                raise ValueError(
+                    f"Facet (cell={other_cell}, local_facet={other_facet}) "
+                    f"from 'other' not found in 'self'."
+                )
+            indices[i] = idx
+
+        return indices
 
 
 def create_facets_from_ids(
