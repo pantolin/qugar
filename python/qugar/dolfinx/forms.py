@@ -41,8 +41,8 @@ from dolfinx.fem.forms import (
     Form,
     _ufl_to_dolfinx_domain,
     form_cpp_class,
+    get_integration_domains,
 )
-from dolfinx.mesh import MeshTags
 
 from qugar.dolfinx.custom_coefficients import CustomCoeffsPacker
 from qugar.dolfinx.integral_data import IntegralData
@@ -112,60 +112,6 @@ class CustomForm(Form):
             Generated custom coefficients.
         """
         return self._coeffs_packer.pack_coefficients()
-
-
-def _get_custom_integration_domains(
-    domain: UnfittedDomainABC,
-    integral_type: IntegralType,
-    subdomain: typing.Optional[typing.Union[MeshTags, list[tuple[int, np.ndarray]]]],
-    subdomain_ids: list[int],
-) -> list[tuple[int, np.ndarray]]:
-    """Get custom integration domains from subdomain data.
-
-    The subdomain data is a meshtags object consisting of markers, or a
-    None object. If it is a None object we do not pack any integration
-    entities. Integration domains are defined as a list of tuples, where
-    each input `subdomain_ids` is mapped to an array of integration
-    entities, where an integration entity for a cell integral is the
-    list of cells. For an exterior facet integral each integration
-    entity is a tuple (cell_index, local_facet_index). For an interior
-    facet integral each integration entity is a uple (cell_index0,
-    local_facet_index0, cell_index1, local_facet_index1). Where the
-    first cell-facet pair is the '+' restriction, the second the '-'
-    restriction.
-
-    Args:
-        integral_type: The type of integral to pack integration
-            entities for.
-        domain (UnfittedDomainABC): The unfitted domain to integrate over.
-        subdomain: A meshtag with markers or manually specified
-            integration domains.
-        subdomain_ids: List of ids to integrate over.
-    """
-    if subdomain is None:
-        return []
-    else:
-        domains = []
-        try:
-            if integral_type in (IntegralType.exterior_facet, IntegralType.interior_facet):
-                tdim = subdomain.topology.dim  # type: ignore
-                subdomain._cpp_object.topology.create_connectivity(tdim - 1, tdim)  # type: ignore
-                subdomain._cpp_object.topology.create_connectivity(tdim, tdim - 1)  # type: ignore
-            # Compute integration domains only for each subdomain id in
-            # the integrals
-            # If a process has no integral entities, insert an empty
-            # array
-            for id in subdomain_ids:
-                integration_entities = _cpp.fem.compute_integration_domains(
-                    integral_type,
-                    subdomain._cpp_object.topology,  # type: ignore
-                    subdomain.find(id),  # type: ignore
-                    subdomain.dim,  # type: ignore
-                )
-                domains.append((id, integration_entities))
-            return [(s[0], np.array(s[1])) for s in domains]
-        except AttributeError:
-            return [(s[0], np.array(s[1])) for s in subdomain]  # type: ignore
 
 
 def _modify_everywhere_exterior_facet_integrals(form):
@@ -330,8 +276,8 @@ def form_custom(
         # Subdomain markers (possibly empty list for some integral
         # types)
         subdomains = {
-            _ufl_to_dolfinx_domain[key]: _get_custom_integration_domains(
-                domain, _ufl_to_dolfinx_domain[key], subdomain_data[0], subdomain_ids[key]
+            _ufl_to_dolfinx_domain[key]: get_integration_domains(
+                _ufl_to_dolfinx_domain[key], subdomain_data[0], subdomain_ids[key]
             )
             for (key, subdomain_data) in sd.get(domain).items()
         }
