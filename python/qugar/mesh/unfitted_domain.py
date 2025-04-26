@@ -8,7 +8,7 @@
 #
 # --------------------------------------------------------------------------
 
-from typing import Callable, Optional, Tuple, cast
+from typing import Callable, Optional, cast
 
 from qugar import has_FEniCSx
 
@@ -23,9 +23,9 @@ from qugar.cpp import UnfittedDomain_2D, UnfittedDomain_3D
 from qugar.mesh.mesh import Mesh
 from qugar.mesh.mesh_facets import (
     MeshFacets,
-    create_facet_manager_all,
-    create_facet_manager_exterior,
-    create_facet_manager_interior,
+    create_all_mesh_facets,
+    create_exterior_mesh_facets,
+    create_interior_mesh_facets,
 )
 from qugar.mesh.unfitted_domain_abc import UnfittedDomainABC
 from qugar.quad.custom_quad import (
@@ -33,33 +33,6 @@ from qugar.quad.custom_quad import (
     CustomQuadFacet,
     CustomQuadUnfBoundary,
 )
-
-
-def _sort_facets(
-    cell_ids: npt.NDArray[np.int32], local_facet_ids: npt.NDArray[np.int32]
-) -> Tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]:
-    """Sorts facets based on cell ids and local facet ids.
-
-    The sorting is performed first based on cell ids (increasing order)
-    and then based on local facet ids (increasing order).
-
-    Args:
-        cell_ids (npt.NDArray[np.int32]): Array of cell ids.
-        local_facet_ids (npt.NDArray[np.int32]): Array of local facet ids.
-
-    Returns:
-        Tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]:
-        Sorted cell ids and local facet ids.
-    """
-    # Use lexsort to sort primarily by cell_ids and secondarily by local_facet_ids
-    # Note: lexsort sorts by the last key first, so we provide local_facet_ids then cell_ids
-    sorted_indices = np.lexsort((local_facet_ids, cell_ids))
-
-    # Apply the sorted indices to both arrays
-    sorted_cell_ids = cell_ids[sorted_indices]
-    sorted_local_facet_ids = local_facet_ids[sorted_indices]
-
-    return sorted_cell_ids, sorted_local_facet_ids
 
 
 class UnfittedDomain(UnfittedDomainABC):
@@ -202,13 +175,6 @@ class UnfittedDomain(UnfittedDomainABC):
     ) -> MeshFacets:
         """Retrieves and filters mesh facets using a custom filtering function.
 
-        This internal method orchestrates the process of selecting facets based on
-        their type (all, interior, or exterior), transforming them into a
-        representation based on original cell IDs and lexicographical local facet
-        IDs, applying a user-provided filtering function (`facets_getter`) on this
-        representation, and finally converting the filtered facets back to the
-        standard DOLFINx local cell and facet indices.
-
         Args:
             facets_getter: A callable that accepts two optional NumPy arrays
                 (original cell IDs `np.int64`, original lexicographical local
@@ -223,18 +189,17 @@ class UnfittedDomain(UnfittedDomainABC):
                   to a single cell).
 
         Returns:
-            FacetManager: A `FacetManager` instance containing the filtered facets,
-                represented by DOLFINx local cell indices and local facet indices,
-                sorted lexicographically.
+            MeshFacets: A `MeshFacets` instance containing the filtered facets,
+                following DOLFINx local ordering.
         """
         if facets_type is not None:
             assert facets_type in ["interior", "exterior"], "Invalid facets type."
             if facets_type == "interior":
-                facets = create_facet_manager_interior(self._mesh, single_interior_facet=False)
+                facets = create_interior_mesh_facets(self._mesh, single_interior_facet=False)
             else:
-                facets = create_facet_manager_exterior(self._mesh)
+                facets = create_exterior_mesh_facets(self._mesh)
         else:
-            facets = create_facet_manager_all(self._mesh, single_interior_facet=False)
+            facets = create_all_mesh_facets(self._mesh, single_interior_facet=False)
 
         orig_facets = facets.to_original(self._mesh)
 
@@ -244,12 +209,11 @@ class UnfittedDomain(UnfittedDomainABC):
         )
 
         dlf_facets = MeshFacets(*filtered_facets).to_DOLFINx(self._mesh)
-        dlf_facets.sort()
 
         return dlf_facets
 
     def _get_cut_facets_ext_integral(self) -> MeshFacets:
-        """Gets the cut facets as a FacetManager object for exterior integrals.
+        """Gets the cut facets as a MeshFacets object for exterior integrals.
 
         Here we consider either interior or exterior (that belong to a
         single cell) facets that partially belong to the domain's
@@ -258,11 +222,7 @@ class UnfittedDomain(UnfittedDomainABC):
         considered as full.
 
         Returns:
-            tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]:
-            Cut facets. The facets are returned as one array of
-            cells and another one of local facets referred to those
-            cells both with the same length and both following (local
-            DOLFINx ordering.
+            MeshFacets: Cut (exterior integral) facets (following DOLFINx local ordering).
         """
 
         if self._exterior_cut_facets is None:
@@ -288,23 +248,18 @@ class UnfittedDomain(UnfittedDomainABC):
                     self._exterior_cut_facets = self._exterior_cut_facets.concatenate(
                         unf_partial_facets
                     )
-                    self._exterior_cut_facets.sort()
                     self._exterior_cut_facets.unique()
 
         return self._exterior_cut_facets
 
     def _get_cut_facets_int_integral(self) -> MeshFacets:
-        """Gets the cut facets as a FacetManager object for interior integrals.
+        """Gets the cut facets as a MeshFacets object for interior integrals.
 
         Hwere we consider interior facets (shared by two cells) that are
         cut (i.e., they are partially inside the domain).
 
         Returns:
-            tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]:
-            Cut facets. The facets are returned as one array of
-            cells and another one of local facets referred to those
-            cells both with the same length and both following (local
-            DOLFINx ordering.
+            MeshFacets: Cut (interior integral) facets (following DOLFINx local ordering).
         """
         if self._interior_cut_facets is None:
             self._interior_cut_facets = self._get_facets(
@@ -318,7 +273,8 @@ class UnfittedDomain(UnfittedDomainABC):
         self,
         exterior_integral: bool = True,
     ) -> MeshFacets:
-        """Gets the cut facets as a FacetManager object.
+        """Gets the cut facets as a MeshFacets object following
+        the DOLFINx local numbering.
 
         The list of facets will be filtered for exterior or interior
         integrals according to the argument `exterior_integral`.
@@ -343,11 +299,7 @@ class UnfittedDomain(UnfittedDomainABC):
                 (see note above).
 
         Returns:
-            tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]:
-            Cut facets. The facets are returned as one array of
-            cells and another one of local facets referred to those
-            cells both with the same length and both following (local
-            DOLFINx ordering.
+            MeshFacets: Cut facets (following DOLFINx local ordering).
         """
 
         return (
@@ -357,7 +309,7 @@ class UnfittedDomain(UnfittedDomainABC):
         )
 
     def _get_full_facets_ext_integral(self) -> MeshFacets:
-        """Gets the full facets as a FacetManager object for
+        """Gets the full facets as a MeshFacets object for
         exterior integrals.
 
         Here we consider facets (interior or exterior) that are fully
@@ -365,11 +317,7 @@ class UnfittedDomain(UnfittedDomainABC):
         the unfitted boundary).
 
         Returns:
-            tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]:
-            Full facets. The facets are returned as one array of
-            cells and another one of local facets referred to those
-            cells both with the same length and both following (local
-            DOLFINx ordering.
+            MeshFacets: Full (exterior integral) facets (following DOLFINx local ordering).
         """
 
         if self._exterior_full_facets is None:
@@ -387,13 +335,12 @@ class UnfittedDomain(UnfittedDomainABC):
             )
             if not unf_full_facets.empty:
                 self._exterior_full_facets = self._exterior_full_facets.concatenate(unf_full_facets)
-                self._exterior_full_facets.sort()
                 self._exterior_full_facets.unique()
 
         return self._exterior_full_facets
 
     def _get_full_facets_int_integral(self) -> MeshFacets:
-        """Gets the full facets as a FacetManager object for
+        """Gets the full facets as a MeshFacets object for
         interior integrals.
 
         Here we consider interior facets (shared by two cells) that are
@@ -401,11 +348,7 @@ class UnfittedDomain(UnfittedDomainABC):
         boundary).
 
         Returns:
-            tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]:
-            Full facets. The facets are returned as one array of
-            cells and another one of local facets referred to those
-            cells both with the same length and both following (local
-            DOLFINx ordering.
+            MeshFacets: Full (interior integral) facets (following DOLFINx local ordering).
         """
 
         if self._interior_full_facets is None:
@@ -422,7 +365,8 @@ class UnfittedDomain(UnfittedDomainABC):
         self,
         exterior_integral: bool = True,
     ) -> MeshFacets:
-        """Gets the full facets as a FacetManager object.
+        """Gets the full facets as a MeshFacets object following
+        the DOLFINx local numbering.
 
         The list of facets will be filtered for exterior or interior
         integrals according to the argument `exterior_integral`.
@@ -444,11 +388,7 @@ class UnfittedDomain(UnfittedDomainABC):
                 (see note above).
 
         Returns:
-            tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]:
-            Full facets. The facets are returned as one array of
-            cells and another one of local facets referred to those
-            cells both with the same length and both following (local
-            DOLFINx ordering.
+            MeshFacets: Full facets (following DOLFINx local ordering).
         """
 
         return (
@@ -460,18 +400,14 @@ class UnfittedDomain(UnfittedDomainABC):
     def _get_empty_facets_ext_integral(
         self,
     ) -> MeshFacets:
-        """Gets the empty facets as a FacetManager object
+        """Gets the empty facets as a MeshFacets object
         for exterior integrals.
 
         Here we consider exterior facets (that belong to a single cell)
         that are not contained in the domain or its boundary.
 
         Returns:
-            tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]:
-            Empty facets. The facets are returned as one array of
-            cells and another one of local facets referred to those
-            cells both with the same length and both following (local)
-            DOLFINx ordering.
+            MeshFacets: Empty (exterior integral) facets (following DOLFINx local ordering).
         """
 
         if self._exterior_empty_facets is None:
@@ -486,7 +422,7 @@ class UnfittedDomain(UnfittedDomainABC):
     def _get_empty_facets_int_integral(
         self,
     ) -> MeshFacets:
-        """Gets the empty facets as a FacetManager object
+        """Gets the empty facets as a MeshFacets object
         for interior integrals.
 
         Here we consider interior facets (shared by two cells) that are
@@ -494,11 +430,7 @@ class UnfittedDomain(UnfittedDomainABC):
         partially) in the unfitted boundary).
 
         Returns:
-            tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]:
-            Empty facets. The facets are returned as one array of
-            cells and another one of local facets referred to those
-            cells both with the same length and both following (local)
-            DOLFINx ordering.
+            MeshFacets: Empty (interior integral) facets (following DOLFINx local ordering).
         """
 
         if self._interior_empty_facets is None:
@@ -525,7 +457,6 @@ class UnfittedDomain(UnfittedDomainABC):
                     self._interior_cut_facets = self._interior_empty_facets.concatenate(
                         unf_non_cut_facets
                     )
-                    self._interior_cut_facets.sort()
                     self._interior_cut_facets.unique()
 
         return self._interior_empty_facets
@@ -534,7 +465,8 @@ class UnfittedDomain(UnfittedDomainABC):
         self,
         exterior_integral: bool = True,
     ) -> MeshFacets:
-        """Gets the empty facets as a FacetManager object
+        """Gets the empty facets as a MeshFacets object following
+        the DOLFINx local numbering.
 
         The list of facets will be filtered to only exterior or interior
         facets according to the argument `exterior`.
@@ -557,11 +489,7 @@ class UnfittedDomain(UnfittedDomainABC):
                 (see note above).
 
         Returns:
-            tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]:
-            Empty facets. The facets are returned as one array of
-            cells and another one of local facets referred to those
-            cells both with the same length and both following (local)
-            DOLFINx ordering.
+            MeshFacets: Empty facets (following DOLFINx local ordering).
         """
 
         return (
@@ -702,18 +630,9 @@ class UnfittedDomain(UnfittedDomainABC):
         Args:
             degree (int): Expected degree of exactness of the quadrature
                 to be generated.
-            dlf_cells (npt.NDArray[np.int32]): Array of DOLFINx cell ids
-                (local to current MPI process) for which quadratures
-                will be generated. Beyond a cell id, for indentifying
-                a facet, a local facet id (from the array
-                `local_faces`) is also needed.
-            dlf_local_faces (npt.NDArray[np.int32]): Array of local face
-                ids for which the custom quadratures are generated. Each
-                facet is identified through a value in `cells` and a
-                value in `local_faces`, having both arrays the same
-                length. The numbering of these facets follows the
-                FEniCSx convention. See
-                https://github.com/FEniCS/basix/#supported-elements
+            dlf_facets (MeshFacets): MeshFacets object containing the
+                DOLFINx (local) facets for which quadratures will be
+                generated.
             exterior_integral (bool): Whether exterior integrals are
                 to be computed using the generated quadratures.
                 If `True`, the quadrature will be generated for the

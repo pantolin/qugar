@@ -15,14 +15,18 @@ from qugar.utils import has_FEniCSx
 if not has_FEniCSx:
     raise ValueError("FEniCSx installation not found is required.")
 
-from typing import Optional, cast
+from typing import Optional
 
 import dolfinx.mesh
 import numpy as np
 import numpy.typing as npt
 from ffcx.ir.representationutils import create_quadrature_points_and_weights
 
-from qugar.mesh.mesh_facets import MeshFacets
+from qugar.mesh.mesh_facets import (
+    MeshFacets,
+    create_exterior_mesh_facets,
+    create_interior_mesh_facets,
+)
 from qugar.mesh.unfitted_domain_abc import UnfittedDomainABC
 from qugar.quad import CustomQuad, CustomQuadFacet, CustomQuadUnfBoundary
 
@@ -41,29 +45,6 @@ class MockUnfittedDomain(UnfittedDomainABC):
     Using these custom quadratures the same results should be obtained
     as with the standard quadratures, what makes this mock quadrature
     interesting for testing purposes.
-
-    Parameters:
-        _mesh (dolfinx.mesh.Mesh): Mesh for which the quadratures are
-            generated.
-        _nnz (int, optional): Ratio of entities with custom quadratures
-            respect to the total number of entities. It is a value in
-            the range [0.0, 1.0].
-        _max_quad_sets (int, optional): Maximum number of repetitions
-            of the standard quadrature in each custom cell. For each
-            custom entity a random number is generated between 1 and
-            `max_quad_sets`.
-        _n_quad_sets (npt.NDArray[np.int32]): Number of quadrature sets
-            per cell.
-        _custom_facet_cells_ids (npt.NDArray[np.int32]): Ids of the
-            cells whose one or more their facets have custom
-            quadratures.
-        _custom_facet_local_facets_ids (npt.NDArray[np.int32]): Local
-            ids of the facets (referred to the reference cell) for which
-            custom quadratures are generated.
-        _n_quad_sets_facets (npt.NDArray[np.int32]): Number of
-            quadrature sets for the custom facets defined by
-            `_custom_facet_cells_ids` and
-            `_custom_facet_local_facets_ids`.
     """
 
     def __init__(self, mesh: dolfinx.mesh.Mesh, nnz: float = 0, max_quad_sets: int = 3) -> None:
@@ -102,85 +83,11 @@ class MockUnfittedDomain(UnfittedDomainABC):
         n_cells = self._mesh.geometry.dofmap.shape[0]
         return np.arange(n_cells, dtype=np.int32)
 
-    def _get_interior_exterior_facets_ids(
-        self,
-    ) -> tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]:
-        """Gets the ids of all the interior and exterior facets in the
-        mesh.
-
-        Returns:
-            tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]: Ids
-            of all the interior (first) and exterior (second) facets
-            in the mesh.
-        """
-
-        tdim = self._mesh.topology.dim
-
-        topology = self._mesh.topology
-        topology.create_connectivity(tdim - 1, tdim)
-        f_to_c = topology.connectivity(tdim - 1, tdim)
-
-        exterior_facets = dolfinx.mesh.exterior_facet_indices(topology)
-        n_facets = f_to_c.num_nodes
-
-        interior_facets = np.setdiff1d(
-            np.arange(n_facets, dtype=np.int32), exterior_facets, assume_unique=True
-        )
-
-        return interior_facets, exterior_facets
-
-    def _extract_cells_and_local_facets(
-        self, facets: npt.NDArray[np.int32], is_interior: bool
-    ) -> tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]:
-        """Given a collection of facets, extracts the cells that belong
-        to and the local id of the facet referred to the cell.
-
-        Args:
-            facets (npt.NDArray[np.int32]): Facets whose cells and local
-                indices are to be extracted.
-            is_interior (bool): ``True`` if the facets are interior,
-                ``False`` it they are exterior.
-
-        Returns:
-            tuple[npt.NDArray[np.int32], npt.NDArray[np.int32]]: Ids of
-            the cells the facets belong to (first) and local ids of the
-            facets referred to the cells (second).
-        """
-
-        topology = self._mesh.topology
-        tdim = topology.dim
-        topology.create_connectivity(tdim - 1, tdim)
-        topology.create_connectivity(tdim, tdim - 1)
-
-        c_to_f = topology.connectivity(tdim, tdim - 1)
-        f_to_c = topology.connectivity(tdim - 1, tdim)
-
-        n_cells_per_facet = 2 if is_interior else 1
-        n_facets = len(facets) * n_cells_per_facet
-        cells = np.empty(n_facets, dtype=np.int32)
-        local_facets = np.empty(n_facets, dtype=np.int32)
-
-        for i, facet in enumerate(facets):
-            cells_in_facet = f_to_c.links(facet)
-            assert len(cells_in_facet) == n_cells_per_facet
-
-            for j in range(n_cells_per_facet):
-                ind = n_cells_per_facet * i + j
-                cell = cells_in_facet[j]
-                cells[ind] = cell
-
-                local_facets_in_cell = c_to_f.links(cell)
-                local_pos = np.flatnonzero(local_facets_in_cell == facet)
-                assert len(local_pos) == 1
-                local_facets[ind] = local_pos[0]
-
-        return cells, local_facets
-
     def _extract_custom_entities(
         self,
-        entities_ids: npt.NDArray[np.int32],
+        n_entities: int,
     ) -> npt.NDArray[np.int32]:
-        """Given a list of `entities_ids`, extracts a random subset
+        """Given a number of entities `n_entities`, extracts a random subset
         of the ones for which custom quadratures are generated. The
         number of custom cells is built following the ratio `self._nnz`.
 
@@ -195,16 +102,15 @@ class MockUnfittedDomain(UnfittedDomainABC):
         considered a custom cell. No empty cells are considered.
 
         Args:
-            entities_ids (npt.NDArray[np.int32]): Ids of the entities to
-                be considered for custom quadratures.
+            n_entities (int): Number of entities to be considered
+                for custom quadratures.
 
         Returns:
             npt.NDArray[np.int32]: Nmber of custom quadrature sets for
             every entity.
         """
 
-        n_entities = entities_ids.shape[0]
-        n_quad_sets = np.arange(n_entities, dtype=np.int32) % self._max_quad_sets + 1
+        n_quad_sets = np.arange(n_entities, dtype=np.int32) % self._max_quad_sets + 2
 
         n_custom_entities = int(np.ceil(n_entities * self._nnz))
         n_non_custom_entities = n_entities - n_custom_entities
@@ -213,7 +119,7 @@ class MockUnfittedDomain(UnfittedDomainABC):
         rng = np.random.default_rng(seed)
         entities_ids_ = np.copy(np.arange(n_entities))
         rng.shuffle(entities_ids_)
-        n_quad_sets[entities_ids_[:n_non_custom_entities]] = 0
+        n_quad_sets[entities_ids_[:n_non_custom_entities]] = 1
 
         return n_quad_sets
 
@@ -223,8 +129,10 @@ class MockUnfittedDomain(UnfittedDomainABC):
         """
 
         cells_id = self._get_cells_ids()
-        self._n_quad_sets = self._extract_custom_entities(cells_id)
-        self._custom_cells_ids = cells_id[self._n_quad_sets > 0]
+        self._n_quad_sets = self._extract_custom_entities(cells_id.size)
+        self._custom_cells_ids = cells_id[self._n_quad_sets > 1]
+        self._full_cells_ids = cells_id[self._n_quad_sets == 1]
+        self._empty_cells_ids = cells_id[self._n_quad_sets == 0]
 
     def _compute_custom_facets(self) -> None:
         """Sets the list of custom facets. The members
@@ -232,35 +140,31 @@ class MockUnfittedDomain(UnfittedDomainABC):
         `self._custom_facet_local_facets_ids` are initialized.
         """
 
-        def extract_custom(
-            facets: npt.NDArray[np.int32], is_interior: bool
-        ) -> npt.NDArray[np.int32]:
-            cells, local_facets = self._extract_cells_and_local_facets(facets, is_interior)
-            facets = np.stack([cells, local_facets], axis=1)
-            n_quad_sets = self._extract_custom_entities(facets)
-            return np.hstack([facets, n_quad_sets.reshape(-1, 1)])
+        self._int_facet_ids = create_interior_mesh_facets(self._mesh, single_interior_facet=False)
+        self._n_quad_sets_int = np.repeat(
+            self._extract_custom_entities(self._int_facet_ids.size // 2), 2
+        )
+        self._ext_facet_ids = create_exterior_mesh_facets(self._mesh)
+        self._n_quad_sets_ext = self._extract_custom_entities(self._ext_facet_ids.size)
 
-        int_facets, ext_facets = self._get_interior_exterior_facets_ids()
-        int_facets = extract_custom(int_facets, True)
-        ext_facets = extract_custom(ext_facets, False)
+        def create_facets(facets, mask):
+            return MeshFacets(facets.cell_ids[mask], facets.local_facet_ids[mask])
 
-        all_facets = np.vstack([int_facets, ext_facets])
-        all_facets = all_facets[np.lexsort((all_facets[:, 1], all_facets[:, 0]))]
+        cut_ext_facet_ids = self._n_quad_sets_ext > 1
+        full_ext_facet_ids = self._n_quad_sets_ext == 1
+        empty_ext_facet_ids = self._n_quad_sets_ext == 0
 
-        if all_facets.size > 0:
-            self._facet_cells_ids = all_facets[:, 0]
-            self._facet_local_facets_ids = all_facets[:, 1]
-            self._n_quad_sets_facets = all_facets[:, 2]
-            self._custom_facet_cells_ids = self._facet_cells_ids[self._n_quad_sets_facets > 0]
-            self._custom_facet_local_facets_ids = self._facet_local_facets_ids[
-                self._n_quad_sets_facets > 0
-            ]
-            self._empty_facet_cells_ids = np.empty(0, dtype=np.int32)
-            self._empty_facet_local_facets_ids = np.empty(0, dtype=np.int32)
-        else:
-            self._facet_cells_ids = np.empty(0, dtype=np.int32)
-            self._facet_local_facets_ids = np.empty(0, dtype=np.int32)
-            self._n_quad_sets_facets = np.empty(0, dtype=np.int32)
+        self._ext_cut_facet_ids = create_facets(self._ext_facet_ids, cut_ext_facet_ids)
+        self._ext_full_facet_ids = create_facets(self._ext_facet_ids, full_ext_facet_ids)
+        self._ext_empty_facet_ids = create_facets(self._ext_facet_ids, empty_ext_facet_ids)
+
+        cut_int_facet_ids = self._n_quad_sets_int > 1
+        full_int_facet_ids = self._n_quad_sets_int == 1
+        empty_int_facet_ids = self._n_quad_sets_int == 0
+
+        self._int_cut_facet_ids = create_facets(self._int_facet_ids, cut_int_facet_ids)
+        self._int_full_facet_ids = create_facets(self._int_facet_ids, full_int_facet_ids)
+        self._int_empty_facet_ids = create_facets(self._int_facet_ids, empty_int_facet_ids)
 
     def _create_ref_quadrature(
         self, degree: int, facet: bool
@@ -413,8 +317,9 @@ class MockUnfittedDomain(UnfittedDomainABC):
         Args:
             degree (int): Expected degree of exactness of the quadrature
                 to be generated.
-            dlf_facets (MeshFacets): FacetManager object containing the
-               DOLFINx (local) facets as a pairs of cells and local facet ids.
+            dlf_facets (MeshFacets): MeshFacets object containing the
+                DOLFINx (local) facets for which quadratures will be
+                generated.
             exterior_integral (bool): If `True` the quadratures will be generated
                 considering the given facets as exterior facets.
                 Otherwise, as interior.
@@ -428,19 +333,19 @@ class MockUnfittedDomain(UnfittedDomainABC):
             quadratures.
         """
 
-        dlf_cells = cast(npt.NDArray[np.int32], dlf_facets.cell_ids)
-        dlf_local_faces = dlf_facets.local_facet_ids
+        if exterior_integral:
+            facets = self._ext_facet_ids
+            n_quad_sets = self._n_quad_sets_ext
+        else:
+            facets = self._int_facet_ids
+            n_quad_sets = self._n_quad_sets_int
 
-        self_cells_facets = np.stack([self._facet_cells_ids, self._facet_local_facets_ids], axis=1)
-        cells_facets = np.stack([dlf_cells, dlf_local_faces], axis=1)
+        # Finds the indices of dlf_facets referred to facets
+        inds = facets.find(dlf_facets)
 
-        # TODO: this is potentially slow and should be done faster.
-        n_quad_sets = np.zeros(cells_facets.shape[0], dtype=np.int32)
-        for i, facet in enumerate(cells_facets):
-            ind = (self_cells_facets == facet).all(axis=1).nonzero()[0][0]
-            n_quad_sets[i] = self._n_quad_sets_facets[ind]
+        n_quad_sets_dlf = n_quad_sets[inds]
+        n_pts_per_cell, weights, points = self._create_quadrature(degree, n_quad_sets_dlf, True)
 
-        n_pts_per_cell, weights, points = self._create_quadrature(degree, n_quad_sets, True)
         return CustomQuadFacet(dlf_facets, n_pts_per_cell, points, weights)
 
     def get_cut_cells(self) -> npt.NDArray[np.int32]:
@@ -451,8 +356,7 @@ class MockUnfittedDomain(UnfittedDomainABC):
             current process following the DOLFINx local numbering.
             The cell ids are sorted.
         """
-        cells_id = self._get_cells_ids()
-        return cells_id[self._n_quad_sets > 0]
+        return self._custom_cells_ids
 
     def get_full_cells(self) -> npt.NDArray[np.int32]:
         """Gets the ids of the full cells.
@@ -466,8 +370,7 @@ class MockUnfittedDomain(UnfittedDomainABC):
             current process following the DOLFINx local numbering.
             The cell ids are sorted.
         """
-        cells_id = self._get_cells_ids()
-        return cells_id[self._n_quad_sets == 0]
+        return self._full_cells_ids
 
     def get_empty_cells(self) -> npt.NDArray[np.int32]:
         """Gets the ids of the empty cells.
@@ -477,13 +380,13 @@ class MockUnfittedDomain(UnfittedDomainABC):
             current process following the DOLFINx local numbering.
             The cell ids are sorted.
         """
-        return np.empty(0, dtype=np.int32)
+        return self._empty_cells_ids
 
     def get_cut_facets(
         self,
         exterior_integral: bool = True,
     ) -> MeshFacets:
-        """Gets the cut facets as a FacetManager object following
+        """Gets the cut facets as a MeshFacets object following
         the DOLFINx local numbering.
 
         Args:
@@ -492,20 +395,16 @@ class MockUnfittedDomain(UnfittedDomainABC):
                 (see note above).
 
         Returns:
-            FacetManager: Cut facets. The facets are returned as one
-            array of cells and another one of local facets referred to
-            those cells both with the same length and both following
-            (local) DOLFINx ordering.
+            MeshFacets: Cut facets (following DOLFINx local ordering).
         """
-        return MeshFacets(self._custom_facet_cells_ids, self._custom_facet_local_facets_ids)
+        return self._ext_cut_facet_ids if exterior_integral else self._int_cut_facet_ids
 
     def get_full_facets(
         self,
         exterior_integral: bool = True,
     ) -> MeshFacets:
-        """Gets the full facets as a FacetManager object following
+        """Gets the full facets as a MeshFacets object following
         the DOLFINx local numbering.
-
 
         Args:
             exterior_integral (bool): Whether the list of facets is
@@ -513,35 +412,16 @@ class MockUnfittedDomain(UnfittedDomainABC):
                 (see note above).
 
         Returns:
-            FacetManager: Full facets. The facets are returned as one
-            array of cells and another one of local facets referred to
-            those cells both with the same length and both following
-            (local) DOLFINx ordering.
+            MeshFacets: Full facets (following DOLFINx local ordering).
         """
-        pass
-        assert False, "This method is not implemented yet."
+        return self._ext_full_facet_ids if exterior_integral else self._int_full_facet_ids
 
     def get_empty_facets(
         self,
         exterior_integral: bool = True,
     ) -> MeshFacets:
-        """Gets the empty facets as a FacetManager object following
+        """Gets the empty facets as a MeshFacets object following
         the DOLFINx local numbering.
-
-        The list of facets will be filtered to only exterior or interior
-        facets according to the argument `exterior`.
-
-        Note:
-            The selection of facets is performed differently depending
-            on whether exterior or interior integrals are to be
-            computed.
-            For interior integrals we consider interior facets (shared
-            by two cells) that are not contained in the domain (they
-            may be contained (fully or partially) in the unfitted
-            boundary).
-            For exterior integrals we consider exterior facets (that
-            belong to a single cell) that are not contained in the
-            domain or its boundary.
 
         Note:
             This is an abstract method and should be implemented in
@@ -553,9 +433,6 @@ class MockUnfittedDomain(UnfittedDomainABC):
                 (see note above).
 
         Returns:
-            FacetManager: Empty facets. The facets are returned as one
-            array of cells and another one of local facets referred to
-            those cells both with the same length and both following
-            (local) DOLFINx ordering.
+            MeshFacets: Empty facets (following DOLFINx local ordering).
         """
-        return MeshFacets(self._empty_facet_cells_ids, self._empty_facet_local_facets_ids)
+        return self._ext_empty_facet_ids if exterior_integral else self._int_empty_facet_ids

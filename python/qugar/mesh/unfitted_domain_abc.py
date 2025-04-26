@@ -23,7 +23,7 @@ import numpy.typing as npt
 from dolfinx.mesh import MeshTags, meshtags
 
 from qugar import has_FEniCSx
-from qugar.mesh.mesh_facets import MeshFacets
+from qugar.mesh.mesh_facets import MeshFacets, create_all_mesh_facets
 from qugar.quad.custom_quad import (
     CustomQuad,
     CustomQuadFacet,
@@ -115,7 +115,7 @@ class UnfittedDomainABC(ABC):
         self,
         exterior_integral: bool = True,
     ) -> MeshFacets:
-        """Gets the cut facets as a FacetManager object following
+        """Gets the cut facets as a MeshFacets object following
         the DOLFINx local numbering.
 
         The list of facets will be filtered for exterior or interior
@@ -145,10 +145,7 @@ class UnfittedDomainABC(ABC):
                 (see note above).
 
         Returns:
-            FacetManager: Cut facets. The facets are returned as one
-            array of cells and another one of local facets referred to
-            those cells both with the same length and both following
-            (local) DOLFINx ordering.
+            MeshFacets: Cut facets (following DOLFINx local ordering).
         """
         pass
 
@@ -157,7 +154,7 @@ class UnfittedDomainABC(ABC):
         self,
         exterior_integral: bool = True,
     ) -> MeshFacets:
-        """Gets the full facets as a FacetManager object following
+        """Gets the full facets as a MeshFacets object following
         the DOLFINx local numbering.
 
         The list of facets will be filtered for exterior or interior
@@ -184,10 +181,7 @@ class UnfittedDomainABC(ABC):
                 (see note above).
 
         Returns:
-            FacetManager: Full facets. The facets are returned as one
-            array of cells and another one of local facets referred to
-            those cells both with the same length and both following
-            (local) DOLFINx ordering.
+            MeshFacets: Full facets (following DOLFINx local ordering).
         """
         pass
 
@@ -196,7 +190,7 @@ class UnfittedDomainABC(ABC):
         self,
         exterior_integral: bool = True,
     ) -> MeshFacets:
-        """Gets the empty facets as a FacetManager object following
+        """Gets the empty facets as a MeshFacets object following
         the DOLFINx local numbering.
 
         The list of facets will be filtered to only exterior or interior
@@ -224,12 +218,47 @@ class UnfittedDomainABC(ABC):
                 (see note above).
 
         Returns:
-            FacetManager: Empty facets. The facets are returned as one
-            array of cells and another one of local facets referred to
-            those cells both with the same length and both following
-            (local) DOLFINx ordering.
+            MeshFacets: Empty facets (following DOLFINx local ordering).
         """
         pass
+
+    def get_all_facets(self, exterior_integral: bool = True) -> MeshFacets:
+        """Gets all the facets of the mesh.
+
+        The list of facets will be filtered to only exterior or interior
+        facets according to the argument `exterior`.
+
+        Note:
+            The selection of facets is performed differently depending
+            on whether exterior or interior integrals are to be
+            computed.
+            For exterior integrals we consider all facets that belong to
+            the domain's boundary (either the mesh's domain or the
+            unfitted boundary).
+            For interior integrals we consider the complementary.
+
+        Note:
+            This is an abstract method and can be overridden in derive
+            classes.
+
+        Args:
+            exterior_integral (bool): Whether the list of facets is
+                retrieved for computing exterior or interior integrals
+                (see note above).
+
+        Returns:
+            MeshFacets: All facets (following DOLFINx local ordering).
+        """
+
+        ext_facets = self.get_cut_facets(exterior_integral=True)
+        ext_facets = ext_facets.concatenate(self.get_full_facets(exterior_integral=True))
+        ext_facets = ext_facets.concatenate(self.get_empty_facets(exterior_integral=True))
+
+        if exterior_integral:
+            return ext_facets
+        else:
+            all_facets = create_all_mesh_facets(self._mesh, single_interior_facet=False)
+            return all_facets.difference(ext_facets)
 
     @abstractmethod
     def create_quad_custom_cells(
@@ -330,8 +359,9 @@ class UnfittedDomainABC(ABC):
         Args:
             degree (int): Expected degree of exactness of the quadrature
                 to be generated.
-            dlf_facets (MeshFacets): FacetManager object containing the
-               DOLFINx (local) facets as a pairs of cells and local facet ids.
+            dlf_facets (MeshFacets): MeshFacets object containing the
+                DOLFINx (local) facets for which quadratures will be
+                generated.
             exterior_integral (bool): Whether exterior integrals are
                 to be computed using the generated quadratures.
                 If `True`, the quadrature will be generated for the
