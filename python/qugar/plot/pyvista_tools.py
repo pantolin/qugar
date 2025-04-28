@@ -262,7 +262,10 @@ def _create_quad_points_grid(
     if normals is not None:
         assert normals.shape == (n_pts, dim)
         new_normals = np.zeros((n_pts, 3), points.dtype)
-        new_normals[:, :dim] = normals
+        if n_pts == 0:
+            new_normals = np.empty(0, points.dtype)
+        else:
+            new_normals[:, :dim] = normals
         points_grid.cell_data["Normals"] = new_normals
 
     return points_grid
