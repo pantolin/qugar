@@ -632,7 +632,7 @@ def test_annulus(
         "94453fb05f299f3547bf233ed7d98cb9a309e4cd29cba31e40fb6a6e717f8395",
     )
     targets[(8, 5, np.float64, True, True)] = (
-        "96d83acc56553b626d79e932fedf80a4ca91da44ae1d01262006f69dcf6aa4bb",
+        "b41b3e2c2bff1be81df8e6138cffe740196807f839658eca776dc53a9d42a340",
         "e613c7eed5d4473098b27316e5708ad61028d55d476ce78e97cc134465deba28",
     )
     targets[(8, 5, np.float64, False, False)] = (
@@ -985,30 +985,6 @@ def test_tpms(
     """
 
     targets = {}
-    targets[("Schoen", 2, 11, 5, np.float32, True)] = (
-        "ef8e2844e499e1dcdf651e3298f8cb48be050736d8cc5434402e2ac0c9a47064",
-        "a30605c8649e7cc856885ac3c642b13a4e37e5763c28965dbd3debd7ae3fd5bc",
-    )
-    targets[("Schoen_IWP", 2, 11, 5, np.float32, True)] = (
-        "5a25b19df9fe6baa67579822e083fa6d109187948feb88b110971c6b64fab70b",
-        "1260981354a3efcf44c778fb36f843715e70bce96f76b4f111d0a2f6144626d2",
-    )
-    targets[("Schoen_FRD", 2, 11, 5, np.float32, True)] = (
-        "f0fa7ede3ce297b1a887a08c54b735cfceac4f5617d3c934211572ce2669b3be",
-        "5458362d027a7ab20763f75564b229f28c8ac989ca295a260e611958aef33af8",
-    )
-    targets[("Fischer_Koch_S", 2, 11, 5, np.float32, True)] = (
-        "67ffc08aceaea9f52381a12662ff6ac9fe0c5c2ea90a09f2e98d3ac3ce5ba86b",
-        "8c79173d67555a147125e00ad13dfa46bc762a662467bd230ac905af26b7012d",
-    )
-    targets[("Schwarz_Diamond", 2, 11, 5, np.float32, True)] = (
-        "ef13a9d678fd5d6358c7a7d6f0ee4a8d4ba65c877e45c482a9985e3672c93f51",
-        "86522fd79398a08c227ca35520a099608c902c06cef5ae976b6896581ae6ebee",
-    )
-    targets[("Schwarz_Primitive", 2, 11, 5, np.float32, True)] = (
-        "edbd33921ae7b21936525d75c7dce31a1dc9ff6be434a37e11578a50a41a023e",
-        "6fc04a1b4725f2d386da00cdab660368e6c884e29e6508d955d1a843057eebea",
-    )
     targets[("Schoen", 2, 11, 5, np.float32, False)] = (
         "19ef93e88fba2dd5bde2b2f7a3b51fb6dcfd2545566b5d87e77d165f32ba0b67",
         "05f494b367617bb45ca3809f433189271bfbb94b223ede19e0a9456bedadb765",
@@ -1033,77 +1009,29 @@ def test_tpms(
         "2d4c1ebe71a5d3a617c62779f5bdffb8d650b072052c052beca75bb7578bdbe0",
         "633452040c428abd27dc58b9d1c4d1a1d7e0aa6c3ca265b2f6d8a1bade50d845",
     )
-    targets[("Schoen", 2, 12, 5, np.float32, True)] = (
-        "8d6fce2d7a56d6524166e374ba4a2a62398b5ad7d801bebfce805e9d3a6512a0",
-        "7d5dd11a454f8d7212e77487b71de9a574600666392197529eb42c2cb6c436d1",
+    targets[("Schoen", 2, 11, 5, np.float32, True)] = (
+        "ef8e2844e499e1dcdf651e3298f8cb48be050736d8cc5434402e2ac0c9a47064",
+        "a30605c8649e7cc856885ac3c642b13a4e37e5763c28965dbd3debd7ae3fd5bc",
     )
-    targets[("Schoen_IWP", 2, 12, 5, np.float32, True)] = (
-        "c6ab1030d8acdd4023d62998ba64951c7c4d8884f17b3d25430f12a9206cf8d0",
-        "58f1021fdbdc1d0bbda2acd47af238871354337fa4099484f98a11c98d30a748",
+    targets[("Schoen_IWP", 2, 11, 5, np.float32, True)] = (
+        "5a25b19df9fe6baa67579822e083fa6d109187948feb88b110971c6b64fab70b",
+        "1260981354a3efcf44c778fb36f843715e70bce96f76b4f111d0a2f6144626d2",
     )
-    targets[("Schoen_FRD", 2, 12, 5, np.float32, True)] = (
-        "9871cb44c845d105babaf09dfe7c15a0e5609a9146b5fb7de00ae9ec718d01d3",
-        "b16de04a28c511bec770fa0ec794d8dad1afb84d10fcb3ec848ad1c0d170efd6",
+    targets[("Schoen_FRD", 2, 11, 5, np.float32, True)] = (
+        "f0fa7ede3ce297b1a887a08c54b735cfceac4f5617d3c934211572ce2669b3be",
+        "5458362d027a7ab20763f75564b229f28c8ac989ca295a260e611958aef33af8",
     )
-    targets[("Fischer_Koch_S", 2, 12, 5, np.float32, True)] = (
-        "7a5e57c4d95184deb57baa3abf3f9ab1ae5de2c910b65a25772f12b12a8b315d",
-        "a15c321be38d1bc0bbcdbc089675f88f312177d181280e65239a188ac72a017c",
+    targets[("Fischer_Koch_S", 2, 11, 5, np.float32, True)] = (
+        "67ffc08aceaea9f52381a12662ff6ac9fe0c5c2ea90a09f2e98d3ac3ce5ba86b",
+        "8c79173d67555a147125e00ad13dfa46bc762a662467bd230ac905af26b7012d",
     )
-    targets[("Schwarz_Diamond", 2, 12, 5, np.float32, True)] = (
-        "490192179a4b027f4de5e3a6100b5070c26d1cf06dce41c7020fba21dfeef485",
-        "4db069722fbe6baf603e5f5fcd628232a2ff2ac54e58baee1ee48b00e13d8868",
+    targets[("Schwarz_Diamond", 2, 11, 5, np.float32, True)] = (
+        "ef13a9d678fd5d6358c7a7d6f0ee4a8d4ba65c877e45c482a9985e3672c93f51",
+        "86522fd79398a08c227ca35520a099608c902c06cef5ae976b6896581ae6ebee",
     )
-    targets[("Schwarz_Primitive", 2, 12, 5, np.float32, True)] = (
-        "16edda5699521afb6b78105baed3ba0cec479c144e2b9c53855dfc2323bfeb85",
-        "12384b8c3c12fae0bafd7af6ee27db89d78c4499de8fb8b1567a3b77210809eb",
-    )
-    targets[("Schoen", 2, 12, 5, np.float32, False)] = (
-        "13da4df3cf6cef59b78b73385e024e8d459cadb5fcc9c65b5d716f2c7a3945ce",
-        "327aa1e2c10cb29cf6326f3b5226992b518c232ed74f861873755fbd6d276f81",
-    )
-    targets[("Schoen_IWP", 2, 12, 5, np.float32, False)] = (
-        "cf66a7b22390eeaf0fd74a318bbac1179d72d356b51353da5c1d4dad511eea40",
-        "5d23947bda5ec9a82b699a130702a5def86d889ca77b752255aed7ef9bf49877",
-    )
-    targets[("Schoen_FRD", 2, 12, 5, np.float32, False)] = (
-        "dae4e85421947d88c9b09b6bf6b5edaf758cd728234ce53d85458eb96dc8bd72",
-        "684891d082d21b9e67a5c004af02c490c13733e7eebb96cee0c7a2c8ad37f873",
-    )
-    targets[("Fischer_Koch_S", 2, 12, 5, np.float32, False)] = (
-        "ec6f6490f58e0fdf52cde7eb284fc9cc437a0ce28fdea6d5c0d8c86d807c4bff",
-        "e8c0aed8cd2408156143e35c7f726846ef4e76890cf19e9a488709ecc0c28053",
-    )
-    targets[("Schwarz_Diamond", 2, 12, 5, np.float32, False)] = (
-        "490192179a4b027f4de5e3a6100b5070c26d1cf06dce41c7020fba21dfeef485",
-        "7b597dbb82c1587fa1c4762ef3999e8cd67d2ebcb226ea9bc560d65c5a67bce4",
-    )
-    targets[("Schwarz_Primitive", 2, 12, 5, np.float32, False)] = (
-        "cc205e1a33e508d8c0dbe08a1ca4cf853bba9f6f0ebf0d0acc9464eab569c5c2",
-        "ce27fa6a1b60d0174c20d275de587d5a56c4f055be6a1654de23a9ec658ad2f6",
-    )
-    targets[("Schoen", 2, 11, 5, np.float64, True)] = (
-        "0849cea01ae1e23cb29b4b01bf6031cb7bb7c5672cea2aee5e1c0551dc38afcc",
-        "044e3f5ceec25f9f18b46fb21054c5c89df13f2a5edf5c03b9a2de487ba53732",
-    )
-    targets[("Schoen_IWP", 2, 11, 5, np.float64, True)] = (
-        "90aac46313a7226d347928bce53232d91eb83363d0addab550579e2e0d2f5eab",
-        "2e73eace5480167448425194cb2f899331c85535bf47e3524c599891558d8e7a",
-    )
-    targets[("Schoen_FRD", 2, 11, 5, np.float64, True)] = (
-        "4b9b6ce53d45697d0d43195f3611dd295af9294b6b99a5aa073393b1f14f45a2",
-        "6134f79c6808b11e30d5b4dd40fe42371cc232491c355cc7829440961a12e401",
-    )
-    targets[("Fischer_Koch_S", 2, 11, 5, np.float64, True)] = (
-        "7d3003e0a6b3892d807e86d9354c8970c1f11c5cb0dda39c6a8e80a2abf2fd23",
-        "9a3deec4d4dfa392134ef30cd2f47ccf6a17585a5ae29bd2682c9129371c67d5",
-    )
-    targets[("Schwarz_Diamond", 2, 11, 5, np.float64, True)] = (
-        "663d438e0f9913cdd155824c400ef52d3f44934f3a76f302f8ed0af77fd68da7",
-        "c79b7ce275ef0093d554c944a2a12e6d39053e214cedf61137462c60d98a82da",
-    )
-    targets[("Schwarz_Primitive", 2, 11, 5, np.float64, True)] = (
-        "4dcbf88c8f81a4e164b3cb3a21f075ca9f3b73372ba3ae7f75a7f5da10142931",
-        "b100b87f5423c72c915b5778f82ea33ca891ef552322d78f9b500f282620e22f",
+    targets[("Schwarz_Primitive", 2, 11, 5, np.float32, True)] = (
+        "edbd33921ae7b21936525d75c7dce31a1dc9ff6be434a37e11578a50a41a023e",
+        "6fc04a1b4725f2d386da00cdab660368e6c884e29e6508d955d1a843057eebea",
     )
     targets[("Schoen", 2, 11, 5, np.float64, False)] = (
         "a6a958173fc33875cb71dd540e07ffcc0a6755e0e26cf6b3753392f6269ef06a",
@@ -1129,29 +1057,77 @@ def test_tpms(
         "9ebff09efda06489b495e0dfbd4b8b080143c1f14e6c76fdb574dded2bc630b6",
         "c6c508e7e885a5e45010cf6cd717ccfeb6544d7cb3bb40bfec7e64eddda6bd22",
     )
-    targets[("Schoen", 2, 12, 5, np.float64, True)] = (
-        "cbff011a6f4bd7cb03489a6d694913074bae703c0dc174c650b550183dd9bee5",
-        "5216f3b0d41562c3b55af453eeafafbf9c3238fa4404af619a50904fae8c6515",
+    targets[("Schoen", 2, 11, 5, np.float64, True)] = (
+        "0849cea01ae1e23cb29b4b01bf6031cb7bb7c5672cea2aee5e1c0551dc38afcc",
+        "044e3f5ceec25f9f18b46fb21054c5c89df13f2a5edf5c03b9a2de487ba53732",
     )
-    targets[("Schoen_IWP", 2, 12, 5, np.float64, True)] = (
-        "98f43de6273e0f7e5a84a5c407c8d358bb5de3c1cc01f4be2ad85e67e3b7ea9f",
-        "944230c1a8f4ea77f8dfe42f89f01a08e316fd79ecab35ceaa4b99e2c9a06cb1",
+    targets[("Schoen_IWP", 2, 11, 5, np.float64, True)] = (
+        "90aac46313a7226d347928bce53232d91eb83363d0addab550579e2e0d2f5eab",
+        "2e73eace5480167448425194cb2f899331c85535bf47e3524c599891558d8e7a",
     )
-    targets[("Schoen_FRD", 2, 12, 5, np.float64, True)] = (
-        "36bd3dd92537751fe7a33c91eb48a5567b636b9d8d8a0658d79bf853301d891c",
-        "ac4a648fc5cc9d37f0705f2370a3fb572cb3b89d1bf9be3f238e0fac5e28ce41",
+    targets[("Schoen_FRD", 2, 11, 5, np.float64, True)] = (
+        "4b9b6ce53d45697d0d43195f3611dd295af9294b6b99a5aa073393b1f14f45a2",
+        "6134f79c6808b11e30d5b4dd40fe42371cc232491c355cc7829440961a12e401",
     )
-    targets[("Fischer_Koch_S", 2, 12, 5, np.float64, True)] = (
-        "babd22f191ca37436ab6eff3d45f312ffa90417f69c49cc8e3e7bc7f06d738d4",
-        "0d407f5cd8d014eb77527429f76481d85e7c3718e22e9fe78fc97d9649e74152",
+    targets[("Fischer_Koch_S", 2, 11, 5, np.float64, True)] = (
+        "7d3003e0a6b3892d807e86d9354c8970c1f11c5cb0dda39c6a8e80a2abf2fd23",
+        "9a3deec4d4dfa392134ef30cd2f47ccf6a17585a5ae29bd2682c9129371c67d5",
     )
-    targets[("Schwarz_Diamond", 2, 12, 5, np.float64, True)] = (
-        "490192179a4b027f4de5e3a6100b5070c26d1cf06dce41c7020fba21dfeef485",
-        "5934f6551c6996029787e92b4aa94d0191d425ec7cf6adc55af7e7d777304f68",
+    targets[("Schwarz_Diamond", 2, 11, 5, np.float64, True)] = (
+        "663d438e0f9913cdd155824c400ef52d3f44934f3a76f302f8ed0af77fd68da7",
+        "c79b7ce275ef0093d554c944a2a12e6d39053e214cedf61137462c60d98a82da",
     )
-    targets[("Schwarz_Primitive", 2, 12, 5, np.float64, True)] = (
-        "1374284201e73b404c748e19e576365b721b095a2bcb4e1d5582a5a58e44455a",
-        "b255f36671efa52eeba22e3725859ee36f43bd9fd3c28fa024eb962b6b49ba50",
+    targets[("Schwarz_Primitive", 2, 11, 5, np.float64, True)] = (
+        "4dcbf88c8f81a4e164b3cb3a21f075ca9f3b73372ba3ae7f75a7f5da10142931",
+        "b100b87f5423c72c915b5778f82ea33ca891ef552322d78f9b500f282620e22f",
+    )
+    targets[("Schoen", 2, 12, 5, np.float32, False)] = (
+        "13da4df3cf6cef59b78b73385e024e8d459cadb5fcc9c65b5d716f2c7a3945ce",
+        "327aa1e2c10cb29cf6326f3b5226992b518c232ed74f861873755fbd6d276f81",
+    )
+    targets[("Schoen_IWP", 2, 12, 5, np.float32, False)] = (
+        "cf66a7b22390eeaf0fd74a318bbac1179d72d356b51353da5c1d4dad511eea40",
+        "5d23947bda5ec9a82b699a130702a5def86d889ca77b752255aed7ef9bf49877",
+    )
+    targets[("Schoen_FRD", 2, 12, 5, np.float32, False)] = (
+        "dae4e85421947d88c9b09b6bf6b5edaf758cd728234ce53d85458eb96dc8bd72",
+        "684891d082d21b9e67a5c004af02c490c13733e7eebb96cee0c7a2c8ad37f873",
+    )
+    targets[("Fischer_Koch_S", 2, 12, 5, np.float32, False)] = (
+        "ec6f6490f58e0fdf52cde7eb284fc9cc437a0ce28fdea6d5c0d8c86d807c4bff",
+        "e8c0aed8cd2408156143e35c7f726846ef4e76890cf19e9a488709ecc0c28053",
+    )
+    targets[("Schwarz_Diamond", 2, 12, 5, np.float32, False)] = (
+        "dc85c157834d330b5459183c3c708f80ff17c5b543447025bc25608a7a6cae98",
+        "7b597dbb82c1587fa1c4762ef3999e8cd67d2ebcb226ea9bc560d65c5a67bce4",
+    )
+    targets[("Schwarz_Primitive", 2, 12, 5, np.float32, False)] = (
+        "c20a8be83f82a416147a37d802271bffcbc1b94526ced7cf2c29f1a8874fbcf2",
+        "ce27fa6a1b60d0174c20d275de587d5a56c4f055be6a1654de23a9ec658ad2f6",
+    )
+    targets[("Schoen", 2, 12, 5, np.float32, True)] = (
+        "8d6fce2d7a56d6524166e374ba4a2a62398b5ad7d801bebfce805e9d3a6512a0",
+        "7d5dd11a454f8d7212e77487b71de9a574600666392197529eb42c2cb6c436d1",
+    )
+    targets[("Schoen_IWP", 2, 12, 5, np.float32, True)] = (
+        "c6ab1030d8acdd4023d62998ba64951c7c4d8884f17b3d25430f12a9206cf8d0",
+        "58f1021fdbdc1d0bbda2acd47af238871354337fa4099484f98a11c98d30a748",
+    )
+    targets[("Schoen_FRD", 2, 12, 5, np.float32, True)] = (
+        "9871cb44c845d105babaf09dfe7c15a0e5609a9146b5fb7de00ae9ec718d01d3",
+        "b16de04a28c511bec770fa0ec794d8dad1afb84d10fcb3ec848ad1c0d170efd6",
+    )
+    targets[("Fischer_Koch_S", 2, 12, 5, np.float32, True)] = (
+        "7a5e57c4d95184deb57baa3abf3f9ab1ae5de2c910b65a25772f12b12a8b315d",
+        "a15c321be38d1bc0bbcdbc089675f88f312177d181280e65239a188ac72a017c",
+    )
+    targets[("Schwarz_Diamond", 2, 12, 5, np.float32, True)] = (
+        "233ac98f4bd00c84f7420b393ad179f92ff24a8a2a46fa6433563bd85e4803d5",
+        "4db069722fbe6baf603e5f5fcd628232a2ff2ac54e58baee1ee48b00e13d8868",
+    )
+    targets[("Schwarz_Primitive", 2, 12, 5, np.float32, True)] = (
+        "88098aab8e06a69d6f5c6a09e7d48e3bb3ced4c2e7e08f4a3bc3e07ea4fef257",
+        "12384b8c3c12fae0bafd7af6ee27db89d78c4499de8fb8b1567a3b77210809eb",
     )
     targets[("Schoen", 2, 12, 5, np.float64, False)] = (
         "18cf48b18c5cb4bbdaba95bc857c0c32603fa7b8661dbe1d541b20510a64ea79",
@@ -1170,36 +1146,36 @@ def test_tpms(
         "49169c99629b60941669364a19153f927b0ccd69d1028741a106af2af8a61f95",
     )
     targets[("Schwarz_Diamond", 2, 12, 5, np.float64, False)] = (
-        "490192179a4b027f4de5e3a6100b5070c26d1cf06dce41c7020fba21dfeef485",
+        "15bf3f2d2d065220651446793fab4fabd7080dc4008ec19d20089ed3df0d93bb",
         "253c1117ea7bac90dd0124456cb80fa667ee82b11ccdfcd5e953c6ade3549fee",
     )
     targets[("Schwarz_Primitive", 2, 12, 5, np.float64, False)] = (
-        "70f25afc1387c5d2c0634129480ce3afd74c766d61b6c53772a94385a5723a3d",
+        "a1de6d8d48eb20baa4b356e55c296d32d86fc4a7877a46731dba0d306f9d2a4e",
         "f1636a1eb3a4c0db49162d93b8746f050377d25300ab6fd63012a4bb3b322b01",
     )
-    targets[("Schoen", 3, 11, 5, np.float32, True)] = (
-        "c756e20041b294b19ed7b29d54eec3a823d4393ef74a291a42a10a2646c9c8a4",
-        "00823034fefe6d7f8fa032a9f90818684863310d86375ecd4250f7139763ddb4",
+    targets[("Schoen", 2, 12, 5, np.float64, True)] = (
+        "cbff011a6f4bd7cb03489a6d694913074bae703c0dc174c650b550183dd9bee5",
+        "5216f3b0d41562c3b55af453eeafafbf9c3238fa4404af619a50904fae8c6515",
     )
-    targets[("Schoen_IWP", 3, 11, 5, np.float32, True)] = (
-        "b663e0b8b0b0bfa5c5746afad4d27137a663370c495fb0794d74ea78acfa8d92",
-        "078bc6e761feffe572ccb1e18c83ab4c904e770a7cd0f7d5f6378c06a9ba192e",
+    targets[("Schoen_IWP", 2, 12, 5, np.float64, True)] = (
+        "98f43de6273e0f7e5a84a5c407c8d358bb5de3c1cc01f4be2ad85e67e3b7ea9f",
+        "944230c1a8f4ea77f8dfe42f89f01a08e316fd79ecab35ceaa4b99e2c9a06cb1",
     )
-    targets[("Schoen_FRD", 3, 11, 5, np.float32, True)] = (
-        "5ab0058325cb97fb5930663e21dcfd0c33e433b25fb216051d66a1f569d1a55d",
-        "54b6236abedc523edc2f143ca77978ed33dc83bbb454171a543c8c3aaf8f10ca",
+    targets[("Schoen_FRD", 2, 12, 5, np.float64, True)] = (
+        "36bd3dd92537751fe7a33c91eb48a5567b636b9d8d8a0658d79bf853301d891c",
+        "ac4a648fc5cc9d37f0705f2370a3fb572cb3b89d1bf9be3f238e0fac5e28ce41",
     )
-    targets[("Fischer_Koch_S", 3, 11, 5, np.float32, True)] = (
-        "30e5729ed7bb8a3b437f44bab01d64f980fb37825d21dda5cae6e3095050bb0d",
-        "6ff607892ae2692935ce464a1499d573f026469fec9eacf6991f58dca1b430b4",
+    targets[("Fischer_Koch_S", 2, 12, 5, np.float64, True)] = (
+        "babd22f191ca37436ab6eff3d45f312ffa90417f69c49cc8e3e7bc7f06d738d4",
+        "0d407f5cd8d014eb77527429f76481d85e7c3718e22e9fe78fc97d9649e74152",
     )
-    targets[("Schwarz_Diamond", 3, 11, 5, np.float32, True)] = (
-        "ec9998a3107ce18ec85ac7fae69ab36b44de20f4802768432e637ac7dbfe189d",
-        "cee885514c8190064ea7b4c13ee762b85fa86fdeaa28dbc248e00c66a6ab01bc",
+    targets[("Schwarz_Diamond", 2, 12, 5, np.float64, True)] = (
+        "337bee2cb415a16c657294da5268c87915c63da922ace498629f7c7820ed7c5a",
+        "5934f6551c6996029787e92b4aa94d0191d425ec7cf6adc55af7e7d777304f68",
     )
-    targets[("Schwarz_Primitive", 3, 11, 5, np.float32, True)] = (
-        "9045020cc52d9d260ea200bae661e0f361868493a289699770b526b351e910fa",
-        "ccb92e80bb3970e98210babe4d80f9ddf693283f9fad8893b6dcaacff9811be2",
+    targets[("Schwarz_Primitive", 2, 12, 5, np.float64, True)] = (
+        "4297104343fbd5177b3cb690e28f3e88bcc551b452b67b84da382054e0ca001e",
+        "b255f36671efa52eeba22e3725859ee36f43bd9fd3c28fa024eb962b6b49ba50",
     )
     targets[("Schoen", 3, 11, 5, np.float32, False)] = (
         "d1d78262194cff06232251351eda8455ab31cce58dd85bd4cbca65e0c56cbc08",
@@ -1225,77 +1201,29 @@ def test_tpms(
         "be4ffa35a72adc1c16e5e1a88acf36a7b822b418528b2f636f35b378f2d7d5fb",
         "f0a61458abebb6477d97986b9fb1372bc4ef34817cfeea9a2f85fef3e21b7010",
     )
-    targets[("Schoen", 3, 12, 5, np.float32, True)] = (
-        "6c91775260b628a786279c9480d0641ff5c72003c05617f632de9582a755efd6",
-        "f3cb5fdcf0a09eee2aa75e2d3b08e40cb0fd1b145932e1f3d73e77357650f42c",
+    targets[("Schoen", 3, 11, 5, np.float32, True)] = (
+        "c756e20041b294b19ed7b29d54eec3a823d4393ef74a291a42a10a2646c9c8a4",
+        "00823034fefe6d7f8fa032a9f90818684863310d86375ecd4250f7139763ddb4",
     )
-    targets[("Schoen_IWP", 3, 12, 5, np.float32, True)] = (
-        "b2af3ff0bb8793746d274ea3ed581624a75a1fd7f37124c4b864c1ca9a15b528",
-        "f3b0f54e611da66c9173aa9bac67842c71a3a797576c104419d99858d597adf0",
+    targets[("Schoen_IWP", 3, 11, 5, np.float32, True)] = (
+        "b663e0b8b0b0bfa5c5746afad4d27137a663370c495fb0794d74ea78acfa8d92",
+        "078bc6e761feffe572ccb1e18c83ab4c904e770a7cd0f7d5f6378c06a9ba192e",
     )
-    targets[("Schoen_FRD", 3, 12, 5, np.float32, True)] = (
-        "e8b33ce8be788d363d387fbe6cd0befba37773f12183b3adc9929bfb63614915",
-        "60fa12ff436701278ff6a303b83d7d16566b11fdfdaa497c6a43afa4496bdbce",
+    targets[("Schoen_FRD", 3, 11, 5, np.float32, True)] = (
+        "5ab0058325cb97fb5930663e21dcfd0c33e433b25fb216051d66a1f569d1a55d",
+        "54b6236abedc523edc2f143ca77978ed33dc83bbb454171a543c8c3aaf8f10ca",
     )
-    targets[("Fischer_Koch_S", 3, 12, 5, np.float32, True)] = (
-        "98133d54af8b850a1868c950df923615047d8e3a92209fe046a57c6b5414eaea",
-        "d744d9d702df31a510603200c56b95a48da62a8bb8c739e3be9ac9e0bb5e1918",
+    targets[("Fischer_Koch_S", 3, 11, 5, np.float32, True)] = (
+        "30e5729ed7bb8a3b437f44bab01d64f980fb37825d21dda5cae6e3095050bb0d",
+        "6ff607892ae2692935ce464a1499d573f026469fec9eacf6991f58dca1b430b4",
     )
-    targets[("Schwarz_Diamond", 3, 12, 5, np.float32, True)] = (
-        "73931adb8bd6e0e3f79c3e92a3fb576b94108a991f3f687c86df75f0de3c5b6c",
-        "c37ff7c028179224774d7637f6ed248ab5583d420d4d827fd6a8cd09e8eeafdc",
+    targets[("Schwarz_Diamond", 3, 11, 5, np.float32, True)] = (
+        "ec9998a3107ce18ec85ac7fae69ab36b44de20f4802768432e637ac7dbfe189d",
+        "cee885514c8190064ea7b4c13ee762b85fa86fdeaa28dbc248e00c66a6ab01bc",
     )
-    targets[("Schwarz_Primitive", 3, 12, 5, np.float32, True)] = (
-        "04a633808c8b4e3765fdbc61bcf8be097316a51b5aed71c7b90edafb55baaa40",
-        "6ef664fab57e2c10564cfb2b3f1e7b0f1bc1b7fcbef8f14b5b09076436997608",
-    )
-    targets[("Schoen", 3, 12, 5, np.float32, False)] = (
-        "1d0643d262baf3674d1c9c62f0c2a084804004c29477d9b606283f1c147291de",
-        "e682ba1b1a84fbcafb8cc672b69f01e4cea905df23c73f64f520f717757617dc",
-    )
-    targets[("Schoen_IWP", 3, 12, 5, np.float32, False)] = (
-        "7ffe9b0f1c1288df0a2a54d60c1a21f5d8fe77aa211fb71563bba4bf84b33797",
-        "e451f11ea5288b206a66e0158806fe10c8425600c1b967f6ed20de29019135ec",
-    )
-    targets[("Schoen_FRD", 3, 12, 5, np.float32, False)] = (
-        "425998d41afd0736c3cedfdf8f51d88ee2b0f250c588262a16cada97d1e62f0a",
-        "8b23aae3a000a0e79aaf609230e3c7bd126f25f389a9d430025b84ceb7cfcbbe",
-    )
-    targets[("Fischer_Koch_S", 3, 12, 5, np.float32, False)] = (
-        "035935cdae861f80dff2224f0e908177625a26f4f967d72af810c61aaed4b3fe",
-        "3762557175af225315da7e8970969645354bf67691b0b3196e289e2a344adb82",
-    )
-    targets[("Schwarz_Diamond", 3, 12, 5, np.float32, False)] = (
-        "a7672272840484d04f6985f68914d8c805c1905e203e6af823ab881c8c878a8f",
-        "a237859eea2e1d21fe9c8a34ca4108747e07ff1cb21929a4eb0ce4fe388e83a9",
-    )
-    targets[("Schwarz_Primitive", 3, 12, 5, np.float32, False)] = (
-        "485015aba9c82542f49e440a06e31eb5c44b2d00e1b0adf800f3655ef901f040",
-        "cbf7400172e5bfcfccdf9460dc5a8629be9614ee1c90b272ab66471c0e8f4921",
-    )
-    targets[("Schoen", 3, 11, 5, np.float64, True)] = (
-        "adc8dbaf396e15e0706a53da9e7e21bb18cb472b19d65a729a629e6b4c3733d5",
-        "018ffc5721eee8298f75fc4ab9bf2477c630fb88c3f94b046b347127d5738d17",
-    )
-    targets[("Schoen_IWP", 3, 11, 5, np.float64, True)] = (
-        "c3876b685ac737d63ca24ba2a35eb835d19d5a6febf2b01cf87e48bf01562ea6",
-        "e7fa02e71ede1889a6335fd8fa040712302bee2a2c3ad2c72acad43182fe1ef4",
-    )
-    targets[("Schoen_FRD", 3, 11, 5, np.float64, True)] = (
-        "db4c4d87be808dd383e72cf63f5795624eb8bca330891c917547d51b8782279d",
-        "6719dcb8d8fbfc2316cc232c6b490018cc3eb1cae69d95b855c0ba7d459008ea",
-    )
-    targets[("Fischer_Koch_S", 3, 11, 5, np.float64, True)] = (
-        "84bd201ad5de322f0c2362df0d095bca3dbe9652d055d1c94801e92e69f55932",
-        "8df375c7b2ef9cc02e5089225781ee46253d5b3119f7b8a38c4075ec035ac716",
-    )
-    targets[("Schwarz_Diamond", 3, 11, 5, np.float64, True)] = (
-        "80f6d48df3b76a6734a72dbf041a6ee008030e84e335974bb8978bb8ebbe0fe7",
-        "91e75fa41994c3b5e3f624e28014641f709ca99cc22489d1217d836d59e12c3d",
-    )
-    targets[("Schwarz_Primitive", 3, 11, 5, np.float64, True)] = (
-        "da30763ba9342db29ac3bd641ebe92e6a808c3759a7054289493e1b4670e120d",
-        "b390c2022dc85009f010398c42b3a672171fcd1d912f9b7555b71662b1da0b34",
+    targets[("Schwarz_Primitive", 3, 11, 5, np.float32, True)] = (
+        "9045020cc52d9d260ea200bae661e0f361868493a289699770b526b351e910fa",
+        "ccb92e80bb3970e98210babe4d80f9ddf693283f9fad8893b6dcaacff9811be2",
     )
     targets[("Schoen", 3, 11, 5, np.float64, False)] = (
         "913a42d2b001ce6b9fb6786671fd055bbe3fed7cc40dd5aea0ffa739f4bd4e16",
@@ -1321,29 +1249,77 @@ def test_tpms(
         "7ca67171ded3174ff1dc2ac6da3bc6b7256ee942ebb308f1ee38078885b0719e",
         "528845238e8d83d138ab6e5d965b5672a1ab0bb3ae1960cc928afdde71d4ec10",
     )
-    targets[("Schoen", 3, 12, 5, np.float64, True)] = (
-        "3e389d1f46eaf63fe2ea47a347a896916bc614e122eac62dc526cf8b52624b14",
-        "d7b4ff58ce7cb8ab002418b36b4e0a235ea9c1f7dc9062331563e38f70b71e91",
+    targets[("Schoen", 3, 11, 5, np.float64, True)] = (
+        "adc8dbaf396e15e0706a53da9e7e21bb18cb472b19d65a729a629e6b4c3733d5",
+        "018ffc5721eee8298f75fc4ab9bf2477c630fb88c3f94b046b347127d5738d17",
     )
-    targets[("Schoen_IWP", 3, 12, 5, np.float64, True)] = (
-        "2cbd3a6cbbd61c710d76358726f24ba7980a3ae8224868bf584d582e7de55b8a",
-        "c1a81d381c75377b2edfb3de05b9384367b5d036e1af6807730830bfd6e573f1",
+    targets[("Schoen_IWP", 3, 11, 5, np.float64, True)] = (
+        "c3876b685ac737d63ca24ba2a35eb835d19d5a6febf2b01cf87e48bf01562ea6",
+        "e7fa02e71ede1889a6335fd8fa040712302bee2a2c3ad2c72acad43182fe1ef4",
     )
-    targets[("Schoen_FRD", 3, 12, 5, np.float64, True)] = (
-        "92525637b84da9ec68665e6035c8e1eca2ca8fdf960b2212eb6c67bf65c9a386",
-        "136dce63de886c278e9ce75e7916d9b725f7644b45bc5ce3050b73df208b2b78",
+    targets[("Schoen_FRD", 3, 11, 5, np.float64, True)] = (
+        "db4c4d87be808dd383e72cf63f5795624eb8bca330891c917547d51b8782279d",
+        "6719dcb8d8fbfc2316cc232c6b490018cc3eb1cae69d95b855c0ba7d459008ea",
     )
-    targets[("Fischer_Koch_S", 3, 12, 5, np.float64, True)] = (
-        "04a6a1c744731ef8a25330fe30140e02a9e0a52f6da9486d57a6abff550ed1f5",
-        "9686ce7b8e593ff360d641f002750eb942fd1cae75cf8d20fb3cfd4a83bb20d0",
+    targets[("Fischer_Koch_S", 3, 11, 5, np.float64, True)] = (
+        "84bd201ad5de322f0c2362df0d095bca3dbe9652d055d1c94801e92e69f55932",
+        "8df375c7b2ef9cc02e5089225781ee46253d5b3119f7b8a38c4075ec035ac716",
     )
-    targets[("Schwarz_Diamond", 3, 12, 5, np.float64, True)] = (
-        "a003c555d93292b30d467606eaca0ecd5ad1f7444f37968d26ee552da8004495",
-        "041b6828f122755ec7cf636a8dec36993555b51de44f1dc3f040ae5729533093",
+    targets[("Schwarz_Diamond", 3, 11, 5, np.float64, True)] = (
+        "80f6d48df3b76a6734a72dbf041a6ee008030e84e335974bb8978bb8ebbe0fe7",
+        "91e75fa41994c3b5e3f624e28014641f709ca99cc22489d1217d836d59e12c3d",
     )
-    targets[("Schwarz_Primitive", 3, 12, 5, np.float64, True)] = (
-        "9ad2ef82a715dfef334ff1a042680fadc074671979893fde411094820a2efd97",
-        "bc55538ff68823aab12016fe6e3f3f69a89e00b054b5f386c2aedcf2669ac91e",
+    targets[("Schwarz_Primitive", 3, 11, 5, np.float64, True)] = (
+        "da30763ba9342db29ac3bd641ebe92e6a808c3759a7054289493e1b4670e120d",
+        "b390c2022dc85009f010398c42b3a672171fcd1d912f9b7555b71662b1da0b34",
+    )
+    targets[("Schoen", 3, 12, 5, np.float32, False)] = (
+        "1d0643d262baf3674d1c9c62f0c2a084804004c29477d9b606283f1c147291de",
+        "e682ba1b1a84fbcafb8cc672b69f01e4cea905df23c73f64f520f717757617dc",
+    )
+    targets[("Schoen_IWP", 3, 12, 5, np.float32, False)] = (
+        "7ffe9b0f1c1288df0a2a54d60c1a21f5d8fe77aa211fb71563bba4bf84b33797",
+        "e451f11ea5288b206a66e0158806fe10c8425600c1b967f6ed20de29019135ec",
+    )
+    targets[("Schoen_FRD", 3, 12, 5, np.float32, False)] = (
+        "425998d41afd0736c3cedfdf8f51d88ee2b0f250c588262a16cada97d1e62f0a",
+        "8b23aae3a000a0e79aaf609230e3c7bd126f25f389a9d430025b84ceb7cfcbbe",
+    )
+    targets[("Fischer_Koch_S", 3, 12, 5, np.float32, False)] = (
+        "035935cdae861f80dff2224f0e908177625a26f4f967d72af810c61aaed4b3fe",
+        "3762557175af225315da7e8970969645354bf67691b0b3196e289e2a344adb82",
+    )
+    targets[("Schwarz_Diamond", 3, 12, 5, np.float32, False)] = (
+        "a7672272840484d04f6985f68914d8c805c1905e203e6af823ab881c8c878a8f",
+        "a237859eea2e1d21fe9c8a34ca4108747e07ff1cb21929a4eb0ce4fe388e83a9",
+    )
+    targets[("Schwarz_Primitive", 3, 12, 5, np.float32, False)] = (
+        "485015aba9c82542f49e440a06e31eb5c44b2d00e1b0adf800f3655ef901f040",
+        "cbf7400172e5bfcfccdf9460dc5a8629be9614ee1c90b272ab66471c0e8f4921",
+    )
+    targets[("Schoen", 3, 12, 5, np.float32, True)] = (
+        "6c91775260b628a786279c9480d0641ff5c72003c05617f632de9582a755efd6",
+        "f3cb5fdcf0a09eee2aa75e2d3b08e40cb0fd1b145932e1f3d73e77357650f42c",
+    )
+    targets[("Schoen_IWP", 3, 12, 5, np.float32, True)] = (
+        "b2af3ff0bb8793746d274ea3ed581624a75a1fd7f37124c4b864c1ca9a15b528",
+        "f3b0f54e611da66c9173aa9bac67842c71a3a797576c104419d99858d597adf0",
+    )
+    targets[("Schoen_FRD", 3, 12, 5, np.float32, True)] = (
+        "e8b33ce8be788d363d387fbe6cd0befba37773f12183b3adc9929bfb63614915",
+        "60fa12ff436701278ff6a303b83d7d16566b11fdfdaa497c6a43afa4496bdbce",
+    )
+    targets[("Fischer_Koch_S", 3, 12, 5, np.float32, True)] = (
+        "98133d54af8b850a1868c950df923615047d8e3a92209fe046a57c6b5414eaea",
+        "d744d9d702df31a510603200c56b95a48da62a8bb8c739e3be9ac9e0bb5e1918",
+    )
+    targets[("Schwarz_Diamond", 3, 12, 5, np.float32, True)] = (
+        "73931adb8bd6e0e3f79c3e92a3fb576b94108a991f3f687c86df75f0de3c5b6c",
+        "c37ff7c028179224774d7637f6ed248ab5583d420d4d827fd6a8cd09e8eeafdc",
+    )
+    targets[("Schwarz_Primitive", 3, 12, 5, np.float32, True)] = (
+        "04a633808c8b4e3765fdbc61bcf8be097316a51b5aed71c7b90edafb55baaa40",
+        "6ef664fab57e2c10564cfb2b3f1e7b0f1bc1b7fcbef8f14b5b09076436997608",
     )
     targets[("Schoen", 3, 12, 5, np.float64, False)] = (
         "8d38619660d53af3a9c6dc63735186ccc9a9b4619dd0575e2b53e83f15075d65",
@@ -1368,6 +1344,30 @@ def test_tpms(
     targets[("Schwarz_Primitive", 3, 12, 5, np.float64, False)] = (
         "f5065f46b31c5b86b72937ab287ec55009d50c054c7654cc84be5f8370b8b878",
         "7f639cfef39587f5780008ac8b2d2d90f69d4114b8475170774e80370b785d5d",
+    )
+    targets[("Schoen", 3, 12, 5, np.float64, True)] = (
+        "3e389d1f46eaf63fe2ea47a347a896916bc614e122eac62dc526cf8b52624b14",
+        "d7b4ff58ce7cb8ab002418b36b4e0a235ea9c1f7dc9062331563e38f70b71e91",
+    )
+    targets[("Schoen_IWP", 3, 12, 5, np.float64, True)] = (
+        "2cbd3a6cbbd61c710d76358726f24ba7980a3ae8224868bf584d582e7de55b8a",
+        "c1a81d381c75377b2edfb3de05b9384367b5d036e1af6807730830bfd6e573f1",
+    )
+    targets[("Schoen_FRD", 3, 12, 5, np.float64, True)] = (
+        "92525637b84da9ec68665e6035c8e1eca2ca8fdf960b2212eb6c67bf65c9a386",
+        "136dce63de886c278e9ce75e7916d9b725f7644b45bc5ce3050b73df208b2b78",
+    )
+    targets[("Fischer_Koch_S", 3, 12, 5, np.float64, True)] = (
+        "04a6a1c744731ef8a25330fe30140e02a9e0a52f6da9486d57a6abff550ed1f5",
+        "9686ce7b8e593ff360d641f002750eb942fd1cae75cf8d20fb3cfd4a83bb20d0",
+    )
+    targets[("Schwarz_Diamond", 3, 12, 5, np.float64, True)] = (
+        "a003c555d93292b30d467606eaca0ecd5ad1f7444f37968d26ee552da8004495",
+        "041b6828f122755ec7cf636a8dec36993555b51de44f1dc3f040ae5729533093",
+    )
+    targets[("Schwarz_Primitive", 3, 12, 5, np.float64, True)] = (
+        "9ad2ef82a715dfef334ff1a042680fadc074671979893fde411094820a2efd97",
+        "bc55538ff68823aab12016fe6e3f3f69a89e00b054b5f386c2aedcf2669ac91e",
     )
 
     periods = np.ones(dim, dtype=dtype)
@@ -1398,7 +1398,20 @@ def test_tpms(
 
 
 if __name__ == "__main__":
+    test_tpms(2, 11, 5, np.float32, False)
+    test_tpms(2, 11, 5, np.float32, True)
+    test_tpms(2, 11, 5, np.float64, False)
+    test_tpms(2, 11, 5, np.float64, True)
     test_tpms(2, 12, 5, np.float32, False)
     test_tpms(2, 12, 5, np.float32, True)
     test_tpms(2, 12, 5, np.float64, False)
     test_tpms(2, 12, 5, np.float64, True)
+
+    test_tpms(3, 11, 5, np.float32, False)
+    test_tpms(3, 11, 5, np.float32, True)
+    test_tpms(3, 11, 5, np.float64, False)
+    test_tpms(3, 11, 5, np.float64, True)
+    test_tpms(3, 12, 5, np.float32, False)
+    test_tpms(3, 12, 5, np.float32, True)
+    test_tpms(3, 12, 5, np.float64, False)
+    test_tpms(3, 12, 5, np.float64, True)
