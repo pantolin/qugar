@@ -221,7 +221,7 @@ div_F = ufl.div(F)
 # we create tags for the cut and full cells and facets using QUGaR built-in functions.
 
 cell_tags = unf_mesh.create_cell_meshtags(cut_tag=0, full_tag=1)
-facet_tags = unf_mesh.create_facet_tags(cut_tag=0, full_tag=0, exterior_integral=True)
+facet_tags = unf_mesh.create_facet_tags(cut_tag=0, full_tag=0, ext_integral=True)
 
 
 # For computing volumetric integrals, we use standard UFL measures with the

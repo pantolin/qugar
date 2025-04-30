@@ -152,7 +152,7 @@ class QuadGenerator(Protocol):
     def create_quad_custom_cells(
         self,
         degree: int,
-        dlf_cells: npt.NDArray[np.int32],
+        cells: npt.NDArray[np.int32],
         tag: Optional[int] = None,
     ) -> CustomQuad:
         """Returns the custom quadratures for the given `cells`.
@@ -172,7 +172,7 @@ class QuadGenerator(Protocol):
             degree (int): Expected degree of exactness of the quadrature
                 to be generated.
 
-            dlf_cells (npt.NDArray[np.int32]): Array of DOLFINx cell ids
+            cells (npt.NDArray[np.int32]): Array of DOLFINx cell ids
                 (local to current MPI process) for which quadratures
                 will be generated.
 
@@ -187,7 +187,7 @@ class QuadGenerator(Protocol):
     def create_quad_unf_boundaries(
         self,
         degree: int,
-        dlf_cells: npt.NDArray[np.int32],
+        cells: npt.NDArray[np.int32],
         tag: Optional[int] = None,
     ) -> CustomQuadUnfBoundary:
         """Returns the custom quadrature for unfitted boundaries for the
@@ -207,7 +207,7 @@ class QuadGenerator(Protocol):
             degree (int): Expected degree of exactness of the quadrature
                 to be generated.
 
-            dlf_cells (npt.NDArray[np.int32]): Array of DOLFINx cell ids
+            cells (npt.NDArray[np.int32]): Array of DOLFINx cell ids
                 (local to current MPI process) for which quadratures
                 will be generated. It must only contain cells with
                 unfitted boundaries.
@@ -224,7 +224,7 @@ class QuadGenerator(Protocol):
     def create_quad_custom_facets(
         self,
         degree: int,
-        dlf_facets: MeshFacets,
+        facets: MeshFacets,
         integral_type: str,
         tag: Optional[int] = None,
     ) -> CustomQuadFacet:
@@ -251,7 +251,7 @@ class QuadGenerator(Protocol):
             degree (int): Expected degree of exactness of the quadrature
                 to be generated.
 
-            dlf_facets (MeshFacets): Mesh facets object that stores the
+            facets (MeshFacets): Mesh facets object that stores the
                 information of the facets. The facets are local
                 to the MPI rank.
 

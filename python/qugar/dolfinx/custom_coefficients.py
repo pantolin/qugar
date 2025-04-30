@@ -711,7 +711,7 @@ class _CustomCoeffsPackerIntegral:
             exterior_facet = not self._is_interior_facet()
 
             all_facets = self._get_single_facets()
-            empty_facets = self._unf_domain.get_empty_facets(exterior_integral=exterior_facet)
+            empty_facets = self._unf_domain.get_empty_facets(ext_integral=exterior_facet)
 
             all_cells_facets = cast(npt.NDArray[np.int32], all_facets.as_array().reshape(-1, 2))
             empty_cells_facets = cast(npt.NDArray[np.int32], empty_facets.as_array().reshape(-1, 2))
@@ -741,7 +741,7 @@ class _CustomCoeffsPackerIntegral:
             exterior_facet = not self._is_interior_facet()
 
             all_facets = self._get_single_facets()
-            target_facets = self._unf_domain.get_cut_facets(exterior_integral=exterior_facet)
+            target_facets = self._unf_domain.get_cut_facets(ext_integral=exterior_facet)
 
             all_cells_facets = cast(npt.NDArray[np.int32], all_facets.as_array().reshape(-1, 2))
             target_cells_facets = cast(

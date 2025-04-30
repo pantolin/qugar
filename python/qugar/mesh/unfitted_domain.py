@@ -208,9 +208,9 @@ class UnfittedDomain(UnfittedDomainABC):
             cast(npt.NDArray[np.int64], orig_facets.cell_ids), orig_facets.local_facet_ids
         )
 
-        dlf_facets = MeshFacets(*filtered_facets).to_DOLFINx(self._mesh)
+        facets = MeshFacets(*filtered_facets).to_DOLFINx(self._mesh)
 
-        return dlf_facets
+        return facets
 
     def _get_cut_facets_ext_integral(self) -> MeshFacets:
         """Gets the cut facets as a MeshFacets object for exterior integrals.
@@ -271,13 +271,13 @@ class UnfittedDomain(UnfittedDomainABC):
 
     def get_cut_facets(
         self,
-        exterior_integral: bool = True,
+        ext_integral: bool = True,
     ) -> MeshFacets:
         """Gets the cut facets as a MeshFacets object following
         the DOLFINx local numbering.
 
         The list of facets will be filtered for exterior or interior
-        integrals according to the argument `exterior_integral`.
+        integrals according to the argument `ext_integral`.
 
         Note:
             The selection of facets is performed differently depending
@@ -294,7 +294,7 @@ class UnfittedDomain(UnfittedDomainABC):
             contained in an unfitted boundary, it is considered as full.
 
         Args:
-            exterior_integral (bool): Whether the list of facets is
+            ext_integral (bool): Whether the list of facets is
                 retrieved for computing exterior or interior integrals
                 (see note above).
 
@@ -304,7 +304,7 @@ class UnfittedDomain(UnfittedDomainABC):
 
         return (
             self._get_cut_facets_ext_integral()
-            if exterior_integral
+            if ext_integral
             else self._get_cut_facets_int_integral()
         )
 
@@ -363,13 +363,13 @@ class UnfittedDomain(UnfittedDomainABC):
 
     def get_full_facets(
         self,
-        exterior_integral: bool = True,
+        ext_integral: bool = True,
     ) -> MeshFacets:
         """Gets the full facets as a MeshFacets object following
         the DOLFINx local numbering.
 
         The list of facets will be filtered for exterior or interior
-        integrals according to the argument `exterior_integral`.
+        integrals according to the argument `ext_integral`.
 
         Note:
             The selection of facets is performed differently depending
@@ -383,7 +383,7 @@ class UnfittedDomain(UnfittedDomainABC):
             (either the mesh's domain or the unfitted boundary).
 
         Args:
-            exterior_integral (bool): Whether the list of facets is
+            ext_integral (bool): Whether the list of facets is
                 retrieved for computing exterior or interior integrals
                 (see note above).
 
@@ -393,7 +393,7 @@ class UnfittedDomain(UnfittedDomainABC):
 
         return (
             self._get_full_facets_ext_integral()
-            if exterior_integral
+            if ext_integral
             else self._get_full_facets_int_integral()
         )
 
@@ -450,7 +450,7 @@ class UnfittedDomain(UnfittedDomainABC):
             if not unf_facets.empty:
                 # They may contain cut facets need to be removed.
                 unf_non_cut_facets = unf_facets.difference(
-                    self.get_cut_facets(exterior_integral=False), assume_unique=True
+                    self.get_cut_facets(ext_integral=False), assume_unique=True
                 )
 
                 if not unf_non_cut_facets.empty:
@@ -463,7 +463,7 @@ class UnfittedDomain(UnfittedDomainABC):
 
     def get_empty_facets(
         self,
-        exterior_integral: bool = True,
+        ext_integral: bool = True,
     ) -> MeshFacets:
         """Gets the empty facets as a MeshFacets object following
         the DOLFINx local numbering.
@@ -484,7 +484,7 @@ class UnfittedDomain(UnfittedDomainABC):
             domain or its boundary.
 
         Args:
-            exterior_integral (bool): Whether the list of facets is
+            ext_integral (bool): Whether the list of facets is
                 retrieved for computing exterior or interior integrals
                 (see note above).
 
@@ -494,7 +494,7 @@ class UnfittedDomain(UnfittedDomainABC):
 
         return (
             self._get_empty_facets_ext_integral()
-            if exterior_integral
+            if ext_integral
             else self._get_empty_facets_int_integral()
         )
 
@@ -529,9 +529,9 @@ class UnfittedDomain(UnfittedDomainABC):
     def create_quad_custom_cells(
         self,
         degree: int,
-        dlf_cells: npt.NDArray[np.int32],
+        cells: npt.NDArray[np.int32],
     ) -> CustomQuad:
-        """Returns the custom quadratures for the given `dlf_cells`.
+        """Returns the custom quadratures for the given `cells`.
 
         For empty cells, no quadrature is generated and will have 0 points
         associated to them. For full cells, the quadrature will be the
@@ -546,7 +546,7 @@ class UnfittedDomain(UnfittedDomainABC):
         Args:
             degree (int): Expected degree of exactness of the quadrature
                 to be generated.
-            dlf_cells (npt.NDArray[np.int32]): Array of DOLFINx cell ids
+            cells (npt.NDArray[np.int32]): Array of DOLFINx cell ids
                 (local to current MPI process) for which quadratures
                 will be generated.
 
@@ -556,16 +556,16 @@ class UnfittedDomain(UnfittedDomainABC):
 
         quad = qugar.cpp.create_quadrature(
             self.cpp_unf_domain_object,
-            cells=self._mesh.get_original_cell_ids(dlf_cells),
+            cells=self._mesh.get_original_cell_ids(cells),
             n_pts_dir=UnfittedDomain.get_num_Gauss_points(degree),
         )
 
-        return CustomQuad(dlf_cells, quad.n_pts_per_entity, quad.points, quad.weights)
+        return CustomQuad(cells, quad.n_pts_per_entity, quad.points, quad.weights)
 
     def create_quad_unf_boundaries(
         self,
         degree: int,
-        dlf_cells: npt.NDArray[np.int32],
+        cells: npt.NDArray[np.int32],
     ) -> CustomQuadUnfBoundary:
         """Returns the custom quadrature for unfitted boundaries for the
         given `cells`.
@@ -588,7 +588,7 @@ class UnfittedDomain(UnfittedDomainABC):
         Args:
             degree (int): Expected degree of exactness of the quadrature
                 to be generated.
-            dlf_cells (npt.NDArray[np.int32]): Array of DOLFINx cell ids
+            cells (npt.NDArray[np.int32]): Array of DOLFINx cell ids
                 (local to current MPI process) for which quadratures
                 will be generated.
 
@@ -599,21 +599,21 @@ class UnfittedDomain(UnfittedDomainABC):
 
         quad = qugar.cpp.create_unfitted_bound_quadrature(
             self._cpp_unf_domain_object,
-            cells=self._mesh.get_original_cell_ids(dlf_cells),
+            cells=self._mesh.get_original_cell_ids(cells),
             n_pts_dir=UnfittedDomain.get_num_Gauss_points(degree),
             include_facet_unf_bdry=False,
             exclude_ext_bdry=False,
         )
 
         return CustomQuadUnfBoundary(
-            dlf_cells, quad.n_pts_per_entity, quad.points, quad.weights, quad.normals
+            cells, quad.n_pts_per_entity, quad.points, quad.weights, quad.normals
         )
 
     def create_quad_custom_facets(
         self,
         degree: int,
-        dlf_facets: MeshFacets,
-        exterior_integral: bool,
+        facets: MeshFacets,
+        ext_integral: bool,
     ) -> CustomQuadFacet:
         """Returns the custom quadratures for the given facets.
 
@@ -630,10 +630,10 @@ class UnfittedDomain(UnfittedDomainABC):
         Args:
             degree (int): Expected degree of exactness of the quadrature
                 to be generated.
-            dlf_facets (MeshFacets): MeshFacets object containing the
+            facets (MeshFacets): MeshFacets object containing the
                 DOLFINx (local) facets for which quadratures will be
                 generated.
-            exterior_integral (bool): Whether exterior integrals are
+            ext_integral (bool): Whether exterior integrals are
                 to be computed using the generated quadratures.
                 If `True`, the quadrature will be generated for the
                 facets that belong to the domain's boundary (either
@@ -649,11 +649,11 @@ class UnfittedDomain(UnfittedDomainABC):
 
         n_pts_dir = UnfittedDomain.get_num_Gauss_points(degree)
 
-        orig_facets = dlf_facets.to_original(self._mesh)
+        orig_facets = facets.to_original(self._mesh)
 
         quad_func = (
             qugar.cpp.create_facets_quadrature_exterior_integral
-            if exterior_integral
+            if ext_integral
             else qugar.cpp.create_facets_quadrature_interior_integral
         )
 
@@ -665,7 +665,7 @@ class UnfittedDomain(UnfittedDomainABC):
         )
 
         return CustomQuadFacet(
-            dlf_facets,
+            facets,
             quad.n_pts_per_entity,
             quad.points,
             quad.weights,

@@ -236,9 +236,9 @@ class MockUnfittedDomain(UnfittedDomainABC):
         return n_pts_per_cell, weights.astype(np.float64), points
 
     def create_quad_custom_cells(
-        self, degree: int, dlf_cells: npt.NDArray[np.int32], tag: Optional[int] = None
+        self, degree: int, cells: npt.NDArray[np.int32], tag: Optional[int] = None
     ) -> CustomQuad:
-        """Returns the custom quadratures for the given `dlf_cells`.
+        """Returns the custom quadratures for the given `cells`.
 
         For empty cells, no quadrature is generated and will have 0 points
         associated to them. For full cells, the quadrature will be the
@@ -250,7 +250,7 @@ class MockUnfittedDomain(UnfittedDomainABC):
             degree (int): Expected degree of exactness of the quadrature
                 to be generated.
 
-            dlf_cells (npt.NDArray[np.int32]): Array of DOLFINx cell ids
+            cells (npt.NDArray[np.int32]): Array of DOLFINx cell ids
                 (local to current MPI process) for which quadratures
                 will be generated.
 
@@ -258,14 +258,14 @@ class MockUnfittedDomain(UnfittedDomainABC):
             CustomQuadInterface: Generated custom quadrature.
         """
 
-        subset_ids = np.searchsorted(self._get_cells_ids(), dlf_cells)
+        subset_ids = np.searchsorted(self._get_cells_ids(), cells)
         n_quad_sets = self._n_quad_sets[subset_ids]
 
         n_pts_per_cell, weights, points = self._create_quadrature(degree, n_quad_sets, False)
-        return CustomQuad(dlf_cells, n_pts_per_cell, points, weights)
+        return CustomQuad(cells, n_pts_per_cell, points, weights)
 
     def create_quad_unf_boundaries(
-        self, degree: int, dlf_cells: npt.NDArray[np.int32], tag: Optional[int] = None
+        self, degree: int, cells: npt.NDArray[np.int32], tag: Optional[int] = None
     ) -> CustomQuadUnfBoundary:
         """Returns the custom quadrature for unfitted boundaries for the
         given `cells`.
@@ -274,7 +274,7 @@ class MockUnfittedDomain(UnfittedDomainABC):
             degree (int): Expected degree of exactness of the quadrature
                 to be generated.
 
-            dlf_cells (npt.NDArray[np.int32]): Array of DOLFINx cell ids
+            cells (npt.NDArray[np.int32]): Array of DOLFINx cell ids
                 (local to current MPI process) for which quadratures
                 will be generated.
 
@@ -283,7 +283,7 @@ class MockUnfittedDomain(UnfittedDomainABC):
             for unfitted boundaries.
         """
 
-        quad = self.create_quad_custom_cells(degree, dlf_cells, tag)
+        quad = self.create_quad_custom_cells(degree, cells, tag)
 
         s = quad.points.shape
         normals = np.random.rand(*s)
@@ -299,8 +299,8 @@ class MockUnfittedDomain(UnfittedDomainABC):
     def create_quad_custom_facets(
         self,
         degree: int,
-        dlf_facets: MeshFacets,
-        exterior_integral: bool,
+        facets: MeshFacets,
+        ext_integral: bool,
     ) -> CustomQuadFacet:
         """Returns the custom quadratures for the given facets.
 
@@ -317,10 +317,10 @@ class MockUnfittedDomain(UnfittedDomainABC):
         Args:
             degree (int): Expected degree of exactness of the quadrature
                 to be generated.
-            dlf_facets (MeshFacets): MeshFacets object containing the
+            facets (MeshFacets): MeshFacets object containing the
                 DOLFINx (local) facets for which quadratures will be
                 generated.
-            exterior_integral (bool): If `True` the quadratures will be generated
+            ext_integral (bool): If `True` the quadratures will be generated
                 considering the given facets as exterior facets.
                 Otherwise, as interior.
                 See the documentation of `get_cut_facets`,
@@ -333,20 +333,20 @@ class MockUnfittedDomain(UnfittedDomainABC):
             quadratures.
         """
 
-        if exterior_integral:
-            facets = self._ext_facet_ids
+        if ext_integral:
+            _facets = self._ext_facet_ids
             n_quad_sets = self._n_quad_sets_ext
         else:
-            facets = self._int_facet_ids
+            _facets = self._int_facet_ids
             n_quad_sets = self._n_quad_sets_int
 
-        # Finds the indices of dlf_facets referred to facets
-        inds = facets.find(dlf_facets)
+        # Finds the indices of facets referred to facets
+        inds = _facets.find(facets)
 
         n_quad_sets_dlf = n_quad_sets[inds]
         n_pts_per_cell, weights, points = self._create_quadrature(degree, n_quad_sets_dlf, True)
 
-        return CustomQuadFacet(dlf_facets, n_pts_per_cell, points, weights)
+        return CustomQuadFacet(_facets, n_pts_per_cell, points, weights)
 
     def get_cut_cells(self) -> npt.NDArray[np.int32]:
         """Gets the ids of the cut cells.
@@ -384,41 +384,41 @@ class MockUnfittedDomain(UnfittedDomainABC):
 
     def get_cut_facets(
         self,
-        exterior_integral: bool = True,
+        ext_integral: bool = True,
     ) -> MeshFacets:
         """Gets the cut facets as a MeshFacets object following
         the DOLFINx local numbering.
 
         Args:
-            exterior_integral (bool): Whether the list of facets is
+            ext_integral (bool): Whether the list of facets is
                 retrieved for computing exterior or interior integrals
                 (see note above).
 
         Returns:
             MeshFacets: Cut facets (following DOLFINx local ordering).
         """
-        return self._ext_cut_facet_ids if exterior_integral else self._int_cut_facet_ids
+        return self._ext_cut_facet_ids if ext_integral else self._int_cut_facet_ids
 
     def get_full_facets(
         self,
-        exterior_integral: bool = True,
+        ext_integral: bool = True,
     ) -> MeshFacets:
         """Gets the full facets as a MeshFacets object following
         the DOLFINx local numbering.
 
         Args:
-            exterior_integral (bool): Whether the list of facets is
+            ext_integral (bool): Whether the list of facets is
                 retrieved for computing exterior or interior integrals
                 (see note above).
 
         Returns:
             MeshFacets: Full facets (following DOLFINx local ordering).
         """
-        return self._ext_full_facet_ids if exterior_integral else self._int_full_facet_ids
+        return self._ext_full_facet_ids if ext_integral else self._int_full_facet_ids
 
     def get_empty_facets(
         self,
-        exterior_integral: bool = True,
+        ext_integral: bool = True,
     ) -> MeshFacets:
         """Gets the empty facets as a MeshFacets object following
         the DOLFINx local numbering.
@@ -428,11 +428,11 @@ class MockUnfittedDomain(UnfittedDomainABC):
             derived classes.
 
         Args:
-            exterior_integral (bool): Whether the list of facets is
+            ext_integral (bool): Whether the list of facets is
                 retrieved for computing exterior or interior integrals
                 (see note above).
 
         Returns:
             MeshFacets: Empty facets (following DOLFINx local ordering).
         """
-        return self._ext_empty_facet_ids if exterior_integral else self._int_empty_facet_ids
+        return self._ext_empty_facet_ids if ext_integral else self._int_empty_facet_ids

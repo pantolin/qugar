@@ -293,7 +293,7 @@ def form_custom(
         }
 
         for subdomain_id in everywhere_ext_facet_ids:
-            ext_facets = unf_domain.get_all_facets(exterior_integral=True).as_array()
+            ext_facets = unf_domain.get_all_facets(ext_integral=True).as_array()
             subdomains[IntegralType.exterior_facet].append((subdomain_id, ext_facets))
 
         # Reverting modified exterior integrals

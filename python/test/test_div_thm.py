@@ -131,9 +131,7 @@ def create_div_thm_surface_ufl_form(domain: UnfittedCartMesh, n_quad_pts: int, u
         cut_tag = 0
         full_tag = 1
         cell_tags = domain.create_cell_meshtags(cut_tag=cut_tag)
-        facet_tags = domain.create_facet_tags(
-            cut_tag=cut_tag, full_tag=full_tag, exterior_integral=True
-        )
+        facet_tags = domain.create_facet_tags(cut_tag=cut_tag, full_tag=full_tag, ext_integral=True)
 
         ds_unf = ds_bdry_unf(
             domain=domain,

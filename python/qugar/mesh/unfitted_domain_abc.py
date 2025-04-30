@@ -113,13 +113,13 @@ class UnfittedDomainABC(ABC):
     @abstractmethod
     def get_cut_facets(
         self,
-        exterior_integral: bool = True,
+        ext_integral: bool = True,
     ) -> MeshFacets:
         """Gets the cut facets as a MeshFacets object following
         the DOLFINx local numbering.
 
         The list of facets will be filtered for exterior or interior
-        integrals according to the argument `exterior_integral`.
+        integrals according to the argument `ext_integral`.
 
         Note:
             The selection of facets is performed differently depending
@@ -140,7 +140,7 @@ class UnfittedDomainABC(ABC):
             derived classes.
 
         Args:
-            exterior_integral (bool): Whether the list of facets is
+            ext_integral (bool): Whether the list of facets is
                 retrieved for computing exterior or interior integrals
                 (see note above).
 
@@ -152,13 +152,13 @@ class UnfittedDomainABC(ABC):
     @abstractmethod
     def get_full_facets(
         self,
-        exterior_integral: bool = True,
+        ext_integral: bool = True,
     ) -> MeshFacets:
         """Gets the full facets as a MeshFacets object following
         the DOLFINx local numbering.
 
         The list of facets will be filtered for exterior or interior
-        integrals according to the argument `exterior_integral`.
+        integrals according to the argument `ext_integral`.
 
         Note:
             The selection of facets is performed differently depending
@@ -176,7 +176,7 @@ class UnfittedDomainABC(ABC):
             derived classes.
 
         Args:
-            exterior_integral (bool): Whether the list of facets is
+            ext_integral (bool): Whether the list of facets is
                 retrieved for computing exterior or interior integrals
                 (see note above).
 
@@ -188,7 +188,7 @@ class UnfittedDomainABC(ABC):
     @abstractmethod
     def get_empty_facets(
         self,
-        exterior_integral: bool = True,
+        ext_integral: bool = True,
     ) -> MeshFacets:
         """Gets the empty facets as a MeshFacets object following
         the DOLFINx local numbering.
@@ -213,7 +213,7 @@ class UnfittedDomainABC(ABC):
             derived classes.
 
         Args:
-            exterior_integral (bool): Whether the list of facets is
+            ext_integral (bool): Whether the list of facets is
                 retrieved for computing exterior or interior integrals
                 (see note above).
 
@@ -222,7 +222,7 @@ class UnfittedDomainABC(ABC):
         """
         pass
 
-    def get_all_facets(self, exterior_integral: bool = True) -> MeshFacets:
+    def get_all_facets(self, ext_integral: bool = True) -> MeshFacets:
         """Gets all the facets of the mesh.
 
         The list of facets will be filtered to only exterior or interior
@@ -242,7 +242,7 @@ class UnfittedDomainABC(ABC):
             classes.
 
         Args:
-            exterior_integral (bool): Whether the list of facets is
+            ext_integral (bool): Whether the list of facets is
                 retrieved for computing exterior or interior integrals
                 (see note above).
 
@@ -250,11 +250,11 @@ class UnfittedDomainABC(ABC):
             MeshFacets: All facets (following DOLFINx local ordering).
         """
 
-        ext_facets = self.get_cut_facets(exterior_integral=True)
-        ext_facets = ext_facets.concatenate(self.get_full_facets(exterior_integral=True))
-        ext_facets = ext_facets.concatenate(self.get_empty_facets(exterior_integral=True))
+        ext_facets = self.get_cut_facets(ext_integral=True)
+        ext_facets = ext_facets.concatenate(self.get_full_facets(ext_integral=True))
+        ext_facets = ext_facets.concatenate(self.get_empty_facets(ext_integral=True))
 
-        if exterior_integral:
+        if ext_integral:
             return ext_facets
         else:
             all_facets = create_all_mesh_facets(self._mesh, single_interior_facet=False)
@@ -264,9 +264,9 @@ class UnfittedDomainABC(ABC):
     def create_quad_custom_cells(
         self,
         degree: int,
-        dlf_cells: npt.NDArray[np.int32],
+        cells: npt.NDArray[np.int32],
     ) -> CustomQuad:
-        """Returns the custom quadratures for the given `dlf_cells`.
+        """Returns the custom quadratures for the given `cells`.
 
         For empty cells, no quadrature is generated and will have 0 points
         associated to them. For full cells, the quadrature will be the
@@ -285,7 +285,7 @@ class UnfittedDomainABC(ABC):
         Args:
             degree (int): Expected degree of exactness of the quadrature
                 to be generated.
-            dlf_cells (npt.NDArray[np.int32]): Array of DOLFINx cell ids
+            cells (npt.NDArray[np.int32]): Array of DOLFINx cell ids
                 (local to current MPI process) for which quadratures
                 will be generated.
 
@@ -298,7 +298,7 @@ class UnfittedDomainABC(ABC):
     def create_quad_unf_boundaries(
         self,
         degree: int,
-        dlf_cells: npt.NDArray[np.int32],
+        cells: npt.NDArray[np.int32],
     ) -> CustomQuadUnfBoundary:
         """Returns the custom quadrature for unfitted boundaries for the
         given `cells`.
@@ -323,7 +323,7 @@ class UnfittedDomainABC(ABC):
         Args:
             degree (int): Expected degree of exactness of the quadrature
                 to be generated.
-            dlf_cells (npt.NDArray[np.int32]): Array of DOLFINx cell ids
+            cells (npt.NDArray[np.int32]): Array of DOLFINx cell ids
                 (local to current MPI process) for which quadratures
                 will be generated.
 
@@ -337,8 +337,8 @@ class UnfittedDomainABC(ABC):
     def create_quad_custom_facets(
         self,
         degree: int,
-        dlf_facets: MeshFacets,
-        exterior_integral: bool,
+        facets: MeshFacets,
+        ext_integral: bool,
     ) -> CustomQuadFacet:
         """Returns the custom quadratures for the given facets.
 
@@ -359,10 +359,10 @@ class UnfittedDomainABC(ABC):
         Args:
             degree (int): Expected degree of exactness of the quadrature
                 to be generated.
-            dlf_facets (MeshFacets): MeshFacets object containing the
+            facets (MeshFacets): MeshFacets object containing the
                 DOLFINx (local) facets for which quadratures will be
                 generated.
-            exterior_integral (bool): Whether exterior integrals are
+            ext_integral (bool): Whether exterior integrals are
                 to be computed using the generated quadratures.
                 If `True`, the quadrature will be generated for the
                 facets that belong to the domain's boundary (either
@@ -430,7 +430,7 @@ class UnfittedDomainABC(ABC):
         cut_tag: Optional[int] = None,
         full_tag: Optional[int] = None,
         empty_tag: Optional[int] = None,
-        exterior_integral: bool = True,
+        ext_integral: bool = True,
     ) -> list[tuple[int, npt.NDArray[np.int32]]]:
         """Creates a facet tags container to identify the cut, full,
         and empty cells.
@@ -454,7 +454,7 @@ class UnfittedDomainABC(ABC):
                 Defaults to None.
             empty_tag (Optional[int]): Tag to assign to empty facets.
                 Defaults to None.
-            exterior_integral (bool): If `True`, the generated facet
+            ext_integral (bool): If `True`, the generated facet
                 lists will be used for computing exterior integrals.
                 Otherwise, for interior integrals. Check the
                 documentation of `get_cut_facets`, `get_full_facets`,
@@ -482,12 +482,12 @@ class UnfittedDomainABC(ABC):
                 facet_tags[tag] = facets
 
         if cut_tag is not None:
-            add_facets(self.get_cut_facets(exterior_integral), cut_tag)
+            add_facets(self.get_cut_facets(ext_integral), cut_tag)
 
         if full_tag is not None:
-            add_facets(self.get_full_facets(exterior_integral), full_tag)
+            add_facets(self.get_full_facets(ext_integral), full_tag)
 
         if empty_tag is not None:
-            add_facets(self.get_empty_facets(exterior_integral), cut_tag)
+            add_facets(self.get_empty_facets(ext_integral), cut_tag)
 
         return list((tag, facets.as_array()) for tag, facets in facet_tags.items())
