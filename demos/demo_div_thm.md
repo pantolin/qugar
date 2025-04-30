@@ -4,7 +4,7 @@ jupytext:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.17.0
+    jupytext_version: 1.17.1
   main_language: python
 ---
 
@@ -228,7 +228,7 @@ we create tags for the cut and full cells and facets using QUGaR built-in functi
 
 ```python
 cell_tags = unf_mesh.create_cell_meshtags(cut_tag=0, full_tag=1)
-facet_tags = unf_mesh.create_facet_tags(cut_tag=0, full_tag=0, exterior_integral=True)
+facet_tags = unf_mesh.create_facet_tags(cut_tag=0, full_tag=0, ext_integral=True)
 ```
 
 For computing volumetric integrals, we use standard UFL measures with the

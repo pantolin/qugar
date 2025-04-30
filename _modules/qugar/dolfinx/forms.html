@@ -379,7 +379,7 @@
         <span class="p">}</span>
 
         <span class="k">for</span> <span class="n">subdomain_id</span> <span class="ow">in</span> <span class="n">everywhere_ext_facet_ids</span><span class="p">:</span>
-            <span class="n">ext_facets</span> <span class="o">=</span> <span class="n">unf_domain</span><span class="o">.</span><span class="n">get_all_facets</span><span class="p">(</span><span class="n">exterior_integral</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">as_array</span><span class="p">()</span>
+            <span class="n">ext_facets</span> <span class="o">=</span> <span class="n">unf_domain</span><span class="o">.</span><span class="n">get_all_facets</span><span class="p">(</span><span class="n">ext_integral</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">as_array</span><span class="p">()</span>
             <span class="n">subdomains</span><span class="p">[</span><span class="n">IntegralType</span><span class="o">.</span><span class="n">exterior_facet</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">subdomain_id</span><span class="p">,</span> <span class="n">ext_facets</span><span class="p">))</span>
 
         <span class="c1"># Reverting modified exterior integrals</span>

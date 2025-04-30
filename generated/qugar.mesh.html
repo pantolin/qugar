@@ -1246,8 +1246,8 @@ as a class to be inherited by other classes, such as
 
 <dl class="py method">
 <dt class="sig sig-object py" id="qugar.mesh.UnfittedDomain.create_quad_custom_cells">
-<span class="sig-name descname"><span class="pre">create_quad_custom_cells</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">degree</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dlf_cells</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">int32</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="qugar.quad.html#qugar.quad.CustomQuad" title="qugar.quad.custom_quad.CustomQuad"><span class="pre">CustomQuad</span></a></span></span><a class="reference internal" href="../_modules/qugar/mesh/unfitted_domain.html#UnfittedDomain.create_quad_custom_cells"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qugar.mesh.UnfittedDomain.create_quad_custom_cells" title="Link to this definition"></a></dt>
-<dd><p>Returns the custom quadratures for the given <cite>dlf_cells</cite>.</p>
+<span class="sig-name descname"><span class="pre">create_quad_custom_cells</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">degree</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cells</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">int32</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="qugar.quad.html#qugar.quad.CustomQuad" title="qugar.quad.custom_quad.CustomQuad"><span class="pre">CustomQuad</span></a></span></span><a class="reference internal" href="../_modules/qugar/mesh/unfitted_domain.html#UnfittedDomain.create_quad_custom_cells"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qugar.mesh.UnfittedDomain.create_quad_custom_cells" title="Link to this definition"></a></dt>
+<dd><p>Returns the custom quadratures for the given <cite>cells</cite>.</p>
 <p>For empty cells, no quadrature is generated and will have 0 points
 associated to them. For full cells, the quadrature will be the
 standard one associated to the cell type. While for
@@ -1263,7 +1263,7 @@ the fly, what can be potentially expensive.</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>degree</strong> (<em>int</em>) – Expected degree of exactness of the quadrature
 to be generated.</p></li>
-<li><p><strong>dlf_cells</strong> (<em>npt.NDArray</em><em>[</em><em>np.int32</em><em>]</em>) – Array of DOLFINx cell ids
+<li><p><strong>cells</strong> (<em>npt.NDArray</em><em>[</em><em>np.int32</em><em>]</em>) – Array of DOLFINx cell ids
 (local to current MPI process) for which quadratures
 will be generated.</p></li>
 </ul>
@@ -1279,7 +1279,7 @@ will be generated.</p></li>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="qugar.mesh.UnfittedDomain.create_quad_custom_facets">
-<span class="sig-name descname"><span class="pre">create_quad_custom_facets</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">degree</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dlf_facets</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">MeshFacets</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exterior_integral</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="qugar.quad.html#qugar.quad.CustomQuadFacet" title="qugar.quad.custom_quad.CustomQuadFacet"><span class="pre">CustomQuadFacet</span></a></span></span><a class="reference internal" href="../_modules/qugar/mesh/unfitted_domain.html#UnfittedDomain.create_quad_custom_facets"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qugar.mesh.UnfittedDomain.create_quad_custom_facets" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">create_quad_custom_facets</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">degree</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">facets</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">MeshFacets</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ext_integral</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="qugar.quad.html#qugar.quad.CustomQuadFacet" title="qugar.quad.custom_quad.CustomQuadFacet"><span class="pre">CustomQuadFacet</span></a></span></span><a class="reference internal" href="../_modules/qugar/mesh/unfitted_domain.html#UnfittedDomain.create_quad_custom_facets"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qugar.mesh.UnfittedDomain.create_quad_custom_facets" title="Link to this definition"></a></dt>
 <dd><p>Returns the custom quadratures for the given facets.</p>
 <p>For empty facets, no quadrature is generated and will have 0 points
 associated to them. For full facets, the quadrature will be the
@@ -1296,10 +1296,10 @@ the fly, what can be potentially expensive.</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>degree</strong> (<em>int</em>) – Expected degree of exactness of the quadrature
 to be generated.</p></li>
-<li><p><strong>dlf_facets</strong> (<em>MeshFacets</em>) – MeshFacets object containing the
+<li><p><strong>facets</strong> (<em>MeshFacets</em>) – MeshFacets object containing the
 DOLFINx (local) facets for which quadratures will be
 generated.</p></li>
-<li><p><strong>exterior_integral</strong> (<em>bool</em>) – Whether exterior integrals are
+<li><p><strong>ext_integral</strong> (<em>bool</em>) – Whether exterior integrals are
 to be computed using the generated quadratures.
 If <cite>True</cite>, the quadrature will be generated for the
 facets that belong to the domain’s boundary (either
@@ -1321,7 +1321,7 @@ quadratures.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="qugar.mesh.UnfittedDomain.create_quad_unf_boundaries">
-<span class="sig-name descname"><span class="pre">create_quad_unf_boundaries</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">degree</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dlf_cells</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">int32</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="qugar.quad.html#qugar.quad.CustomQuadUnfBoundary" title="qugar.quad.custom_quad.CustomQuadUnfBoundary"><span class="pre">CustomQuadUnfBoundary</span></a></span></span><a class="reference internal" href="../_modules/qugar/mesh/unfitted_domain.html#UnfittedDomain.create_quad_unf_boundaries"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qugar.mesh.UnfittedDomain.create_quad_unf_boundaries" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">create_quad_unf_boundaries</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">degree</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cells</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">int32</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="qugar.quad.html#qugar.quad.CustomQuadUnfBoundary" title="qugar.quad.custom_quad.CustomQuadUnfBoundary"><span class="pre">CustomQuadUnfBoundary</span></a></span></span><a class="reference internal" href="../_modules/qugar/mesh/unfitted_domain.html#UnfittedDomain.create_quad_unf_boundaries"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qugar.mesh.UnfittedDomain.create_quad_unf_boundaries" title="Link to this definition"></a></dt>
 <dd><p>Returns the custom quadrature for unfitted boundaries for the
 given <cite>cells</cite>.</p>
 <div class="admonition note">
@@ -1347,7 +1347,7 @@ the fly, what can be potentially expensive.</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>degree</strong> (<em>int</em>) – Expected degree of exactness of the quadrature
 to be generated.</p></li>
-<li><p><strong>dlf_cells</strong> (<em>npt.NDArray</em><em>[</em><em>np.int32</em><em>]</em>) – Array of DOLFINx cell ids
+<li><p><strong>cells</strong> (<em>npt.NDArray</em><em>[</em><em>np.int32</em><em>]</em>) – Array of DOLFINx cell ids
 (local to current MPI process) for which quadratures
 will be generated.</p></li>
 </ul>
@@ -1380,11 +1380,11 @@ The cell ids are sorted.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="qugar.mesh.UnfittedDomain.get_cut_facets">
-<span class="sig-name descname"><span class="pre">get_cut_facets</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">exterior_integral</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">MeshFacets</span></span></span><a class="reference internal" href="../_modules/qugar/mesh/unfitted_domain.html#UnfittedDomain.get_cut_facets"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qugar.mesh.UnfittedDomain.get_cut_facets" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_cut_facets</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ext_integral</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">MeshFacets</span></span></span><a class="reference internal" href="../_modules/qugar/mesh/unfitted_domain.html#UnfittedDomain.get_cut_facets"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qugar.mesh.UnfittedDomain.get_cut_facets" title="Link to this definition"></a></dt>
 <dd><p>Gets the cut facets as a MeshFacets object following
 the DOLFINx local numbering.</p>
 <p>The list of facets will be filtered for exterior or interior
-integrals according to the argument <cite>exterior_integral</cite>.</p>
+integrals according to the argument <cite>ext_integral</cite>.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>The selection of facets is performed differently depending
@@ -1402,7 +1402,7 @@ contained in an unfitted boundary, it is considered as full.</p>
 </div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>exterior_integral</strong> (<em>bool</em>) – Whether the list of facets is
+<dd class="field-odd"><p><strong>ext_integral</strong> (<em>bool</em>) – Whether the list of facets is
 retrieved for computing exterior or interior integrals
 (see note above).</p>
 </dd>
@@ -1433,7 +1433,7 @@ The cell ids are sorted.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="qugar.mesh.UnfittedDomain.get_empty_facets">
-<span class="sig-name descname"><span class="pre">get_empty_facets</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">exterior_integral</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">MeshFacets</span></span></span><a class="reference internal" href="../_modules/qugar/mesh/unfitted_domain.html#UnfittedDomain.get_empty_facets"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qugar.mesh.UnfittedDomain.get_empty_facets" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_empty_facets</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ext_integral</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">MeshFacets</span></span></span><a class="reference internal" href="../_modules/qugar/mesh/unfitted_domain.html#UnfittedDomain.get_empty_facets"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qugar.mesh.UnfittedDomain.get_empty_facets" title="Link to this definition"></a></dt>
 <dd><p>Gets the empty facets as a MeshFacets object following
 the DOLFINx local numbering.</p>
 <p>The list of facets will be filtered to only exterior or interior
@@ -1453,7 +1453,7 @@ domain or its boundary.</p>
 </div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>exterior_integral</strong> (<em>bool</em>) – Whether the list of facets is
+<dd class="field-odd"><p><strong>ext_integral</strong> (<em>bool</em>) – Whether the list of facets is
 retrieved for computing exterior or interior integrals
 (see note above).</p>
 </dd>
@@ -1484,11 +1484,11 @@ The cell ids are sorted.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="qugar.mesh.UnfittedDomain.get_full_facets">
-<span class="sig-name descname"><span class="pre">get_full_facets</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">exterior_integral</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">MeshFacets</span></span></span><a class="reference internal" href="../_modules/qugar/mesh/unfitted_domain.html#UnfittedDomain.get_full_facets"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qugar.mesh.UnfittedDomain.get_full_facets" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">get_full_facets</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ext_integral</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">MeshFacets</span></span></span><a class="reference internal" href="../_modules/qugar/mesh/unfitted_domain.html#UnfittedDomain.get_full_facets"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qugar.mesh.UnfittedDomain.get_full_facets" title="Link to this definition"></a></dt>
 <dd><p>Gets the full facets as a MeshFacets object following
 the DOLFINx local numbering.</p>
 <p>The list of facets will be filtered for exterior or interior
-integrals according to the argument <cite>exterior_integral</cite>.</p>
+integrals according to the argument <cite>ext_integral</cite>.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>The selection of facets is performed differently depending
@@ -1503,7 +1503,7 @@ exterior) that are fully contained in the domain’s boundary
 </div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>exterior_integral</strong> (<em>bool</em>) – Whether the list of facets is
+<dd class="field-odd"><p><strong>ext_integral</strong> (<em>bool</em>) – Whether the list of facets is
 retrieved for computing exterior or interior integrals
 (see note above).</p>
 </dd>

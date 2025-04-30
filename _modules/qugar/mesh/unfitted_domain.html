@@ -297,9 +297,9 @@
             <span class="n">cast</span><span class="p">(</span><span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">],</span> <span class="n">orig_facets</span><span class="o">.</span><span class="n">cell_ids</span><span class="p">),</span> <span class="n">orig_facets</span><span class="o">.</span><span class="n">local_facet_ids</span>
         <span class="p">)</span>
 
-        <span class="n">dlf_facets</span> <span class="o">=</span> <span class="n">MeshFacets</span><span class="p">(</span><span class="o">*</span><span class="n">filtered_facets</span><span class="p">)</span><span class="o">.</span><span class="n">to_DOLFINx</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_mesh</span><span class="p">)</span>
+        <span class="n">facets</span> <span class="o">=</span> <span class="n">MeshFacets</span><span class="p">(</span><span class="o">*</span><span class="n">filtered_facets</span><span class="p">)</span><span class="o">.</span><span class="n">to_DOLFINx</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_mesh</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">dlf_facets</span>
+        <span class="k">return</span> <span class="n">facets</span>
 
     <span class="k">def</span> <span class="nf">_get_cut_facets_ext_integral</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MeshFacets</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Gets the cut facets as a MeshFacets object for exterior integrals.</span>
@@ -362,13 +362,13 @@
 <a class="viewcode-back" href="../../../generated/qugar.mesh.html#qugar.mesh.UnfittedDomain.get_cut_facets">[docs]</a>
     <span class="k">def</span> <span class="nf">get_cut_facets</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
-        <span class="n">exterior_integral</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">ext_integral</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MeshFacets</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Gets the cut facets as a MeshFacets object following</span>
 <span class="sd">        the DOLFINx local numbering.</span>
 
 <span class="sd">        The list of facets will be filtered for exterior or interior</span>
-<span class="sd">        integrals according to the argument `exterior_integral`.</span>
+<span class="sd">        integrals according to the argument `ext_integral`.</span>
 
 <span class="sd">        Note:</span>
 <span class="sd">            The selection of facets is performed differently depending</span>
@@ -385,7 +385,7 @@
 <span class="sd">            contained in an unfitted boundary, it is considered as full.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            exterior_integral (bool): Whether the list of facets is</span>
+<span class="sd">            ext_integral (bool): Whether the list of facets is</span>
 <span class="sd">                retrieved for computing exterior or interior integrals</span>
 <span class="sd">                (see note above).</span>
 
@@ -395,7 +395,7 @@
 
         <span class="k">return</span> <span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_get_cut_facets_ext_integral</span><span class="p">()</span>
-            <span class="k">if</span> <span class="n">exterior_integral</span>
+            <span class="k">if</span> <span class="n">ext_integral</span>
             <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_cut_facets_int_integral</span><span class="p">()</span>
         <span class="p">)</span></div>
 
@@ -457,13 +457,13 @@
 <a class="viewcode-back" href="../../../generated/qugar.mesh.html#qugar.mesh.UnfittedDomain.get_full_facets">[docs]</a>
     <span class="k">def</span> <span class="nf">get_full_facets</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
-        <span class="n">exterior_integral</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">ext_integral</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MeshFacets</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Gets the full facets as a MeshFacets object following</span>
 <span class="sd">        the DOLFINx local numbering.</span>
 
 <span class="sd">        The list of facets will be filtered for exterior or interior</span>
-<span class="sd">        integrals according to the argument `exterior_integral`.</span>
+<span class="sd">        integrals according to the argument `ext_integral`.</span>
 
 <span class="sd">        Note:</span>
 <span class="sd">            The selection of facets is performed differently depending</span>
@@ -477,7 +477,7 @@
 <span class="sd">            (either the mesh&#39;s domain or the unfitted boundary).</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            exterior_integral (bool): Whether the list of facets is</span>
+<span class="sd">            ext_integral (bool): Whether the list of facets is</span>
 <span class="sd">                retrieved for computing exterior or interior integrals</span>
 <span class="sd">                (see note above).</span>
 
@@ -487,7 +487,7 @@
 
         <span class="k">return</span> <span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_get_full_facets_ext_integral</span><span class="p">()</span>
-            <span class="k">if</span> <span class="n">exterior_integral</span>
+            <span class="k">if</span> <span class="n">ext_integral</span>
             <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_full_facets_int_integral</span><span class="p">()</span>
         <span class="p">)</span></div>
 
@@ -545,7 +545,7 @@
             <span class="k">if</span> <span class="ow">not</span> <span class="n">unf_facets</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
                 <span class="c1"># They may contain cut facets need to be removed.</span>
                 <span class="n">unf_non_cut_facets</span> <span class="o">=</span> <span class="n">unf_facets</span><span class="o">.</span><span class="n">difference</span><span class="p">(</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">get_cut_facets</span><span class="p">(</span><span class="n">exterior_integral</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span> <span class="n">assume_unique</span><span class="o">=</span><span class="kc">True</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">get_cut_facets</span><span class="p">(</span><span class="n">ext_integral</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span> <span class="n">assume_unique</span><span class="o">=</span><span class="kc">True</span>
                 <span class="p">)</span>
 
                 <span class="k">if</span> <span class="ow">not</span> <span class="n">unf_non_cut_facets</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
@@ -560,7 +560,7 @@
 <a class="viewcode-back" href="../../../generated/qugar.mesh.html#qugar.mesh.UnfittedDomain.get_empty_facets">[docs]</a>
     <span class="k">def</span> <span class="nf">get_empty_facets</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
-        <span class="n">exterior_integral</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">ext_integral</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MeshFacets</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Gets the empty facets as a MeshFacets object following</span>
 <span class="sd">        the DOLFINx local numbering.</span>
@@ -581,7 +581,7 @@
 <span class="sd">            domain or its boundary.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            exterior_integral (bool): Whether the list of facets is</span>
+<span class="sd">            ext_integral (bool): Whether the list of facets is</span>
 <span class="sd">                retrieved for computing exterior or interior integrals</span>
 <span class="sd">                (see note above).</span>
 
@@ -591,7 +591,7 @@
 
         <span class="k">return</span> <span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_get_empty_facets_ext_integral</span><span class="p">()</span>
-            <span class="k">if</span> <span class="n">exterior_integral</span>
+            <span class="k">if</span> <span class="n">ext_integral</span>
             <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_empty_facets_int_integral</span><span class="p">()</span>
         <span class="p">)</span></div>
 
@@ -632,9 +632,9 @@
     <span class="k">def</span> <span class="nf">create_quad_custom_cells</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">degree</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
-        <span class="n">dlf_cells</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">],</span>
+        <span class="n">cells</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">],</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">CustomQuad</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the custom quadratures for the given `dlf_cells`.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the custom quadratures for the given `cells`.</span>
 
 <span class="sd">        For empty cells, no quadrature is generated and will have 0 points</span>
 <span class="sd">        associated to them. For full cells, the quadrature will be the</span>
@@ -649,7 +649,7 @@
 <span class="sd">        Args:</span>
 <span class="sd">            degree (int): Expected degree of exactness of the quadrature</span>
 <span class="sd">                to be generated.</span>
-<span class="sd">            dlf_cells (npt.NDArray[np.int32]): Array of DOLFINx cell ids</span>
+<span class="sd">            cells (npt.NDArray[np.int32]): Array of DOLFINx cell ids</span>
 <span class="sd">                (local to current MPI process) for which quadratures</span>
 <span class="sd">                will be generated.</span>
 
@@ -659,11 +659,11 @@
 
         <span class="n">quad</span> <span class="o">=</span> <span class="n">qugar</span><span class="o">.</span><span class="n">cpp</span><span class="o">.</span><span class="n">create_quadrature</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">cpp_unf_domain_object</span><span class="p">,</span>
-            <span class="n">cells</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_mesh</span><span class="o">.</span><span class="n">get_original_cell_ids</span><span class="p">(</span><span class="n">dlf_cells</span><span class="p">),</span>
+            <span class="n">cells</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_mesh</span><span class="o">.</span><span class="n">get_original_cell_ids</span><span class="p">(</span><span class="n">cells</span><span class="p">),</span>
             <span class="n">n_pts_dir</span><span class="o">=</span><span class="n">UnfittedDomain</span><span class="o">.</span><span class="n">get_num_Gauss_points</span><span class="p">(</span><span class="n">degree</span><span class="p">),</span>
         <span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">CustomQuad</span><span class="p">(</span><span class="n">dlf_cells</span><span class="p">,</span> <span class="n">quad</span><span class="o">.</span><span class="n">n_pts_per_entity</span><span class="p">,</span> <span class="n">quad</span><span class="o">.</span><span class="n">points</span><span class="p">,</span> <span class="n">quad</span><span class="o">.</span><span class="n">weights</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="n">CustomQuad</span><span class="p">(</span><span class="n">cells</span><span class="p">,</span> <span class="n">quad</span><span class="o">.</span><span class="n">n_pts_per_entity</span><span class="p">,</span> <span class="n">quad</span><span class="o">.</span><span class="n">points</span><span class="p">,</span> <span class="n">quad</span><span class="o">.</span><span class="n">weights</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="UnfittedDomain.create_quad_unf_boundaries">
@@ -671,7 +671,7 @@
     <span class="k">def</span> <span class="nf">create_quad_unf_boundaries</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">degree</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
-        <span class="n">dlf_cells</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">],</span>
+        <span class="n">cells</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">],</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">CustomQuadUnfBoundary</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the custom quadrature for unfitted boundaries for the</span>
 <span class="sd">        given `cells`.</span>
@@ -694,7 +694,7 @@
 <span class="sd">        Args:</span>
 <span class="sd">            degree (int): Expected degree of exactness of the quadrature</span>
 <span class="sd">                to be generated.</span>
-<span class="sd">            dlf_cells (npt.NDArray[np.int32]): Array of DOLFINx cell ids</span>
+<span class="sd">            cells (npt.NDArray[np.int32]): Array of DOLFINx cell ids</span>
 <span class="sd">                (local to current MPI process) for which quadratures</span>
 <span class="sd">                will be generated.</span>
 
@@ -705,14 +705,14 @@
 
         <span class="n">quad</span> <span class="o">=</span> <span class="n">qugar</span><span class="o">.</span><span class="n">cpp</span><span class="o">.</span><span class="n">create_unfitted_bound_quadrature</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_cpp_unf_domain_object</span><span class="p">,</span>
-            <span class="n">cells</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_mesh</span><span class="o">.</span><span class="n">get_original_cell_ids</span><span class="p">(</span><span class="n">dlf_cells</span><span class="p">),</span>
+            <span class="n">cells</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_mesh</span><span class="o">.</span><span class="n">get_original_cell_ids</span><span class="p">(</span><span class="n">cells</span><span class="p">),</span>
             <span class="n">n_pts_dir</span><span class="o">=</span><span class="n">UnfittedDomain</span><span class="o">.</span><span class="n">get_num_Gauss_points</span><span class="p">(</span><span class="n">degree</span><span class="p">),</span>
             <span class="n">include_facet_unf_bdry</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
             <span class="n">exclude_ext_bdry</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
         <span class="p">)</span>
 
         <span class="k">return</span> <span class="n">CustomQuadUnfBoundary</span><span class="p">(</span>
-            <span class="n">dlf_cells</span><span class="p">,</span> <span class="n">quad</span><span class="o">.</span><span class="n">n_pts_per_entity</span><span class="p">,</span> <span class="n">quad</span><span class="o">.</span><span class="n">points</span><span class="p">,</span> <span class="n">quad</span><span class="o">.</span><span class="n">weights</span><span class="p">,</span> <span class="n">quad</span><span class="o">.</span><span class="n">normals</span>
+            <span class="n">cells</span><span class="p">,</span> <span class="n">quad</span><span class="o">.</span><span class="n">n_pts_per_entity</span><span class="p">,</span> <span class="n">quad</span><span class="o">.</span><span class="n">points</span><span class="p">,</span> <span class="n">quad</span><span class="o">.</span><span class="n">weights</span><span class="p">,</span> <span class="n">quad</span><span class="o">.</span><span class="n">normals</span>
         <span class="p">)</span></div>
 
 
@@ -721,8 +721,8 @@
     <span class="k">def</span> <span class="nf">create_quad_custom_facets</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">degree</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
-        <span class="n">dlf_facets</span><span class="p">:</span> <span class="n">MeshFacets</span><span class="p">,</span>
-        <span class="n">exterior_integral</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+        <span class="n">facets</span><span class="p">:</span> <span class="n">MeshFacets</span><span class="p">,</span>
+        <span class="n">ext_integral</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">CustomQuadFacet</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the custom quadratures for the given facets.</span>
 
@@ -739,10 +739,10 @@
 <span class="sd">        Args:</span>
 <span class="sd">            degree (int): Expected degree of exactness of the quadrature</span>
 <span class="sd">                to be generated.</span>
-<span class="sd">            dlf_facets (MeshFacets): MeshFacets object containing the</span>
+<span class="sd">            facets (MeshFacets): MeshFacets object containing the</span>
 <span class="sd">                DOLFINx (local) facets for which quadratures will be</span>
 <span class="sd">                generated.</span>
-<span class="sd">            exterior_integral (bool): Whether exterior integrals are</span>
+<span class="sd">            ext_integral (bool): Whether exterior integrals are</span>
 <span class="sd">                to be computed using the generated quadratures.</span>
 <span class="sd">                If `True`, the quadrature will be generated for the</span>
 <span class="sd">                facets that belong to the domain&#39;s boundary (either</span>
@@ -758,11 +758,11 @@
 
         <span class="n">n_pts_dir</span> <span class="o">=</span> <span class="n">UnfittedDomain</span><span class="o">.</span><span class="n">get_num_Gauss_points</span><span class="p">(</span><span class="n">degree</span><span class="p">)</span>
 
-        <span class="n">orig_facets</span> <span class="o">=</span> <span class="n">dlf_facets</span><span class="o">.</span><span class="n">to_original</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_mesh</span><span class="p">)</span>
+        <span class="n">orig_facets</span> <span class="o">=</span> <span class="n">facets</span><span class="o">.</span><span class="n">to_original</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_mesh</span><span class="p">)</span>
 
         <span class="n">quad_func</span> <span class="o">=</span> <span class="p">(</span>
             <span class="n">qugar</span><span class="o">.</span><span class="n">cpp</span><span class="o">.</span><span class="n">create_facets_quadrature_exterior_integral</span>
-            <span class="k">if</span> <span class="n">exterior_integral</span>
+            <span class="k">if</span> <span class="n">ext_integral</span>
             <span class="k">else</span> <span class="n">qugar</span><span class="o">.</span><span class="n">cpp</span><span class="o">.</span><span class="n">create_facets_quadrature_interior_integral</span>
         <span class="p">)</span>
 
@@ -774,7 +774,7 @@
         <span class="p">)</span>
 
         <span class="k">return</span> <span class="n">CustomQuadFacet</span><span class="p">(</span>
-            <span class="n">dlf_facets</span><span class="p">,</span>
+            <span class="n">facets</span><span class="p">,</span>
             <span class="n">quad</span><span class="o">.</span><span class="n">n_pts_per_entity</span><span class="p">,</span>
             <span class="n">quad</span><span class="o">.</span><span class="n">points</span><span class="p">,</span>
             <span class="n">quad</span><span class="o">.</span><span class="n">weights</span><span class="p">,</span>
