@@ -136,7 +136,7 @@ def create_quadrature_and_reparameterization_hashes(
 
     quad = qugar.plot.quadrature_to_PyVista(domain, n_pts_dir=n_quad_pts)
 
-    reparam = qugar.reparam.create_reparam_mesh(domain, n_pts_dir=n_quad_pts, levelset=False)
+    reparam = qugar.reparam.create_reparam_mesh(domain, degree=n_quad_pts - 1, levelset=False)
     reparam_pv = qugar.plot.reparam_mesh_to_PyVista(reparam)
 
     quad_hash = create_quad_PyVista_multiblock_hash(quad)
