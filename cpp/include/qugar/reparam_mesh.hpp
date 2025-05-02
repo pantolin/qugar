@@ -287,13 +287,14 @@ protected:
 
 template<int dim, bool levelset>
 std::shared_ptr<const ReparamMesh<levelset ? dim - 1 : dim, dim>>
-  create_reparameterization(const UnfittedDomain<dim> &unf_domain, int n_pts_dir);
+  create_reparameterization(const UnfittedDomain<dim> &unf_domain, int n_pts_dir, bool merge_points);
 
 template<int dim, bool levelset>
 std::shared_ptr<const ReparamMesh<levelset ? dim - 1 : dim, dim>> create_reparameterization(
   const UnfittedDomain<dim> &unf_domain,
   const std::vector<std::int64_t> &cells,
-  int n_pts_dir);
+  int n_pts_dir,
+  bool merge_points);
 
 
 }// namespace qugar
