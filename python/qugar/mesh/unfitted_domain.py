@@ -15,6 +15,8 @@ from qugar import has_FEniCSx
 if not has_FEniCSx:
     raise ValueError("FEniCSx installation not found is required.")
 
+import math
+
 import numpy as np
 import numpy.typing as npt
 
@@ -504,7 +506,7 @@ class UnfittedDomain(UnfittedDomainABC):
         for a given degree of exactness.
 
         It computes the number of points assuming the Gauss-Legendre quadrature.
-        The degree of exactness is 2 times the number of points plues one.
+        The degree of exactness is 2 times the number of points minus one.
 
         It does not consider the map of of the quadrature tile.
         A slightly higher number of points/degree may be needed.
@@ -524,7 +526,7 @@ class UnfittedDomain(UnfittedDomainABC):
 
         assert degree >= 0, "Invalid degree."
 
-        return max(int((degree - 1) / 2), 1)
+        return max(math.ceil((degree + 1) / 2), 1)
 
     def create_quad_custom_cells(
         self,

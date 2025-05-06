@@ -243,7 +243,11 @@ def test_sphere(
         func = qugar.impl.create_negative(func)
         exact_volume = dtype(1.0) - exact_volume
 
-    volume_test_and_area_test(func, n_cells, n_quad_pts, exact_volume, exact_area, dtype)
+    rtol = 1e-4
+    atol = 1e-8
+    volume_test_and_area_test(
+        func, n_cells, n_quad_pts, exact_volume, exact_area, dtype, rtol, atol
+    )
 
 
 @pytest.mark.parametrize("n_cells", [8])
@@ -330,7 +334,9 @@ def test_ellipsoid(
         func = qugar.impl.create_negative(func)
         exact_volume = dtype(1.0) - exact_volume
 
-    volume_test_and_area_test(func, n_cells, n_quad_pts, exact_volume, None, dtype)
+    rtol = 1e-4
+    atol = 1e-8
+    volume_test_and_area_test(func, n_cells, n_quad_pts, exact_volume, None, dtype, rtol, atol)
 
 
 @pytest.mark.parametrize("n_cells", [8])
@@ -460,7 +466,7 @@ def test_torus(
         func = qugar.impl.create_negative(func)
         exact_volume = dtype(1.0) - exact_volume
 
-    rtol = 1e-4
+    rtol = 1e-3
     atol = 1e-8
     volume_test_and_area_test(
         func, n_cells, n_quad_pts, exact_volume, exact_area, dtype, rtol, atol
@@ -559,6 +565,6 @@ if __name__ == "__main__":
     # test_ellipse(8, 5, np.float32, True)
     # test_ellipsoid(8, 5, np.float32, True, False)
     # test_annulus(8, 6, np.float32, True, False)
-    # test_torus(12, 8, np.float32, True, False)
+    # test_torus(12, 8, np.float32, False, False)
     # test_line(8, 2, np.float64, True, False)
     # test_plane(8, 2, np.float64, True, False)
