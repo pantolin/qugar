@@ -786,22 +786,23 @@ template<int dim, int range> void ReparamMesh<dim, range>::permute_cell_directio
 
 template<int dim, bool levelset>
 std::shared_ptr<const ReparamMesh<levelset ? dim - 1 : dim, dim>>
-  create_reparameterization(const UnfittedDomain<dim> &unf_domain, const int n_pts_dir)
+  create_reparameterization(const UnfittedDomain<dim> &unf_domain, const int n_pts_dir, const bool merge_points)
 {
   const auto *unf_impl_domain = dynamic_cast<const impl::UnfittedImplDomain<dim> *>(&unf_domain);
   assert(unf_impl_domain != nullptr);
-  return impl::create_reparameterization<dim, levelset>(*unf_impl_domain, n_pts_dir);
+  return impl::create_reparameterization<dim, levelset>(*unf_impl_domain, n_pts_dir, merge_points);
 }
 
 template<int dim, bool levelset>
 std::shared_ptr<const ReparamMesh<levelset ? dim - 1 : dim, dim>> create_reparameterization(
   const UnfittedDomain<dim> &unf_domain,
   const std::vector<std::int64_t> &cells,
-  const int n_pts_dir)
+  const int n_pts_dir,
+  const bool merge_points)
 {
   const auto *unf_impl_domain = dynamic_cast<const impl::UnfittedImplDomain<dim> *>(&unf_domain);
   assert(unf_impl_domain != nullptr);
-  return impl::create_reparameterization<dim, levelset>(*unf_impl_domain, cells, n_pts_dir);
+  return impl::create_reparameterization<dim, levelset>(*unf_impl_domain, cells, n_pts_dir, merge_points);
 }
 
 // Instantiations.
@@ -842,23 +843,31 @@ template std::vector<std::size_t> ReparamMesh<2, 2>::get_edge_points<2>(const in
 template std::vector<std::size_t> ReparamMesh<2, 3>::get_edge_points<2>(const int, const int) const;
 template std::vector<std::size_t> ReparamMesh<3, 3>::get_edge_points<3>(const int, const int) const;
 
-template std::shared_ptr<const ReparamMesh<1, 2>> create_reparameterization<2, true>(const UnfittedDomain<2> &,
-  const int);
-template std::shared_ptr<const ReparamMesh<2, 3>> create_reparameterization<3, true>(const UnfittedDomain<3> &,
-  const int);
-template std::shared_ptr<const ReparamMesh<2, 2>> create_reparameterization<2, false>(const UnfittedDomain<2> &,
-  const int);
-template std::shared_ptr<const ReparamMesh<3, 3>> create_reparameterization<3, false>(const UnfittedDomain<3> &,
-  const int);
-
 template std::shared_ptr<const ReparamMesh<1, 2>>
-  create_reparameterization<2, true>(const UnfittedDomain<2> &, const std::vector<std::int64_t> &, const int);
+  create_reparameterization<2, true>(const UnfittedDomain<2> &, const int, const bool);
 template std::shared_ptr<const ReparamMesh<2, 3>>
-  create_reparameterization<3, true>(const UnfittedDomain<3> &, const std::vector<std::int64_t> &, const int);
-
+  create_reparameterization<3, true>(const UnfittedDomain<3> &, const int, const bool);
 template std::shared_ptr<const ReparamMesh<2, 2>>
-  create_reparameterization<2, false>(const UnfittedDomain<2> &, const std::vector<std::int64_t> &, const int);
+  create_reparameterization<2, false>(const UnfittedDomain<2> &, const int, const bool);
 template std::shared_ptr<const ReparamMesh<3, 3>>
-  create_reparameterization<3, false>(const UnfittedDomain<3> &, const std::vector<std::int64_t> &, const int);
+  create_reparameterization<3, false>(const UnfittedDomain<3> &, const int, const bool);
+
+template std::shared_ptr<const ReparamMesh<1, 2>> create_reparameterization<2, true>(const UnfittedDomain<2> &,
+  const std::vector<std::int64_t> &,
+  const int,
+  const bool);
+template std::shared_ptr<const ReparamMesh<2, 3>> create_reparameterization<3, true>(const UnfittedDomain<3> &,
+  const std::vector<std::int64_t> &,
+  const int,
+  const bool);
+
+template std::shared_ptr<const ReparamMesh<2, 2>> create_reparameterization<2, false>(const UnfittedDomain<2> &,
+  const std::vector<std::int64_t> &,
+  const int,
+  const bool);
+template std::shared_ptr<const ReparamMesh<3, 3>> create_reparameterization<3, false>(const UnfittedDomain<3> &,
+  const std::vector<std::int64_t> &,
+  const int,
+  const bool);
 
 }// namespace qugar

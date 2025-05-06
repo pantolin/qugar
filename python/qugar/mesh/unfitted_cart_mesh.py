@@ -81,12 +81,13 @@ class UnfittedCartMesh(CartesianMesh, UnfittedDomain):
 def create_unfitted_impl_Cartesian_mesh(
     comm: MPI.Comm,
     impl_func: ImplicitFunc,
-    n_cells: npt.NDArray[np.int32] | list[np.int32] | list[int],
+    n_cells: npt.NDArray[np.int32] | list[np.int32] | list[int] | int,
     xmin: Optional[npt.NDArray[np.float32 | np.float64]] = None,
     xmax: Optional[npt.NDArray[np.float32 | np.float64]] = None,
     degree: int = 1,
     exclude_empty_cells: bool = True,
     ghost_mode: GhostMode = GhostMode.none,
+    dtype: Optional[type[np.float32 | np.float64]] = None,
 ) -> UnfittedCartMesh:
     """Creates an uniftted Cartesian mesh generated with a bounding box and the number of
     cells per direction, and an implicit function describing the domain
@@ -95,7 +96,7 @@ def create_unfitted_impl_Cartesian_mesh(
         comm: MPI communicator to be used for distributing the mesh.
         impl_func (ImplicitFunc_2D | ImplicitFunc_3D): Implicit function
             that describes the domain.
-        n_cells (npt.NDArray[np.int32] | list[np.int32] | list[int]):
+        n_cells (npt.NDArray[np.int32] | list[np.int32] | list[int] | int):
             Number of cells per direction in the mesh.
         xmin (Optional[npt.NDArray[np.float32 | np.float64]]): Minimum
             coordinates of the mesh's bounding box. Defaults to a vector
@@ -108,26 +109,47 @@ def create_unfitted_impl_Cartesian_mesh(
             are excluded from the mesh. Defaults to True.
         ghost_mode (GhostMode, optional): Ghost mode used for mesh
             partitioning. Defaults to `none`.
+        dtype (Optional[type[np.float32 | np.float64]]): Type to
+            be used in the grid. If not provided, it will be inferred
+            from `xmin` and/or `xmax`, and if not provided either
+            it will be set to `np.float64`.
 
     Returns:
         UnfittedCartMesh: Generated unfitted Cartesian mesh.
     """
 
-    n_cells = np.array(n_cells)
-    dim = len(n_cells)
+    dim = impl_func.dim
     assert 2 <= dim <= 3, "Invalid dimension."
 
-    dtype = (np.dtype(np.float64) if xmin is None else xmin.dtype) if xmax is None else xmax.dtype
-    xmin_ = np.zeros(dim, dtype=dtype) if xmin is None else xmin
-    xmax_ = np.ones(dim, dtype=dtype) if xmax is None else xmax
+    if isinstance(n_cells, int):
+        n_cells = [n_cells] * dim
+    n_cells = np.array(n_cells)
+    assert n_cells.size == dim, "Invalid number of cells per direction."
 
-    assert dim == xmin_.size and dim == xmax_.size
-    assert xmin_.dtype == xmax_.dtype and xmin_.dtype in [np.float32, np.float64]
-    assert np.all(xmax_ > xmin_)
+    if dtype is None:
+        if xmin is not None:
+            dtype = xmin.dtype.type
+        elif xmax is not None:
+            dtype = xmax.dtype.type
+        else:
+            dtype = np.float64
+
+    if xmin is None:
+        xmin = np.zeros(dim, dtype=dtype)
+    elif xmin.dtype != dtype:
+        raise ValueError(f"Invalid type for xmin: {xmin.dtype}. Expected {dtype}.")
+
+    if xmax is None:
+        xmax = np.ones(dim, dtype=dtype)
+    elif xmax.dtype != dtype:
+        raise ValueError(f"Invalid type for xmax: {xmax.dtype}. Expected {dtype}.")
+
+    assert dim == xmin.size and dim == xmax.size
+    assert np.all(xmax > xmin)
 
     cell_breaks = []
     for dir in range(dim):
-        cell_breaks.append(np.linspace(xmin_[dir], xmax_[dir], n_cells[dir] + 1, dtype=np.float64))
+        cell_breaks.append(np.linspace(xmin[dir], xmax[dir], n_cells[dir] + 1, dtype=np.float64))
 
     cpp_grid = qugar.cpp.create_cart_grid(cell_breaks)
 
@@ -137,5 +159,5 @@ def create_unfitted_impl_Cartesian_mesh(
     )
 
     return UnfittedCartMesh(
-        comm, cpp_unf_domain, cpp_grid, degree, exclude_empty_cells, ghost_mode, xmin_.dtype.type
+        comm, cpp_unf_domain, cpp_grid, degree, exclude_empty_cells, ghost_mode, xmin.dtype.type
     )

@@ -100,45 +100,55 @@ namespace {
 
     module.def(
       "create_reparameterization",
-      [](const qugar::UnfittedDomain<dim> &unf_domain, const CellsArray &cells_py, const int n_pts_dir) {
+      [](const qugar::UnfittedDomain<dim> &unf_domain,
+        const CellsArray &cells_py,
+        const int n_pts_dir,
+        const bool merge_points) {
         const std::span<const std::int64_t> cells_span(cells_py.data(), cells_py.size());
         const std::vector<std::int64_t> cells(cells_span.begin(), cells_span.end());
 
-        return qugar::create_reparameterization<dim, false>(unf_domain, cells, n_pts_dir);
+        return qugar::create_reparameterization<dim, false>(unf_domain, cells, n_pts_dir, merge_points);
       },
       nb::arg("unf_domain"),
       nb::arg("cells"),
-      nb::arg("n_pts_dir"));
+      nb::arg("n_pts_dir"),
+      nb::arg("merge_points"));
 
     module.def(
       "create_reparameterization_levelset",
-      [](const qugar::UnfittedDomain<dim> &unf_domain, const CellsArray &cells_py, const int n_pts_dir) {
+      [](const qugar::UnfittedDomain<dim> &unf_domain,
+        const CellsArray &cells_py,
+        const int n_pts_dir,
+        const bool merge_points) {
         const std::span<const std::int64_t> cells_span(cells_py.data(), cells_py.size());
         const std::vector<std::int64_t> cells(cells_span.begin(), cells_span.end());
 
-        return qugar::create_reparameterization<dim, true>(unf_domain, cells, n_pts_dir);
+        return qugar::create_reparameterization<dim, true>(unf_domain, cells, n_pts_dir, merge_points);
       },
       nb::arg("unf_domain"),
       nb::arg("cells"),
-      nb::arg("n_pts_dir"));
+      nb::arg("n_pts_dir"),
+      nb::arg("merge_points"));
 
 
     module.def(
       "create_reparameterization",
-      [](const qugar::UnfittedDomain<dim> &unf_domain, const int n_pts_dir) {
-        return qugar::create_reparameterization<dim, false>(unf_domain, n_pts_dir);
+      [](const qugar::UnfittedDomain<dim> &unf_domain, const int n_pts_dir, const bool merge_points) {
+        return qugar::create_reparameterization<dim, false>(unf_domain, n_pts_dir, merge_points);
       },
       nb::arg("unf_domain"),
-      nb::arg("n_pts_dir"));
+      nb::arg("n_pts_dir"),
+      nb::arg("merge_points"));
 
 
     module.def(
       "create_reparameterization_levelset",
-      [](const qugar::UnfittedDomain<dim> &unf_domain, const int n_pts_dir) {
-        return qugar::create_reparameterization<dim, true>(unf_domain, n_pts_dir);
+      [](const qugar::UnfittedDomain<dim> &unf_domain, const int n_pts_dir, const bool merge_points) {
+        return qugar::create_reparameterization<dim, true>(unf_domain, n_pts_dir, merge_points);
       },
       nb::arg("unf_domain"),
-      nb::arg("n_pts_dir"));
+      nb::arg("n_pts_dir"),
+      nb::arg("merge_points"));
   }
 
 

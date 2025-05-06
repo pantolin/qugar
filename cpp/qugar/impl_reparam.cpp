@@ -36,19 +36,20 @@ namespace qugar::impl {
 
 template<int dim, bool levelset>
 std::shared_ptr<const ImplReparamMesh<levelset ? dim - 1 : dim, dim>>
-  create_reparameterization(const UnfittedImplDomain<dim> &unf_domain, const int n_pts_dir)
+  create_reparameterization(const UnfittedImplDomain<dim> &unf_domain, const int n_pts_dir, const bool merge_points)
 {
   const auto rng = std::ranges::iota_view<std::int64_t, std::int64_t>{ 0,
     static_cast<std::int64_t>(unf_domain.get_grid()->get_num_cells()) };
   const std::vector<std::int64_t> cells(rng.begin(), rng.end());
-  return create_reparameterization<dim, levelset>(unf_domain, cells, n_pts_dir);
+  return create_reparameterization<dim, levelset>(unf_domain, cells, n_pts_dir, merge_points);
 }
 
 template<int dim, bool levelset>
 std::shared_ptr<const ImplReparamMesh<levelset ? dim - 1 : dim, dim>> create_reparameterization(
   const UnfittedImplDomain<dim> &unf_domain,
   const std::vector<std::int64_t> &cells,
-  const int n_pts_dir)
+  const int n_pts_dir,
+  const bool merge_points)
 {
   static_assert(dim == 2 || dim == 3, "Invalid dimension.");
 
@@ -95,8 +96,10 @@ std::shared_ptr<const ImplReparamMesh<levelset ? dim - 1 : dim, dim>> create_rep
     reparam->add_full_cells(*grid, full_cells, wirebasket);
   }
 
-  const Tolerance tol(1.0e4 * numbers::eps);
-  reparam->merge_coincident_points(tol);
+  if (merge_points) {
+    const Tolerance tol(1.0e4 * numbers::eps);
+    reparam->merge_coincident_points(tol);
+  }
 
 
   return reparam;
@@ -104,24 +107,32 @@ std::shared_ptr<const ImplReparamMesh<levelset ? dim - 1 : dim, dim>> create_rep
 
 // Instantiations.
 
-template std::shared_ptr<const ImplReparamMesh<2, 2>>
-  create_reparameterization<2, false>(const UnfittedImplDomain<2> &, const std::vector<std::int64_t> &, const int);
-template std::shared_ptr<const ImplReparamMesh<1, 2>>
-  create_reparameterization<2, true>(const UnfittedImplDomain<2> &, const std::vector<std::int64_t> &, const int);
-
-template std::shared_ptr<const ImplReparamMesh<3, 3>>
-  create_reparameterization<3, false>(const UnfittedImplDomain<3> &, const std::vector<std::int64_t> &, const int);
-template std::shared_ptr<const ImplReparamMesh<2, 3>>
-  create_reparameterization<3, true>(const UnfittedImplDomain<3> &, const std::vector<std::int64_t> &, const int);
-
 template std::shared_ptr<const ImplReparamMesh<2, 2>> create_reparameterization<2, false>(const UnfittedImplDomain<2> &,
-  const int);
+  const std::vector<std::int64_t> &,
+  const int,
+  const bool);
 template std::shared_ptr<const ImplReparamMesh<1, 2>> create_reparameterization<2, true>(const UnfittedImplDomain<2> &,
-  const int);
+  const std::vector<std::int64_t> &,
+  const int,
+  const bool);
 
 template std::shared_ptr<const ImplReparamMesh<3, 3>> create_reparameterization<3, false>(const UnfittedImplDomain<3> &,
-  const int);
+  const std::vector<std::int64_t> &,
+  const int,
+  const bool);
 template std::shared_ptr<const ImplReparamMesh<2, 3>> create_reparameterization<3, true>(const UnfittedImplDomain<3> &,
-  const int);
+  const std::vector<std::int64_t> &,
+  const int,
+  const bool);
+
+template std::shared_ptr<const ImplReparamMesh<2, 2>>
+  create_reparameterization<2, false>(const UnfittedImplDomain<2> &, const int, const bool);
+template std::shared_ptr<const ImplReparamMesh<1, 2>>
+  create_reparameterization<2, true>(const UnfittedImplDomain<2> &, const int, const bool);
+
+template std::shared_ptr<const ImplReparamMesh<3, 3>>
+  create_reparameterization<3, false>(const UnfittedImplDomain<3> &, const int, const bool);
+template std::shared_ptr<const ImplReparamMesh<2, 3>>
+  create_reparameterization<3, true>(const UnfittedImplDomain<3> &, const int, const bool);
 
 }// namespace qugar::impl

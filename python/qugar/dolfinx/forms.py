@@ -169,7 +169,7 @@ def form_custom(
     form_compiler_options: typing.Optional[dict] = None,
     jit_options: typing.Optional[dict] = None,
     entity_maps: typing.Optional[dict[Mesh, npt.NDArray[np.int32]]] = None,
-):
+) -> CustomForm | None | list[CustomForm | None]:
     """Creates a CustomForm or a list of CustomForm to be integrated
     over custom domains.
 
@@ -202,6 +202,9 @@ def form_custom(
 
     Returns:
         CustomForm | list[CustomForm]: Compiled finite element `CustomForm`.
+        It can be a single form or a list of forms if the input
+        `form` is a list of forms. If the provided form is empty,
+        it returns `None`.
 
     Note:
         This function is responsible for the compilation of a UFL form
