@@ -152,7 +152,7 @@ class UnfDomainReparamMesh:
 
         comm = self._unf_domain.mesh.comm
 
-        # For parallel meshes, we need to use an indetity partitioner
+        # For parallel meshes, we need to use an identity partitioner
         # as the (default) ParMetis partitioner fails for non-connected
         # meshes as this one.
 
