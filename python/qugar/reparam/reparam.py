@@ -50,12 +50,19 @@ def identity_partitioner(
 
     assert len(cell_types) == 1, "Not implemented for multiple cell types"
 
+    valid_cells = [
+        dlf_mesh.CellType.interval,
+        dlf_mesh.CellType.quadrilateral,
+        dlf_mesh.CellType.hexahedron,
+    ]
     cell_type = cell_types[0]
-    assert cell_type in [dlf_mesh.CellType.quadrilateral, dlf_mesh.CellType.hexahedron], (
+    assert cell_type in valid_cells, (
         f"Cell type {cell_type} not supported. Only quadrilateral and hexahedron are supported."
     )
 
-    n_pts_per_cell = 4 if cell_type == dlf_mesh.CellType.quadrilateral else 8
+    tdim = valid_cells.index(cell_type) + 1
+
+    n_pts_per_cell = 2**tdim
 
     n_cells = cells[0].size // n_pts_per_cell
     rank_dest = np.full(n_cells, mpi_comm.rank, dtype=np.int32)
