@@ -38,7 +38,7 @@ python3 -m pip -v install --no-build-isolation ./python -U
 If you want to use QUGaR's functionalities together with FEniCSx library, [install also DOLFINx](https://github.com/FEniCS/dolfinx#installation), including [pyvista](https://pyvista.org) dependency.    
 
 
-Further details about the installation of the C++ and Python modules can be found at https://pantolin.github.io/qugar/latest/installation.html.
+Further details about the installation of the C++ and Python modules can be found at https://pantolin.github.io/qugar/main/installation.html.
 
 ## Docker
 It is also possible to use QUGaR from a docker container.
