@@ -25,7 +25,7 @@
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="Divergence theorem (without FEniCSx)" href="demo_div_thm_no_fenicsx.html" />
+    <link rel="next" title="\(L^2\) projection" href="demo_L2_projection.html" />
     <link rel="prev" title="Creation of unfitted implicit domains" href="demo_impl_funcs.html" /> 
 </head>
 
@@ -60,6 +60,7 @@
 <li class="toctree-l4"><a class="reference internal" href="#visualization">Visualization</a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="demo_L2_projection.html"><span class="math notranslate nohighlight">\(L^2\)</span> projection</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../../demos.html#fenicsx-independent-demos">FEniCSx independent demos</a></li>
@@ -189,10 +190,10 @@ quadrature for the cut cells, unfitted boundaries, and cut facets.</p>
 </pre></div>
 </div>
 <p>and for the reparameterization of the domain’s interior and its levelset boundary</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">reparam</span> <span class="o">=</span> <span class="n">qugar</span><span class="o">.</span><span class="n">reparam</span><span class="o">.</span><span class="n">create_reparam_mesh</span><span class="p">(</span><span class="n">unf_mesh</span><span class="p">,</span> <span class="n">n_pts_dir</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">levelset</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">reparam</span> <span class="o">=</span> <span class="n">qugar</span><span class="o">.</span><span class="n">reparam</span><span class="o">.</span><span class="n">create_reparam_mesh</span><span class="p">(</span><span class="n">unf_mesh</span><span class="p">,</span> <span class="n">degree</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">levelset</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 <span class="n">reparam_pv</span> <span class="o">=</span> <span class="n">qugar</span><span class="o">.</span><span class="n">plot</span><span class="o">.</span><span class="n">reparam_mesh_to_PyVista</span><span class="p">(</span><span class="n">reparam</span><span class="p">)</span>
 
-<span class="n">reparam_srf</span> <span class="o">=</span> <span class="n">qugar</span><span class="o">.</span><span class="n">reparam</span><span class="o">.</span><span class="n">create_reparam_mesh</span><span class="p">(</span><span class="n">unf_mesh</span><span class="p">,</span> <span class="n">n_pts_dir</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">levelset</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">reparam_srf</span> <span class="o">=</span> <span class="n">qugar</span><span class="o">.</span><span class="n">reparam</span><span class="o">.</span><span class="n">create_reparam_mesh</span><span class="p">(</span><span class="n">unf_mesh</span><span class="p">,</span> <span class="n">degree</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">levelset</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="n">reparam_srf_pv</span> <span class="o">=</span> <span class="n">qugar</span><span class="o">.</span><span class="n">plot</span><span class="o">.</span><span class="n">reparam_mesh_to_PyVista</span><span class="p">(</span><span class="n">reparam_srf</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -260,7 +261,7 @@ cut facets themselves.</p></li>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="demo_impl_funcs.html" class="btn btn-neutral float-left" title="Creation of unfitted implicit domains" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="demo_div_thm_no_fenicsx.html" class="btn btn-neutral float-right" title="Divergence theorem (without FEniCSx)" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="demo_L2_projection.html" class="btn btn-neutral float-right" title="\(L^2\) projection" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

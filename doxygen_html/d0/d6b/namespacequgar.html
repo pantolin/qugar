@@ -258,12 +258,12 @@ Functions</h2></td></tr>
 <tr class="memitem:a5aa55797545cdbf9c7d28cbe062a2e3f"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#a5aa55797545cdbf9c7d28cbe062a2e3f">make_points_unique</a> (std::vector&lt; <a class="el" href="#acedd2a0f9db919d923f32babff4d7b1f">Point</a>&lt; dim &gt; &gt; &amp;points, const <a class="el" href="../../db/d28/classqugar_1_1Tolerance.html">Tolerance</a> &amp;tol, std::vector&lt; std::size_t &gt; &amp;old_to_new)</td></tr>
 <tr class="memdesc:a5aa55797545cdbf9c7d28cbe062a2e3f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Makes a given vector of points unique by merging coincident points.  <br /></td></tr>
 <tr class="separator:a5aa55797545cdbf9c7d28cbe062a2e3f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a285022e9ee78a68f4023bc3469e303b9" id="r_a285022e9ee78a68f4023bc3469e303b9"><td class="memTemplParams" colspan="2">template&lt;int dim, bool levelset&gt; </td></tr>
-<tr class="memitem:a285022e9ee78a68f4023bc3469e303b9"><td class="memTemplItemLeft" align="right" valign="top">std::shared_ptr&lt; const <a class="el" href="../../d8/d99/classqugar_1_1ReparamMesh.html">ReparamMesh</a>&lt; levelset ? dim - 1 :dim, dim &gt; &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#a285022e9ee78a68f4023bc3469e303b9">create_reparameterization</a> (const <a class="el" href="../../df/d58/classqugar_1_1UnfittedDomain.html">UnfittedDomain</a>&lt; dim &gt; &amp;unf_domain, int n_pts_dir)</td></tr>
-<tr class="separator:a285022e9ee78a68f4023bc3469e303b9"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a05706e926bcfa699a97cb65d91b29319" id="r_a05706e926bcfa699a97cb65d91b29319"><td class="memTemplParams" colspan="2">template&lt;int dim, bool levelset&gt; </td></tr>
-<tr class="memitem:a05706e926bcfa699a97cb65d91b29319"><td class="memTemplItemLeft" align="right" valign="top">std::shared_ptr&lt; const <a class="el" href="../../d8/d99/classqugar_1_1ReparamMesh.html">ReparamMesh</a>&lt; levelset ? dim - 1 :dim, dim &gt; &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#a05706e926bcfa699a97cb65d91b29319">create_reparameterization</a> (const <a class="el" href="../../df/d58/classqugar_1_1UnfittedDomain.html">UnfittedDomain</a>&lt; dim &gt; &amp;unf_domain, const std::vector&lt; std::int64_t &gt; &amp;cells, int n_pts_dir)</td></tr>
-<tr class="separator:a05706e926bcfa699a97cb65d91b29319"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a50843280b8b43c5a6c6603ca99c58bf7" id="r_a50843280b8b43c5a6c6603ca99c58bf7"><td class="memTemplParams" colspan="2">template&lt;int dim, bool levelset&gt; </td></tr>
+<tr class="memitem:a50843280b8b43c5a6c6603ca99c58bf7"><td class="memTemplItemLeft" align="right" valign="top">std::shared_ptr&lt; const <a class="el" href="../../d8/d99/classqugar_1_1ReparamMesh.html">ReparamMesh</a>&lt; levelset ? dim - 1 :dim, dim &gt; &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#a50843280b8b43c5a6c6603ca99c58bf7">create_reparameterization</a> (const <a class="el" href="../../df/d58/classqugar_1_1UnfittedDomain.html">UnfittedDomain</a>&lt; dim &gt; &amp;unf_domain, int n_pts_dir, bool merge_points)</td></tr>
+<tr class="separator:a50843280b8b43c5a6c6603ca99c58bf7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae0ad11dfd7b7ba50acbaf7070b5d69ec" id="r_ae0ad11dfd7b7ba50acbaf7070b5d69ec"><td class="memTemplParams" colspan="2">template&lt;int dim, bool levelset&gt; </td></tr>
+<tr class="memitem:ae0ad11dfd7b7ba50acbaf7070b5d69ec"><td class="memTemplItemLeft" align="right" valign="top">std::shared_ptr&lt; const <a class="el" href="../../d8/d99/classqugar_1_1ReparamMesh.html">ReparamMesh</a>&lt; levelset ? dim - 1 :dim, dim &gt; &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#ae0ad11dfd7b7ba50acbaf7070b5d69ec">create_reparameterization</a> (const <a class="el" href="../../df/d58/classqugar_1_1UnfittedDomain.html">UnfittedDomain</a>&lt; dim &gt; &amp;unf_domain, const std::vector&lt; std::int64_t &gt; &amp;cells, int n_pts_dir, bool merge_points)</td></tr>
+<tr class="separator:ae0ad11dfd7b7ba50acbaf7070b5d69ec"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aeb632759e5ce6b58f6b5b29435e0700a" id="r_aeb632759e5ce6b58f6b5b29435e0700a"><td class="memTemplParams" colspan="2">template&lt;class T , class V &gt; </td></tr>
 <tr class="memitem:aeb632759e5ce6b58f6b5b29435e0700a"><td class="memTemplItemLeft" align="right" valign="top">constexpr T&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#aeb632759e5ce6b58f6b5b29435e0700a">narrow_cast</a> (V &amp;&amp;val) noexcept</td></tr>
 <tr class="separator:aeb632759e5ce6b58f6b5b29435e0700a"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -295,7 +295,7 @@ Variables</h2></td></tr>
 <tr class="separator:a58ece4b1c5493114dd7270510a7691c8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a85a4c442d6bdd85da55d060b96064a75" id="r_a85a4c442d6bdd85da55d060b96064a75"><td class="memItemLeft" align="right" valign="top">constexpr std::string_view&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a85a4c442d6bdd85da55d060b96064a75">QUGAR_VERSION_STRING</a> { &quot;0.0.4&quot; }</td></tr>
 <tr class="separator:a85a4c442d6bdd85da55d060b96064a75"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a60fbd9fef129212a8ae43f10567722e5" id="r_a60fbd9fef129212a8ae43f10567722e5"><td class="memItemLeft" align="right" valign="top">constexpr std::string_view&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a60fbd9fef129212a8ae43f10567722e5">QUGAR_VERSION_GIT</a> { &quot;a088a35&quot; }</td></tr>
+<tr class="memitem:a60fbd9fef129212a8ae43f10567722e5" id="r_a60fbd9fef129212a8ae43f10567722e5"><td class="memItemLeft" align="right" valign="top">constexpr std::string_view&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a60fbd9fef129212a8ae43f10567722e5">QUGAR_VERSION_GIT</a> { &quot;2ba34e3&quot; }</td></tr>
 <tr class="separator:a60fbd9fef129212a8ae43f10567722e5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
@@ -780,8 +780,8 @@ Here is the caller graph for this function:</div>
 
 </div>
 </div>
-<a id="a05706e926bcfa699a97cb65d91b29319" name="a05706e926bcfa699a97cb65d91b29319"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a05706e926bcfa699a97cb65d91b29319">&#9670;&#160;</a></span>create_reparameterization() <span class="overload">[1/2]</span></h2>
+<a id="ae0ad11dfd7b7ba50acbaf7070b5d69ec" name="ae0ad11dfd7b7ba50acbaf7070b5d69ec"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae0ad11dfd7b7ba50acbaf7070b5d69ec">&#9670;&#160;</a></span>create_reparameterization() <span class="overload">[1/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -801,15 +801,20 @@ template&lt;int dim, bool levelset&gt; </div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>n_pts_dir</em></span>&#160;)</td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>n_pts_dir</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool</td>          <td class="paramname"><span class="paramname"><em>merge_points</em></span>&#160;)</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
 </div>
 </div>
-<a id="a285022e9ee78a68f4023bc3469e303b9" name="a285022e9ee78a68f4023bc3469e303b9"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a285022e9ee78a68f4023bc3469e303b9">&#9670;&#160;</a></span>create_reparameterization() <span class="overload">[2/2]</span></h2>
+<a id="a50843280b8b43c5a6c6603ca99c58bf7" name="a50843280b8b43c5a6c6603ca99c58bf7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a50843280b8b43c5a6c6603ca99c58bf7">&#9670;&#160;</a></span>create_reparameterization() <span class="overload">[2/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -824,7 +829,12 @@ template&lt;int dim, bool levelset&gt; </div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>n_pts_dir</em></span>&#160;)</td>
+          <td class="paramtype">int</td>          <td class="paramname"><span class="paramname"><em>n_pts_dir</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool</td>          <td class="paramname"><span class="paramname"><em>merge_points</em></span>&#160;)</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -1061,7 +1071,7 @@ template&lt;typename T , int dim&gt; </div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">std::string_view qugar::QUGAR_VERSION_GIT { &quot;a088a35&quot; }</td>
+          <td class="memname">std::string_view qugar::QUGAR_VERSION_GIT { &quot;2ba34e3&quot; }</td>
         </tr>
       </table>
   </td>

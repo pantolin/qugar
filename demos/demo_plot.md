@@ -117,10 +117,10 @@ cut_facets = qugar.plot.unfitted_domain_facets_to_PyVista(
 and for the reparameterization of the domain's interior and its levelset boundary
 
 ```python
-reparam = qugar.reparam.create_reparam_mesh(unf_mesh, n_pts_dir=4, levelset=False)
+reparam = qugar.reparam.create_reparam_mesh(unf_mesh, degree=3, levelset=False)
 reparam_pv = qugar.plot.reparam_mesh_to_PyVista(reparam)
 
-reparam_srf = qugar.reparam.create_reparam_mesh(unf_mesh, n_pts_dir=4, levelset=True)
+reparam_srf = qugar.reparam.create_reparam_mesh(unf_mesh, degree=3, levelset=True)
 reparam_srf_pv = qugar.plot.reparam_mesh_to_PyVista(reparam_srf)
 ```
 

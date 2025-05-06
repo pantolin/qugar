@@ -103,7 +103,7 @@
 <p class="rubric">Functions</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#qugar.reparam.create_reparam_mesh" title="qugar.reparam.create_reparam_mesh"><code class="xref py py-obj docutils literal notranslate"><span class="pre">create_reparam_mesh</span></code></a>(unf_domain[, n_pts_dir, ...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#qugar.reparam.create_reparam_mesh" title="qugar.reparam.create_reparam_mesh"><code class="xref py py-obj docutils literal notranslate"><span class="pre">create_reparam_mesh</span></code></a>(unf_domain[, degree, ...])</p></td>
 <td><p>Creates a reparameterized mesh for a given unfitted domain.</p></td>
 </tr>
 </tbody>
@@ -111,20 +111,23 @@
 <p class="rubric">Classes</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#qugar.reparam.UnfDomainReparamMesh" title="qugar.reparam.UnfDomainReparamMesh"><code class="xref py py-obj docutils literal notranslate"><span class="pre">UnfDomainReparamMesh</span></code></a>(cpp_object)</p></td>
-<td><p>A class to represent the unfitted domain raparameterization mesh wraps around a C++ object.</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#qugar.reparam.UnfDomainReparamMesh" title="qugar.reparam.UnfDomainReparamMesh"><code class="xref py py-obj docutils literal notranslate"><span class="pre">UnfDomainReparamMesh</span></code></a>(unf_domain, cpp_object)</p></td>
+<td><p>A class to represent the unfitted domain raparameterization mesh.</p></td>
 </tr>
 </tbody>
 </table>
 <dl class="py class">
 <dt class="sig sig-object py" id="qugar.reparam.UnfDomainReparamMesh">
-<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qugar.reparam.</span></span><span class="sig-name descname"><span class="pre">UnfDomainReparamMesh</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cpp_object</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="qugar.cpp.html#qugar.cpp.ReparamMesh_1_2" title="qugar.cpp.ReparamMesh_1_2"><span class="pre">ReparamMesh_1_2</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="qugar.cpp.html#qugar.cpp.ReparamMesh_2_2" title="qugar.cpp.ReparamMesh_2_2"><span class="pre">ReparamMesh_2_2</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="qugar.cpp.html#qugar.cpp.ReparamMesh_2_3" title="qugar.cpp.ReparamMesh_2_3"><span class="pre">ReparamMesh_2_3</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="qugar.cpp.html#qugar.cpp.ReparamMesh_3_3" title="qugar.cpp.ReparamMesh_3_3"><span class="pre">ReparamMesh_3_3</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qugar/reparam/reparam.html#UnfDomainReparamMesh"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qugar.reparam.UnfDomainReparamMesh" title="Link to this definition"></a></dt>
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qugar.reparam.</span></span><span class="sig-name descname"><span class="pre">UnfDomainReparamMesh</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">unf_domain</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="qugar.mesh.html#qugar.mesh.UnfittedDomain" title="qugar.mesh.unfitted_domain.UnfittedDomain"><span class="pre">UnfittedDomain</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cpp_object</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="qugar.cpp.html#qugar.cpp.ReparamMesh_1_2" title="qugar.cpp.ReparamMesh_1_2"><span class="pre">ReparamMesh_1_2</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="qugar.cpp.html#qugar.cpp.ReparamMesh_2_2" title="qugar.cpp.ReparamMesh_2_2"><span class="pre">ReparamMesh_2_2</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="qugar.cpp.html#qugar.cpp.ReparamMesh_2_3" title="qugar.cpp.ReparamMesh_2_3"><span class="pre">ReparamMesh_2_3</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="qugar.cpp.html#qugar.cpp.ReparamMesh_3_3" title="qugar.cpp.ReparamMesh_3_3"><span class="pre">ReparamMesh_3_3</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qugar/reparam/reparam.html#UnfDomainReparamMesh"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qugar.reparam.UnfDomainReparamMesh" title="Link to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<p>A class to represent the unfitted domain raparameterization mesh wraps around a C++ object.</p>
+<p>A class to represent the unfitted domain raparameterization mesh.</p>
 <p>Initializes the Reparam object with a given C++ ReparamMesh object.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>cpp_object</strong> (<em>ReparamMesh</em>) – An instance of a C++ ReparamMesh object, either 2D or 3D.</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>unf_domain</strong> (<a class="reference internal" href="qugar.mesh.html#qugar.mesh.UnfittedDomain" title="qugar.mesh.UnfittedDomain"><em>UnfittedDomain</em></a>) – An instance of the UnfittedDomain class.</p></li>
+<li><p><strong>cpp_object</strong> (<em>ReparamMesh</em>) – An instance of a C++ ReparamMesh object, either 2D or 3D.</p></li>
+</ul>
 </dd>
 </dl>
 <dl class="py attribute">
@@ -146,18 +149,54 @@
 </dl>
 </dd></dl>
 
+<dl class="py method">
+<dt class="sig sig-object py" id="qugar.reparam.UnfDomainReparamMesh.create_mesh">
+<span class="sig-name descname"><span class="pre">create_mesh</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">wirebasket</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Mesh</span></span></span><a class="reference internal" href="../_modules/qugar/reparam/reparam.html#UnfDomainReparamMesh.create_mesh"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qugar.reparam.UnfDomainReparamMesh.create_mesh" title="Link to this definition"></a></dt>
+<dd><p>Creates a DOLFINx mesh from the reparameterization data.</p>
+<p>This method generates a <cite>dlf_mesh.Mesh</cite> object representing either
+the reparameterized cells or the wirebasket of the reparameterization,
+based on the <cite>wirebasket</cite> flag.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>wirebasket</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, creates the mesh for the
+wirebasket connectivity. If False, creates the mesh for the
+cell connectivity. Defaults to False.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The generated DOLFINx mesh object.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dlf_mesh.Mesh</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="qugar.reparam.UnfDomainReparamMesh.unf_domain">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">unf_domain</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="qugar.mesh.html#qugar.mesh.UnfittedDomain" title="qugar.mesh.unfitted_domain.UnfittedDomain"><span class="pre">UnfittedDomain</span></a></em><a class="headerlink" href="#qugar.reparam.UnfDomainReparamMesh.unf_domain" title="Link to this definition"></a></dt>
+<dd><p>Returns the unfitted domain associated with this instance.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The unfitted domain associated with this instance.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="qugar.mesh.html#qugar.mesh.UnfittedDomain" title="qugar.mesh.UnfittedDomain">UnfittedDomain</a></p>
+</dd>
+</dl>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="qugar.reparam.create_reparam_mesh">
-<span class="sig-prename descclassname"><span class="pre">qugar.reparam.</span></span><span class="sig-name descname"><span class="pre">create_reparam_mesh</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">unf_domain</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="qugar.mesh.html#qugar.mesh.UnfittedDomain" title="qugar.mesh.unfitted_domain.UnfittedDomain"><span class="pre">UnfittedDomain</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_pts_dir</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">levelset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#qugar.reparam.UnfDomainReparamMesh" title="qugar.reparam.reparam.UnfDomainReparamMesh"><span class="pre">UnfDomainReparamMesh</span></a></span></span><a class="reference internal" href="../_modules/qugar/reparam/reparam.html#create_reparam_mesh"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qugar.reparam.create_reparam_mesh" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">qugar.reparam.</span></span><span class="sig-name descname"><span class="pre">create_reparam_mesh</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">unf_domain</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="qugar.mesh.html#qugar.mesh.UnfittedDomain" title="qugar.mesh.unfitted_domain.UnfittedDomain"><span class="pre">UnfittedDomain</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">degree</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">levelset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#qugar.reparam.UnfDomainReparamMesh" title="qugar.reparam.reparam.UnfDomainReparamMesh"><span class="pre">UnfDomainReparamMesh</span></a></span></span><a class="reference internal" href="../_modules/qugar/reparam/reparam.html#create_reparam_mesh"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qugar.reparam.create_reparam_mesh" title="Link to this definition"></a></dt>
 <dd><p>Creates a reparameterized mesh for a given unfitted domain.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>unf_domain</strong> (<a class="reference internal" href="qugar.mesh.html#qugar.mesh.UnfittedDomain" title="qugar.mesh.UnfittedDomain"><em>UnfittedDomain</em></a>) – The unfitted domain to be reparameterized.</p></li>
-<li><p><strong>n_pts_dir</strong> (<em>int</em><em>, </em><em>optional</em>) – The number of points in each direction.
-Must be greater than 1. Defaults to 4.</p></li>
+<li><p><strong>degree</strong> (<em>int</em><em>, </em><em>optional</em>) – The reparameterization degree along each direction.
+It must be a positive value. Defaults to 3.</p></li>
 <li><p><strong>levelset</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to create a levelset reparameterization (True)
 or a solid one (False). Defaults to False.</p></li>
 </ul>

@@ -338,10 +338,10 @@ Finally, we create a visualization of the unfitted mesh's interior a levelset
 through a parameterization.
 
 ```python
-reparam = qugar.reparam.create_reparam_mesh(unf_mesh, n_pts_dir=4, levelset=False)
+reparam = qugar.reparam.create_reparam_mesh(unf_mesh, degree=3, levelset=False)
 reparam_pv = qugar.plot.reparam_mesh_to_PyVista(reparam)
 
-reparam_srf = qugar.reparam.create_reparam_mesh(unf_mesh, n_pts_dir=4, levelset=True)
+reparam_srf = qugar.reparam.create_reparam_mesh(unf_mesh, degree=3, levelset=True)
 reparam_srf_pv = qugar.plot.reparam_mesh_to_PyVista(reparam_srf)
 
 pl = pv.Plotter(shape=(1, 2))

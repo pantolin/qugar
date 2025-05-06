@@ -16,6 +16,7 @@ FEniCSx dependent demos
    generated/demos/demo_div_thm.md
    generated/demos/demo_impl_funcs.md
    generated/demos/demo_plot.md
+   generated/demos/demo_L2_projection.md
 
 
 FEniCSx independent demos
