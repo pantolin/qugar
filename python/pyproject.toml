@@ -30,7 +30,6 @@ docs = [
       "jupytext",
       "markdown",
       "myst_parser",
-      "pyyaml",
 ]
 lint = ["ruff", "mypy"]
 pyvista = ["pyvista"]
