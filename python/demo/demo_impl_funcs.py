@@ -15,7 +15,7 @@
 # illustrates:
 #
 # - The library of available implicit functions for defining domains.
-# - How to create an unfitted implicit domain described by an implicit function.
+# - How to create an unfitted mesh described by an implicit function.
 # - How to visualize an unfitted domain in PyVista by creating a reparameterization.
 
 # This demo requires the [FEniCSx](https://fenicsproject.org) and [PyVista](https://pyvista.org)
@@ -254,33 +254,33 @@ func_schwarzp = qugar.impl.create_Schwarz_Primitive(periods=[2, 2, 2])
 # support will be provided for Bezier functions explicitly defined through its control points
 # and for B-spline functions.
 
-# ## Generating the unfitted domain
+# ## Generating the unfitted mesh
 
 # First we choose a function among the ones defined above.
 
 func = func_schoen
 
-# and then generate the unfitted domain using a Cartesian mesh over a hypercube $[0,1]^d$
+# and then generate the unfitted Cartesian mesh over a hypercube $[0,1]^d$
 # with 8 cells per direction, where $d=2$ or $d=3$.
 
 dim = func.dim
 n_cells = [8] * dim
+comm = MPI.COMM_WORLD
 
-mesh = qugar.mesh.create_Cartesian_mesh(
-    comm=MPI.COMM_WORLD, n_cells=n_cells, xmin=np.zeros(dim), xmax=np.ones(dim)
+unf_mesh = qugar.mesh.create_unfitted_impl_Cartesian_mesh(
+    comm, func, n_cells, xmin=np.zeros(dim), xmax=np.ones(dim)
 )
-unf_domain = qugar.impl.create_unfitted_impl_domain(func, mesh)
 
 # ## Visualization
 
-# Finally, we create a visualization of the unfitted domain's interior a levelset
+# Finally, we create a visualization of the unfitted mesh's interior a levelset
 # through a parameterization.
 
 # +
-reparam = qugar.reparam.create_reparam_mesh(unf_domain, n_pts_dir=4, levelset=False)
+reparam = qugar.reparam.create_reparam_mesh(unf_mesh, degree=3, levelset=False)
 reparam_pv = qugar.plot.reparam_mesh_to_PyVista(reparam)
 
-reparam_srf = qugar.reparam.create_reparam_mesh(unf_domain, n_pts_dir=4, levelset=True)
+reparam_srf = qugar.reparam.create_reparam_mesh(unf_mesh, degree=3, levelset=True)
 reparam_srf_pv = qugar.plot.reparam_mesh_to_PyVista(reparam_srf)
 
 pl = pv.Plotter(shape=(1, 2))

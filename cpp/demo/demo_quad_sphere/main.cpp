@@ -24,6 +24,7 @@
 #include <iostream>
 #include <memory>
 #include <numeric>
+#include <vector>
 
 namespace {
 
@@ -44,8 +45,11 @@ qugar::real compute_volume(const qugar::impl::UnfittedImplDomain<dim> &unf_domai
 
   qugar::real vol{ qugar::numbers::zero };
 
+  std::vector<std::int64_t> full_cells;
+  unf_domain.get_full_cells(full_cells);
+
   const auto grid = unf_domain.get_grid();
-  for (const auto &cell_id : unf_domain.get_full_cells()) {
+  for (const auto &cell_id : full_cells) {
     const auto domain = grid->get_cell_domain(cell_id);
     vol += domain.volume();
   }
@@ -133,10 +137,15 @@ int main(/* int argc, const char **argv */)
     domain_01, std::array<std::size_t, 3>({ { n_elems_dir, n_elems_dir, n_elems_dir } }));
   const qugar::impl::UnfittedImplDomain<3> unf_domain(bzr, grid);
 
-  const auto quad = qugar::impl::create_quadrature<3>(unf_domain, unf_domain.get_cut_cells(), n_quad_pts_dir);
+  std::vector<std::int64_t> cut_cells;
+  unf_domain.get_cut_cells(cut_cells);
 
-  const auto unf_bound_quad =
-    qugar::impl::create_unfitted_bound_quadrature<3>(unf_domain, unf_domain.get_cut_cells(), n_quad_pts_dir);
+  const auto quad = qugar::create_quadrature<3>(unf_domain, cut_cells, n_quad_pts_dir);
+
+  constexpr bool include_facet_unf_bdry{ true };
+  constexpr bool exclude_ext_bdry{ true };
+  const auto unf_bound_quad = qugar::create_unfitted_bound_quadrature<3>(
+    unf_domain, cut_cells, n_quad_pts_dir, include_facet_unf_bdry, exclude_ext_bdry);
 
   std::cerr << "Volume: " << compute_volume<3>(unf_domain, *quad) << "\n";
   std::cerr << "Exact volume: " << exact_volume << "\n\n";

@@ -3,7 +3,7 @@ QUGaR is a C++ library designed to generate efficient quadrature rules for compu
 
 Currently, QUGaR is in its early stages. Initially, it supports unfitted domains created by implicit functions via [Algoim](https://algoim.github.io). Future updates will include support for 2D and 3D [B-reps](https://en.wikipedia.org/wiki/Boundary_representation).
 
-While it is intended to be used with any library, QUGaR provides out-of-the-box interoperability with the [FEniCSx](https://fenicsproject.org) Python interfaces. A gentle introduction can be found [here](https://pantolin.github.io/qugar/latest/generated/demos/demo_div_thm.html).
+While it is intended to be used with any library, QUGaR provides out-of-the-box interoperability with the [FEniCSx](https://fenicsproject.org) Python interfaces. A gentle introduction can be found [here](https://pantolin.github.io/qugar/main/generated/demos/demo_div_thm.html).
 
 # Documentation
 
@@ -38,7 +38,7 @@ python3 -m pip -v install --no-build-isolation ./python -U
 If you want to use QUGaR's functionalities together with FEniCSx library, [install also DOLFINx](https://github.com/FEniCS/dolfinx#installation), including [pyvista](https://pyvista.org) dependency.    
 
 
-Further details about the installation of the C++ and Python modules can be found at https://pantolin.github.io/qugar/latest/installation.html.
+Further details about the installation of the C++ and Python modules can be found at https://pantolin.github.io/qugar/main/installation.html.
 
 ## Docker
 It is also possible to use QUGaR from a docker container.

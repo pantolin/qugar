@@ -23,7 +23,6 @@ from __future__ import annotations
 import collections.abc
 import types
 import typing
-from dataclasses import dataclass
 from itertools import chain
 
 from qugar.utils import has_FEniCSx
@@ -31,31 +30,26 @@ from qugar.utils import has_FEniCSx
 if not has_FEniCSx:
     raise ValueError("FEniCSx installation not found is required.")
 
-import ffcx.options
 import numpy as np
 import numpy.typing as npt
 import ufl
 import ufl.algorithms.analysis
 from dolfinx import cpp as _cpp  # type: ignore
-from dolfinx import default_scalar_type, jit
+from dolfinx import default_scalar_type
 from dolfinx.fem import IntegralType
 from dolfinx.fem.forms import (
     Form,
     _ufl_to_dolfinx_domain,
     form_cpp_class,
-    form_cpp_creator,
     get_integration_domains,
 )
 
 from qugar.dolfinx.custom_coefficients import CustomCoeffsPacker
 from qugar.dolfinx.integral_data import IntegralData
 from qugar.dolfinx.jit import ffcx_jit
-from qugar.quad import QuadGenerator
+from qugar.mesh.unfitted_domain_abc import UnfittedDomainABC
 
 if typing.TYPE_CHECKING:
-    from mpi4py import MPI
-
-    from dolfinx.fem import function
     from dolfinx.mesh import Mesh
 
 
@@ -76,6 +70,7 @@ class CustomForm(Form):
             _cpp.fem.Form_float32,
             _cpp.fem.Form_float64,
         ],
+        domain: UnfittedDomainABC,
         itg_data: list[IntegralData],
         ufcx_form=None,
         code: str | None = None,
@@ -96,10 +91,10 @@ class CustomForm(Form):
             module: CFFI module.
         """
         super().__init__(form, ufcx_form, code, module)
-        self._coeffs_packer = CustomCoeffsPacker(self, itg_data)
+        self._coeffs_packer = CustomCoeffsPacker(self, domain, itg_data)
 
     def pack_coefficients(
-        self, quad_gen: QuadGenerator
+        self,
     ) -> dict[
         tuple[IntegralType, int],
         npt.NDArray[np.float32 | np.float64 | np.complex64 | np.complex128],
@@ -111,24 +106,70 @@ class CustomForm(Form):
             This function mimics the behaviour of
             ``dolfinx.cpp.fem.pack_coefficients``.
 
-        Args:
-            quad_gen (QuadGenerator): Custom quadrature generator.
-
         Returns:
             dict[ tuple[IntegralType, int], npt.NDArray[np.float32 |
             np.float64 | np.complex64 | np.complex128]]:
             Generated custom coefficients.
         """
-        return self._coeffs_packer.pack_coefficients(quad_gen)
+        return self._coeffs_packer.pack_coefficients()
+
+
+def _modify_everywhere_exterior_facet_integrals(form):
+    """Modify exterior facet integrals defined everywhere.
+
+    Finds exterior facet integrals defined on the whole boundary
+    (subdomain_id is "everywhere" or -1) and assigns them a unique
+    integer ID greater than any existing exterior facet subdomain ID.
+    It also adds metadata to mark these integrals.
+
+    This is necessary because by default DOLFINx defines exterior
+    facet integrals over the exterior facets only. However, in the
+    case of unfitted meshes, exterior facets integral may need to be
+    computed over non exterior facets.
+
+    Args:
+        form: The dolfinx form object.
+
+    Returns:
+        The modified dolfinx form object.
+    """
+
+    def _get_max_subdomain_id():
+        subdomain_id = -1
+        for integral in form.integrals():
+            if integral.integral_type() == "exterior_facet":
+                if isinstance(integral.subdomain_id(), int):
+                    subdomain_id = max(subdomain_id, integral.subdomain_id())
+        return subdomain_id + 1
+
+    old_integrals = list(form.integrals())
+
+    for i, integral in enumerate(form.integrals()):
+        if integral.integral_type() == "exterior_facet":
+            # Check if the integral is over the whole domain
+            if integral.subdomain_id() in ("everywhere", -1):
+                metadata = integral.metadata().copy()
+                subdomain_id = integral.subdomain_id()
+                subdomain_data = integral.subdomain_data()
+                old_integrals[i] = integral.reconstruct(
+                    subdomain_data, subdomain_id=subdomain_id, metadata=metadata
+                )
+
+                integral._subdomain_data = None
+                integral._subdomain_id = _get_max_subdomain_id()
+                integral._metadata.update({"ext_facet_everywhere": True})
+
+    return form, tuple(old_integrals)
 
 
 def form_custom(
     form: typing.Union[ufl.Form, typing.Iterable[ufl.Form]],
+    domain: UnfittedDomainABC,
     dtype: npt.DTypeLike = default_scalar_type,
     form_compiler_options: typing.Optional[dict] = None,
     jit_options: typing.Optional[dict] = None,
     entity_maps: typing.Optional[dict[Mesh, npt.NDArray[np.int32]]] = None,
-):
+) -> CustomForm | None | list[CustomForm | None]:
     """Creates a CustomForm or a list of CustomForm to be integrated
     over custom domains.
 
@@ -145,6 +186,7 @@ def form_custom(
 
     Args:
         form: A UFL form or list(s) of UFL forms.
+        domain (UnfittedDomainABC): The unfitted domain to integrate over.
         dtype: Scalar type to use for the compiled form.
         form_compiler_options: See :func:`ffcx_jit <dolfinx.jit.ffcx_jit>`
         jit_options: See :func:`ffcx_jit <dolfinx.jit.ffcx_jit>`.
@@ -160,6 +202,9 @@ def form_custom(
 
     Returns:
         CustomForm | list[CustomForm]: Compiled finite element `CustomForm`.
+        It can be a single form or a list of forms if the input
+        `form` is a list of forms. If the provided form is empty,
+        it returns `None`.
 
     Note:
         This function is responsible for the compilation of a UFL form
@@ -175,8 +220,14 @@ def form_custom(
     form_compiler_options["scalar_type"] = dtype
     ftype = form_cpp_class(dtype)
 
-    def _form(form) -> CustomForm:
+    def _form(form, unf_domain: UnfittedDomainABC) -> CustomForm:
         """Compile a single UFL form."""
+
+        # In the case of exterior facets integrals everywhere in the
+        # domain, the default exterior facets generated by DOLFINx
+        # must be modified.
+        form, old_integrals = _modify_everywhere_exterior_facet_integrals(form)
+
         # Extract subdomain data from UFL form
         sd = form.subdomain_data()
         (domain,) = list(sd.keys())  # Assuming single domain
@@ -209,6 +260,7 @@ def form_custom(
 
         # Make map from integral_type to subdomain id
         subdomain_ids = {type: [] for type in sd.get(domain).keys()}
+        everywhere_ext_facet_ids = []
         for integral in form.integrals():
             if integral.subdomain_data() is not None:
                 # Subdomain ids can be strings, its or tuples with
@@ -222,6 +274,11 @@ def form_custom(
                 else:
                     ids = []
                 subdomain_ids[integral.integral_type()].append(ids)
+            elif integral.integral_type() == "exterior_facet":
+                metadata = integral.metadata()
+                if "ext_facet_everywhere" in metadata and metadata["ext_facet_everywhere"]:
+                    assert integral.subdomain_id() not in ("everywhere", -1)
+                    everywhere_ext_facet_ids.append(integral.subdomain_id())
 
         # Chain and sort subdomain ids
         for itg_type, marker_ids in subdomain_ids.items():
@@ -238,6 +295,13 @@ def form_custom(
             for (key, subdomain_data) in sd.get(domain).items()
         }
 
+        for subdomain_id in everywhere_ext_facet_ids:
+            ext_facets = unf_domain.get_all_facets(ext_integral=True).as_array()
+            subdomains[IntegralType.exterior_facet].append((subdomain_id, ext_facets))
+
+        # Reverting modified exterior integrals
+        form._integrals = old_integrals
+
         if entity_maps is None:
             _entity_maps = dict()
         else:
@@ -252,7 +316,7 @@ def form_custom(
             _entity_maps,
             mesh,
         )
-        return CustomForm(f, itg_data, ufcx_form, code, module)
+        return CustomForm(f, unf_domain, itg_data, ufcx_form, code, module)
 
     def _flatten_list(lst):
         new_lst = []
@@ -261,7 +325,9 @@ def form_custom(
                 new_lst.extend(_flatten_list(i))
         return new_lst
 
-    def _create_form(form) -> CustomForm | None | list[CustomForm | None]:
+    def _create_form(
+        form, domain: UnfittedDomainABC
+    ) -> CustomForm | None | list[CustomForm | None]:
         """Recursively convert ufl.Forms to dolfinx.fem.Form.
 
         Args:
@@ -275,111 +341,11 @@ def form_custom(
             if form.empty():
                 return None
             else:
-                return _form(form)
+                return _form(form, domain)
         elif isinstance(form, collections.abc.Iterable):
-            forms = _flatten_list(list(map(lambda sub_form: _create_form(sub_form), form)))
+            forms = _flatten_list(list(map(lambda sub_form: _create_form(sub_form, domain), form)))
             return forms
         else:
             raise ValueError("Not implemented case.")
 
-    return _create_form(form)
-
-
-@dataclass
-class CompiledCustomForm:
-    """Compiled UFL form without associated DOLFINx data."""
-
-    ufl_form: ufl.Form  # The original ufl form
-    itg_data: list[IntegralData]  # Integral data
-    ufcx_form: typing.Any  # The compiled form
-    module: typing.Any  # The module
-    code: str  # The source code
-    dtype: npt.DTypeLike  # data type used for the `ufcx_form`
-
-
-def compile_form_custom(
-    comm: MPI.Intracomm,
-    form: ufl.Form,
-    form_compiler_options: typing.Optional[dict] = {"scalar_type": default_scalar_type},
-    jit_options: typing.Optional[dict] = None,
-) -> CompiledCustomForm:
-    """Compile UFL form without associated DOLFINx data.
-
-    Args:
-        comm: The MPI communicator used when compiling the form
-        form: The UFL form to compile
-        form_compiler_options: See
-        :func:`ffcx_jit <dolfinx.jit.ffcx_jit>`
-        jit_options: See :func:`ffcx_jit <dolfinx.jit.ffcx_jit>`.
-    """
-    p_ffcx = ffcx.options.get_options(form_compiler_options)
-    p_jit = jit.get_options(jit_options)
-    itg_data, ufcx_form, module, code = ffcx_jit(comm, form, p_ffcx, p_jit)  # type: ignore # noqa
-
-    return CompiledCustomForm(
-        form,
-        itg_data,
-        ufcx_form,
-        module,
-        code,
-        p_ffcx["scalar_type"],  # type: ignore
-    )
-
-
-def create_form_custom(
-    form: CompiledCustomForm,
-    function_spaces: list[function.FunctionSpace],
-    mesh: Mesh,
-    subdomains: dict[IntegralType, list[tuple[int, np.ndarray]]],
-    coefficient_map: dict[ufl.FunctionSpace, function.Function],
-    constant_map: dict[ufl.Constant, function.Constant],
-    entity_maps: dict[Mesh, npt.NDArray[np.int32]] | None = None,
-) -> CustomForm:
-    """
-    Create a CustomForm object from a data-independent compiled form.
-
-    Args:
-        form: Compiled ufl form custom
-        function_spaces: List of function spaces associated with the
-            form. Should match the number of arguments in the form.
-        mesh: Mesh to associate form with
-        subdomains: A map from integral type to a list of pairs, where
-            each pair corresponds to a subdomain id and the set of of
-            integration entities to integrate over. Can be computed with
-            {py:func}`dolfinx.fem.compute_integration_domains`.
-        coefficient_map: Map from UFL coefficient to function with data.
-        constant_map: Map from UFL constant to constant with data.
-        entity_map: A map where each key corresponds to a mesh different
-            to the integration domain `mesh`. The value of the map is an
-            array of integers, where the i-th entry is the entity in the
-            key mesh.
-    """
-    if entity_maps is None:
-        _entity_maps = {}
-    else:
-        _entity_maps = {m._cpp_object: emap for (m, emap) in entity_maps.items()}
-
-    _subdomain_data = subdomains.copy()
-    for _, idomain in _subdomain_data.items():
-        idomain.sort(key=lambda x: x[0])
-
-    # Extract name of ufl objects and map them to their corresponding
-    # C++ object
-    ufl_coefficients = ufl.algorithms.extract_coefficients(form.ufl_form)
-    coefficients = {
-        f"w{ufl_coefficients.index(u)}": uh._cpp_object for (u, uh) in coefficient_map.items()
-    }
-    ufl_constants = ufl.algorithms.analysis.extract_constants(form.ufl_form)
-    constants = {f"c{ufl_constants.index(u)}": uh._cpp_object for (u, uh) in constant_map.items()}
-
-    ftype = form_cpp_creator(form.dtype)
-    f = ftype(
-        form.module.ffi.cast("uintptr_t", form.module.ffi.addressof(form.ufcx_form)),
-        [fs._cpp_object for fs in function_spaces],
-        coefficients,
-        constants,
-        _subdomain_data,
-        _entity_maps,
-        mesh._cpp_object,
-    )
-    return CustomForm(f, form.itg_data, form.ufcx_form, form.code)
+    return _create_form(form, domain)

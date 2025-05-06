@@ -20,6 +20,7 @@ from typing import Optional
 import dolfinx.fem
 import dolfinx.mesh
 import numpy as np
+import numpy.typing as npt
 import ufl
 from ufl.geometry import Jacobian
 from ufl.measure import integral_type_to_measure_name
@@ -99,7 +100,7 @@ def mapped_normal(domain: ufl.AbstractDomain | dolfinx.mesh.Mesh, normalize: boo
         return n
 
 
-class dx_bdry_unf(ufl.Measure):
+class ds_bdry_unf(ufl.Measure):
     """This is a new ufl Measure class for an unfitted custom boundary.
 
     It has the same functionalities as ufl.dx with the only difference
@@ -114,16 +115,18 @@ class dx_bdry_unf(ufl.Measure):
     """
 
     # Static definition of (fake) custom quadrature points and weights.
-    _weights = np.array([-1.0, -1.0], dtype=np.float64)
-    _points_2D = np.array([[0.1, 0.1], [0.2, 0.2]], dtype=np.float64)
-    _points_3D = np.array([[0.1, 0.1, 0.1], [0.2, 0.2, 0.2]], dtype=np.float64)
+    _weights = [-1.0, -1.0]
+    _points_2D = [[0.1, 0.1], [0.2, 0.2]]
+    _points_3D = [[0.1, 0.1, 0.1], [0.2, 0.2, 0.2]]
 
     def __init__(
         self,
         domain: ufl.AbstractDomain | dolfinx.mesh.Mesh,
         subdomain_id: str | int | tuple[int] = "everywhere",
         metadata: dict | None = None,
-        subdomain_data: dolfinx.mesh.MeshTags | None = None,
+        subdomain_data: dolfinx.mesh.MeshTags
+        | list[tuple[int, npt.NDArray[np.int32]]]
+        | None = None,
         degree: Optional[int] = None,
     ):
         """Initialize.
@@ -137,11 +140,10 @@ class dx_bdry_unf(ufl.Measure):
             metadata (dict | None, optional): Dictionary with additional
                 compiler-specific parameters for optimization or
                 debugging of generated code. Defaults to None.
-            subdomain_data (dolfinx.mesh.MeshTags | None, optional):
-                Object representing data to interpret subdomain_id with.
-                Defaults to None.
+            subdomain_data (dolfinx.mesh.MeshTags | list[tuple[int, npt.NDArray[np.int32]]] | None, optional):
+                Object representing data to interpret subdomain_id with. Defaults to None.
             degree (int, optional): The degree of the quadrature rule.
-        """
+        """  # noqa: E501
 
         assert domain is not None
 
@@ -165,7 +167,7 @@ class dx_bdry_unf(ufl.Measure):
         self._measure_complement = _compute_vector_norm(n)
 
         self._integral_type_mod = "unfitted_custom_boundary"
-        self._measure_name = "dx_bdry_unf"
+        self._measure_name = "ds_bdry_unf"
 
     def _create_custom_metadata(self, domain: ufl.AbstractDomain) -> dict:
         """Creates the custom measure metadata. It has an associated
@@ -215,8 +217,6 @@ class dx_bdry_unf(ufl.Measure):
         """
         parent_name = integral_type_to_measure_name[self._integral_type]
         parent_str = super().__str__()
-        print(parent_str)
-        print()
         return parent_str.replace(parent_name, self._measure_name, 1)
 
     def __repr__(self) -> str:
@@ -247,10 +247,10 @@ class dx_bdry_unf(ufl.Measure):
         return hash(hashdata)
 
     def __eq__(self, other) -> bool:
-        """Checks if two `dx_bdry_unf` measures are equal.
+        """Checks if two `ds_bdry_unf` measures are equal.
 
         Returns:
             bool: ``True`` if both measures are equal, ``False``
             otherwise.
         """
-        return isinstance(other, dx_bdry_unf) and super().__eq__(other)
+        return isinstance(other, ds_bdry_unf) and super().__eq__(other)

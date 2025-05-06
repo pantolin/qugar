@@ -63,6 +63,7 @@ endmacro(add_new_test)
 enable_testing()
 add_new_test(test_bbox_0 test_bbox_0.cpp)
 
+add_new_test(test_impl_domain_0 test_impl_domain_0.cpp)
 add_new_test(test_impl_general_quad_0 test_impl_general_quad_0.cpp)
 add_new_test(test_impl_general_quad_1 test_impl_general_quad_1.cpp)
 add_new_test(test_impl_general_quad_2 test_impl_general_quad_2.cpp)

@@ -246,7 +246,8 @@ void test_reparam(const std::shared_ptr<const qugar::impl::ImplicitFunc<dim>> fu
 
   const qugar::impl::UnfittedImplDomain<dim> unf_domain(func, grid);
 
-  const auto reparam = create_reparameterization<dim, levelset>(unf_domain, order);
+  constexpr bool merge_points = true;
+  const auto reparam = create_reparameterization<dim, levelset>(unf_domain, order, merge_points);
 
   test_reparam_generic(*reparam,
     n_points,

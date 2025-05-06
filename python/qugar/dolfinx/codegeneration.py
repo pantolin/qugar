@@ -33,7 +33,7 @@ from qugar.dolfinx.parsing_utils import dtype_to_C_str, get_pairing_brackets, pa
 def _modify_header(code_blocks: CodeBlocks) -> CodeBlocks:
     """Adds stddef.h include in the header of the given `code_blocks`.
 
-    This include may be required for ``size_t`` type used in the
+    This include may be required for ``ptrdiff_t`` type used in the
     modified integral code.
 
     It modifies the header of the C code associated to a form to be
@@ -349,6 +349,16 @@ class _IntegralModifier:
 
         return new_code
 
+    @staticmethod
+    def _find_quad_name_in_loop(code: str) -> str:
+        """Find the quadrature name in the given code."""
+        match = re.search(r"_Q(\w\w\w)[\[|_e]", code)
+        if match is None:
+            match = re.search(r"weights_(\w\w\w)", code)
+        assert match
+        quad_name = match.group(1)
+        return quad_name
+
     def _modify_points_loops(self, code: str) -> str:
         """Finds all the for loops along quadrature points in the given
         C code and transforms them from static (with a compile time
@@ -365,18 +375,9 @@ class _IntegralModifier:
 
         loop_pattern = r"for\s*\(\s*int\s+iq\s*=\s*0\s*;\s*iq\s*<\s*(\d+)\s*;\s*\+\+iq\s*\)"
 
-        def find_quad_name_in_loop(code: str) -> str:
-            """Find the quadrature name in the given code."""
-            match = re.search(r"_Q(\w\w\w)[\[|_e]", code)
-            if match is None:
-                match = re.search(r"weights_(\w\w\w)", code)
-            assert match
-            quad_name = match.group(1)
-            return quad_name
-
         new_code = code[:]
         while match := re.search(loop_pattern, new_code):
-            quad_name = find_quad_name_in_loop(new_code[match.end() :])
+            quad_name = _IntegralModifier._find_quad_name_in_loop(new_code[match.end() :])
 
             new_loop = f"for (int iq = 0; iq < n_pts_Q{quad_name}; ++iq)"
 
@@ -431,6 +432,18 @@ class _IntegralModifier:
 
         return code_block
 
+    def _has_unfitted_boundary(self) -> bool:
+        """Checks if the integral has unfitted boundaries.
+
+        Returns:
+            bool: True if the integral has unfitted boundaries,
+                false otherwise.
+        """
+
+        return any(
+            quad_data.unfitted_boundary for quad_data in self._data.quad_data_FE_tables.keys()
+        )
+
     def _modify_normal_constants(self, code: str) -> str:
         """In the case of unfitted custom boundaries, this function
         replaces the used (fake) constants by their corresponding
@@ -443,9 +456,7 @@ class _IntegralModifier:
             str: Newly generated C code.
         """
 
-        if all(
-            not quad_data.unfitted_boundary for quad_data in self._data.quad_data_FE_tables.keys()
-        ):
+        if not self._has_unfitted_boundary():
             return code  # No normals to subsitute.
 
         loop_pattern = r"for\s*\(\s*int\s+iq\s*=\s*0\s*;\s*iq\s*<\s*(\w+)\s*;\s*\+\+iq\s*\)"
@@ -679,6 +690,80 @@ class _IntegralModifier:
 
         return call_code
 
+    def _modify_unfitted_boundary_original_integrals(self) -> str:
+        """Modifies the original function's implementation code for
+        unfitted boundary integrals by deactivating the loops
+        associated to the quadrature points.
+
+        This is needed in the case the original function is called
+        for a non-custom cell in which such integral has no sense.
+
+        This is done by including a break statement inside the loop,
+        which will prevent the loop from being executed.
+        The compiler will optimize out the full loop, since it is
+        never executed.
+
+        Returns:
+            str: New modified C code.
+        """
+
+        assert self._has_unfitted_boundary()
+
+        loop_pattern = r"for\s*\(\s*int\s+iq\s*=\s*0\s*;\s*iq\s*<\s*(\d+)\s*;\s*\+\+iq\s*\)"
+
+        # Finding the start of the first quadrature loop.
+        match = re.search(loop_pattern, self._func_impl)
+        assert match is not None
+        first_loop = match.start()
+
+        # Note that in cases as for linear triangles, quantities as
+        # the jacobians are constant at all the quadrature points and
+        # therefore FFCx defines them out of the quadrature loops.
+        # However, in the case of unfitted boundaries, these quantities
+        # get multiplied by boundary normals that vary from point
+        # to point and become non constant.
+        # Thus, we take those constant definitions and move them to the
+        # quadrature loops, to introduce the normals variation later on.
+        # Unfortunately, including these constant variables in the loops
+        # may cause the compiler complaining about unused variables in
+        # the case there is more than one quadrature loop (integrand).
+        # This is due to the fact that some of the variables are shared
+        # by several loops but not all of them. We don't know which
+        # ones, so we copy everything at the risk of some variables
+        # being unused.
+
+        assert self._func_impl[:2] == "{\n"
+        cnt_vars_block = self._func_impl[2:first_loop]
+        code = self._func_impl[:2] + self._func_impl[first_loop:]
+
+        all_quad_datas = list(self._data.quad_data_FE_tables.keys())
+
+        ind = 0
+        new_code = ""
+        for match in re.finditer(loop_pattern, code):
+            quad_name = _IntegralModifier._find_quad_name_in_loop(code[match.end() :])
+            quad_data = next(filter(lambda qd: qd.name == quad_name, all_quad_datas))
+            ids = get_pairing_brackets(code[match.start() :])
+            i0 = ids[0] + match.start()
+            i1 = ids[1] + match.start()
+
+            assert code[i0 : i0 + 2] == "{\n"
+            block = "{\n"
+
+            if quad_data.unfitted_boundary:
+                # This prevents the loop from being executed.
+                # The compiler will optimize out the full loop.
+                block += "break;\n"
+
+            block += cnt_vars_block + code[i0 + 2 : i1]
+
+            new_code += code[ind:i0] + block
+            ind = i1
+
+        new_code += code[ind:]
+
+        return new_code
+
     def _create_non_custom_quad_function(self) -> str:
         """Creates a copy of the original function (signature +
         implementation), but appending the suffix ``_original`` to the
@@ -690,7 +775,12 @@ class _IntegralModifier:
 
         name = self._data.name
         new_code = self._func_signt.replace(name, f"{name}_original")
-        new_code += self._func_impl
+
+        if self._has_unfitted_boundary():
+            new_code += self._modify_unfitted_boundary_original_integrals()
+        else:
+            new_code += self._func_impl
+
         new_code += "\n\n"
         return new_code
 
@@ -760,10 +850,11 @@ class _IntegralModifier:
         dtype_str = dtype_to_C_str(self._data.dtype)
         coeffs_offset = self._compute_coeffs_offset()
         code_impl += (
-            "const size_t w_custom_offset = *((const size_t *) " + f"&w[{coeffs_offset}]);\n"
+            "const ptrdiff_t w_custom_offset = *((const ptrdiff_t *) " + f"&w[{coeffs_offset}]);\n"
         )
 
-        code_impl += "const bool is_custom = w_custom_offset > 0;\n\n"
+        code_impl += "const bool is_custom = w_custom_offset > 0;\n"
+        code_impl += "const bool is_full   = w_custom_offset < 0;\n\n"
         code_impl += "if (is_custom)\n"
         code_impl += "{\n"
 
@@ -780,7 +871,7 @@ class _IntegralModifier:
             f"  tabulate_tensor_integral_{name}_custom(A, w, w_custom, c, "
             "coordinate_dofs, entity_local_index, quadrature_permutation);\n"
         )
-        code_impl += "}\nelse\n{\n"
+        code_impl += "}\nelse if (is_full)\n{\n"
         code_impl += (
             f"  tabulate_tensor_integral_{name}_original(A, w, c, "
             "coordinate_dofs, entity_local_index, quadrature_permutation);\n"

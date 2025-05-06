@@ -22,6 +22,7 @@
 #include <qugar/impl_reparam_mesh.hpp>
 #include <qugar/impl_unfitted_domain.hpp>
 
+#include <cstddef>
 #include <memory>
 #include <vector>
 
@@ -30,11 +31,14 @@ namespace qugar::impl {
 
 template<int dim, bool levelset>
 std::shared_ptr<const ImplReparamMesh<levelset ? dim - 1 : dim, dim>>
-  create_reparameterization(const UnfittedImplDomain<dim> &unf_domain, int n_pts_dir);
+  create_reparameterization(const UnfittedImplDomain<dim> &unf_domain, int n_pts_dir, bool merge_points);
 
 template<int dim, bool levelset>
-std::shared_ptr<const ImplReparamMesh<levelset ? dim - 1 : dim, dim>>
-  create_reparameterization(const UnfittedImplDomain<dim> &unf_domain, const std::vector<int> &cells, int n_pts_dir);
+std::shared_ptr<const ImplReparamMesh<levelset ? dim - 1 : dim, dim>> create_reparameterization(
+  const UnfittedImplDomain<dim> &unf_domain,
+  const std::vector<std::int64_t> &cells,
+  int n_pts_dir,
+  bool merge_points);
 
 
 }// namespace qugar::impl

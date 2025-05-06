@@ -40,10 +40,11 @@ int main(/* int argc, const char **argv */)
 
   const qugar::impl::UnfittedImplDomain<dim> unf_domain(gyroid, grid);
 
-  const auto reparam = create_reparameterization<dim, false>(unf_domain, order);
+  constexpr bool merge_points = true;
+  const auto reparam = create_reparameterization<dim, false>(unf_domain, order, merge_points);
   reparam->write_VTK_file("gyroid");
 
-  const auto reparam_levelset = create_reparameterization<dim, true>(unf_domain, order);
+  const auto reparam_levelset = create_reparameterization<dim, true>(unf_domain, order, merge_points);
   reparam_levelset->write_VTK_file("gyroid_levelset");
 
   return 0;

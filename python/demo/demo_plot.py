@@ -14,7 +14,7 @@
 # This demo is implemented in {download}`demo_plot.py` and it
 # illustrates:
 #
-# - How to create an unfitted implicit domain using the library of available implicit functions.
+# - How to create an unfitted implicit mesh using the library of available implicit functions.
 # - The available PyVista based visualization tools.
 
 # This demo requires the [FEniCSx](https://fenicsproject.org) and [PyVista](https://pyvista.org)
@@ -61,17 +61,18 @@ func = qugar.impl.create_cylinder(
     radius=0.4, origin=np.array([0.55, 0.45, 0.47]), axis=np.array([1.0, 0.9, -0.95]), use_bzr=True
 )
 
-# and then generate the unfitted domain using a Cartesian mesh over a hypercube $[0,1]^3$
+# and then generate the unfitted Cartesian mesh over a hypercube $[0,1]^3$
 # with 5 cells per direction.
 
 # +
 dim = func.dim
 n_cells = [5] * dim
 
-mesh = qugar.mesh.create_Cartesian_mesh(
-    comm=MPI.COMM_WORLD, n_cells=n_cells, xmin=np.zeros(dim), xmax=np.ones(dim)
+comm = MPI.COMM_WORLD
+
+unf_mesh = qugar.mesh.create_unfitted_impl_Cartesian_mesh(
+    comm, func, n_cells, xmin=np.zeros(dim), xmax=np.ones(dim)
 )
-unf_domain = qugar.impl.create_unfitted_impl_domain(func, mesh)
 # -
 
 # ## Visualization
@@ -82,31 +83,31 @@ unf_domain = qugar.impl.create_unfitted_impl_domain(func, mesh)
 # First we create PyVista objects for the quadrature,
 
 # +
-quad = qugar.plot.quadrature_to_PyVista(unf_domain, n_pts_dir=3)
+quad = qugar.plot.quadrature_to_PyVista(unf_mesh, n_pts_dir=3)
 
 quad_cells = cast(pv.UnstructuredGrid, quad.get("Cut cells quadrature"))
 quad_unf_bdry = cast(pv.UnstructuredGrid, quad.get("Unfitted boundary quadrature"))
-quad_facets = cast(pv.UnstructuredGrid, quad.get("Cut facets quadrature"))
+quad_facets = cast(pv.UnstructuredGrid, quad.get("Cut/unfitted facets quadrature"))
 # -
 
 # cut and full cells and cut facets of the unfitted domain,
 
 # +
-cut_cells = qugar.plot.unfitted_domain_to_PyVista(unf_domain, cut=True, full=False, empty=False)
-full_cells = qugar.plot.unfitted_domain_to_PyVista(unf_domain, cut=False, full=True, empty=False)
+cut_cells = qugar.plot.unfitted_domain_to_PyVista(unf_mesh, cut=True, full=False, empty=False)
+full_cells = qugar.plot.unfitted_domain_to_PyVista(unf_mesh, cut=False, full=True, empty=False)
 
 cut_facets = qugar.plot.unfitted_domain_facets_to_PyVista(
-    unf_domain, cut=True, full=False, empty=False
+    unf_mesh, cut=True, full=False, empty=False
 )
 # -
 
 # and for the reparameterization of the domain's interior and its levelset boundary
 
 # +
-reparam = qugar.reparam.create_reparam_mesh(unf_domain, n_pts_dir=4, levelset=False)
+reparam = qugar.reparam.create_reparam_mesh(unf_mesh, degree=3, levelset=False)
 reparam_pv = qugar.plot.reparam_mesh_to_PyVista(reparam)
 
-reparam_srf = qugar.reparam.create_reparam_mesh(unf_domain, n_pts_dir=4, levelset=True)
+reparam_srf = qugar.reparam.create_reparam_mesh(unf_mesh, degree=3, levelset=True)
 reparam_srf_pv = qugar.plot.reparam_mesh_to_PyVista(reparam_srf)
 # -
 
@@ -144,7 +145,7 @@ pl.add_title("Unfitted boundary quadrature", font_size=12)
 pl.add_mesh(quad_unf_bdry, point_size=4, render_points_as_spheres=True)
 pl.add_mesh(cut_cells, color="blue", style="wireframe")
 glyphs = quad_unf_bdry.glyph(
-    orient="Normals", scale=False, factor=0.05, geom=pv.Arrow(), color_mode="scalar"
+    orient=True, scale=False, factor=0.05, geom=pv.Arrow(), color_mode="scalar"
 )
 pl.add_mesh(glyphs)
 pl.add_mesh(reparam_srf_pv.get("reparam"), color="white")

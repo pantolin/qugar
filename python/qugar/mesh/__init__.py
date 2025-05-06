@@ -44,19 +44,17 @@ from qugar.utils import has_FEniCSx
 
 if has_FEniCSx:
     from qugar.mesh.tp_index import TensorProdIndex
-    from qugar.mesh.tp_mesh import CartesianMesh, TensorProductMesh, create_Cartesian_mesh
-    from qugar.mesh.utils import (
-        create_cells_to_facets_map,
-        map_cells_and_local_facets_to_facets,
-        map_facets_to_cells_and_local_facets,
-    )
+    from qugar.mesh.tp_mesh import CartesianMesh, Mesh, TensorProductMesh, create_Cartesian_mesh
+    from qugar.mesh.unfitted_cart_mesh import UnfittedCartMesh, create_unfitted_impl_Cartesian_mesh
+    from qugar.mesh.unfitted_domain import UnfittedDomain
 
     __all__ += [
+        "Mesh",
+        "UnfittedDomain",
         "CartesianMesh",
         "TensorProductMesh",
         "TensorProdIndex",
-        "create_cells_to_facets_map",
-        "map_cells_and_local_facets_to_facets",
-        "map_facets_to_cells_and_local_facets",
+        "UnfittedCartMesh",
         "create_Cartesian_mesh",
+        "create_unfitted_impl_Cartesian_mesh",
     ]

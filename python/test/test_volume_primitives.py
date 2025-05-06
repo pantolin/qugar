@@ -34,14 +34,13 @@ from utils import (
 
 import qugar.cpp
 import qugar.impl
-from qugar.dolfinx import CustomForm, dx_bdry_unf, form_custom
-from qugar.impl import ImplicitFunc, UnfittedImplDomain
-from qugar.mesh import create_Cartesian_mesh
-from qugar.quad import create_quadrature_generator
+from qugar.dolfinx import CustomForm, ds_bdry_unf, form_custom
+from qugar.impl import ImplicitFunc
+from qugar.mesh import UnfittedDomain, create_unfitted_impl_Cartesian_mesh
 
 
 def compute_volume(
-    domain: UnfittedImplDomain,
+    unf_mesh: UnfittedDomain,
     n_quad_pts: int,
     dtype: type[np.float32 | np.float64],
 ) -> np.float32 | np.float64:
@@ -49,71 +48,69 @@ def compute_volume(
     Computes the volume of a given unfitted domain.
 
     Args:
-        domain (UnfittedImplDomain): The domain for which the volume is to be computed.
+        mesh (UnfittedMesh): The unfitted mesh for which the volume is to be computed.
         dtype (type[np.float32 | np.float64]): The data type to be used for computations.
 
     Returns:
         np.float32 | np.float64: The computed volume of the domain.
     """
-    cart_mesh = domain.cart_mesh
-    dlf_mesh = cart_mesh.dolfinx_mesh
 
     cut_tag = 0
     full_tag = 1
-    cell_tags = domain.create_cell_tags(cut_tag=cut_tag, full_tag=full_tag)
+    cell_tags = unf_mesh.create_cell_meshtags(cut_tag=cut_tag, full_tag=full_tag)
 
-    one = dolfinx.fem.Constant(dlf_mesh, dtype(1.0))
+    one = dolfinx.fem.Constant(unf_mesh, dtype(1.0))
 
     quad_degree = get_Gauss_quad_degree(n_quad_pts)
-    dx_cut = ufl.dx(
-        domain=dlf_mesh, subdomain_data=cell_tags, subdomain_id=cut_tag, degree=quad_degree
+    dx = ufl.dx(domain=unf_mesh, subdomain_data=cell_tags)
+    dx_cut = dx(
+        subdomain_id=cut_tag,
+        degree=quad_degree,
     )
-    dx = ufl.dx(domain=dlf_mesh, subdomain_data=cell_tags, subdomain_id=full_tag)
-    ufl_form = one * (dx + dx_cut)
+    ufl_form = one * (dx(full_tag) + dx_cut)
 
-    custom_form = form_custom(ufl_form, dtype=dtype)
+    custom_form = form_custom(ufl_form, unf_mesh, dtype=dtype)
     assert isinstance(custom_form, CustomForm)
 
-    quad_gen = create_quadrature_generator(domain)
-    custom_coeffs = custom_form.pack_coefficients(quad_gen)
+    custom_coeffs = custom_form.pack_coefficients()
 
     return dolfinx.fem.assemble_scalar(custom_form, coeffs=custom_coeffs)
 
 
 def compute_boundary_area(
-    domain: UnfittedImplDomain,
+    unf_mesh: UnfittedDomain,
     n_quad_pts: int,
     dtype: type[np.float32 | np.float64],
 ) -> np.float32 | np.float64:
     """
-    Computes the boundary area of a given unfitted domain.
+    Computes the boundary area of a given unfitted mesh.
 
     Args:
-        domain (UnfittedImplDomain): The domain for which the volume is to be computed.
+        unf_mesh (UnfittedMesh): The unfiffted mesh for which the volume is to be computed.
         dtype (type[np.float32 | np.float64]): The data type to be used for computations.
 
     Returns:
         np.float32 | np.float64: The computed area of the domain's boundary.
     """
-    cart_mesh = domain.cart_mesh
-    dlf_mesh = cart_mesh.dolfinx_mesh
 
     bdry_tag = 0
-    cell_tags = domain.create_cell_tags(cut_tag=bdry_tag)
+    cell_tags = unf_mesh.create_cell_meshtags(cut_tag=bdry_tag)
 
-    one = dolfinx.fem.Constant(dlf_mesh, dtype(1.0))
+    one = dolfinx.fem.Constant(unf_mesh, dtype(1.0))
 
     quad_degree = get_Gauss_quad_degree(n_quad_pts)
-    ds = dx_bdry_unf(
-        domain=dlf_mesh, subdomain_data=cell_tags, subdomain_id=bdry_tag, degree=quad_degree
+    ds = ds_bdry_unf(
+        domain=unf_mesh,
+        subdomain_data=cell_tags,
+        subdomain_id=bdry_tag,
+        degree=quad_degree,
     )
     ufl_form = one * ds
 
-    custom_form = form_custom(ufl_form, dtype=dtype)
+    custom_form = form_custom(ufl_form, unf_mesh, dtype=dtype)
     assert isinstance(custom_form, CustomForm)
 
-    quad_gen = create_quadrature_generator(domain)
-    custom_coeffs = custom_form.pack_coefficients(quad_gen)
+    custom_coeffs = custom_form.pack_coefficients()
 
     return dolfinx.fem.assemble_scalar(custom_form, coeffs=custom_coeffs)
 
@@ -156,13 +153,7 @@ def volume_test_and_area_test(
     n_cells = [n_cells_dir] * dim
     xmin = np.zeros(dim, dtype)
     xmax = np.ones(dim, dtype)
-    cart_mesh = create_Cartesian_mesh(
-        comm,
-        n_cells,
-        xmin,
-        xmax,
-    )
-    domain = qugar.impl.create_unfitted_impl_domain(func, cart_mesh)
+    domain = create_unfitted_impl_Cartesian_mesh(comm, func, n_cells, xmin, xmax)
 
     if exact_volume is not None:
         volume = compute_volume(domain, n_quad_pts, dtype)
@@ -563,7 +554,8 @@ def test_plane(
 
 
 if __name__ == "__main__":
-    test_disk(8, 5, np.float32, True, False)
+    # test_disk(8, 5, np.float32, True, False)
+    test_sphere(8, 5, np.float32, False, False)
     # test_ellipse(8, 5, np.float32, True)
     # test_ellipsoid(8, 5, np.float32, True, False)
     # test_annulus(8, 6, np.float32, True, False)

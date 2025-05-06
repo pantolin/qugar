@@ -64,7 +64,7 @@ template<int dim> void test_Bezier_domain_rescale(const int n_eval_pts)
   const auto bzr_rescale = std::make_shared<qugar::impl::BezierTP<dim>>(*bzr);
   bzr_rescale->rescale_domain(new_domain);
 
-  const auto eval_pts = qugar::rand::create_random_real_vectors<dim>(static_cast<std::size_t>(n_eval_pts));
+  const auto eval_pts = qugar::rand::create_random_real_vectors<dim>(static_cast<std::size_t>(n_eval_pts), pt_0, pt_1);
   const qugar::Tolerance tol(1.0e-10);
 
   for (const auto &eval_pt : eval_pts) {
@@ -99,7 +99,7 @@ template<int dim> void test_Bezier_domain_rescale_face(const int n_eval_pts)
   bzr_rescale->rescale_domain(new_domain);
 
 
-  const auto eval_pts = qugar::rand::create_random_real_vectors<dim>(static_cast<std::size_t>(n_eval_pts));
+  const auto eval_pts = qugar::rand::create_random_real_vectors<dim>(static_cast<std::size_t>(n_eval_pts), pt_0, pt_1);
   const qugar::Tolerance tol(1.0e-10);
 
   for (int local_facet_id = 0; local_facet_id < dim * 2; ++local_facet_id) {

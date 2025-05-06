@@ -21,7 +21,7 @@ import dolfinx.mesh
 import numpy as np
 import pytest
 import ufl
-from mock_quad_generator import MockQuadGenerator
+from mock_unf_domain import MockUnfittedDomain
 from utils import check_vals, clean_cache, create_mesh, dtypes, get_dtype  # type: ignore
 
 from qugar.dolfinx import CustomForm, form_custom
@@ -113,18 +113,18 @@ def test_mixed_dimension(
 
     ufl_form = ufl.inner(f * g * u, vbar) * ds  # type: ignore
 
-    quad_gen = MockQuadGenerator(mesh=mesh, nnz=nnz, max_quad_sets=max_quad_sets)
+    unf_domain = MockUnfittedDomain(mesh=mesh, nnz=nnz, max_quad_sets=max_quad_sets)
 
     dtype = get_dtype(ufl_form)
 
     form = dolfinx.fem.form(ufl_form, dtype=dtype, entity_maps=entity_maps)  # type: ignore
     matrix = dolfinx.fem.assemble_matrix(form)
 
-    custom_form = form_custom(ufl_form, dtype=dtype, entity_maps=entity_maps)
+    custom_form = form_custom(ufl_form, unf_domain, dtype=dtype, entity_maps=entity_maps)
     assert isinstance(custom_form, CustomForm)
     custom_matrix = dolfinx.fem.assemble_matrix(form)
 
-    custom_coeffs = custom_form.pack_coefficients(quad_gen)  # type: ignore
+    custom_coeffs = custom_form.pack_coefficients()
     custom_matrix = dolfinx.fem.assemble_matrix(custom_form, coeffs=custom_coeffs)
 
     dtype = get_dtype(ufl_form)

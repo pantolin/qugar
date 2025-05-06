@@ -29,13 +29,20 @@
 #include <qugar/types.hpp>
 #include <qugar/utils.hpp>
 
+#include <cstdint>
 #include <numeric>
+#include <vector>
 
 template<int dim>
 qugar::Point<dim> compute_points_centroid(const std::vector<qugar::Point<dim>> &points,
   const std::vector<qugar::real> &weights)
 {
+  assert(points.size() == weights.size());
   qugar::Point<dim> centroid;
+  if (points.empty()) {
+    return centroid;
+  }
+
   auto w_it = weights.cbegin();
   qugar::real vol{ qugar::numbers::zero };
   for (const auto &point : points) {
@@ -64,8 +71,11 @@ qugar::Point<dim> compute_centroid(const qugar::impl::UnfittedImplDomain<dim> &u
   qugar::real vol{ qugar::numbers::zero };
   qugar::Point<dim> centroid{ qugar::numbers::zero };
 
+  std::vector<std::int64_t> full_cells;
+  unf_domain.get_full_cells(full_cells);
+
   const auto grid = unf_domain.get_grid();
-  for (const auto &cell_id : unf_domain.get_full_cells()) {
+  for (const auto &cell_id : full_cells) {
     const auto domain = grid->get_cell_domain(cell_id);
     const auto cell_volume = domain.volume();
     vol += cell_volume;
@@ -108,8 +118,11 @@ qugar::real compute_volume(const qugar::impl::UnfittedImplDomain<dim> &unf_domai
 
   qugar::real vol{ qugar::numbers::zero };
 
+  std::vector<std::int64_t> full_cells;
+  unf_domain.get_full_cells(full_cells);
+
   const auto grid = unf_domain.get_grid();
-  for (const auto &cell_id : unf_domain.get_full_cells()) {
+  for (const auto &cell_id : full_cells) {
     const auto domain = grid->get_cell_domain(cell_id);
     vol += domain.volume();
   }
@@ -199,10 +212,15 @@ void test_volume_and_centroid(const std::shared_ptr<const qugar::impl::ImplicitF
 
   const qugar::impl::UnfittedImplDomain<dim> unf_domain(func, grid);
 
-  const auto quad = qugar::impl::create_quadrature(unf_domain, unf_domain.get_cut_cells(), n_quad_pts_dir);
+  std::vector<std::int64_t> cut_cells;
+  unf_domain.get_cut_cells(cut_cells);
 
-  const auto unf_bound_quad =
-    qugar::impl::create_unfitted_bound_quadrature(unf_domain, unf_domain.get_cut_cells(), n_quad_pts_dir);
+  const auto quad = qugar::create_quadrature(unf_domain, cut_cells, n_quad_pts_dir);
+
+  constexpr bool include_facet_unf_bdry{ true };
+  constexpr bool exclude_ext_bdry{ true };
+  const auto unf_bound_quad = qugar::create_unfitted_bound_quadrature(
+    unf_domain, cut_cells, n_quad_pts_dir, include_facet_unf_bdry, exclude_ext_bdry);
 
   const auto volume = compute_volume(unf_domain, *quad);
   // NOLINTNEXTLINE (bugprone-chained-comparison)

@@ -23,27 +23,56 @@
 #include <qugar/domain_function.hpp>
 #include <qugar/impl_unfitted_domain.hpp>
 
+#include <cstdint>
 #include <memory>
 #include <vector>
 
 
 namespace qugar::impl {
 
+/**
+ * @brief Creates a quadrature for cut cells.
+ * @tparam dim Dimension of the domain.
+ * @param unf_domain  Unfitted domain.
+ * @param cell_id Cell for which the quadrature is created.
+ * @param n_pts_dir Number of points in each direction for generated custom quadratures.
+ * @param quad Quadrature object to be filled with the generated quadrature.
+ */
+template<int dim>
+void create_cell_quadrature(const UnfittedImplDomain<dim> &unf_domain,
+  std::int64_t cell_id,
+  int n_pts_dir,
+  CutCellsQuad<dim> &quad);
+
+/**
+ * @brief Creates a quadrature for the unfitted boundary.
+ * @tparam dim Dimension of the domain.
+ * @param unf_domain  Unitted domain.
+ * @param cell_id Cell for which the quadrature is created.
+ * @param n_pts_dir Number of points in each direction for generated custom quadratures.
+ * @param include_facet_unf_bdry  If true, the quadrature includes the parts of the unfitted boundary
+ *                                that belong to the cells' facets.
+ * @param exclude_ext_bdry If the previous parameter is true, and this is one is false, the parts
+ *                         of the unfitted boundary that belong to the external facets are not included.
+ * @param quad Quadrature object to be filled with the generated quadrature.
+ */
+template<int dim>
+void create_cell_unfitted_bound_quadrature(const UnfittedImplDomain<dim> &unf_domain,
+  std::int64_t cell_id,
+  int n_pts_dir,
+  bool include_facet_unf_bdry,
+  bool exclude_ext_bdry,
+  CutUnfBoundsQuad<dim> &quad);
 
 template<int dim>
-std::shared_ptr<const CutCellsQuad<dim>>
-  create_quadrature(const UnfittedImplDomain<dim> &unf_domain, const std::vector<int> &cells, int n_pts_dir);
+void create_facet_quadrature(const UnfittedImplDomain<dim> &unf_domain,
+  std::int64_t cell_id,
+  int local_facet_id,
+  int n_pts_dir,
+  bool remove_unf_bdry,
+  bool remove_cut,
+  CutIsoBoundsQuad<dim - 1> &quad);
 
-template<int dim>
-std::shared_ptr<const CutUnfBoundsQuad<dim>> create_unfitted_bound_quadrature(const UnfittedImplDomain<dim> &unf_domain,
-  const std::vector<int> &cells,
-  int n_pts_dir);
-
-template<int dim>
-std::shared_ptr<const CutIsoBoundsQuad<dim - 1>> create_facets_quadrature(const UnfittedImplDomain<dim> &unf_domain,
-  const std::vector<int> &cells,
-  const std::vector<int> &facets,
-  int n_pts_dir);
 
 }// namespace qugar::impl
 

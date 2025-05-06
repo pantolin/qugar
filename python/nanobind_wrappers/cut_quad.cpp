@@ -50,7 +50,7 @@ namespace {
       .def_prop_ro(
         "cells",
         [](CutCellsQuad &quad) {
-          using Array = nb::ndarray<const int, nb::numpy, nb::shape<-1>, nb::c_contig>;
+          using Array = nb::ndarray<const std::int64_t, nb::numpy, nb::shape<-1>, nb::c_contig>;
           return Array(quad.cells.data(), { quad.cells.size() }, nb::handle());
         },
         nb::rv_policy::reference_internal,
@@ -85,7 +85,7 @@ namespace {
       .def_prop_ro(
         "cells",
         [](CutIsoBoundsQuad &quad) {
-          using Array = nb::ndarray<const int, nb::numpy, nb::shape<-1>, nb::c_contig>;
+          using Array = nb::ndarray<const std::int64_t, nb::numpy, nb::shape<-1>, nb::c_contig>;
           return Array(quad.cells.data(), { quad.cells.size() }, nb::handle());
         },
         nb::rv_policy::reference_internal,
@@ -128,7 +128,7 @@ namespace {
       .def_prop_ro(
         "cells",
         [](CutUnfBoundsQuad &quad) {
-          using Array = nb::ndarray<const int, nb::numpy, nb::shape<-1>, nb::c_contig>;
+          using Array = nb::ndarray<const std::int64_t, nb::numpy, nb::shape<-1>, nb::c_contig>;
           return Array(quad.cells.data(), { quad.cells.size() }, nb::handle());
         },
         nb::rv_policy::reference_internal,
@@ -173,13 +173,14 @@ namespace {
 
   template<int dim> void create_quadrature(nb::module_ &module)
   {
-    using CellsArray = nb::ndarray<const int, nb::numpy, nb::shape<-1>>;
+    using CellsArray = nb::ndarray<const std::int64_t, nb::numpy, nb::shape<-1>>;
+    using FacetsArray = nb::ndarray<const int, nb::numpy, nb::shape<-1>>;
 
     module.def(
       "create_quadrature",
       [](const UnfittedDomain<dim> &unf_domain, const CellsArray &cells_py, const int n_pts_dir) {
-        const std::span<const int> cells_span(cells_py.data(), cells_py.size());
-        const std::vector<int> cells(cells_span.begin(), cells_span.end());
+        const std::span<const std::int64_t> cells_span(cells_py.data(), cells_py.size());
+        const std::vector<std::int64_t> cells(cells_span.begin(), cells_span.end());
 
         return create_quadrature<dim>(unf_domain, cells, n_pts_dir);
       },
@@ -190,39 +191,66 @@ namespace {
 
   template<int dim> void create_unfitted_bound_quadrature(nb::module_ &module)
   {
-    using CellsArray = nb::ndarray<const int, nb::numpy, nb::shape<-1>>;
+    using CellsArray = nb::ndarray<const std::int64_t, nb::numpy, nb::shape<-1>>;
 
     module.def(
       "create_unfitted_bound_quadrature",
-      [](const UnfittedDomain<dim> &unf_domain, const CellsArray &cells_py, const int n_pts_dir) {
-        const std::span<const int> cells_span(cells_py.data(), cells_py.size());
-        const std::vector<int> cells(cells_span.begin(), cells_span.end());
+      [](const UnfittedDomain<dim> &unf_domain,
+        const CellsArray &cells_py,
+        const int n_pts_dir,
+        const bool include_facet_unf_bdry,
+        const bool exclude_ext_bdry) {
+        const std::span<const std::int64_t> cells_span(cells_py.data(), cells_py.size());
+        const std::vector<std::int64_t> cells(cells_span.begin(), cells_span.end());
 
-        return create_unfitted_bound_quadrature<dim>(unf_domain, cells, n_pts_dir);
+        return create_unfitted_bound_quadrature<dim>(
+          unf_domain, cells, n_pts_dir, include_facet_unf_bdry, exclude_ext_bdry);
       },
       nb::arg("unf_domain"),
       nb::arg("cells"),
-      nb::arg("n_pts_dir"));
+      nb::arg("n_pts_dir"),
+      nb::arg("include_facet_unf_bdry"),
+      nb::arg("exclude_ext_bdry"));
   }
 
 
   template<int dim> void create_facets_quadrature(nb::module_ &module)
   {
-    using CellsArray = nb::ndarray<const int, nb::numpy, nb::shape<-1>>;
+    using CellsArray = nb::ndarray<const std::int64_t, nb::numpy, nb::shape<-1>>;
+    using FacetsArray = nb::ndarray<const int, nb::numpy, nb::shape<-1>>;
 
     module.def(
-      "create_facets_quadrature",
+      "create_facets_quadrature_interior_integral",
       [](const UnfittedDomain<dim> &unf_domain,
         const CellsArray &cells_py,
-        const CellsArray &facets_py,
+        const FacetsArray &facets_py,
         const int n_pts_dir) {
-        const std::span<const int> cells_span(cells_py.data(), cells_py.size());
-        const std::vector<int> cells(cells_span.begin(), cells_span.end());
+        const std::span<const std::int64_t> cells_span(cells_py.data(), cells_py.size());
+        const std::vector<std::int64_t> cells(cells_span.begin(), cells_span.end());
 
         const std::span<const int> facets_span(facets_py.data(), facets_py.size());
         const std::vector<int> facets(facets_span.begin(), facets_span.end());
 
-        return create_facets_quadrature<dim>(unf_domain, cells, facets, n_pts_dir);
+        return create_facets_quadrature_interior_integral<dim>(unf_domain, cells, facets, n_pts_dir);
+      },
+      nb::arg("unf_domain"),
+      nb::arg("cells"),
+      nb::arg("facets"),
+      nb::arg("n_pts_dir"));
+
+    module.def(
+      "create_facets_quadrature_exterior_integral",
+      [](const UnfittedDomain<dim> &unf_domain,
+        const CellsArray &cells_py,
+        const FacetsArray &facets_py,
+        const int n_pts_dir) {
+        const std::span<const std::int64_t> cells_span(cells_py.data(), cells_py.size());
+        const std::vector<std::int64_t> cells(cells_span.begin(), cells_span.end());
+
+        const std::span<const int> facets_span(facets_py.data(), facets_py.size());
+        const std::vector<int> facets(facets_span.begin(), facets_span.end());
+
+        return create_facets_quadrature_exterior_integral<dim>(unf_domain, cells, facets, n_pts_dir);
       },
       nb::arg("unf_domain"),
       nb::arg("cells"),

@@ -44,8 +44,11 @@ endif()
 
 include(../cmake/CPM.cmake)
 if(NOT algoim::algoim)
-  cpmaddpackage("gh:pantolin/algoim@1.0.1")
+  cpmaddpackage("gh:pantolin/algoim@1.0.2")
 endif()
+
+include(../cmake/lapacke.cmake)
+qugar_find_lapacke()
 
 # Create the binding library nanobind handles its own calls to
 # target_link_libraries
@@ -65,7 +68,7 @@ target_compile_definitions(cpp PRIVATE cxx_std_20)
 
 # Add QUGAR libraries
 # target_link_libraries(cpp PRIVATE qugar::qugar qugar::qugar_options qugar::qugar_warnings qugar::algoim algoim::algoim)
-target_link_libraries(cpp PRIVATE qugar::qugar algoim::algoim)
+target_link_libraries(cpp PRIVATE qugar::qugar algoim::algoim ${LAPACKE_LIBRARIES})
 
 target_include_directories(cpp SYSTEM PRIVATE
   ${Python_INCLUDE_DIRS}

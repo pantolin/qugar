@@ -32,6 +32,7 @@ add_library(qugar
   tolerance.cpp
   tpms_lib.cpp
   unfitted_domain.cpp
+  unfitted_domain_kd_tree.cpp
 )
 
 add_library(qugar::qugar ALIAS qugar)

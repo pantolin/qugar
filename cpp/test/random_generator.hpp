@@ -25,6 +25,7 @@
 #include <qugar/point.hpp>
 #include <qugar/tensor_index_tp.hpp>
 #include <qugar/types.hpp>
+#include <qugar/utils.hpp>
 
 #include <cassert>
 #include <memory>
@@ -50,28 +51,6 @@ std::function<int(void)> create_int_uniform_values_generator(const int lower, co
 }
 
 
-//! @brief Create a point with random coordinates
-//! in the interval defined by @p min_coord and @p max_coord.
-//!
-//! @tparam dim Dimension of the point.
-//! @param min_coord Lower bound for the point coordinates.
-//! @param max_coord Upper bound for the point coordinates.
-//! @return Generated point.
-template<int dim>
-Point<dim> create_random_point(const real min_coord = numbers::zero, const real max_coord = numbers::one)
-{
-  const auto generator = create_real_uniform_values_generator(min_coord, max_coord);
-  assert(min_coord <= max_coord);
-  if constexpr (dim == 1) {
-    return Point<1>(generator());
-  } else if constexpr (dim == 2) {
-    return Point<2>(generator(), generator());
-  } else {// if constexpr (dim == 3) {
-    static_assert(dim == 3, "Invalid dimension.");
-    return Point<3>(generator(), generator(), generator());
-  }
-}
-
 //! @brief Create a real vector with random coordinates
 //! in the interval defined by @p min_coord and @p max_coord.
 //!
@@ -94,45 +73,49 @@ Vector<real, dim> create_random_real_vector(const real min_coord = numbers::zero
   }
 }
 
-//! @brief Create a vector of random points.
+
+//! @brief Create a vector of random real vectors.
 //!
 //! @tparam dim Dimension of the points.
-//! @param n_points Number of points to generate.
-//! @param min_coord Lower bound for the points coordinates.
-//! @param max_coord Upper bound for the points coordinates.
-//! @return Generated points.
+//! @param n_vectors Number of vectors to generate.
+//! @param min_coord Lower bound coordinates.
+//! @param max_coord Upper bound coordinates.
+//! @return Generated vectors.
 template<int dim>
 // NOLINTNEXTLINE (bugprone-easily-swappable-parameters)
-std::vector<Point<dim>> create_random_points(const std::size_t n_points,
-  const real min_coord = numbers::zero,
-  const real max_coord = numbers::one)
+std::vector<qugar::Vector<qugar::real, dim>>
+  create_random_real_vectors(const std::size_t n_vectors, const Point<dim> &min_coords, const Point<dim> &max_coords)
 {
-  assert(min_coord <= max_coord);
-  std::vector<Point<dim>> points;
-  points.reserve(n_points);
 
-  const auto generator = create_real_uniform_values_generator(min_coord, max_coord);
+  std::vector<qugar::Vector<qugar::real, dim>> vectors;
+  vectors.reserve(n_vectors);
 
-  for (std::size_t i = 0; i < n_points; ++i) {
+  std::array<std::function<qugar::real(void)>, dim> generators;
+  for (int dir = 0; dir < dim; ++dir) {
+    assert(min_coords(dir) <= max_coords(dir));
+    qugar::at(generators, dir) = create_real_uniform_values_generator(min_coords(dir), max_coords(dir));
+  }
+
+  for (std::size_t i = 0; i < n_vectors; ++i) {
     if constexpr (dim == 1) {
-      points.emplace_back(generator());
+      vectors.emplace_back(generators[0]());
     } else if constexpr (dim == 2) {
-      points.emplace_back(generator(), generator());
+      vectors.emplace_back(generators[0](), generators[1]());
     } else {// if constexpr (dim == 3) {
       static_assert(dim == 3, "Invalid dimension.");
-      points.emplace_back(generator(), generator(), generator());
+      vectors.emplace_back(generators[0](), generators[1](), generators[2]());
     }
   }
 
-  return points;
+  return vectors;
 }
 
 //! @brief Create a vector of random real vectors.
 //!
 //! @tparam dim Dimension of the points.
 //! @param n_vectors Number of vectors to generate.
-//! @param min_coord Lower bound for the points coordinates.
-//! @param max_coord Upper bound for the points coordinates.
+//! @param min_coord Lower bound for the point coordinates (constant for all point coordinate)
+//! @param max_coord Upper bound for the point coordinates (constant for all point coordinate)
 //! @return Generated vectors.
 template<int dim>
 // NOLINTNEXTLINE (bugprone-easily-swappable-parameters)
@@ -140,24 +123,21 @@ std::vector<qugar::Vector<qugar::real, dim>> create_random_real_vectors(const st
   const real min_coord = numbers::zero,
   const real max_coord = numbers::one)
 {
-  assert(min_coord <= max_coord);
-  std::vector<qugar::Vector<qugar::real, dim>> vectors;
-  vectors.reserve(n_vectors);
+  return create_random_real_vectors(n_vectors, Point<dim>(min_coord), Point<dim>(max_coord));
+}
 
-  const auto generator = create_real_uniform_values_generator(min_coord, max_coord);
 
-  for (std::size_t i = 0; i < n_vectors; ++i) {
-    if constexpr (dim == 1) {
-      vectors.emplace_back(generator());
-    } else if constexpr (dim == 2) {
-      vectors.emplace_back(generator(), generator());
-    } else {// if constexpr (dim == 3) {
-      static_assert(dim == 3, "Invalid dimension.");
-      vectors.emplace_back(generator(), generator(), generator());
-    }
-  }
-
-  return vectors;
+//! @brief Create a point with random coordinates
+//! in the interval defined by @p min_coord and @p max_coord.
+//!
+//! @tparam dim Dimension of the point.
+//! @param min_coord Lower bound for the point coordinates.
+//! @param max_coord Upper bound for the point coordinates.
+//! @return Generated point.
+template<int dim>
+Point<dim> create_random_point(const real min_coord = numbers::zero, const real max_coord = numbers::one)
+{
+  return create_random_real_vectors<dim>(1, min_coord, max_coord).front();
 }
 
 //! @brief Create a vector of random values.

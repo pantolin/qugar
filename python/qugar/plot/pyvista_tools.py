@@ -1,4 +1,4 @@
-# --------------------------------------------------------------------------
+#' --------------------------------------------------------------------------
 #
 # Copyright (C) 2025-present by Pablo Antolin
 #
@@ -262,7 +262,10 @@ def _create_quad_points_grid(
     if normals is not None:
         assert normals.shape == (n_pts, dim)
         new_normals = np.zeros((n_pts, 3), points.dtype)
-        new_normals[:, :dim] = normals
+        if n_pts == 0:
+            new_normals = np.empty(0, points.dtype)
+        else:
+            new_normals[:, :dim] = normals
         points_grid.cell_data["Normals"] = new_normals
 
     return points_grid
@@ -299,7 +302,7 @@ def _cut_quad_to_PyVista(
 
 def _create_quad_facet_points_grid(
     grid: CartGridTP_2D | CartGridTP_3D,
-    quad: CutIsoBoundsQuad_1D | CutIsoBoundsQuad_2D,
+    quads: list[CutIsoBoundsQuad_1D | CutIsoBoundsQuad_2D],
 ) -> pv.UnstructuredGrid:
     """
     Creates a PyVista unstructured grid containing quadrature points contained
@@ -308,53 +311,71 @@ def _create_quad_facet_points_grid(
     Args:
         grid (CartGridTP_2D | CartGridTP_3D): The Cartesian grid for
             whose facets quadrature points are associated to.
-        quad (CutIsoBoundsQuad_2D | CutIsoBoundsQuad_3D): The
-            quadrature containing the facet quadrature points.
+        quads (list[CutIsoBoundsQuad_2D | CutIsoBoundsQuad_3D]): The
+            list of quadratures containing the facet quadrature points.
 
     Returns:
         pv.UnstructuredGrid: The generated PyVista unstructured grid.
     """
 
+    assert len(quads) > 0, "Empty list of quadratures."
+
     # First we transform point from the reference facet (with one dimension less)
     # to facets on the reference cell (with the same dimension as the cell).
-    n_pts, dim = quad.points.shape
-    dim += 1
+    dim = quads[0].points.shape[1] + 1
+    dtype = quads[0].points.dtype
+
+    n_pts = sum(quad.points.shape[0] for quad in quads)
+    n_facets = sum(quad.cells.size for quad in quads)
 
     facets_const_dirs = _facets_const_dirs(dim)
     facets_const_sides = _facets_const_sides(dim)
     facets_active_dirs = _facets_active_dirs(dim)
 
-    dtype = quad.points.dtype
     points = np.zeros((n_pts, dim), dtype)
-    ofs = 0
-    for facet_id, n_pts_cell in zip(quad.facets, quad.n_pts_per_entity):
-        const_dir = facets_const_dirs[facet_id]
-        const_side = dtype.type(facets_const_sides[facet_id])
-        active_dirs = facets_active_dirs[facet_id]
+    weights = np.zeros(n_pts, dtype)
+    cells = np.zeros(n_facets, dtype=np.int32)
+    n_pts_per_entity = np.zeros(n_facets, dtype=np.int32)
+    facets = np.zeros(n_facets, dtype=np.int32)
 
-        points_facet = points[ofs : ofs + n_pts_cell, :dim]
-        points_facet[:, const_dir] = const_side
-        for i, dir in enumerate(active_dirs):
-            points_facet[:, dir] = quad.points[ofs : ofs + n_pts_cell, i]
+    ofs_pts = 0
+    ofs_cell = 0
+    for quad in quads:
+        ofs_pts_quad = 0
+        for cell_id, facet_id, n_pts_facet in zip(quad.cells, quad.facets, quad.n_pts_per_entity):
+            const_dir = facets_const_dirs[facet_id]
+            const_side = dtype.type(facets_const_sides[facet_id])
+            active_dirs = facets_active_dirs[facet_id]
 
-        ofs += n_pts_cell
+            points_facet = points[ofs_pts : ofs_pts + n_pts_facet, :dim]
+            points_facet[:, const_dir] = const_side
+            for i, dir in enumerate(active_dirs):
+                points_facet[:, dir] = quad.points[ofs_pts_quad : ofs_pts_quad + n_pts_facet, i]
+            weights[ofs_pts : ofs_pts + n_pts_facet] = quad.weights[
+                ofs_pts_quad : ofs_pts_quad + n_pts_facet
+            ]
+            cells[ofs_cell] = cell_id
+            facets[ofs_cell] = facet_id
+            n_pts_per_entity[ofs_cell] = n_pts_facet
+
+            ofs_pts += n_pts_facet
+            ofs_pts_quad += n_pts_facet
+            ofs_cell += 1
 
     # Then, we create the grid.
-    points_grid = _create_quad_points_grid(
-        grid, points, quad.n_pts_per_entity, quad.cells, quad.weights, None
-    )
+    points_grid = _create_quad_points_grid(grid, points, n_pts_per_entity, cells, weights, None)
 
     # Finally we append the lexicographical local facet ids as cell data.
-    lex_local_facets = np.repeat(quad.facets.reshape(-1), quad.n_pts_per_entity)
+    lex_local_facets = np.repeat(facets.reshape(-1), n_pts_per_entity)
     points_grid.cell_data["Lexicographical local facets ids"] = lex_local_facets
 
     return points_grid
 
 
 if has_FEniCSx:
-    from qugar.mesh import CartesianMesh
+    from qugar.mesh import Mesh
 
-    def _append_DOLFINx_cell_ids(grid: pv.UnstructuredGrid, mesh: CartesianMesh) -> None:
+    def _append_DOLFINx_cell_ids(grid: pv.UnstructuredGrid, mesh: Mesh) -> None:
         """
         Appends DOLFINx local and global cell IDs to the given PyVista UnstructuredGrid.
 
@@ -366,22 +387,18 @@ if has_FEniCSx:
         Args:
             grid (pv.UnstructuredGrid): The PyVista UnstructuredGrid to which the
                 DOLFINx cell IDs will be appended.
-            mesh (CartesianMesh): The CartesianMesh object containing the DOLFINx
+            mesh (Mesh): The QUGaR Mesh object containing the DOLFINx
                 cell ID information.
 
         Raises:
             AssertionError: If the number of global cells in the mesh does not match
             the number of local cells. This is not implemented yet.
         """
-        assert mesh.num_global_cells == mesh.num_local_cells, "Not implemented case."
 
         lex_cell_ids = grid.cell_data["Lexicographical cell ids"]
 
-        dlf_local_cell_ids = cast(
-            npt.NDArray[np.int32],
-            mesh.get_DOLFINx_local_cell_ids(lex_cell_ids, lexicg=True),
-        )
-        dlf_global_cell_ids = mesh.get_DOLFINx_global_cell_ids(dlf_local_cell_ids, lexicg=False)
+        dlf_local_cell_ids = mesh.get_DOLFINx_local_cell_ids(lex_cell_ids)
+        dlf_global_cell_ids = mesh.get_DOLFINx_local_to_global_cell_ids(dlf_local_cell_ids)
 
         grid.cell_data["DOLFINx local cell ids"] = dlf_local_cell_ids
         grid.cell_data["DOLFINx global cell ids"] = dlf_global_cell_ids
@@ -438,38 +455,52 @@ def quadrature_to_PyVista(
     if is_cpp:
         domain_ = domain
     else:
-        assert has_FEniCSx, "FEniCSx is required to convert a CartesianMesh to PyVista."
-        from qugar.unfitted_domain import UnfittedDomain
+        assert has_FEniCSx, "FEniCSx is required to convert a TensorProductMesh to PyVista."
+        from qugar.mesh import UnfittedDomain
 
         assert isinstance(domain, UnfittedDomain), "Invalid type."
-        domain_ = domain.cpp_object
+        domain_ = domain.cpp_unf_domain_object
 
-    cells_quad = qugar.cpp.create_quadrature(domain_, domain_.cut_cells, n_pts_dir)
+    cells_quad = qugar.cpp.create_quadrature(domain_, domain_.get_cut_cells(), n_pts_dir)
 
     cells_points_set = _cut_quad_to_PyVista(domain_.grid, cells_quad)
 
+    include_facet_unf_bry = True
+    exclude_ext_bdry = True
     unf_bdry_quad = qugar.cpp.create_unfitted_bound_quadrature(
-        domain_, domain_.cut_cells, n_pts_dir
+        domain_, domain_.get_cut_cells(), n_pts_dir, include_facet_unf_bry, exclude_ext_bdry
     )
     unf_bdry_points_set = _cut_quad_to_PyVista(domain_.grid, unf_bdry_quad)
 
-    cut_facets_cells, cut_facets_local_facets = domain_.cut_facets
-    facets_quad = qugar.cpp.create_facets_quadrature(
-        domain_, cut_facets_cells, cut_facets_local_facets, n_pts_dir
+    cut_facets_cells, cut_facets_local_facets = domain_.get_cut_facets()
+    cut_facets_quad = qugar.cpp.create_facets_quadrature_exterior_integral(
+        domain_,
+        cut_facets_cells,
+        cut_facets_local_facets,
+        n_pts_dir,
     )
-    facets_points_set = _create_quad_facet_points_grid(domain_.grid, facets_quad)
+    unf_bdry_facets_cells, unf_bdry_facets_local_facets = domain_.get_unf_bdry_facets()
+    unf_bdry_facets_quad = qugar.cpp.create_facets_quadrature_exterior_integral(
+        domain_,
+        unf_bdry_facets_cells,
+        unf_bdry_facets_local_facets,
+        n_pts_dir,
+    )
+    facets_points_set = _create_quad_facet_points_grid(
+        domain_.grid, [cut_facets_quad, unf_bdry_facets_quad]
+    )
 
     if not is_cpp:
-        _append_DOLFINx_cell_ids(cells_points_set, domain.cart_mesh)
-        _append_DOLFINx_cell_ids(unf_bdry_points_set, domain.cart_mesh)
-        _append_DOLFINx_cell_ids(facets_points_set, domain.cart_mesh)
-        _append_DOLFINx_facets_ids(facets_points_set, domain.dim)
+        _append_DOLFINx_cell_ids(cells_points_set, domain)  # type: ignore
+        _append_DOLFINx_cell_ids(unf_bdry_points_set, domain)  # type: ignore
+        _append_DOLFINx_cell_ids(facets_points_set, domain)  # type: ignore
+        _append_DOLFINx_facets_ids(facets_points_set, domain.tdim)  # type: ignore
 
     return pv.MultiBlock(
         {
             "Cut cells quadrature": cells_points_set,
             "Unfitted boundary quadrature": unf_bdry_points_set,
-            "Cut facets quadrature": facets_points_set,
+            "Cut/unfitted facets quadrature": facets_points_set,
         }
     )
 
@@ -500,7 +531,7 @@ def unfitted_domain_facets_to_PyVista(
     grid = unfitted_domain_to_PyVista(domain, cut=True, full=True, empty=True)
     n_cells = grid.n_cells
 
-    dim = domain.dim
+    dim = domain.tdim
     assert 2 <= dim <= 3, "Invalid dimension."
 
     grid = cast(pv.DataSet, grid.explode(factor=0.0))
@@ -519,29 +550,17 @@ def unfitted_domain_facets_to_PyVista(
 
     active_facets = np.empty(0, dtype=np.int32)
 
-    is_cpp = isinstance(domain, (UnfittedDomain_2D, UnfittedDomain_3D))
-
-    if is_cpp:
-        domain_ = domain
-    else:
-        assert has_FEniCSx, "FEniCSx is required to convert a CartesianMesh to PyVista."
-        from qugar.unfitted_domain import UnfittedDomain
-
-        assert isinstance(domain, UnfittedDomain), "Invalid type."
-
-        domain_ = domain.cpp_object
-
     facets = {}
     if full:
-        facets[0] = domain_.full_facets
+        facets[0] = domain.get_full_facets()
     if cut:
-        facets[1] = domain_.cut_facets
+        facets[1] = domain.get_cut_facets()
     if empty:
-        facets[2] = domain_.emptyfacets
+        facets[2] = domain.get_empty_facets()
 
     for status, lex_cells_facets in facets.items():
-        vtk_facets = vtk_lex_mask[lex_cells_facets[1]]
-        vtk_cells = lex_cells_facets[0] * n_facets_per_cell + vtk_facets
+        vtk_facets = vtk_lex_mask[lex_cells_facets.local_facet_ids]
+        vtk_cells = lex_cells_facets.cell_ids * n_facets_per_cell + vtk_facets
         grid.cell_data["Facet status (0: full, 1: cut, 2: empty)"][vtk_cells] = status
         active_facets = np.append(active_facets, vtk_cells)
 
@@ -552,6 +571,8 @@ def unfitted_domain_facets_to_PyVista(
     vtk_facets = facets_grid.cell_data.pop("VTK local facets ids")
     lex_facets = lex_vtk_mask[vtk_facets]
     facets_grid.cell_data["Lexicographical local facets ids"] = lex_facets
+
+    is_cpp = isinstance(domain, (UnfittedDomain_2D, UnfittedDomain_3D))
 
     if not is_cpp:
         _append_DOLFINx_facets_ids(facets_grid, dim)
@@ -585,22 +606,25 @@ def unfitted_domain_to_PyVista(
 
     if is_cpp:
         grid = cart_grid_tp_to_PyVista(domain.grid)
-        domain_ = domain
+        n_cells = domain.num_total_cells
     else:
-        assert has_FEniCSx, "FEniCSx is required to convert a CartesianMesh to PyVista."
-        from qugar.unfitted_domain import UnfittedDomain
+        assert has_FEniCSx, "FEniCSx is required to convert a TensorProductMesh to PyVista."
+        from qugar.mesh import UnfittedDomain
 
         assert isinstance(domain, UnfittedDomain), "Invalid type."
 
-        grid = cart_grid_tp_to_PyVista(domain.cart_mesh)
-        domain_ = domain.cpp_object
+        n_cells = domain.mesh.num_global_cells
 
-    value = np.full(grid.n_cells, empty, dtype=bool)
-    status = np.full(grid.n_cells, 2, dtype=np.uint8)
-    value[domain_.cut_cells] = cut
-    status[domain_.cut_cells] = 1
-    value[domain_.full_cells] = full
-    status[domain_.full_cells] = 0
+        grid = grid_tp_to_PyVista(domain.mesh)
+
+    value = np.full(n_cells, empty, dtype=bool)
+    status = np.full(n_cells, 2, dtype=np.uint8)
+    cut_cells = domain.get_cut_cells()
+    full_cells = domain.get_full_cells()
+    value[cut_cells] = cut
+    status[cut_cells] = 1
+    value[full_cells] = full
+    status[full_cells] = 0
 
     grid.cell_data["value"] = value
     grid.cell_data["Cell status (0: full, 1: cut, 2: empty)"] = status
@@ -623,7 +647,7 @@ def cart_grid_tp_to_PyVista(grid: Any) -> pv.RectilinearGrid:
         pv.RectilinearGrid: The converted PyVista `RectilinearGrid`.
 
     Raises:
-        AssertionError: If a CartesianMesh is passed as input and the number of global cells
+        AssertionError: If a TensorProductMesh is passed as input and the number of global cells
             does not match the number of local cells in the grid. This is not implemented yet.
     """
 
@@ -639,10 +663,39 @@ def cart_grid_tp_to_PyVista(grid: Any) -> pv.RectilinearGrid:
     pv_grid.cell_data["Lexicographical cell ids"] = lex_cell_ids
 
     if not is_cpp:
-        assert has_FEniCSx, "FEniCSx is required to convert a CartesianMesh to PyVista."
+        assert has_FEniCSx, "FEniCSx is required to convert a TensorProductMesh to PyVista."
+
+        if grid.has_inactive_cells:
+            pv_grid = pv_grid.extract_cells(grid.original_active_cells)
+
         _append_DOLFINx_cell_ids(pv_grid, grid)
 
     return pv_grid
+
+
+def grid_tp_to_PyVista(grid: Any) -> pv.Grid:
+    """
+    Converts a tensor-product grid to a PyVista `Grid`.
+
+    Args:
+        grid (CartGridTP_2D | CartGridTP_3D | TensorProductMesh): The input grid, which can
+            be either a CartGridTP_2D, CartGridTP_3D, or TensorProductMesh
+            (if FEniCSx is available).
+
+    Returns:
+        pv.Grid: The converted PyVista `Grid`.
+    """
+
+    if isinstance(grid, (CartGridTP_2D, CartGridTP_3D)):
+        return cart_grid_tp_to_PyVista(grid)
+    else:
+        assert has_FEniCSx, "FEniCSx is required to convert a TensorProductMesh to PyVista."
+        from qugar.mesh import CartesianMesh
+
+        if isinstance(grid, CartesianMesh):
+            return cart_grid_tp_to_PyVista(grid)
+        else:
+            assert False, "Not implemented yet."
 
 
 def reparam_mesh_to_PyVista(reparam: Any) -> pv.MultiBlock:
@@ -665,7 +718,7 @@ def reparam_mesh_to_PyVista(reparam: Any) -> pv.MultiBlock:
     if isinstance(reparam, (ReparamMesh_1_2 | ReparamMesh_2_2 | ReparamMesh_2_3 | ReparamMesh_3_3)):
         reparam_ = reparam
     else:
-        assert has_FEniCSx, "FEniCSx is required to convert a CartesianMesh to PyVista."
+        assert has_FEniCSx, "FEniCSx is required to convert a TensorProductMesh to PyVista."
         from qugar.reparam import UnfDomainReparamMesh
 
         assert isinstance(reparam, UnfDomainReparamMesh), "Invalid type."

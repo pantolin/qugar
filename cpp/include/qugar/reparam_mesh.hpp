@@ -101,7 +101,7 @@ public:
   //! should be called after this method.
   template<int aux_dim = dim>
     requires(aux_dim == dim && dim == range)
-  void add_full_cells(const CartGridTP<dim> &grid, const std::vector<int> &cell_ids, bool wirebasket);
+  void add_full_cells(const CartGridTP<dim> &grid, const std::vector<std::int64_t> &cell_ids, bool wirebasket);
 
   //! @brief Determines whether the Chebyshev nodes are used, or equally spaced nodes.
   //!
@@ -287,11 +287,14 @@ protected:
 
 template<int dim, bool levelset>
 std::shared_ptr<const ReparamMesh<levelset ? dim - 1 : dim, dim>>
-  create_reparameterization(const UnfittedDomain<dim> &unf_domain, int n_pts_dir);
+  create_reparameterization(const UnfittedDomain<dim> &unf_domain, int n_pts_dir, bool merge_points);
 
 template<int dim, bool levelset>
-std::shared_ptr<const ReparamMesh<levelset ? dim - 1 : dim, dim>>
-  create_reparameterization(const UnfittedDomain<dim> &unf_domain, const std::vector<int> &cells, int n_pts_dir);
+std::shared_ptr<const ReparamMesh<levelset ? dim - 1 : dim, dim>> create_reparameterization(
+  const UnfittedDomain<dim> &unf_domain,
+  const std::vector<std::int64_t> &cells,
+  int n_pts_dir,
+  bool merge_points);
 
 
 }// namespace qugar

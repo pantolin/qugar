@@ -1,0 +1,24 @@
+name: QUGaR
+channels:
+  - conda-forge
+dependencies:
+  - fenics-dolfinx
+  - mpich
+  - pyvista
+  - scikit-build-core
+  - cmake
+  - ninja
+  - catch2
+  - doxygen
+  - ipython
+  - scipy
+  - liblapacke
+  - sphinx
+  - breathe
+  - jupytext
+  - markdown
+  - myst-parser
+  - pytest
+  - pip
+  - pip:
+    - sphinx-rtd-dark-mode

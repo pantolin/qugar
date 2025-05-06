@@ -11,11 +11,6 @@
 
 """Implicit domains module for QUGaR"""
 
-from qugar.utils import has_FEniCSx
-
-if not has_FEniCSx:
-    raise ValueError("FEniCSx installation not found is required.")
-
 from qugar.impl.impl_function import (
     ImplicitFunc,
     create_affinely_transformed_functions,
@@ -41,12 +36,9 @@ from qugar.impl.impl_function import (
     create_sphere,
     create_torus,
 )
-from qugar.impl.impl_unfitted_domain import UnfittedImplDomain, create_unfitted_impl_domain
 
 __all__ = [
-    "UnfittedImplDomain",
     "ImplicitFunc",
-    "create_unfitted_impl_domain",
     "create_disk",
     "create_sphere",
     "create_ellipse",

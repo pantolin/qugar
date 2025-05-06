@@ -138,7 +138,7 @@ namespace {
         // TODO: to check here value of facet_id
         [](Grid &grid, const int facet_id) {
           const auto cells = grid.get_boundary_cells(facet_id);
-          using Array = nb::ndarray<const int, nb::numpy, nb::shape<-1>, nb::c_contig>;
+          using Array = nb::ndarray<const std::int64_t, nb::numpy, nb::shape<-1>, nb::c_contig>;
           // There is a copy here.
           return Array(cells.data(), { cells.size() }).cast();
         },
