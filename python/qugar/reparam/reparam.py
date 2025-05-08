@@ -195,8 +195,9 @@ def create_interpolation_data(
     V_to: FunctionSpace,
     V_from: FunctionSpace,
     padding: float = 1.0e-14,
-) -> tuple[PointOwnershipData, npt.NDArray[np.int32]]:
-    """Generate data needed to interpolate discrete functions across different meshes.
+) -> tuple[npt.NDArray[np.int32], PointOwnershipData]:
+    """
+    Generate data needed to interpolate discrete functions across different meshes.
 
     Note:
         Note that the function spaces `V_to` and `V_from` must be defined
@@ -213,7 +214,7 @@ def create_interpolation_data(
 
     Returns:
         npt.NDArray[np.int32]: Cell indices of the mesh associated
-            to `V_to` on which to interpolate into.
+        to `V_to` on which to interpolate into.
         PointOwnershipData: Data needed to interpolation functions
         defined on function spaces on the meshes.
     """
