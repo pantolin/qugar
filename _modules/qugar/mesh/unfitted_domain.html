@@ -93,6 +93,8 @@
 <span class="k">if</span> <span class="ow">not</span> <span class="n">has_FEniCSx</span><span class="p">:</span>
     <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;FEniCSx installation not found is required.&quot;</span><span class="p">)</span>
 
+<span class="kn">import</span> <span class="nn">math</span>
+
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">numpy.typing</span> <span class="k">as</span> <span class="nn">npt</span>
 
@@ -604,7 +606,7 @@
 <span class="sd">        for a given degree of exactness.</span>
 
 <span class="sd">        It computes the number of points assuming the Gauss-Legendre quadrature.</span>
-<span class="sd">        The degree of exactness is 2 times the number of points plues one.</span>
+<span class="sd">        The degree of exactness is 2 times the number of points minus one.</span>
 
 <span class="sd">        It does not consider the map of of the quadrature tile.</span>
 <span class="sd">        A slightly higher number of points/degree may be needed.</span>
@@ -624,7 +626,7 @@
 
         <span class="k">assert</span> <span class="n">degree</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;Invalid degree.&quot;</span>
 
-        <span class="k">return</span> <span class="nb">max</span><span class="p">(</span><span class="nb">int</span><span class="p">((</span><span class="n">degree</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">),</span> <span class="mi">1</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="nb">max</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">ceil</span><span class="p">((</span><span class="n">degree</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">),</span> <span class="mi">1</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="UnfittedDomain.create_quad_custom_cells">

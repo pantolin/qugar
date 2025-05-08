@@ -98,6 +98,9 @@
 <span class="kn">import</span> <span class="nn">numpy.typing</span> <span class="k">as</span> <span class="nn">npt</span>
 <span class="kn">import</span> <span class="nn">ufl</span>
 <span class="kn">from</span> <span class="nn">basix</span> <span class="kn">import</span> <span class="n">CellType</span>
+<span class="kn">from</span> <span class="nn">dolfinx.fem</span> <span class="kn">import</span> <span class="n">create_interpolation_data</span> <span class="k">as</span> <span class="n">dlf_create_interpolation_data</span>
+<span class="kn">from</span> <span class="nn">dolfinx.fem.function</span> <span class="kn">import</span> <span class="n">FunctionSpace</span>
+<span class="kn">from</span> <span class="nn">dolfinx.geometry</span> <span class="kn">import</span> <span class="n">PointOwnershipData</span>
 
 <span class="kn">import</span> <span class="nn">qugar.cpp</span> <span class="k">as</span> <span class="nn">cpp</span>
 <span class="kn">from</span> <span class="nn">qugar.mesh</span> <span class="kn">import</span> <span class="p">(</span>
@@ -272,6 +275,45 @@
     <span class="n">merge_points</span> <span class="o">=</span> <span class="kc">False</span>
     <span class="n">reparam_cpp</span> <span class="o">=</span> <span class="n">algo</span><span class="p">(</span><span class="n">unf_domain</span><span class="o">.</span><span class="n">cpp_unf_domain_object</span><span class="p">,</span> <span class="n">n_pts_dir</span><span class="p">,</span> <span class="n">merge_points</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">UnfDomainReparamMesh</span><span class="p">(</span><span class="n">unf_domain</span><span class="p">,</span> <span class="n">reparam_cpp</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="create_interpolation_data">
+<a class="viewcode-back" href="../../../generated/qugar.reparam.html#qugar.reparam.create_interpolation_data">[docs]</a>
+<span class="k">def</span> <span class="nf">create_interpolation_data</span><span class="p">(</span>
+    <span class="n">V_to</span><span class="p">:</span> <span class="n">FunctionSpace</span><span class="p">,</span>
+    <span class="n">V_from</span><span class="p">:</span> <span class="n">FunctionSpace</span><span class="p">,</span>
+    <span class="n">padding</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0e-14</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">],</span> <span class="n">PointOwnershipData</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generate data needed to interpolate discrete functions across different meshes.</span>
+
+<span class="sd">    Note:</span>
+<span class="sd">        Note that the function spaces `V_to` and `V_from` must be defined</span>
+<span class="sd">        on meshes with different dimensions. E.g., `V_from` (2D or 3D)</span>
+<span class="sd">        can be the function space of a computed solution and `V_to` the</span>
+<span class="sd">        function space for interpolating the solution in the</span>
+<span class="sd">       reparameterization wirebasket (1D).</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        V_to (FunctionSpace): Function space to interpolate into.</span>
+<span class="sd">        V_from (FunctionSpace): Function space to interpolate from.</span>
+<span class="sd">        padding (float): Absolute padding of bounding boxes of all</span>
+<span class="sd">            entities on the mesh associated to `V_to`.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        npt.NDArray[np.int32]: Cell indices of the mesh associated</span>
+<span class="sd">        to `V_to` on which to interpolate into.</span>
+<span class="sd">        PointOwnershipData: Data needed to interpolation functions</span>
+<span class="sd">        defined on function spaces on the meshes.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">mesh</span> <span class="o">=</span> <span class="n">V_to</span><span class="o">.</span><span class="n">mesh</span>
+    <span class="n">cmap</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">topology</span><span class="o">.</span><span class="n">index_map</span><span class="p">(</span><span class="n">mesh</span><span class="o">.</span><span class="n">topology</span><span class="o">.</span><span class="n">dim</span><span class="p">)</span>
+    <span class="n">num_cells</span> <span class="o">=</span> <span class="n">cmap</span><span class="o">.</span><span class="n">size_local</span> <span class="o">+</span> <span class="n">cmap</span><span class="o">.</span><span class="n">num_ghosts</span>
+    <span class="n">cells</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">num_cells</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">cells</span><span class="p">,</span> <span class="n">dlf_create_interpolation_data</span><span class="p">(</span><span class="n">V_to</span><span class="p">,</span> <span class="n">V_from</span><span class="p">,</span> <span class="n">cells</span><span class="p">,</span> <span class="n">padding</span><span class="p">)</span></div>
 
 </pre></div>
 

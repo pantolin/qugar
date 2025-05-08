@@ -9,6 +9,7 @@
    .. autosummary::
    
       create_reparam_mesh
+      create_interpolation_data
    
    .. rubric:: Classes
 

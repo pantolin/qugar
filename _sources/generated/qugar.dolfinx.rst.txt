@@ -10,6 +10,7 @@
    
       form_custom
       mapped_normal
+      direct_solve_with_Jacobi
    
    .. rubric:: Classes
 

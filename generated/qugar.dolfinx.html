@@ -109,6 +109,9 @@
 <tr class="row-even"><td><p><a class="reference internal" href="#qugar.dolfinx.mapped_normal" title="qugar.dolfinx.mapped_normal"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mapped_normal</span></code></a>(domain[, normalize])</p></td>
 <td><p>Returns a normal vector of a custom unfitted boundary mapped with the domain's geometry.</p></td>
 </tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#qugar.dolfinx.direct_solve_with_Jacobi" title="qugar.dolfinx.direct_solve_with_Jacobi"><code class="xref py py-obj docutils literal notranslate"><span class="pre">direct_solve_with_Jacobi</span></code></a>(A, b, x[, ...])</p></td>
+<td><p>Solve the linear system <cite>Ax = b</cite> using a direct solver with Jacobi preconditioner.</p></td>
+</tr>
 </tbody>
 </table>
 <p class="rubric">Classes</p>
@@ -167,6 +170,42 @@ Generated custom coefficients.</p>
 </dl>
 </dd></dl>
 
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="qugar.dolfinx.direct_solve_with_Jacobi">
+<span class="sig-prename descclassname"><span class="pre">qugar.dolfinx.</span></span><span class="sig-name descname"><span class="pre">direct_solve_with_Jacobi</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">A</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Mat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Vec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Vec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">in_place_pc</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_Cholesky</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">symmetric_pc</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">set_diagonal_zeros_to_one</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/qugar/dolfinx/solver.html#direct_solve_with_Jacobi"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qugar.dolfinx.direct_solve_with_Jacobi" title="Link to this definition"></a></dt>
+<dd><p>Solve the linear system <cite>Ax = b</cite> using a direct solver with Jacobi preconditioner.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This function does not call the <cite>scatter_forward()</cite> method on
+the solution vector <cite>x</cite>. It is the caller’s responsibility to do it.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>A</strong> (<em>Mat</em>) – PETSc’s matrix representing the linear system.</p></li>
+<li><p><strong>b</strong> (<em>Vec</em>) – PETSc’s right-hand side vector.</p></li>
+<li><p><strong>x</strong> (<em>Vec</em>) – PETSc’s vector to store the solution (already created)</p></li>
+<li><p><strong>in_place_pc</strong> (<em>bool</em>) – If <cite>True</cite>, the preconditioner is applied in
+place, modifying the passed matrix and vector. Otherwise,
+copies of the matrix and vector are created for
+preconditioning.</p></li>
+<li><p><strong>use_Cholesky</strong> (<em>bool</em>) – If <cite>True</cite>, use Cholesky factorization for
+the solver. Otherwise, uses LU factorization. The Cholesky
+solver is only applicable for symmetric positive definite
+matrices. It is the caller’s responsibility to ensure that.</p></li>
+<li><p><strong>symmetric_pc</strong> (<em>bool</em>) – If <cite>True</cite>, the preconditioner is applied
+symmetrically (left and right) to the matrix and vector.
+Otherwise, only the left preconditioner is applied.</p></li>
+<li><p><strong>set_diagonal_zeros_to_one</strong> (<em>bool</em>) – If <cite>True</cite>, set the diagonal
+entries of the preconditioned matrix to one if they are zero.
+This is useful in cases in which empty cells not contributing
+to the matrix are not removed, and therefore the contribution
+of some basis functions to the matrix is zero.</p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py class">

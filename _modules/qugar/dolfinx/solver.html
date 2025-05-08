@@ -1,0 +1,308 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>qugar.dolfinx.solver &mdash; QUGaR 0.0.4 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/dark_mode_css/general.css?v=c0a7eb24" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/dark_mode_css/dark.css?v=70edf1c7" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=8c5712d9"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../../../_static/dark_mode_js/default_dark.js?v=fd565c74"></script>
+      <script src="../../../_static/dark_mode_js/theme_switcher.js?v=358d3910"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            QUGaR
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../demos.html">Demos</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api.html">API reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../developer.html">Developer resources</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../contributing.html">Contributing</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">QUGaR</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">qugar.dolfinx.solver</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for qugar.dolfinx.solver</h1><div class="highlight"><pre>
+<span></span><span class="c1"># --------------------------------------------------------------------------</span>
+<span class="c1">#</span>
+<span class="c1"># Copyright (C) 2025-present by Pablo Antolin</span>
+<span class="c1">#</span>
+<span class="c1"># This file is part of the QUGaR library.</span>
+<span class="c1">#</span>
+<span class="c1"># SPDX-License-Identifier:    MIT</span>
+<span class="c1">#</span>
+<span class="c1"># --------------------------------------------------------------------------</span>
+
+<span class="s2">&quot;Helper functions for simplifying the solution of linear systems using PETSc.&quot;</span>
+
+<span class="kn">from</span> <span class="nn">qugar.utils</span> <span class="kn">import</span> <span class="n">has_PETSc</span>
+
+<span class="k">if</span> <span class="ow">not</span> <span class="n">has_PETSc</span><span class="p">:</span>
+    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;petsc4py installation not found is required.&quot;</span><span class="p">)</span>
+
+<span class="kn">from</span> <span class="nn">petsc4py</span> <span class="kn">import</span> <span class="n">PETSc</span>
+<span class="kn">from</span> <span class="nn">petsc4py.PETSc</span> <span class="kn">import</span> <span class="n">Mat</span><span class="p">,</span> <span class="n">Vec</span>
+
+
+<span class="k">def</span> <span class="nf">_create_Jacobi_preconditioner</span><span class="p">(</span><span class="n">A</span><span class="p">:</span> <span class="n">Mat</span><span class="p">,</span> <span class="n">symmetric</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Vec</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Compute the Jacobi preconditioner for a given matrix `A`.</span>
+
+<span class="sd">    The Jacobi preconditioner is a diagonal matrix with the</span>
+<span class="sd">    diagonal entries being the inverse of the square root of the</span>
+<span class="sd">    absolute values of the diagonal entries of the matrix `A`.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        A (Mat): Matrix from which to compute the Jacobi</span>
+<span class="sd">            preconditioner.</span>
+<span class="sd">        symmetric (bool): If `True`, the preconditioner is</span>
+<span class="sd">            computed symmetrically (i.e., `Pinv = diag(1/sqrt(abs(diag(A))))`).</span>
+<span class="sd">            Otherwise, it is computed only for the left side</span>
+<span class="sd">            (i.e., `Pinv = diag(1/abs(diag(A)))`).</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        e:  Error if the diagonal of the matrix is zero or negative.</span>
+<span class="sd">            The Jacobi preconditioner is not defined for</span>
+<span class="sd">            matrices with zero or negative diagonal entries.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Vec: Vector containing the Jacobi preconditioner (only the</span>
+<span class="sd">            matrix diagonal).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># 1. Create Pinv from the diagonal entries of A</span>
+    <span class="n">D_vec</span> <span class="o">=</span> <span class="n">A</span><span class="o">.</span><span class="n">getDiagonal</span><span class="p">()</span>
+    <span class="n">Pinv</span> <span class="o">=</span> <span class="n">D_vec</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+    <span class="c1"># 2. Compute Pinv = sqrt(abs(D_vec)) if symmetric,</span>
+    <span class="c1">#    Pinv = abs(D_vec) otherwise.</span>
+    <span class="n">Pinv</span><span class="o">.</span><span class="n">sqrtabs</span><span class="p">()</span> <span class="k">if</span> <span class="n">symmetric</span> <span class="k">else</span> <span class="n">Pinv</span><span class="o">.</span><span class="n">abs</span><span class="p">()</span>
+
+    <span class="c1"># 3. Compute Pinv = 1 / Pinv (entry wise)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">Pinv</span><span class="o">.</span><span class="n">reciprocal</span><span class="p">()</span>
+    <span class="k">except</span> <span class="n">PETSc</span><span class="o">.</span><span class="n">Error</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">ierr</span> <span class="o">==</span> <span class="mi">73</span><span class="p">:</span>  <span class="c1"># PETSC_ERR_FP_DIVIDEBYZERO</span>
+            <span class="n">PETSc</span><span class="o">.</span><span class="n">Sys</span><span class="o">.</span><span class="n">Print</span><span class="p">(</span>
+                <span class="s2">&quot;Error: Division by zero encountered. &quot;</span>
+                <span class="s2">&quot;Ensure A has non-zero diagonal entries for this scaling.&quot;</span><span class="p">,</span>
+                <span class="n">comm</span><span class="o">=</span><span class="n">A</span><span class="o">.</span><span class="n">comm</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">e</span>
+
+    <span class="k">return</span> <span class="n">Pinv</span>
+
+
+<span class="k">def</span> <span class="nf">_precondition_matrix_Jacobi</span><span class="p">(</span><span class="n">A</span><span class="p">:</span> <span class="n">Mat</span><span class="p">,</span> <span class="n">Pinv</span><span class="p">:</span> <span class="n">Vec</span><span class="p">,</span> <span class="n">symmetric</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Preconditions the matrix `A` in place using the diagonal Jacobi</span>
+<span class="sd">    preconditioner.</span>
+
+<span class="sd">    The preconditioner is applied symmetrically if `symmetric` is</span>
+<span class="sd">    `True`, i.e., `A_prime = Pinv * A * Pinv`. Otherwise, it is applied</span>
+<span class="sd">    only to the left, i.e., `A_prime = Pinv * A`.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        A (Mat): Matrix to be preconditioned.</span>
+<span class="sd">        Pinv (Vec): Diagonal Jacobi preconditioner (only the diagonal</span>
+<span class="sd">            vector). It contains the inverse of the square root of the</span>
+<span class="sd">            diagonal entries of the matrix `A`.</span>
+<span class="sd">        symmetric (bool): If `True`, the preconditioner is applied</span>
+<span class="sd">            symmetrically (left and right) to the matrix. Otherwise,</span>
+<span class="sd">            only the left preconditioner is applied.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">A</span><span class="o">.</span><span class="n">diagonalScale</span><span class="p">(</span><span class="n">L</span><span class="o">=</span><span class="n">Pinv</span><span class="p">,</span> <span class="n">R</span><span class="o">=</span><span class="n">Pinv</span><span class="p">)</span> <span class="k">if</span> <span class="n">symmetric</span> <span class="k">else</span> <span class="n">A</span><span class="o">.</span><span class="n">diagonalScale</span><span class="p">(</span><span class="n">L</span><span class="o">=</span><span class="n">Pinv</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">A</span>
+
+
+<span class="k">def</span> <span class="nf">_precondition_vector_Jacobi</span><span class="p">(</span><span class="n">b</span><span class="p">:</span> <span class="n">Vec</span><span class="p">,</span> <span class="n">Pinv</span><span class="p">:</span> <span class="n">Vec</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Preconditions the right-hand-side vector `b` in place using the</span>
+<span class="sd">    diagonal Jacobi preconditioner as `b[i] = Pinv[i] * b[i]`.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        b (Vec): Right-hand-side vector to be preconditioned.</span>
+<span class="sd">        Pinv (Vec): Diagonal Jacobi preconditioner (only the diagonal</span>
+<span class="sd">            vector). It contains the inverse of the square root of the</span>
+<span class="sd">            diagonal entries of the matrix `A`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">b</span><span class="o">.</span><span class="n">pointwiseMult</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">Pinv</span><span class="p">)</span>  <span class="c1"># b_prime[i] = Pinv[i] * b[i]</span>
+
+
+<span class="k">def</span> <span class="nf">_create_direct_solver</span><span class="p">(</span><span class="n">A</span><span class="p">:</span> <span class="n">Mat</span><span class="p">,</span> <span class="n">use_Cholesky</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PETSc</span><span class="o">.</span><span class="n">KSP</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Creates a direct solver for the linear system Ax = b.</span>
+
+<span class="sd">    The solver is a Krylov subspace method that that only applies</span>
+<span class="sd">    a preconditioner to the system. The preconditioner is</span>
+<span class="sd">    either LU or Cholesky factorization, depending on the</span>
+<span class="sd">    `use_Cholesky` argument.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        A (Mat): Matrix representing the linear system.</span>
+<span class="sd">        use_Cholesky (bool): Whether to use Cholesky factorization or</span>
+<span class="sd">            LU factorization for the solver.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        PETSc.KSP: Generated solver.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">solver</span> <span class="o">=</span> <span class="n">PETSc</span><span class="o">.</span><span class="n">KSP</span><span class="p">()</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">comm</span><span class="o">=</span><span class="n">A</span><span class="o">.</span><span class="n">comm</span><span class="p">)</span>
+    <span class="n">solver</span><span class="o">.</span><span class="n">setOperators</span><span class="p">(</span><span class="n">A</span><span class="p">)</span>
+
+    <span class="n">solver</span><span class="o">.</span><span class="n">setType</span><span class="p">(</span><span class="n">PETSc</span><span class="o">.</span><span class="n">KSP</span><span class="o">.</span><span class="n">Type</span><span class="o">.</span><span class="n">PREONLY</span><span class="p">)</span>
+    <span class="n">pc</span> <span class="o">=</span> <span class="n">solver</span><span class="o">.</span><span class="n">getPC</span><span class="p">()</span>
+    <span class="n">pc_type</span> <span class="o">=</span> <span class="n">PETSc</span><span class="o">.</span><span class="n">PC</span><span class="o">.</span><span class="n">Type</span><span class="o">.</span><span class="n">CHOLESKY</span> <span class="k">if</span> <span class="n">use_Cholesky</span> <span class="k">else</span> <span class="n">PETSc</span><span class="o">.</span><span class="n">PC</span><span class="o">.</span><span class="n">Type</span><span class="o">.</span><span class="n">LU</span>
+    <span class="n">pc</span><span class="o">.</span><span class="n">setType</span><span class="p">(</span><span class="n">pc_type</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">solver</span>
+
+
+<div class="viewcode-block" id="direct_solve_with_Jacobi">
+<a class="viewcode-back" href="../../../generated/qugar.dolfinx.html#qugar.dolfinx.direct_solve_with_Jacobi">[docs]</a>
+<span class="k">def</span> <span class="nf">direct_solve_with_Jacobi</span><span class="p">(</span>
+    <span class="n">A</span><span class="p">:</span> <span class="n">Mat</span><span class="p">,</span>
+    <span class="n">b</span><span class="p">:</span> <span class="n">Vec</span><span class="p">,</span>
+    <span class="n">x</span><span class="p">:</span> <span class="n">Vec</span><span class="p">,</span>
+    <span class="n">in_place_pc</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">use_Cholesky</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">symmetric_pc</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">set_diagonal_zeros_to_one</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Solve the linear system `Ax = b` using a direct solver with Jacobi preconditioner.</span>
+
+<span class="sd">    Note:</span>
+<span class="sd">        This function does not call the `scatter_forward()` method on</span>
+<span class="sd">        the solution vector `x`. It is the caller&#39;s responsibility to do it.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        A (Mat): PETSc&#39;s matrix representing the linear system.</span>
+<span class="sd">        b (Vec): PETSc&#39;s right-hand side vector.</span>
+<span class="sd">        x (Vec): PETSc&#39;s vector to store the solution (already created)</span>
+<span class="sd">        in_place_pc (bool): If `True`, the preconditioner is applied in</span>
+<span class="sd">            place, modifying the passed matrix and vector. Otherwise,</span>
+<span class="sd">            copies of the matrix and vector are created for</span>
+<span class="sd">            preconditioning.</span>
+<span class="sd">        use_Cholesky (bool): If `True`, use Cholesky factorization for</span>
+<span class="sd">            the solver. Otherwise, uses LU factorization. The Cholesky</span>
+<span class="sd">            solver is only applicable for symmetric positive definite</span>
+<span class="sd">            matrices. It is the caller&#39;s responsibility to ensure that.</span>
+<span class="sd">        symmetric_pc (bool): If `True`, the preconditioner is applied</span>
+<span class="sd">            symmetrically (left and right) to the matrix and vector.</span>
+<span class="sd">            Otherwise, only the left preconditioner is applied.</span>
+<span class="sd">        set_diagonal_zeros_to_one (bool): If `True`, set the diagonal</span>
+<span class="sd">            entries of the preconditioned matrix to one if they are zero.</span>
+<span class="sd">            This is useful in cases in which empty cells not contributing</span>
+<span class="sd">            to the matrix are not removed, and therefore the contribution</span>
+<span class="sd">            of some basis functions to the matrix is zero.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># 1. Creating copies (if needed).</span>
+    <span class="n">A</span> <span class="o">=</span> <span class="n">A</span> <span class="k">if</span> <span class="n">in_place_pc</span> <span class="k">else</span> <span class="n">A</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="n">b</span> <span class="o">=</span> <span class="n">b</span> <span class="k">if</span> <span class="n">in_place_pc</span> <span class="k">else</span> <span class="n">b</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+    <span class="c1"># 2. Set zeros to one if set_diagonal_zeros_to_one is True</span>
+    <span class="k">if</span> <span class="n">set_diagonal_zeros_to_one</span><span class="p">:</span>
+        <span class="n">Adiag</span> <span class="o">=</span> <span class="n">A</span><span class="o">.</span><span class="n">getDiagonal</span><span class="p">()</span>
+        <span class="n">A</span><span class="o">.</span><span class="n">setDiagonal</span><span class="p">(</span><span class="n">Adiag</span> <span class="o">*</span> <span class="p">(</span><span class="n">Adiag</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="n">Adiag</span> <span class="o">==</span> <span class="mi">0</span><span class="p">))</span>
+
+    <span class="c1"># 3. Create Jacobi preconditioner</span>
+    <span class="n">Pinv</span> <span class="o">=</span> <span class="n">_create_Jacobi_preconditioner</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">symmetric_pc</span><span class="p">)</span>
+
+    <span class="c1"># 3. Create A = Pinv * A * Pinv</span>
+    <span class="n">_precondition_matrix_Jacobi</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">Pinv</span><span class="p">,</span> <span class="n">symmetric_pc</span><span class="p">)</span>
+
+    <span class="c1"># 4 Create b = Pinv * b (if Jacobi preconditioner is symmetric)</span>
+    <span class="k">if</span> <span class="n">symmetric_pc</span><span class="p">:</span>
+        <span class="n">_precondition_vector_Jacobi</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">Pinv</span><span class="p">)</span>
+
+    <span class="c1"># 5. Solve A * x = b</span>
+    <span class="n">solver</span> <span class="o">=</span> <span class="n">_create_direct_solver</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">use_Cholesky</span><span class="p">)</span>
+    <span class="n">solver</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
+
+    <span class="c1"># 6. Transform back the solution if symmetric preconditioner</span>
+    <span class="c1"># was applied: Pinv * x</span>
+    <span class="k">if</span> <span class="n">symmetric_pc</span><span class="p">:</span>
+        <span class="n">_precondition_vector_Jacobi</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">Pinv</span><span class="p">)</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Pablo Antolin.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

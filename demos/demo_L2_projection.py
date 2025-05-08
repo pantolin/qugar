@@ -37,35 +37,36 @@
 # ## Implementation
 #
 # ### Modules import
-# First we add the needed modules and functions to be used:
+# First we add the needed modules and functions:
 
 # +
+
+from qugar.utils import has_FEniCSx, has_PETSc
+
+if not has_FEniCSx:
+    raise ValueError("FEniCSx installation not found is required.")
+
+if not has_PETSc:
+    raise ValueError("petsc4py installation not found is required.")
+
 from pathlib import Path
 
 from mpi4py import MPI
-from petsc4py import PETSc
 
 import dolfinx.fem
 import dolfinx.fem.petsc
 import dolfinx.io
 import numpy as np
 import ufl
+from dolfinx import default_real_type as dtype
 
 import qugar
 import qugar.impl
-from qugar.dolfinx import form_custom
+from qugar.dolfinx import direct_solve_with_Jacobi, form_custom
 from qugar.mesh import create_unfitted_impl_Cartesian_mesh
 
 # -
 
-# We define the floating point type to be used in the computations.
-# So far, QUGaR supports 32 and 64 bits real floating point types.
-# In the near future support for 64 and 128 bits complex types will be
-# also available.
-
-# +
-dtype = np.float64
-# -
 
 # ### Geometry and mesh
 
@@ -86,15 +87,17 @@ impl_func = qugar.impl.create_Schoen([1.0, 1.0, 1.0])
 # with `n_cells` cells per direction.
 
 # +
-n_cells = 4
+n_cells = 8
 
 unf_mesh = create_unfitted_impl_Cartesian_mesh(
     MPI.COMM_WORLD, impl_func, n_cells, exclude_empty_cells=True, dtype=dtype
 )
+
 # -
 
 # The option `exclude_empty_cells` (set to `True`) prevents the
-# generation of empty cells in the mesh (those not intersecting $\Omega$).
+# generation of empty cells in the mesh (those denoted as
+# $\mathcal{T}_{\text{empty}}$ in [Divergence theorem demo](demo_div_thm.md)).
 # This is useful to eliminate inactive degrees of freedom in the
 # problem.
 
@@ -108,8 +111,8 @@ f = ufl.sin(x[0]) * ufl.cos(x[1]) * ufl.sin(x[2])
 # -
 
 # and the finite element space $V$ over the unfitted mesh
-# (corresponding to the mesh $\mathcal{T}$), and the test and trial
-# functions $u$ and $v$.
+# (corresponding to the mesh $\mathcal{T}$) needed to define the test
+# and trial functions $u$ and $v$.
 # The finite element space is defined as a Lagrange space of the given
 # `degree` (2 in this case).
 
@@ -125,9 +128,15 @@ u, v = ufl.TrialFunction(V), ufl.TestFunction(V)
 # equivalent to the $L^2$ projection of $f$ onto $V$, and generate
 # the corresponding bilinear and linear forms `a` and `L` using
 # QUGaR's custom form functions.
+# The number of quadrature points per cell (or integration cell
+# in the case of cut cells) is set to `degree + 1` to
+# prevent DOLFINx from using a higher-order quadrature rule
+# (because of the trigonometric right-hand side expression).
 
 # +
-F = u * v * ufl.dx - f * v * ufl.dx
+n_quad_pts = degree + 1
+quad_degree = 2 * n_quad_pts + 1
+F = (u - f) * v * ufl.dx(degree=quad_degree)
 
 a = form_custom(ufl.lhs(F), unf_mesh, dtype=dtype)
 L = form_custom(ufl.rhs(F), unf_mesh, dtype=dtype)
@@ -141,10 +150,12 @@ L = form_custom(ufl.rhs(F), unf_mesh, dtype=dtype)
 #
 
 # +
-A = dolfinx.fem.petsc.assemble_matrix(a, coeffs=a.pack_coefficients())
+a_coeffs = a.pack_coefficients()
+A = dolfinx.fem.petsc.assemble_matrix(a, coeffs=a_coeffs)
 A.assemble()
 
-b = dolfinx.fem.petsc.assemble_vector(L, coeffs=L.pack_coefficients())
+L_coeffs = L.pack_coefficients()
+b = dolfinx.fem.petsc.assemble_vector(L, coeffs=L_coeffs)
 # -
 
 # ### Linear system solution
@@ -155,42 +166,34 @@ b = dolfinx.fem.petsc.assemble_vector(L, coeffs=L.pack_coefficients())
 # a finite element function `uh` defined over the same finite
 # element space $V$ as the trial functions.
 #
-# In this case we use a direct solver (LU) to solve the
-# linear system.
+# In this case we use a direct solver (Cholesky) to solve the
+# linear system. However, due to the potentially ill-conditioning
+# of the matrix, we use a (symmetric) Jacobi preconditioner.
+# It is known that Jacobi preconditioners are not very effective
+# for Lagrange elements, but still help.
 
 # +
 uh = dolfinx.fem.Function(V)
 
-solver = PETSc.KSP().create(unf_mesh.comm)
-solver.setOperators(A)
-solver.setType(PETSc.KSP.Type.PREONLY)
-solver.getPC().setType(PETSc.PC.Type.LU)
-
-solver.solve(b, uh.x.petsc_vec)
+direct_solve_with_Jacobi(
+    A, b, uh.x.petsc_vec, use_Cholesky=True, in_place_pc=True, symmetric_pc=True
+)
 uh.x.scatter_forward()
 # -
 
-# Due to the matrix being ill-conditioned, the solver above
-# may fail to provide a stable solution.
-# As a (brutal) temporary workaround we solve the system
-# by transforming the matrix to a dense matrix and using
-# a direct solver (LU) provided by NumPy.
-# Suitable preconditioner (e.g., Jacobi) will be implemented
-# in the future.
-
-# +
-A_full = A.convert("dense").getDenseArray()
-uh.x.array[:] = np.linalg.solve(A_full, b.array)
-print(f"Matrix conditioning: {np.linalg.cond(A_full)}")
-print(f"Diagonal minimum value: {np.min(np.diag(A_full))}")
-# -
 
 # ### Error calculation
 
-# The $L^2$ error of the projection can be computed as
+# The $L^2$ error of the projection is computed.
+# In this case we slightly increase the number of quadrature points
+# used to compute the error for achieving a higher accuracy.
 
 # +
-error_form: qugar.dolfinx.CustomForm = form_custom((uh - f) ** 2 * ufl.dx, unf_mesh, dtype=dtype)
+n_quad_pts = 2 * degree + 2
+quad_degree = 2 * n_quad_pts + 1
+error_form: qugar.dolfinx.CustomForm = form_custom(
+    (uh - f) ** 2 * ufl.dx(degree=quad_degree), unf_mesh, dtype=dtype
+)
 error_L2 = np.sqrt(
     unf_mesh.comm.allreduce(
         dolfinx.fem.assemble_scalar(error_form, coeffs=error_form.pack_coefficients()),
@@ -214,36 +217,36 @@ if unf_mesh.comm.rank == 0:
 # $\mathcal{T}$ iso-planes) is also generated to improve the solution's visualization.
 
 # +
-reparam_degree = 3
-reparam = qugar.reparam.create_reparam_mesh(unf_mesh, degree=reparam_degree, levelset=False)
-reparam_mesh = reparam.create_mesh()
-reparam_mesh_wb = reparam.create_mesh(wirebasket=True)
+rep_degree = 3
+reparam = qugar.reparam.create_reparam_mesh(unf_mesh, degree=rep_degree, levelset=False)
+rep_mesh = reparam.create_mesh()
+rep_mesh_wb = reparam.create_mesh(wirebasket=True)
 # -
 
 # In order to visualize the computed solution, we interpolate it into the
-# reparameterized mesh. For doing so we create a new
-# space using the reparameterized mesh and interpolate
-# the solution into it (using the `interpolate_nonmatching` DOLFINx's
-# function). Note that even if the element type of `V_reparam` is
-# continuous (`CG`), the underlying mesh is discontinuous, so it will be
-# the generated function.
+# generated meshes. For doing so we create new spaces associated to the
+# meshes and interpolate the solution into them (using the
+# `interpolate_nonmatching` DOLFINx's function). Note that even if the
+# element types of the new spaces `Vrep` and `Vrep_wb` are continuous
+# (`CG`), the underlying meshes are discontinuous, so they will be the
+# generated functions.
 
 # +
-V_reparam = dolfinx.fem.functionspace(reparam_mesh, ("CG", reparam_degree))
-uh_reparam = dolfinx.fem.Function(V_reparam, dtype=dtype)
+Vrep = dolfinx.fem.functionspace(rep_mesh, ("CG", rep_degree))
+interp_data = qugar.reparam.create_interpolation_data(Vrep, V)
+uh_rep = dolfinx.fem.Function(Vrep, dtype=dtype)
+uh_rep.interpolate_nonmatching(uh, *interp_data)
 
-cmap = reparam_mesh.topology.index_map(reparam_mesh.topology.dim)
-num_cells = cmap.size_local + cmap.num_ghosts
-cells = np.arange(num_cells, dtype=np.int32)
-interpolation_data = dolfinx.fem.create_interpolation_data(V_reparam, V, cells, padding=1.0e-14)
-
-uh_reparam.interpolate_nonmatching(uh, cells, interpolation_data=interpolation_data)
+Vrep_wb = dolfinx.fem.functionspace(rep_mesh_wb, ("CG", rep_degree))
+interp_data_wb = qugar.reparam.create_interpolation_data(Vrep_wb, V)
+uh_rep_wb = dolfinx.fem.Function(Vrep_wb, dtype=dtype)
+uh_rep_wb.interpolate_nonmatching(uh, *interp_data_wb)
 # -
 
 
 # Both meshes are then exported to VTK files and can be visualized using
 # [ParaView](https://www.paraview.org/). In the case in which
-# `reparam_degree > 1`, the parameter `Nonlinear Subdivision Level` value
+# `rep_degree > 1`, the parameter `Nonlinear Subdivision Level` value
 # (under the advanced properties menu in ParaView) can be adjusted to
 # generate higher-quality visualizations.
 
@@ -252,15 +255,14 @@ results_folder = Path("results")
 results_folder.mkdir(exist_ok=True, parents=True)
 filename = results_folder / "L2_projection"
 
-with dolfinx.io.VTKFile(reparam_mesh.comm, filename.with_suffix(".pvd"), "w") as vtk:
-    vtk.write_function(uh_reparam)
-    vtk.write_mesh(reparam_mesh_wb)
+with dolfinx.io.VTKFile(rep_mesh.comm, filename.with_suffix(".pvd"), "w") as vtk:
+    vtk.write_function(uh_rep)
+    vtk.write_function(uh_rep_wb)
 # -
 
 
 # Other DOLFINx file writers (as
 # [VTXWriter](https://docs.fenicsproject.org/dolfinx/main/python/generated/dolfinx.io.html#dolfinx.io.VTXWriter)
 # or [XDMFFile](https://docs.fenicsproject.org/dolfinx/main/python/generated/dolfinx.io.html#dolfinx.io.XDMFFile))
-# should be also usable, however, be aware that between `VTKFFile` and
-# `XDMFFile`, the former is the recommended option for high-degrees
-# (as hinted in [DOLFINx documentation](https://docs.fenicsproject.org/dolfinx/main/python/generated/dolfinx.io.html#dolfinx.io.VTKFile)).
+# could be also used, however, be aware that between `VTKFFile` and
+# `XDMFFile`, the former is the [recommended option for high-degrees](https://docs.fenicsproject.org/dolfinx/main/python/generated/dolfinx.io.html#dolfinx.io.VTKFile).
