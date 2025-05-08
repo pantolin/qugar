@@ -1059,15 +1059,12 @@ class CustomCoeffsPacker:
 
     def pack_coefficients(
         self,
-    ) -> dict[
-        tuple[IntegralType, int],
-        npt.NDArray[np.float32 | np.float64 | np.complex64 | np.complex128],
-    ]:
+    ) -> dict[tuple[IntegralType, int], npt.NDArray]:
         """Generates the custom coefficients consumed by custom
         integrals for all the integral types and subdomains.
 
         Returns:
-            dict[tuple[IntegralType, int], FloatingArray]: Generated
+            dict[tuple[IntegralType, int], npt.NDArray]: Generated
             custom coefficients (it follows the same data structure as
             ``dolfinx.cpp.fem.pack_coefficients``).
         """

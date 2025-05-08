@@ -95,10 +95,7 @@ class CustomForm(Form):
 
     def pack_coefficients(
         self,
-    ) -> dict[
-        tuple[IntegralType, int],
-        npt.NDArray[np.float32 | np.float64 | np.complex64 | np.complex128],
-    ]:
+    ) -> dict[tuple[IntegralType, int], npt.NDArray]:
         """Function for generating the coefficients needed for computing
         custom integrals at runtime.
 
@@ -107,8 +104,7 @@ class CustomForm(Form):
             ``dolfinx.cpp.fem.pack_coefficients``.
 
         Returns:
-            dict[ tuple[IntegralType, int], npt.NDArray[np.float32 |
-            np.float64 | np.complex64 | np.complex128]]:
+            dict[tuple[IntegralType, int], npt.NDArray]:
             Generated custom coefficients.
         """
         return self._coeffs_packer.pack_coefficients()
