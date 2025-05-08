@@ -10,9 +10,9 @@
 
 "Helper functions for simplifying the solution of linear systems using PETSc."
 
-import importlib.util
+from qugar.utils import has_PETSc
 
-if importlib.util.find_spec("petsc4py") is None:
+if not has_PETSc:
     raise ValueError("petsc4py installation not found is required.")
 
 from petsc4py import PETSc
