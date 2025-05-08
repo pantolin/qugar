@@ -25,6 +25,6 @@ __all__ = ["CustomForm", "ds_bdry_unf", "form_custom", "mapped_normal"]
 from qugar.utils import has_PETSc
 
 if has_PETSc:
-    from qugar.dolfinx.solver import direct_solve_with_Jacobi
+    from qugar.dolfinx.petsc import LinearProblem
 
-    __all__ += ["direct_solve_with_Jacobi"]
+    __all__ += ["LinearProblem"]
