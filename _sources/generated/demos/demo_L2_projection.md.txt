@@ -62,7 +62,7 @@ from dolfinx import default_real_type as dtype
 
 import qugar
 import qugar.impl
-from qugar.dolfinx import direct_solve_with_Jacobi, form_custom
+from qugar.dolfinx import LinearProblem, form_custom
 from qugar.mesh import create_unfitted_impl_Cartesian_mesh
 ```
 
@@ -142,24 +142,6 @@ prevent DOLFINx from using a higher-order quadrature rule
 n_quad_pts = degree + 1
 quad_degree = 2 * n_quad_pts + 1
 F = (u - f) * v * ufl.dx(degree=quad_degree)
-
-a = form_custom(ufl.lhs(F), unf_mesh, dtype=dtype)
-L = form_custom(ufl.rhs(F), unf_mesh, dtype=dtype)
-```
-
-Using those forms we can assemble the corresponding
-stiffness {py:class}`PETSc matrix<dolfinx.fem.petsc.assemble_matrix>`
-`A` and right-hand-side
-{py:class}`PETSc vector<dolfinx.fem.petsc.assemble_vector>` `b`
-array for each coefficient.
-
-```python
-a_coeffs = a.pack_coefficients()
-A = dolfinx.fem.petsc.assemble_matrix(a, coeffs=a_coeffs)
-A.assemble()
-
-L_coeffs = L.pack_coefficients()
-b = dolfinx.fem.petsc.assemble_vector(L, coeffs=L_coeffs)
 ```
 
 ### Linear system solution
@@ -179,12 +161,17 @@ It is known that Jacobi preconditioners are not very effective
 for Lagrange elements, but still help.
 
 ```python
-uh = dolfinx.fem.Function(V)
+petsc_options = {
+    "ksp_type": "preonly",
+    "pc_type": "cholesky",
+    "ksp_diagonal_scale": True,  # Jacobi
+    # "ksp_diagonal_scale_fix": True, # transformsa back A an b after Jacobi
+}
 
-direct_solve_with_Jacobi(
-    A, b, uh.x.petsc_vec, use_Cholesky=True, in_place_pc=True, symmetric_pc=True
-)
-uh.x.scatter_forward()
+problem = LinearProblem(ufl.lhs(F), ufl.rhs(F), petsc_options=petsc_options)
+problem.solve()
+
+uh = problem.u
 ```
 
 ### Error calculation

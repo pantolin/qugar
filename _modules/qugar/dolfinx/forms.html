@@ -177,10 +177,7 @@
 <a class="viewcode-back" href="../../../generated/qugar.dolfinx.html#qugar.dolfinx.CustomForm.pack_coefficients">[docs]</a>
     <span class="k">def</span> <span class="nf">pack_coefficients</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span>
-        <span class="nb">tuple</span><span class="p">[</span><span class="n">IntegralType</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span>
-        <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">complex64</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">complex128</span><span class="p">],</span>
-    <span class="p">]:</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="n">IntegralType</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Function for generating the coefficients needed for computing</span>
 <span class="sd">        custom integrals at runtime.</span>
 
@@ -189,8 +186,7 @@
 <span class="sd">            ``dolfinx.cpp.fem.pack_coefficients``.</span>
 
 <span class="sd">        Returns:</span>
-<span class="sd">            dict[ tuple[IntegralType, int], npt.NDArray[np.float32 |</span>
-<span class="sd">            np.float64 | np.complex64 | np.complex128]]:</span>
+<span class="sd">            dict[tuple[IntegralType, int], npt.NDArray]:</span>
 <span class="sd">            Generated custom coefficients.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coeffs_packer</span><span class="o">.</span><span class="n">pack_coefficients</span><span class="p">()</span></div>
