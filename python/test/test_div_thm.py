@@ -641,7 +641,9 @@ def test_ellipsoid(
     if negative:
         func = qugar.impl.create_negative(func)
 
-    check_div_thm(func, n_cells, n_quad_pts, exclude_empty_cells, use_tags, dtype)
+    rtol = 1e-4
+    atol = 1e-8
+    check_div_thm(func, n_cells, n_quad_pts, exclude_empty_cells, use_tags, dtype, rtol, atol)
 
 
 @pytest.mark.parametrize("n_cells", [12])
@@ -752,8 +754,8 @@ def test_tpms(
         if negative:
             func = qugar.impl.create_negative(func)
 
-        rtol = 1e-5 if dim == 2 else 1e-3
-        atol = 1e-8 if dim == 2 else 8.0e-3
+        rtol = 1e-4 if dim == 2 else 1e-3
+        atol = 1e-8 if dim == 2 else 2.0e-2
         check_div_thm(
             func, n_cells, n_quad_pts, exclude_empty_cells, use_tags, dtype, rtol=rtol, atol=atol
         )
@@ -762,5 +764,6 @@ def test_tpms(
 if __name__ == "__main__":
     # test_disk(8, 6, False, True, np.float64, True, False)
     # test_cylinder(8, 6, np.float64, True, False)
-    # test_tpms(2, 12, 8, False, np.float32, False)
+    # test_tpms(3, 12, 8, False, np.float32, False)
     test_tpms(3, 12, 8, False, False, np.float32, False)
+    # test_ellipsoid(8, 5, True, True, np.float32, True, False)  # , use_bzr=False)

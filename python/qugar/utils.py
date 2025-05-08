@@ -148,6 +148,21 @@ def check_DOLFINx() -> bool:
         return False
 
 
+def check_PETSc() -> bool:
+    """
+    Checks if petsc4py is installed.
+
+    Returns:
+        bool: Whether PETSc (petsc4py) is found.
+    """
+    try:
+        from petsc4py import PETSc  # noqa: F401
+
+        return True
+    except ImportError:
+        return False
+
+
 def check_Basix() -> bool:
     """
     Checks if the installed version of Basix is within the required range.
@@ -210,6 +225,9 @@ def check_UFL() -> bool:
 
 """Whether FEniCSx packages were available."""
 has_FEniCSx: bool = check_DOLFINx() and check_Basix() and check_FFCx() and check_UFL()
+
+"""Whether PETSc packages were available."""
+has_PETSc: bool = check_PETSc()
 
 """Whether PyVista packages were available."""
 has_PyVista: bool = importlib.util.find_spec("pyvista") is not None

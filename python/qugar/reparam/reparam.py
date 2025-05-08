@@ -20,6 +20,9 @@ import numpy as np
 import numpy.typing as npt
 import ufl
 from basix import CellType
+from dolfinx.fem import create_interpolation_data as dlf_create_interpolation_data
+from dolfinx.fem.function import FunctionSpace
+from dolfinx.geometry import PointOwnershipData
 
 import qugar.cpp as cpp
 from qugar.mesh import (
@@ -186,3 +189,39 @@ def create_reparam_mesh(
     merge_points = False
     reparam_cpp = algo(unf_domain.cpp_unf_domain_object, n_pts_dir, merge_points)
     return UnfDomainReparamMesh(unf_domain, reparam_cpp)
+
+
+def create_interpolation_data(
+    V_to: FunctionSpace,
+    V_from: FunctionSpace,
+    padding: float = 1.0e-14,
+) -> tuple[npt.NDArray[np.int32], PointOwnershipData]:
+    """
+    Generate data needed to interpolate discrete functions across different meshes.
+
+    Note:
+        Note that the function spaces `V_to` and `V_from` must be defined
+        on meshes with different dimensions. E.g., `V_from` (2D or 3D)
+        can be the function space of a computed solution and `V_to` the
+        function space for interpolating the solution in the
+       reparameterization wirebasket (1D).
+
+    Args:
+        V_to (FunctionSpace): Function space to interpolate into.
+        V_from (FunctionSpace): Function space to interpolate from.
+        padding (float): Absolute padding of bounding boxes of all
+            entities on the mesh associated to `V_to`.
+
+    Returns:
+        npt.NDArray[np.int32]: Cell indices of the mesh associated
+        to `V_to` on which to interpolate into.
+        PointOwnershipData: Data needed to interpolation functions
+        defined on function spaces on the meshes.
+    """
+
+    mesh = V_to.mesh
+    cmap = mesh.topology.index_map(mesh.topology.dim)
+    num_cells = cmap.size_local + cmap.num_ghosts
+    cells = np.arange(num_cells, dtype=np.int32)
+
+    return cells, dlf_create_interpolation_data(V_to, V_from, cells, padding)

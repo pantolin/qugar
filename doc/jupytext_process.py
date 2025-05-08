@@ -54,9 +54,17 @@ def process_python_demos(input_dir: str, output_dir: str):
                 runpy.run_path(str(demo))
                 os.chdir(here)
 
-        # Copy images used in demos
-        for file in subdir.glob("**/*.png"):
-            shutil.copy(file, demo_dir)
+        # Copy images used in demos from the assets directory
+        assets_dir = subdir / "assets"
+        if assets_dir.exists() and assets_dir.is_dir():
+            # demo_assets is the target directory: output_dir/assets
+            # output_dir is typically "generated/demos"
+            # so demo_assets becomes "generated/demos/assets"
+            target_demo_assets_dir = demo_dir / "assets"
+            target_demo_assets_dir.mkdir(parents=True, exist_ok=True)
+            # Copy all png files from the source assets directory
+            for file in assets_dir.glob("**/*.png"):
+                shutil.copy(file, target_demo_assets_dir / file.name)
 
 
 if __name__ == "__main__":
