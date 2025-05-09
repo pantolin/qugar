@@ -52,7 +52,7 @@ jobs:
           if github_ref == 'refs/heads/main' or github_ref == 'refs/heads/doc':
             dst_dir = 'main'
           elif github_ref == 'refs/heads/release':
-            dst_dir = qugar.__version__
+            dst_dir = 'v' + qugar.__version__
           else:
             raise ValueError('Invalid documentation deployment branch')
 
