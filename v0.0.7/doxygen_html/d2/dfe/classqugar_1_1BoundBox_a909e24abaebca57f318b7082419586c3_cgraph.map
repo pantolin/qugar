@@ -1,0 +1,7 @@
+<map id="qugar::BoundBox::slice" name="qugar::BoundBox::slice">
+<area shape="rect" id="Node000001" title="Performs a slice of the domain reduding it by one dimension." alt="" coords="5,31,176,56"/>
+<area shape="rect" id="Node000002" href="$d2/dfe/classqugar_1_1BoundBox.html#a0f89ca72c5b7e7e6656d7c0f1d6675c8" title="Gets the maxnimum value of the box for 1D boxes." alt="" coords="224,5,395,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="176,31,210,27,211,32,176,36"/>
+<area shape="rect" id="Node000003" href="$d2/dfe/classqugar_1_1BoundBox.html#ab5395a5d21e2765a044ded1ffe2929ff" title="Gets the minimum value of the box for 1D boxes." alt="" coords="226,55,393,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="176,50,213,54,212,59,176,55"/>
+</map>
