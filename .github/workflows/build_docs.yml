@@ -55,7 +55,19 @@ jobs:
             dst_dir = qugar.__version__
           else:
             raise ValueError('Invalid documentation deployment branch')
-          print(f'echo \"target={dst_dir}\" >> $GITHUB_OUTPUT')"
+
+          # Write to GITHUB_OUTPUT file
+          output_file_path = os.environ.get('GITHUB_OUTPUT')
+          if not output_file_path:
+            print('::error::GITHUB_OUTPUT environment variable is not set.')
+            sys.exit(1)
+
+          print(f'Determined destination directory: {dst_dir}')
+          with open(output_file_path, 'a') as f:
+            f.write(f'target={dst_dir}\\n')
+
+          # print(f'echo \"target={dst_dir}\" >> $GITHUB_OUTPUT')
+          "
 
       - name: Deploy to GitHub Pages
         id: deployment
