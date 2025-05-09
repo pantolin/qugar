@@ -25,7 +25,7 @@
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="Divergence theorem (without FEniCSx)" href="demo_div_thm_no_fenicsx.html" />
+    <link rel="next" title="Linear elasticity problem" href="demo_elasticity.html" />
     <link rel="prev" title="\(L^2\) projection" href="demo_L2_projection.html" /> 
 </head>
 
@@ -51,8 +51,9 @@
               <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../../installation.html">Installation</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="../../demos.html">Demos</a><ul class="current">
-<li class="toctree-l2 current"><a class="reference internal" href="../../demos.html#fenicsx-dependent-demos">FEniCSx dependent demos</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="../../demos.html#list-of-all-demos">List of all demos</a><ul class="current">
 <li class="toctree-l3"><a class="reference internal" href="demo_div_thm.html">Divergence theorem</a></li>
+<li class="toctree-l3"><a class="reference internal" href="demo_div_thm_no_fenicsx.html">Divergence theorem (without FEniCSx)</a></li>
 <li class="toctree-l3"><a class="reference internal" href="demo_impl_funcs.html">Creation of unfitted implicit domains</a></li>
 <li class="toctree-l3"><a class="reference internal" href="demo_plot.html">PyVista visualization capabilities.</a></li>
 <li class="toctree-l3"><a class="reference internal" href="demo_L2_projection.html"><span class="math notranslate nohighlight">\(L^2\)</span> projection</a></li>
@@ -61,10 +62,9 @@
 <li class="toctree-l4"><a class="reference internal" href="#implementation">Implementation</a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="demo_elasticity.html">Linear elasticity problem</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="../../demos.html#fenicsx-independent-demos">FEniCSx independent demos</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../demos.html#list-of-all-demos">List of all demos</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../../api.html">API reference</a></li>
@@ -146,12 +146,6 @@ radius <span class="math notranslate nohighlight">\(R=0.3\)</span> and it is cen
 We consider that the Neumann boundary <span class="math notranslate nohighlight">\(\Gamma_N\)</span> correponds to the
 circular section of the boundary, while the Dirichlet boundary is its
 complement <span class="math notranslate nohighlight">\(\Gamma_D=\partial\Omega\setminus\Gamma_N\)</span>.</p>
-<figure class="align-default" id="fig-demo-poisson-geom">
-<img alt="../../_images/poisson_demo_geom.png" src="../../_images/poisson_demo_geom.png" />
-<figcaption>
-<p><span class="caption-text">Plate with hole unfitted domain.</span><a class="headerlink" href="#fig-demo-poisson-geom" title="Link to this image"></a></p>
-</figcaption>
-</figure>
 <p>For the Poisson problem we consider the following a manufactured
 solution (see figure below):</p>
 <div class="math notranslate nohighlight">
@@ -162,12 +156,18 @@ solution (see figure below):</p>
   g(x,y) &amp;= \nabla u \cdot n.
 \end{align}
 \end{split}\]</div>
-<figure class="align-default" id="fig-poisson-demo-manufactured">
-<img alt="../../_images/poisson_demo_uex.png" src="../../_images/poisson_demo_uex.png" />
-<figcaption>
-<p><span class="caption-text">Manufactured solution.</span><a class="headerlink" href="#fig-poisson-demo-manufactured" title="Link to this image"></a></p>
-</figcaption>
-</figure>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head text-center"><p>Plate with hole unfitted domain</p></th>
+<th class="head text-center"><p>Manufactured solution</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td class="text-center"><p><img alt="Plate with hole unfitted domain" src="../../_images/demo_poisson_geom.png" /></p></td>
+<td class="text-center"><p><img alt="Manufactured solution" src="../../_images/demo_poisson_uex.png" /></p></td>
+</tr>
+</tbody>
+</table>
 </section>
 <section id="implementation">
 <h2>Implementation<a class="headerlink" href="#implementation" title="Link to this heading"></a></h2>
@@ -349,7 +349,7 @@ mesh.</p>
 using ParaView (see the figures below).</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">results_folder</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;results&quot;</span><span class="p">)</span>
 <span class="n">results_folder</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="n">filename</span> <span class="o">=</span> <span class="n">results_folder</span> <span class="o">/</span> <span class="s2">&quot;poisson_projection&quot;</span>
+<span class="n">filename</span> <span class="o">=</span> <span class="n">results_folder</span> <span class="o">/</span> <span class="s2">&quot;demo_poisson&quot;</span>
 
 <span class="k">with</span> <span class="n">dolfinx</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">VTKFile</span><span class="p">(</span><span class="n">rep_mesh</span><span class="o">.</span><span class="n">comm</span><span class="p">,</span> <span class="n">filename</span><span class="o">.</span><span class="n">with_suffix</span><span class="p">(</span><span class="s2">&quot;.pvd&quot;</span><span class="p">),</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">vtk</span><span class="p">:</span>
     <span class="n">vtk</span><span class="o">.</span><span class="n">write_function</span><span class="p">(</span><span class="n">uh_rep</span><span class="p">)</span>
@@ -364,8 +364,8 @@ using ParaView (see the figures below).</p>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td class="text-center"><p><img alt="Approximate solution" src="../../_images/poisson_demo_uh.png" /></p></td>
-<td class="text-center"><p><img alt="Exact solution" src="../../_images/poisson_demo_uex.png" /></p></td>
+<tr class="row-even"><td class="text-center"><p><img alt="Approximate solution" src="../../_images/demo_poisson_uh.png" /></p></td>
+<td class="text-center"><p><img alt="Exact solution" src="../../_images/demo_poisson_uex.png" /></p></td>
 </tr>
 </tbody>
 </table>
@@ -378,7 +378,7 @@ using ParaView (see the figures below).</p>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="demo_L2_projection.html" class="btn btn-neutral float-left" title="\(L^2\) projection" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="demo_div_thm_no_fenicsx.html" class="btn btn-neutral float-right" title="Divergence theorem (without FEniCSx)" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="demo_elasticity.html" class="btn btn-neutral float-right" title="Linear elasticity problem" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

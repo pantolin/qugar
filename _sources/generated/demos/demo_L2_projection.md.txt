@@ -248,7 +248,7 @@ generate higher-quality visualizations.
 ```python
 results_folder = Path("results")
 results_folder.mkdir(exist_ok=True, parents=True)
-filename = results_folder / "L2_projection"
+filename = results_folder / "demo_L2_projection"
 
 with dolfinx.io.VTKFile(rep_mesh.comm, filename.with_suffix(".pvd"), "w") as vtk:
     vtk.write_function(uh_rep)

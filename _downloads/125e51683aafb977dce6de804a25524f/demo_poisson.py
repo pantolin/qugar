@@ -61,11 +61,6 @@
 # circular section of the boundary, while the Dirichlet boundary is its
 # complement $\Gamma_D=\partial\Omega\setminus\Gamma_N$.
 #
-# ```{figure} assets/poisson_demo_geom.png
-# :name: fig-demo-poisson-geom
-# Plate with hole unfitted domain.
-# ```
-#
 # For the Poisson problem we consider the following a manufactured
 # solution (see figure below):
 #
@@ -77,10 +72,9 @@
 # \end{align}
 # $$
 #
-# ```{figure} assets/poisson_demo_uex.png
-# :name: fig-poisson-demo-manufactured
-# Manufactured solution.
-# ```
+# | Plate with hole unfitted domain | Manufactured solution |
+# |:---:|:---:|
+# | ![Plate with hole unfitted domain](assets/demo_poisson_geom.png) | ![Manufactured solution](assets/demo_poisson_uex.png) |
 #
 # ## Implementation
 #
@@ -285,7 +279,7 @@ uex_rep.name = "uex"
 # +
 results_folder = Path("results")
 results_folder.mkdir(exist_ok=True, parents=True)
-filename = results_folder / "poisson_projection"
+filename = results_folder / "demo_poisson"
 
 with dolfinx.io.VTKFile(rep_mesh.comm, filename.with_suffix(".pvd"), "w") as vtk:
     vtk.write_function(uh_rep)
@@ -295,4 +289,4 @@ with dolfinx.io.VTKFile(rep_mesh.comm, filename.with_suffix(".pvd"), "w") as vtk
 
 # | Approximate solution | Exact (manufactured) solution |
 # |:---:|:---:|
-# | ![Approximate solution](assets/poisson_demo_uh.png) | ![Exact solution](assets/poisson_demo_uex.png) |
+# | ![Approximate solution](assets/demo_poisson_uh.png) | ![Exact solution](assets/demo_poisson_uex.png) |
