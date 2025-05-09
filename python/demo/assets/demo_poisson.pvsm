@@ -11282,7 +11282,7 @@
         <Domain name="array_list" id="45322.ColumnArrayStatus.array_list"/>
       </Property>
       <Property name="FileName" id="45322.FileName" number_of_elements="1">
-        <Element index="0" value="/Users/antolin/Dev/qugar/doc/results/poisson_projection.pvd"/>
+        <Element index="0" value="/Users/antolin/Dev/qugar/doc/results/demo_poisson.pvd"/>
         <Domain name="files" id="45322.FileName.files"/>
       </Property>
       <Property name="PointArrayInfo" id="45322.PointArrayInfo" number_of_elements="10">
@@ -12218,7 +12218,7 @@
     <ProxyCollection name="sources">
       <Item id="46425" name="approx" logname="ExtractBlock1"/>
       <Item id="46126" name="exact" logname="ExtractBlock2"/>
-      <Item id="45322" name="poisson_projection.pvd" logname="poisson_projection.pvd"/>
+      <Item id="45322" name="demo_poisson.pvd" logname="demo_poisson.pvd"/>
       <Item id="45749" name="wb" logname="ExtractBlock1"/>
     </ProxyCollection>
     <ProxyCollection name="timekeeper">
