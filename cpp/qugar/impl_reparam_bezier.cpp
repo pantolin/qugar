@@ -758,7 +758,7 @@ namespace {
       const auto n_cells_1 = static_cast<int>(reparam.get_num_cells());
       const auto n_pts_1 = static_cast<int>(reparam.get_num_points());
 
-      const auto rng_cells = std::ranges::views::iota(n_cells_0, n_cells_1);
+      const auto rng_cells = std::ranges::iota_view<int, int>{ n_cells_0, n_cells_1 };
       const std::vector<int> cell_ids(rng_cells.begin(), rng_cells.end());
 
       const auto rng_pts = std::ranges::iota_view<int, int>{ n_pts_0, n_pts_1 };
