@@ -5,8 +5,12 @@ Currently, QUGaR is in its early stages. Initially, it supports unfitted domains
 
 While it is intended to be used with any library, QUGaR provides out-of-the-box interoperability with the [FEniCSx](https://fenicsproject.org) Python interfaces. See the provided [demos](https://pantolin.github.io/qugar/main/demos.html).
 
-<img src="python/demo/assets/demo_elasticity_geom.png" width="500">
-<img src="python/demo/assets/demo_elasticity_deformed.png" width="500">
+Here is a demo of QUGaR being used to reparametrize an unfitted hyperelastic body undergoing large deformations.
+
+<img src="python/demo/assets/demo_hyperelasticity_deformation.gif" width="500">
+
+<!-- <img src="python/demo/assets/demo_elasticity_geom.png" width="500">
+<img src="python/demo/assets/demo_elasticity_deformed.png" width="500"> -->
 
 
 # Documentation
