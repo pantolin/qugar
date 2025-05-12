@@ -1,5 +1,11 @@
 var NAVTREEINDEX6 =
 {
+"df/d58/classqugar_1_1UnfittedDomain.html#a2a6adc16cb5e53cdd43e4ad23bb81a6e":[0,0,0,16,53],
+"df/d58/classqugar_1_1UnfittedDomain.html#a2a6adc16cb5e53cdd43e4ad23bb81a6e":[2,0,0,15,53],
+"df/d58/classqugar_1_1UnfittedDomain.html#a2b65515823be0accc41838c80e6fcd97":[0,0,0,16,22],
+"df/d58/classqugar_1_1UnfittedDomain.html#a2b65515823be0accc41838c80e6fcd97":[2,0,0,15,22],
+"df/d58/classqugar_1_1UnfittedDomain.html#a2b709f176a45be2b4dea45b8c1884676":[0,0,0,16,34],
+"df/d58/classqugar_1_1UnfittedDomain.html#a2b709f176a45be2b4dea45b8c1884676":[2,0,0,15,34],
 "df/d58/classqugar_1_1UnfittedDomain.html#a2ba7c5d81c95c06e7e8eac4c933b0d9e":[0,0,0,16,7],
 "df/d58/classqugar_1_1UnfittedDomain.html#a2ba7c5d81c95c06e7e8eac4c933b0d9e":[2,0,0,15,7],
 "df/d58/classqugar_1_1UnfittedDomain.html#a2efccd3fe5e3585b9e513b388d3a910b":[0,0,0,16,16],
@@ -184,7 +190,8 @@ var NAVTREEINDEX6 =
 "functions_v.html":[2,3,0,20],
 "functions_vars.html":[2,3,2],
 "functions_w.html":[2,3,0,21],
-"functions_~.html":[2,3,0,22],
+"functions_z.html":[2,3,0,22],
+"functions_~.html":[2,3,0,23],
 "globals.html":[3,1,0],
 "globals_defs.html":[3,1,2],
 "globals_func.html":[3,1,1],

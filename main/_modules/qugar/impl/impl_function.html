@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>qugar.impl.impl_function &mdash; QUGaR 0.0.7 documentation</title>
+  <title>qugar.impl.impl_function &mdash; QUGaR 0.0.8 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
       <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="../../../_static/dark_mode_css/general.css?v=c0a7eb24" />
@@ -14,7 +14,7 @@
   
       <script src="../../../_static/jquery.js?v=5d32c60e"></script>
       <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../../../_static/documentation_options.js?v=bbaf98b3"></script>
+      <script src="../../../_static/documentation_options.js?v=53b53b71"></script>
       <script src="../../../_static/doctools.js?v=9bcbadda"></script>
       <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
       <script src="../../../_static/dark_mode_js/default_dark.js?v=fd565c74"></script>
@@ -86,7 +86,7 @@
 <span class="c1">#</span>
 <span class="c1"># --------------------------------------------------------------------------</span>
 
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Optional</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">numpy.typing</span> <span class="k">as</span> <span class="nn">npt</span>
@@ -740,10 +740,46 @@
     <span class="k">return</span> <span class="n">periods</span>
 
 
+<span class="k">def</span> <span class="nf">_create_tpms</span><span class="p">(</span>
+    <span class="n">func</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[</span>
+        <span class="p">[</span><span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">],</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]],</span> <span class="n">ImplicitFunc_2D</span> <span class="o">|</span> <span class="n">ImplicitFunc_3D</span>
+    <span class="p">],</span>
+    <span class="n">periods</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]</span> <span class="o">|</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">],</span>
+    <span class="n">z</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ImplicitFunc</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Creates a TPMS implicit function object.</span>
+
+<span class="sd">    This function generates a TPMS implicit function based on the provided periods</span>
+<span class="sd">    and (optionally) z-coordinate.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        func (Callable[[npt.NDArray[np.float32 | np.float64], Optional[float]], ImplicitFunc_2D | ImplicitFunc_3D]):</span>
+<span class="sd">            The function to create the TPMS implicit function.</span>
+<span class="sd">        periods (list[float  |  np.float32  |  np.float64] | npt.NDArray[np.float32  |  np.float64]):</span>
+<span class="sd">            The periods for the TPMS function. It can be a list of floats or a NumPy array.</span>
+<span class="sd">        z (Optional[float  |  np.float32  |  np.float64], optional):</span>
+<span class="sd">            The constant z-coordinate for 2D cases. 2D cases are</span>
+<span class="sd">            generated by setting the z-coordinate to a constant value</span>
+<span class="sd">            and apply the 3D expression.</span>
+<span class="sd">            If the periods are 3D, and a not None value is provided an</span>
+<span class="sd">            exception is raised. Defaults to None.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        ImplicitFunc: An implicit function object representing the TPMS function.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">periods</span> <span class="o">=</span> <span class="n">_process_tpms_periods</span><span class="p">(</span><span class="n">periods</span><span class="p">)</span>
+
+    <span class="k">assert</span> <span class="n">periods</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">2</span> <span class="ow">or</span> <span class="n">z</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;No z-coordinate can be set in 3D case.&quot;</span>
+
+    <span class="k">return</span> <span class="n">ImplicitFunc</span><span class="p">(</span><span class="n">func</span><span class="p">(</span><span class="n">periods</span><span class="p">)</span> <span class="k">if</span> <span class="n">z</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">func</span><span class="p">(</span><span class="n">periods</span><span class="p">,</span> <span class="n">z</span><span class="p">))</span>  <span class="c1"># type: ignore</span>
+
+
 <div class="viewcode-block" id="create_Schoen">
 <a class="viewcode-back" href="../../../generated/qugar.impl.html#qugar.impl.create_Schoen">[docs]</a>
 <span class="k">def</span> <span class="nf">create_Schoen</span><span class="p">(</span>
     <span class="n">periods</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]</span> <span class="o">|</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">],</span>
+    <span class="n">z</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ImplicitFunc</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Creates a Schoen gyroid implicit function object.</span>
@@ -755,6 +791,13 @@
 <span class="sd">    Args:</span>
 <span class="sd">        periods (list[float | np.float32 | np.float64] | npt.NDArray[np.float32 | np.float64]):</span>
 <span class="sd">            The periods for the Schoen function. It can be a list of floats or a NumPy array.</span>
+<span class="sd">        z (Optional[float | np.float32 | np.float64], optional):</span>
+<span class="sd">            The constant z-coordinate for 2D cases. 2D cases are</span>
+<span class="sd">            generated by setting the z-coordinate to a constant value</span>
+<span class="sd">            and apply the 3D expression.</span>
+<span class="sd">            If the periods are 3D, an exception is raised.</span>
+<span class="sd">            Defaults to None.</span>
+
 
 <span class="sd">    Returns:</span>
 <span class="sd">        ImplicitFunc: An implicit function object representing the Schoen function.</span>
@@ -762,7 +805,7 @@
 <span class="sd">    Raises:</span>
 <span class="sd">        AssertionError: If the dimension of the periods is not 2 or 3.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">ImplicitFunc</span><span class="p">(</span><span class="n">qugar</span><span class="o">.</span><span class="n">cpp</span><span class="o">.</span><span class="n">create_Schoen</span><span class="p">(</span><span class="n">_process_tpms_periods</span><span class="p">(</span><span class="n">periods</span><span class="p">)))</span></div>
+    <span class="k">return</span> <span class="n">_create_tpms</span><span class="p">(</span><span class="n">qugar</span><span class="o">.</span><span class="n">cpp</span><span class="o">.</span><span class="n">create_Schoen</span><span class="p">,</span> <span class="n">periods</span><span class="p">,</span> <span class="n">z</span><span class="p">)</span></div>
 
 
 
@@ -770,6 +813,7 @@
 <a class="viewcode-back" href="../../../generated/qugar.impl.html#qugar.impl.create_Schoen_IWP">[docs]</a>
 <span class="k">def</span> <span class="nf">create_Schoen_IWP</span><span class="p">(</span>
     <span class="n">periods</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]</span> <span class="o">|</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">],</span>
+    <span class="n">z</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ImplicitFunc</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Creates a Schoen-IWP gyroid implicit function object.</span>
@@ -781,6 +825,12 @@
 <span class="sd">    Args:</span>
 <span class="sd">        periods (list[float | np.float32 | np.float64] | npt.NDArray[np.float32 | np.float64]):</span>
 <span class="sd">            The periods for the Schoen-IWP function. It can be a list of floats or a NumPy array.</span>
+<span class="sd">        z (Optional[float | np.float32 | np.float64], optional):</span>
+<span class="sd">            The constant z-coordinate for 2D cases. 2D cases are</span>
+<span class="sd">            generated by setting the z-coordinate to a constant value</span>
+<span class="sd">            and apply the 3D expression.</span>
+<span class="sd">            If the periods are 3D, an exception is raised.</span>
+<span class="sd">            Defaults to None.</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        ImplicitFunc: An implicit function object representing the Schoen-IWP function.</span>
@@ -788,7 +838,7 @@
 <span class="sd">    Raises:</span>
 <span class="sd">        AssertionError: If the dimension of the periods is not 2 or 3.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">ImplicitFunc</span><span class="p">(</span><span class="n">qugar</span><span class="o">.</span><span class="n">cpp</span><span class="o">.</span><span class="n">create_SchoenIWP</span><span class="p">(</span><span class="n">_process_tpms_periods</span><span class="p">(</span><span class="n">periods</span><span class="p">)))</span></div>
+    <span class="k">return</span> <span class="n">_create_tpms</span><span class="p">(</span><span class="n">qugar</span><span class="o">.</span><span class="n">cpp</span><span class="o">.</span><span class="n">create_SchoenIWP</span><span class="p">,</span> <span class="n">periods</span><span class="p">,</span> <span class="n">z</span><span class="p">)</span></div>
 
 
 
@@ -796,6 +846,7 @@
 <a class="viewcode-back" href="../../../generated/qugar.impl.html#qugar.impl.create_Schoen_FRD">[docs]</a>
 <span class="k">def</span> <span class="nf">create_Schoen_FRD</span><span class="p">(</span>
     <span class="n">periods</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]</span> <span class="o">|</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">],</span>
+    <span class="n">z</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ImplicitFunc</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Creates a Schoen-FRD gyroid implicit function object.</span>
@@ -807,6 +858,12 @@
 <span class="sd">    Args:</span>
 <span class="sd">        periods (list[float | np.float32 | np.float64] | npt.NDArray[np.float32 | np.float64]):</span>
 <span class="sd">            The periods for the Schoen-FRD function. It can be a list of floats or a NumPy array.</span>
+<span class="sd">        z (Optional[float | np.float32 | np.float64], optional):</span>
+<span class="sd">            The constant z-coordinate for 2D cases. 2D cases are</span>
+<span class="sd">            generated by setting the z-coordinate to a constant value</span>
+<span class="sd">            and apply the 3D expression.</span>
+<span class="sd">            If the periods are 3D, an exception is raised.</span>
+<span class="sd">            Defaults to None.</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        ImplicitFunc: An implicit function object representing the Schoen-FRD function.</span>
@@ -814,7 +871,7 @@
 <span class="sd">    Raises:</span>
 <span class="sd">        AssertionError: If the dimension of the periods is not 2 or 3.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">ImplicitFunc</span><span class="p">(</span><span class="n">qugar</span><span class="o">.</span><span class="n">cpp</span><span class="o">.</span><span class="n">create_SchoenFRD</span><span class="p">(</span><span class="n">_process_tpms_periods</span><span class="p">(</span><span class="n">periods</span><span class="p">)))</span></div>
+    <span class="k">return</span> <span class="n">_create_tpms</span><span class="p">(</span><span class="n">qugar</span><span class="o">.</span><span class="n">cpp</span><span class="o">.</span><span class="n">create_SchoenFRD</span><span class="p">,</span> <span class="n">periods</span><span class="p">,</span> <span class="n">z</span><span class="p">)</span></div>
 
 
 
@@ -822,6 +879,7 @@
 <a class="viewcode-back" href="../../../generated/qugar.impl.html#qugar.impl.create_Fischer_Koch_S">[docs]</a>
 <span class="k">def</span> <span class="nf">create_Fischer_Koch_S</span><span class="p">(</span>
     <span class="n">periods</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]</span> <span class="o">|</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">],</span>
+    <span class="n">z</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ImplicitFunc</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Creates a Fischer-Koch-S gyroid implicit function object.</span>
@@ -834,6 +892,12 @@
 <span class="sd">        periods (list[float | np.float32 | np.float64] | npt.NDArray[np.float32 | np.float64]):</span>
 <span class="sd">            The periods for the Fischer-Koch-S function. It can be a list of floats or</span>
 <span class="sd">            a NumPy array.</span>
+<span class="sd">        z (Optional[float | np.float32 | np.float64], optional):</span>
+<span class="sd">            The constant z-coordinate for 2D cases. 2D cases are</span>
+<span class="sd">            generated by setting the z-coordinate to a constant value</span>
+<span class="sd">            and apply the 3D expression.</span>
+<span class="sd">            If the periods are 3D, an exception is raised.</span>
+<span class="sd">            Defaults to None.</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        ImplicitFunc: An implicit function object representing the Fischer-Koch-S function.</span>
@@ -841,7 +905,7 @@
 <span class="sd">    Raises:</span>
 <span class="sd">        AssertionError: If the dimension of the periods is not 2 or 3.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">ImplicitFunc</span><span class="p">(</span><span class="n">qugar</span><span class="o">.</span><span class="n">cpp</span><span class="o">.</span><span class="n">create_FischerKochS</span><span class="p">(</span><span class="n">_process_tpms_periods</span><span class="p">(</span><span class="n">periods</span><span class="p">)))</span></div>
+    <span class="k">return</span> <span class="n">_create_tpms</span><span class="p">(</span><span class="n">qugar</span><span class="o">.</span><span class="n">cpp</span><span class="o">.</span><span class="n">create_FischerKochS</span><span class="p">,</span> <span class="n">periods</span><span class="p">,</span> <span class="n">z</span><span class="p">)</span></div>
 
 
 
@@ -849,6 +913,7 @@
 <a class="viewcode-back" href="../../../generated/qugar.impl.html#qugar.impl.create_Schwarz_Primitive">[docs]</a>
 <span class="k">def</span> <span class="nf">create_Schwarz_Primitive</span><span class="p">(</span>
     <span class="n">periods</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]</span> <span class="o">|</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">],</span>
+    <span class="n">z</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ImplicitFunc</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Creates a Schwarz Primitive gyroid implicit function object.</span>
@@ -861,6 +926,12 @@
 <span class="sd">        periods (list[float | np.float32 | np.float64] | npt.NDArray[np.float32 | np.float64]):</span>
 <span class="sd">            The periods for the Schwarz Primitive function. It can be a list of floats or</span>
 <span class="sd">            a NumPy array.</span>
+<span class="sd">        z (Optional[float | np.float32 | np.float64], optional):</span>
+<span class="sd">            The constant z-coordinate for 2D cases. 2D cases are</span>
+<span class="sd">            generated by setting the z-coordinate to a constant value</span>
+<span class="sd">            and apply the 3D expression.</span>
+<span class="sd">            If the periods are 3D, an exception is raised.</span>
+<span class="sd">            Defaults to None.</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        ImplicitFunc: An implicit function object representing the Schwarz Primitive function.</span>
@@ -868,7 +939,7 @@
 <span class="sd">    Raises:</span>
 <span class="sd">        AssertionError: If the dimension of the periods is not 2 or 3.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">ImplicitFunc</span><span class="p">(</span><span class="n">qugar</span><span class="o">.</span><span class="n">cpp</span><span class="o">.</span><span class="n">create_SchwarzPrimitive</span><span class="p">(</span><span class="n">_process_tpms_periods</span><span class="p">(</span><span class="n">periods</span><span class="p">)))</span></div>
+    <span class="k">return</span> <span class="n">_create_tpms</span><span class="p">(</span><span class="n">qugar</span><span class="o">.</span><span class="n">cpp</span><span class="o">.</span><span class="n">create_SchwarzPrimitive</span><span class="p">,</span> <span class="n">periods</span><span class="p">,</span> <span class="n">z</span><span class="p">)</span></div>
 
 
 
@@ -876,6 +947,7 @@
 <a class="viewcode-back" href="../../../generated/qugar.impl.html#qugar.impl.create_Schwarz_Diamond">[docs]</a>
 <span class="k">def</span> <span class="nf">create_Schwarz_Diamond</span><span class="p">(</span>
     <span class="n">periods</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]</span> <span class="o">|</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">],</span>
+    <span class="n">z</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ImplicitFunc</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Creates a Schwarz Diamond gyroid implicit function object.</span>
@@ -888,6 +960,12 @@
 <span class="sd">        periods (list[float | np.float32 | np.float64] | npt.NDArray[np.float32 | np.float64]):</span>
 <span class="sd">            The periods for the Schwarz Diamond function. It can be a list of floats or</span>
 <span class="sd">            a NumPy array.</span>
+<span class="sd">        z (Optional[float | np.float32 | np.float64], optional):</span>
+<span class="sd">            The constant z-coordinate for 2D cases. 2D cases are</span>
+<span class="sd">            generated by setting the z-coordinate to a constant value</span>
+<span class="sd">            and apply the 3D expression.</span>
+<span class="sd">            If the periods are 3D, an exception is raised.</span>
+<span class="sd">            Defaults to None.</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        ImplicitFunc: An implicit function object representing the Schwarz Diamond function.</span>
@@ -895,7 +973,7 @@
 <span class="sd">    Raises:</span>
 <span class="sd">        AssertionError: If the dimension of the periods is not 2 or 3.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">ImplicitFunc</span><span class="p">(</span><span class="n">qugar</span><span class="o">.</span><span class="n">cpp</span><span class="o">.</span><span class="n">create_SchwarzDiamond</span><span class="p">(</span><span class="n">_process_tpms_periods</span><span class="p">(</span><span class="n">periods</span><span class="p">)))</span></div>
+    <span class="k">return</span> <span class="n">_create_tpms</span><span class="p">(</span><span class="n">qugar</span><span class="o">.</span><span class="n">cpp</span><span class="o">.</span><span class="n">create_SchwarzDiamond</span><span class="p">,</span> <span class="n">periods</span><span class="p">,</span> <span class="n">z</span><span class="p">)</span></div>
 
 </pre></div>
 
