@@ -18,4 +18,5 @@
       CustomForm
       ds_bdry_unf
       LinearProblem
+      NonlinearProblem
    
