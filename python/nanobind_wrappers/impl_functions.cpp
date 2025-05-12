@@ -805,21 +805,44 @@ namespace {
 
     const std::string func_name{ "create_" + name_prefix };
 
-    module.def(
-      func_name.c_str(),
-      [](const std::array<real, dim> &periods_arr) {
-        Point<dim> periods;
-        for (int dir = 0; dir < dim; ++dir) {
-          periods(dir) = at(periods_arr, dir);
-        }
-        return std::make_shared<TPMS>(periods);
-      },
-      nb::arg("periods"));
+    if constexpr (dim == 2) {
+      module.def(
+        func_name.c_str(),
+        [](const std::array<real, dim> &periods_arr, const real z) {
+          Point<dim> periods;
+          for (int dir = 0; dir < dim; ++dir) {
+            periods(dir) = at(periods_arr, dir);
+          }
+          return std::make_shared<TPMS>(periods, z);
+        },
+        nb::arg("periods"),
+        nb::arg("z") = numbers::zero);
 
-    module.def(
-      func_name.c_str(),
-      [](const npPointConst<dim> &periods) { return std::make_shared<TPMS>(transform_point<dim>(periods)); },
-      nb::arg("periods"));
+      module.def(
+        func_name.c_str(),
+        [](const npPointConst<dim> &periods, const real z) {
+          return std::make_shared<TPMS>(transform_point<dim>(periods), z);
+        },
+        nb::arg("periods"),
+        nb::arg("z") = numbers::zero);
+
+    } else {
+      module.def(
+        func_name.c_str(),
+        [](const std::array<real, dim> &periods_arr) {
+          Point<dim> periods;
+          for (int dir = 0; dir < dim; ++dir) {
+            periods(dir) = at(periods_arr, dir);
+          }
+          return std::make_shared<TPMS>(periods);
+        },
+        nb::arg("periods"));
+
+      module.def(
+        func_name.c_str(),
+        [](const npPointConst<dim> &periods) { return std::make_shared<TPMS>(transform_point<dim>(periods)); },
+        nb::arg("periods"));
+    }
   }
 
   template<int dim> void declare_tpms_functions(nanobind::module_ &module)

@@ -21,6 +21,8 @@
 #include <qugar/domain_function.hpp>
 #include <qugar/vector.hpp>
 
+#include <qugar/numbers.hpp>
+#include <qugar/point.hpp>
 #include <qugar/types.hpp>
 
 //! Namespace for Triple-Periodic Minimal Surfaces. Namely, Schoen gyroid, Schoen IWP, Scheon FRD, Fischer-Koch S,
@@ -32,23 +34,51 @@ template<int dim> class TPMSBase : public qugar::impl::ImplicitFunc<dim>
 protected:
   //! Constructor.
   //! @param mnq Function periods.
-  explicit TPMSBase(const Vector<real, dim> &mnq);
+  //! @param z Constant z coordinate for 2D functions.
+  template<int dim_aux = dim>
+    requires(dim == dim_aux && dim_aux == 2)
+  TPMSBase(const Vector<real, 2> &mnq, real z) : z_(z)
+  {
+    mnq_(0) = mnq(0);
+    mnq_(1) = mnq(1);
+  }
+
+  //! Constructor.
+  //! @param mnq Function periods.
+  template<int dim_aux = dim>
+    requires(dim == dim_aux && dim_aux == 3)
+  explicit TPMSBase(const Vector<real, 3> &mnq) : mnq_(mnq)
+  {}
+
+  TPMSBase() = default;
 
   //! Function periods.
-  Vector<real, 3> mnq_;
+  Vector<real, 3> mnq_{ numbers::one };
+
+  //! Constant z coordinate for 2D functions.
+  real z_{ numbers::zero };
 };
 
 // NOLINTNEXTLINE (cppcoreguidelines-macro-usage)
 #define declare_tpms(TPMS_NAME)                                                                 \
   template<int dim> class TPMS_NAME : public TPMSBase<dim>                                      \
   {                                                                                             \
+    using Parent = TPMSBase<dim>;                                                               \
     template<typename T> using Gradient = qugar::impl::ImplicitFunc<dim>::template Gradient<T>; \
     template<typename T> using Hessian = qugar::impl::ImplicitFunc<dim>::template Hessian<T>;   \
                                                                                                 \
   public:                                                                                       \
-    explicit TPMS_NAME(const Vector<real, dim> &mnq);                                           \
+    TPMS_NAME() = default;                                                                      \
                                                                                                 \
-    TPMS_NAME();                                                                                \
+    template<int dim_aux = dim>                                                                 \
+      requires(dim == dim_aux && dim_aux == 2)                                                  \
+    explicit TPMS_NAME(const Vector<real, dim> &mnq, real z) : Parent(mnq, z)                   \
+    {}                                                                                          \
+                                                                                                \
+    template<int dim_aux = dim>                                                                 \
+      requires(dim == dim_aux && dim_aux == 3)                                                  \
+    explicit TPMS_NAME(const Vector<real, dim> &mnq) : Parent(mnq)                              \
+    {}                                                                                          \
                                                                                                 \
     [[nodiscard]] virtual real operator()(const Point<dim> &point) const final;                 \
                                                                                                 \
@@ -63,11 +93,11 @@ protected:
     [[nodiscard]] virtual Hessian<real> hessian(const Point<dim> &point) const final;           \
                                                                                                 \
   private:                                                                                      \
-    template<typename T> [[nodiscard]] T eval_(const Point<dim, T> &point) const;               \
+    template<typename T> [[nodiscard]] T eval_(const Point<3, T> &point) const;                 \
                                                                                                 \
-    template<typename T> [[nodiscard]] Gradient<T> grad_(const Point<dim, T> &point) const;     \
+    template<typename T> [[nodiscard]] Gradient<T> grad_(const Point<3, T> &point) const;       \
                                                                                                 \
-    template<typename T> [[nodiscard]] Hessian<T> hessian_(const Point<dim, T> &point) const;   \
+    template<typename T> [[nodiscard]] Hessian<T> hessian_(const Point<3, T> &point) const;     \
   };
 
 //! @brief Schoen's gyroid function.
