@@ -1,0 +1,370 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>qugar.dolfinx.boundary &mdash; QUGaR 0.0.8 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/dark_mode_css/general.css?v=c0a7eb24" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/dark_mode_css/dark.css?v=70edf1c7" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=53b53b71"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../../../_static/dark_mode_js/default_dark.js?v=fd565c74"></script>
+      <script src="../../../_static/dark_mode_js/theme_switcher.js?v=358d3910"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            QUGaR
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../demos.html">Demos</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api.html">API reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../developer.html">Developer resources</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../contributing.html">Contributing</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">QUGaR</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">qugar.dolfinx.boundary</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for qugar.dolfinx.boundary</h1><div class="highlight"><pre>
+<span></span><span class="c1"># --------------------------------------------------------------------------</span>
+<span class="c1">#</span>
+<span class="c1"># Copyright (C) 2025-present by Pablo Antolin</span>
+<span class="c1">#</span>
+<span class="c1"># This file is part of the QUGaR library.</span>
+<span class="c1">#</span>
+<span class="c1"># SPDX-License-Identifier:    MIT</span>
+<span class="c1">#</span>
+<span class="c1"># --------------------------------------------------------------------------</span>
+
+<span class="s2">&quot;Data structures for computing quantities on custom boundaries.&quot;</span>
+
+<span class="kn">from</span> <span class="nn">qugar.utils</span> <span class="kn">import</span> <span class="n">has_FEniCSx</span>
+
+<span class="k">if</span> <span class="ow">not</span> <span class="n">has_FEniCSx</span><span class="p">:</span>
+    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;FEniCSx installation not found is required.&quot;</span><span class="p">)</span>
+
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span>
+
+<span class="kn">import</span> <span class="nn">dolfinx.fem</span>
+<span class="kn">import</span> <span class="nn">dolfinx.mesh</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">numpy.typing</span> <span class="k">as</span> <span class="nn">npt</span>
+<span class="kn">import</span> <span class="nn">ufl</span>
+<span class="kn">from</span> <span class="nn">ufl.geometry</span> <span class="kn">import</span> <span class="n">Jacobian</span>
+<span class="kn">from</span> <span class="nn">ufl.measure</span> <span class="kn">import</span> <span class="n">integral_type_to_measure_name</span>
+<span class="kn">from</span> <span class="nn">ufl.operators</span> <span class="kn">import</span> <span class="n">inv</span><span class="p">,</span> <span class="n">transpose</span>
+<span class="kn">from</span> <span class="nn">ufl.protocols</span> <span class="kn">import</span> <span class="n">id_or_none</span>
+
+
+<span class="k">class</span> <span class="nc">ParamNormal</span><span class="p">(</span><span class="n">dolfinx</span><span class="o">.</span><span class="n">fem</span><span class="o">.</span><span class="n">Constant</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Constant type for defining the normal of a custom unfitted</span>
+<span class="sd">    boundary in the parametric domain of the cell.</span>
+
+<span class="sd">    It is a constant vector set to zero, with the same number of</span>
+<span class="sd">    coordinates as the normal, whose only purpose is to represent the</span>
+<span class="sd">    normal. Its value will be determined at runtime at</span>
+<span class="sd">    every quadrature point of the boundary.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">domain</span><span class="p">:</span> <span class="n">ufl</span><span class="o">.</span><span class="n">AbstractDomain</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initializes the normals.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            domain (ufl.AbstractDomain): An AbstractDomain object (most</span>
+<span class="sd">                often a Mesh) to which the normal is associated to.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">domain</span><span class="p">,</span> <span class="n">dolfinx</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">Mesh</span><span class="p">)</span>
+
+        <span class="n">dtype</span> <span class="o">=</span> <span class="n">domain</span><span class="o">.</span><span class="n">geometry</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">dtype</span>
+        <span class="n">param_dim</span> <span class="o">=</span> <span class="n">domain</span><span class="o">.</span><span class="n">topology</span><span class="o">.</span><span class="n">dim</span>
+
+        <span class="n">zeros</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">param_dim</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">domain</span><span class="p">,</span> <span class="n">zeros</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_compute_vector_norm</span><span class="p">(</span><span class="n">vec</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Computes the norm of a vector.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        vec: Vector whose norm is computed.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Computed norm.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">ufl</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">ufl</span><span class="o">.</span><span class="n">inner</span><span class="p">(</span><span class="n">vec</span><span class="p">,</span> <span class="n">vec</span><span class="p">))</span>
+
+
+<div class="viewcode-block" id="mapped_normal">
+<a class="viewcode-back" href="../../../generated/qugar.dolfinx.html#qugar.dolfinx.mapped_normal">[docs]</a>
+<span class="k">def</span> <span class="nf">mapped_normal</span><span class="p">(</span><span class="n">domain</span><span class="p">:</span> <span class="n">ufl</span><span class="o">.</span><span class="n">AbstractDomain</span> <span class="o">|</span> <span class="n">dolfinx</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">Mesh</span><span class="p">,</span> <span class="n">normalize</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns a normal vector of a custom unfitted boundary mapped with</span>
+<span class="sd">    the domain&#39;s geometry. I.e., the normal in the physical space.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        domain (ufl.AbstractDomain | dolfinx.mesh.Mesh): An AbstractDomain object (most</span>
+<span class="sd">            often a Mesh) to which the normal is associated to.</span>
+<span class="sd">        normalize (bool): If ``True``, the returned normal is</span>
+<span class="sd">            normalized, otherwise (if ``False``) it is not normalized</span>
+<span class="sd">            and its norm is the ratio of the deformed to reference</span>
+<span class="sd">            area cells.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Mapped normal.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">N</span> <span class="o">=</span> <span class="n">ParamNormal</span><span class="p">(</span><span class="n">domain</span><span class="p">)</span>
+
+    <span class="n">DF</span> <span class="o">=</span> <span class="n">Jacobian</span><span class="p">(</span><span class="n">domain</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">DF</span><span class="o">.</span><span class="n">ufl_shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="n">DF</span><span class="o">.</span><span class="n">ufl_shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+        <span class="n">metric</span> <span class="o">=</span> <span class="n">transpose</span><span class="p">(</span><span class="n">DF</span><span class="p">)</span> <span class="o">*</span> <span class="n">DF</span>  <span class="c1"># type: ignore</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="n">DF</span> <span class="o">*</span> <span class="n">inv</span><span class="p">(</span><span class="n">metric</span><span class="p">)</span> <span class="o">*</span> <span class="n">N</span>  <span class="c1"># type: ignore</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="n">transpose</span><span class="p">(</span><span class="n">inv</span><span class="p">(</span><span class="n">DF</span><span class="p">))</span> <span class="o">*</span> <span class="n">N</span>  <span class="c1"># type: ignore</span>
+
+    <span class="k">if</span> <span class="n">normalize</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">n</span> <span class="o">/</span> <span class="n">_compute_vector_norm</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">n</span></div>
+
+
+
+<div class="viewcode-block" id="ds_bdry_unf">
+<a class="viewcode-back" href="../../../generated/qugar.dolfinx.html#qugar.dolfinx.ds_bdry_unf">[docs]</a>
+<span class="k">class</span> <span class="nc">ds_bdry_unf</span><span class="p">(</span><span class="n">ufl</span><span class="o">.</span><span class="n">Measure</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;This is a new ufl Measure class for an unfitted custom boundary.</span>
+
+<span class="sd">    It has the same functionalities as ufl.dx with the only difference</span>
+<span class="sd">    that when multiplied by an integrand, it introduces the necessary</span>
+<span class="sd">    correction for accounting for the boundary orientation by using</span>
+<span class="sd">    its normal.</span>
+
+<span class="sd">    In order to differentiate the generated measure from others,</span>
+<span class="sd">    sets the option `unfitted_custom_boundary` equal to ``True`` in</span>
+<span class="sd">    the quadrature&#39;s metadata, and uses a custom quadrature with two</span>
+<span class="sd">    (fake) points.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Static definition of (fake) custom quadrature points and weights.</span>
+    <span class="n">_weights</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mf">1.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.0</span><span class="p">]</span>
+    <span class="n">_points_2D</span> <span class="o">=</span> <span class="p">[[</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">],</span> <span class="p">[</span><span class="mf">0.2</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">]]</span>
+    <span class="n">_points_3D</span> <span class="o">=</span> <span class="p">[[</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">],</span> <span class="p">[</span><span class="mf">0.2</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">]]</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">domain</span><span class="p">:</span> <span class="n">ufl</span><span class="o">.</span><span class="n">AbstractDomain</span> <span class="o">|</span> <span class="n">dolfinx</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">Mesh</span><span class="p">,</span>
+        <span class="n">subdomain_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;everywhere&quot;</span><span class="p">,</span>
+        <span class="n">metadata</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">subdomain_data</span><span class="p">:</span> <span class="n">dolfinx</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">MeshTags</span>
+        <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">]]]</span>
+        <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">degree</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            domain (ufl.AbstractDomain | dolfinx.mesh.Mesh): An AbstractDomain object (most</span>
+<span class="sd">                often a Mesh).</span>
+<span class="sd">            subdomain_id (str | int | tuple[int], optional): either</span>
+<span class="sd">                string &quot;everywhere&quot;, a single subdomain id int, or tuple</span>
+<span class="sd">                of ints. Defaults to &quot;everywhere&quot;.</span>
+<span class="sd">            metadata (dict | None, optional): Dictionary with additional</span>
+<span class="sd">                compiler-specific parameters for optimization or</span>
+<span class="sd">                debugging of generated code. Defaults to None.</span>
+<span class="sd">            subdomain_data (dolfinx.mesh.MeshTags | list[tuple[int, npt.NDArray[np.int32]]] | None, optional):</span>
+<span class="sd">                Object representing data to interpret subdomain_id with. Defaults to None.</span>
+<span class="sd">            degree (int, optional): The degree of the quadrature rule.</span>
+<span class="sd">        &quot;&quot;&quot;</span>  <span class="c1"># noqa: E501</span>
+
+        <span class="k">assert</span> <span class="n">domain</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+
+        <span class="n">metadata</span> <span class="o">=</span> <span class="p">{}</span> <span class="k">if</span> <span class="n">metadata</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">metadata</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">degree</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">metadata</span><span class="p">[</span><span class="s2">&quot;quadrature_degree&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">degree</span>
+
+        <span class="n">metadata</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_create_custom_metadata</span><span class="p">(</span><span class="n">domain</span><span class="p">))</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="n">integral_type</span><span class="o">=</span><span class="s2">&quot;cell&quot;</span><span class="p">,</span>
+            <span class="n">domain</span><span class="o">=</span><span class="n">domain</span><span class="p">,</span>
+            <span class="n">subdomain_id</span><span class="o">=</span><span class="n">subdomain_id</span><span class="p">,</span>  <span class="c1"># type: ignore</span>
+            <span class="n">metadata</span><span class="o">=</span><span class="n">metadata</span><span class="p">,</span>
+            <span class="n">subdomain_data</span><span class="o">=</span><span class="n">subdomain_data</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="n">n</span> <span class="o">=</span> <span class="n">mapped_normal</span><span class="p">(</span><span class="n">domain</span><span class="p">,</span> <span class="n">normalize</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="c1"># This is the missing term in Nanson&#39;s formula (the Jacobian</span>
+        <span class="c1"># determinant should by already included in dx).</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_measure_complement</span> <span class="o">=</span> <span class="n">_compute_vector_norm</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_integral_type_mod</span> <span class="o">=</span> <span class="s2">&quot;unfitted_custom_boundary&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_measure_name</span> <span class="o">=</span> <span class="s2">&quot;ds_bdry_unf&quot;</span>
+
+    <span class="k">def</span> <span class="nf">_create_custom_metadata</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">domain</span><span class="p">:</span> <span class="n">ufl</span><span class="o">.</span><span class="n">AbstractDomain</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Creates the custom measure metadata. It has an associated</span>
+<span class="sd">        fake quadrature with only two points in the reference domain,</span>
+<span class="sd">        and includes the flag ``custom_unfitted_boundary`` set to</span>
+<span class="sd">        ``True``.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            domain (ufl.AbstractDomain): An AbstractDomain object (most</span>
+<span class="sd">                often a Mesh).</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            dict: Generated metadata.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">domain</span><span class="p">,</span> <span class="n">dolfinx</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">Mesh</span><span class="p">)</span>
+
+        <span class="n">tdim</span> <span class="o">=</span> <span class="n">domain</span><span class="o">.</span><span class="n">topology</span><span class="o">.</span><span class="n">dim</span>
+        <span class="n">points</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_points_2D</span> <span class="k">if</span> <span class="n">tdim</span> <span class="o">==</span> <span class="mi">2</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">_points_3D</span>
+
+        <span class="n">metadata</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">metadata</span><span class="p">[</span><span class="s2">&quot;quadrature_points&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">points</span>
+        <span class="n">metadata</span><span class="p">[</span><span class="s2">&quot;quadrature_weights&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_weights</span>
+        <span class="n">metadata</span><span class="p">[</span><span class="s2">&quot;quadrature_rule&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;custom&quot;</span>
+        <span class="n">metadata</span><span class="p">[</span><span class="s2">&quot;custom_unfitted_boundary&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+
+        <span class="k">return</span> <span class="n">metadata</span>
+
+    <span class="k">def</span> <span class="fm">__rmul__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">integrand</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Multiply a scalar expression with measure to construct a form</span>
+<span class="sd">        with a single integral.</span>
+
+<span class="sd">        This is to implement the notation</span>
+<span class="sd">        ``form = integrand * measure_complement * self`` where</span>
+<span class="sd">        ``measure_complement`` is the norm of a mapped normal to the</span>
+<span class="sd">        boundary, according to Nanson&#39;s formula.</span>
+
+<span class="sd">        Integration properties are taken from this Measure object.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__rmul__</span><span class="p">(</span><span class="n">integrand</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_measure_complement</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Formats the class instance as a string.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            str: Generated string.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">parent_name</span> <span class="o">=</span> <span class="n">integral_type_to_measure_name</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_integral_type</span><span class="p">]</span>
+        <span class="n">parent_str</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__str__</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">parent_str</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">parent_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_measure_name</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return a repr string for this Measure.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            str: Generated representation.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">parent_repr</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__repr__</span><span class="p">()</span>
+        <span class="n">new_repr</span> <span class="o">=</span> <span class="n">parent_repr</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="s2">&quot;Measure&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">new_repr</span> <span class="o">=</span> <span class="n">new_repr</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_integral_type</span><span class="p">),</span> <span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_integral_type_mod</span><span class="p">),</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">new_repr</span>
+
+    <span class="k">def</span> <span class="fm">__hash__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return a hash value for this Measure.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            int: Generated hash.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">metadata_hashdata</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">sorted</span><span class="p">((</span><span class="n">k</span><span class="p">,</span> <span class="nb">id</span><span class="p">(</span><span class="n">v</span><span class="p">))</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_metadata</span><span class="o">.</span><span class="n">items</span><span class="p">())))</span>
+        <span class="n">hashdata</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_integral_type_mod</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_subdomain_id</span><span class="p">,</span>
+            <span class="nb">hash</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_domain</span><span class="p">),</span>
+            <span class="n">metadata_hashdata</span><span class="p">,</span>
+            <span class="n">id_or_none</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_subdomain_data</span><span class="p">),</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="nb">hash</span><span class="p">(</span><span class="n">hashdata</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Checks if two `ds_bdry_unf` measures are equal.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            bool: ``True`` if both measures are equal, ``False``</span>
+<span class="sd">            otherwise.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">ds_bdry_unf</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__eq__</span><span class="p">(</span><span class="n">other</span><span class="p">)</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Pablo Antolin.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
