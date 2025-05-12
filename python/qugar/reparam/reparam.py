@@ -90,6 +90,7 @@ class UnfDomainReparamMesh:
         """
         self._unf_domain = unf_domain
         self._cpp_object = cpp_object
+        self._tdim = self._cpp_object.dim
 
     @property
     def cpp_object(self) -> ReparamMesh:
@@ -126,13 +127,12 @@ class UnfDomainReparamMesh:
         Returns:
             dlf_mesh.Mesh: The generated DOLFINx mesh object.
         """
-        mesh_tdim = self._unf_domain.mesh.tdim
 
         degree = self._cpp_object.order - 1
         points = self._cpp_object.points
         conn = self._cpp_object.wirebasket_conn if wirebasket else self._cpp_object.cells_conn
 
-        reparam_tdim = 1 if wirebasket else mesh_tdim
+        reparam_tdim = 1 if wirebasket else self._tdim
         conn_mask = DOLFINx_to_lexicg_nodes(reparam_tdim, degree)
         conn = conn[:, conn_mask]
 

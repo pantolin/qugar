@@ -12,7 +12,7 @@ Functionalities for generating PyVista data structures of grids, unfitted domain
 quadratures and reparameterizations.
 """
 
-from typing import Any, Optional, cast
+from typing import Any, Optional, TypeAlias, cast
 
 from qugar.utils import has_FEniCSx, has_PyVista
 
@@ -698,13 +698,17 @@ def grid_tp_to_PyVista(grid: Any) -> pv.Grid:
             assert False, "Not implemented yet."
 
 
-def reparam_mesh_to_PyVista(reparam: Any) -> pv.MultiBlock:
+ReparamMesh: TypeAlias = ReparamMesh_1_2 | ReparamMesh_2_2 | ReparamMesh_2_3 | ReparamMesh_3_3
+
+
+def _reparam_mesh_to_PyVista(
+    reparam: ReparamMesh,
+) -> pv.MultiBlock:
     """
     Converts a reparameterization mesh object to a PyVista `MultiBlock`.
 
     Args:
-        reparam (ReparamMesh | UnfDomainReparamMesh): The reparametrized mesh object
-            to be converted.
+        reparam (ReparamMesh): The reparametrized mesh object to be converted.
 
     Returns:
         pv.MultiBlock: Reparameterization translated to PyVista data structures.
@@ -715,20 +719,14 @@ def reparam_mesh_to_PyVista(reparam: Any) -> pv.MultiBlock:
 
     """
 
-    if isinstance(reparam, (ReparamMesh_1_2 | ReparamMesh_2_2 | ReparamMesh_2_3 | ReparamMesh_3_3)):
-        reparam_ = reparam
-    else:
-        assert has_FEniCSx, "FEniCSx is required to convert a TensorProductMesh to PyVista."
-        from qugar.reparam import UnfDomainReparamMesh
+    assert isinstance(
+        reparam, (ReparamMesh_1_2, ReparamMesh_2_2, ReparamMesh_2_3, ReparamMesh_3_3)
+    ), "Invalid type."
 
-        assert isinstance(reparam, UnfDomainReparamMesh), "Invalid type."
+    dim = reparam.dim
+    degree = reparam.order - 1
 
-        reparam_ = reparam.cpp_object
-
-    dim = reparam_.dim
-    degree = reparam_.order - 1
-
-    points = reparam_.points
+    points = reparam.points
     # Enforcing points to be 3D.
     if points.shape[1] == 2:
         zeros = np.zeros([points.shape[0], 1], dtype=points.dtype)
@@ -747,6 +745,42 @@ def reparam_mesh_to_PyVista(reparam: Any) -> pv.MultiBlock:
 
         return pv.UnstructuredGrid(new_conn, cell_types, points)
 
-    int_grid = _create_unstructured_grid(reparam_.cells_conn, dim)
-    wb_grid = _create_unstructured_grid(reparam_.wirebasket_conn, dim=1)
+    int_grid = _create_unstructured_grid(reparam.cells_conn, dim)
+    wb_grid = _create_unstructured_grid(reparam.wirebasket_conn, dim=1)
     return pv.MultiBlock({"reparam": int_grid, "wirebasket": wb_grid})
+
+
+def reparam_mesh_to_PyVista(reparam: Any) -> pv.MultiBlock:
+    """
+    Converts a reparameterization mesh object to a PyVista `MultiBlock`.
+
+    Args:
+        reparam (ReparamMesh | UnfDomainReparamMesh): The reparametrized mesh object
+            to be converted.
+
+    Returns:
+        pv.MultiBlock: Reparameterization translated to PyVista data structures.
+            It is a multiblock containing two unstructured grids: one for the
+            reparameterization itselt and one for the reparmeterization's wirebasket.
+            They can be accessed using ``.get("reparam")`` and ``.get("wirebasket")``,
+            respectively.
+
+    """
+
+    if isinstance(reparam, (ReparamMesh_1_2 | ReparamMesh_2_2 | ReparamMesh_2_3 | ReparamMesh_3_3)):
+        return _reparam_mesh_to_PyVista(reparam)
+    else:
+        assert has_FEniCSx, "FEniCSx is required to convert a TensorProductMesh to PyVista."
+        import dolfinx.plot as plot_dlf
+
+        from qugar.reparam import UnfDomainReparamMesh
+
+        assert isinstance(reparam, UnfDomainReparamMesh), "Invalid type."
+
+        mesh = reparam.create_mesh()
+        pv_mesh = pv.UnstructuredGrid(*plot_dlf.vtk_mesh(mesh))
+
+        mesh_wb = reparam.create_mesh(wirebasket=True)
+        pv_mesh_wb = pv.UnstructuredGrid(*plot_dlf.vtk_mesh(mesh_wb))
+
+        return pv.MultiBlock({"reparam": pv_mesh, "wirebasket": pv_mesh_wb})
