@@ -3,7 +3,15 @@ QUGaR is a C++ library designed to generate efficient quadrature rules for compu
 
 Currently, QUGaR is in its early stages. Initially, it supports unfitted domains created by implicit functions via [Algoim](https://algoim.github.io). Future updates will include support for 2D and 3D [B-reps](https://en.wikipedia.org/wiki/Boundary_representation).
 
-While it is intended to be used with any library, QUGaR provides out-of-the-box interoperability with the [FEniCSx](https://fenicsproject.org) Python interfaces. A gentle introduction can be found [here](https://pantolin.github.io/qugar/main/generated/demos/demo_div_thm.html).
+While it is intended to be used with any library, QUGaR provides out-of-the-box interoperability with the [FEniCSx](https://fenicsproject.org) Python interfaces. See the provided [demos](https://pantolin.github.io/qugar/main/demos.html).
+
+Here is a demo of QUGaR being used to reparametrize an unfitted hyperelastic body undergoing large deformations.
+
+<img src="python/demo/assets/demo_hyperelasticity_deformation.gif" width="500">
+
+<!-- <img src="python/demo/assets/demo_elasticity_geom.png" width="500">
+<img src="python/demo/assets/demo_elasticity_deformed.png" width="500"> -->
+
 
 # Documentation
 

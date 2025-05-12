@@ -63,7 +63,7 @@ TEST_CASE("Schwarz-Diamond 2D function quadrature", "[impl]")
   using namespace qugar;
   using namespace qugar::impl;
 
-  const auto func = std::make_shared<tpms::SchwarzDiamond<2>>(qugar::Vector<real, 2>(1., 1.));
+  const auto func = std::make_shared<tpms::SchwarzDiamond<2>>(qugar::Vector<real, 2>(1., 1.), numbers::zero);
   const auto grid = std::make_shared<CartGridTP<2>>(std::array<std::size_t, 2>({ 12, 12 }));
 
   const UnfittedImplDomain<2> unf_domain(func, grid);
@@ -155,7 +155,7 @@ TEST_CASE("Schoen Gyroid 2D function quadrature", "[impl]")
   using namespace qugar;
   using namespace qugar::impl;
 
-  const auto func = std::make_shared<tpms::Schoen<2>>(qugar::Vector<real, 2>(1., 1.));
+  const auto func = std::make_shared<tpms::Schoen<2>>(qugar::Vector<real, 2>(1., 1.), numbers::zero);
   const auto grid = std::make_shared<CartGridTP<2>>(std::array<std::size_t, 2>({ 4, 4 }));
 
   const UnfittedImplDomain<2> unf_domain(func, grid);

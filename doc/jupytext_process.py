@@ -62,8 +62,10 @@ def process_python_demos(input_dir: str, output_dir: str):
             # so demo_assets becomes "generated/demos/assets"
             target_demo_assets_dir = demo_dir / "assets"
             target_demo_assets_dir.mkdir(parents=True, exist_ok=True)
-            # Copy all png files from the source assets directory
+            # Copy all png and pdf files from the source assets directory
             for file in assets_dir.glob("**/*.png"):
+                shutil.copy(file, target_demo_assets_dir / file.name)
+            for file in assets_dir.glob("**/*.pdf"):
                 shutil.copy(file, target_demo_assets_dir / file.name)
 
 

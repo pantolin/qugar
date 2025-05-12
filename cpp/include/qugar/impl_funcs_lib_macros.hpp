@@ -21,7 +21,7 @@
 
 // NOLINTBEGIN (cppcoreguidelines-macro-usage, bugprone-macro-parentheses)
 #define declare_impl_func_virtual_interface                                                                         \
-  template<typename T> using Hessian = ImplicitFunc<dim>::template Hessian<T>;                                      \
+  template<typename T> using Hessian = typename ImplicitFunc<dim>::template Hessian<T>;                             \
                                                                                                                     \
   [[nodiscard]] virtual real operator()(const Point<dim> &point) const final;                                       \
                                                                                                                     \

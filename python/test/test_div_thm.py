@@ -327,7 +327,9 @@ def test_sphere(
     if negative:
         func = qugar.impl.create_negative(func)
 
-    check_div_thm(func, n_cells, n_quad_pts, exclude_empty_cells, use_tags, dtype)
+    rtol = 1.0e-4
+    atol = 1.0e-8
+    check_div_thm(func, n_cells, n_quad_pts, exclude_empty_cells, use_tags, dtype, rtol, atol)
 
 
 @pytest.mark.parametrize("n_cells", [8])
