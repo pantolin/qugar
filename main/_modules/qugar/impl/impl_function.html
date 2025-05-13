@@ -128,10 +128,55 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            int: Function&#39;s dimension.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cpp_object</span><span class="o">.</span><span class="n">dim</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cpp_object</span><span class="o">.</span><span class="n">dim</span>
+
+<div class="viewcode-block" id="ImplicitFunc.eval">
+<a class="viewcode-back" href="../../../generated/qugar.impl.html#qugar.impl.ImplicitFunc.eval">[docs]</a>
+    <span class="k">def</span> <span class="nf">eval</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">points</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Evaluates the implicit function at the given points.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            points (npt.NDArray[np.float32 | np.float64]):</span>
+<span class="sd">                Points to evaluate the implicit function.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            npt.NDArray[np.float32 | np.float64]: Evaluated values of the implicit function.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="n">points</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">dim</span><span class="p">,</span> <span class="p">(</span>
+            <span class="s2">&quot;Invalid points dimension. It must match the function&#39;s dimension&quot;</span>
+        <span class="p">)</span>
+
+        <span class="n">points_</span> <span class="o">=</span> <span class="n">points</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span> <span class="k">if</span> <span class="n">points</span><span class="o">.</span><span class="n">dtype</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span> <span class="k">else</span> <span class="n">points</span>
+        <span class="n">vals</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cpp_object</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="n">points_</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">vals</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span> <span class="k">if</span> <span class="n">points</span><span class="o">.</span><span class="n">dtype</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span> <span class="k">else</span> <span class="n">vals</span></div>
 
 
-    <span class="c1"># TODO: to implement evaluation function for a collection of points.</span>
+<div class="viewcode-block" id="ImplicitFunc.grad">
+<a class="viewcode-back" href="../../../generated/qugar.impl.html#qugar.impl.ImplicitFunc.grad">[docs]</a>
+    <span class="k">def</span> <span class="nf">grad</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">points</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Evaluates the implicit function gradient at the given points.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            points (npt.NDArray[np.float32 | np.float64]):</span>
+<span class="sd">                Points to evaluate the implicit function.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            npt.NDArray[np.float32 | np.float64]: Evaluated gradients</span>
+<span class="sd">            values of the implicit function.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="n">points</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">dim</span><span class="p">,</span> <span class="p">(</span>
+            <span class="s2">&quot;Invalid points dimension. It must match the function&#39;s dimension&quot;</span>
+        <span class="p">)</span>
+
+        <span class="n">points_</span> <span class="o">=</span> <span class="n">points</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span> <span class="k">if</span> <span class="n">points</span><span class="o">.</span><span class="n">dtype</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span> <span class="k">else</span> <span class="n">points</span>
+        <span class="n">vals</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cpp_object</span><span class="o">.</span><span class="n">grad</span><span class="p">(</span><span class="n">points_</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">vals</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span> <span class="k">if</span> <span class="n">points</span><span class="o">.</span><span class="n">dtype</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span> <span class="k">else</span> <span class="n">vals</span></div>
+</div>
+
 
 
 <div class="viewcode-block" id="create_disk">
