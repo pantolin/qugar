@@ -6,8 +6,9 @@ Demos
 These demos illustrate QUGaR usage. Starting with
 :doc:`Divergence theorem demo <generated/demos/demo_div_thm>` is recommended.
 If you are interested in solving PDEs using FEniCSx, suggested next
-steps are :doc:`Poisson problem <generated/demos/demo_poisson>` and
-:doc:`linear elasticity problem <generated/demos/demo_elasticity>`.
+steps are :doc:`Poisson problem <generated/demos/demo_poisson>`,
+:doc:`linear elasticity problem <generated/demos/demo_elasticity>`, and
+:doc:`hyperelasticity problem <generated/demos/demo_hyperelasticity>`.
 
 
 List of all demos
