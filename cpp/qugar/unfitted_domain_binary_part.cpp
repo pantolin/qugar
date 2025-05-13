@@ -8,14 +8,14 @@
 //
 // --------------------------------------------------------------------------
 
-//! @file unfitted_domain_kd_tree.cpp
+//! @file unfitted_domain_binary_part.cpp
 //! @author Pablo Antolin (pablo.antolin@epfl.ch)
 //! @brief Implementation of UnfittedDomain class.
 //! @date 2025-01-21
 //!
 //! @copyright Copyright (c) 2025-present
 
-#include <qugar/unfitted_domain_kd_tree.hpp>
+#include <qugar/unfitted_domain_binary_part.hpp>
 
 #include <qugar/cart_grid_tp.hpp>
 #include <qugar/utils.hpp>
@@ -31,23 +31,23 @@
 namespace qugar {
 
 template<int dim>
-UnfittedKDTree<dim>::UnfittedKDTree(const GridPtr grid)
-  : UnfittedKDTree<dim>(std::make_shared<SubCartGridTP<dim>>(grid))
+UnfittedBinarySpacePart<dim>::UnfittedBinarySpacePart(const GridPtr grid)
+  : UnfittedBinarySpacePart<dim>(std::make_shared<SubCartGridTP<dim>>(grid))
 {}
 
 template<int dim>
-UnfittedKDTree<dim>::UnfittedKDTree(const SubGridPtr subgrid)
+UnfittedBinarySpacePart<dim>::UnfittedBinarySpacePart(const SubGridPtr subgrid)
   : subgrid_(subgrid), status_(ImmersedCellStatus::unknown), children_()
 {
   assert(subgrid_ != nullptr);
 }
 
-template<int dim> bool UnfittedKDTree<dim>::is_leaf() const
+template<int dim> bool UnfittedBinarySpacePart<dim>::is_leaf() const
 {
   return this->get_child(0) == nullptr && this->get_child(1) == nullptr;
 }
 
-template<int dim> void UnfittedKDTree<dim>::set_status(const ImmersedCellStatus &status)
+template<int dim> void UnfittedBinarySpacePart<dim>::set_status(const ImmersedCellStatus &status)
 {
 #ifndef NDEBUG
   assert(this->is_leaf());
@@ -60,35 +60,35 @@ template<int dim> void UnfittedKDTree<dim>::set_status(const ImmersedCellStatus 
 }
 
 
-template<int dim> ImmersedCellStatus UnfittedKDTree<dim>::get_status() const
+template<int dim> ImmersedCellStatus UnfittedBinarySpacePart<dim>::get_status() const
 {
   assert(this->get_child(0) != nullptr && this->get_child(1) != nullptr);
   return this->status_;
 }
 
-template<int dim> auto UnfittedKDTree<dim>::get_subgrid() const -> SubGridPtr
+template<int dim> auto UnfittedBinarySpacePart<dim>::get_subgrid() const -> SubGridPtr
 {
   return this->subgrid_;
 }
 
-template<int dim> auto UnfittedKDTree<dim>::get_grid() const -> GridPtr
+template<int dim> auto UnfittedBinarySpacePart<dim>::get_grid() const -> GridPtr
 {
   return this->subgrid_->get_grid();
 }
 
-template<int dim> auto UnfittedKDTree<dim>::get_child(const int index) -> SelfPtr
+template<int dim> auto UnfittedBinarySpacePart<dim>::get_child(const int index) -> SelfPtr
 {
-  const auto const_child = const_cast<const UnfittedKDTree<dim> &>(*this).get_child(index);
-  return std::const_pointer_cast<UnfittedKDTree<dim>>(const_child);
+  const auto const_child = const_cast<const UnfittedBinarySpacePart<dim> &>(*this).get_child(index);
+  return std::const_pointer_cast<UnfittedBinarySpacePart<dim>>(const_child);
 }
 
-template<int dim> auto UnfittedKDTree<dim>::get_child(const int index) const -> SelfConstPtr
+template<int dim> auto UnfittedBinarySpacePart<dim>::get_child(const int index) const -> SelfConstPtr
 {
   assert(index == 0 || index == 1);
   return at(this->children_, index);
 }
 
-template<int dim> void UnfittedKDTree<dim>::branch()
+template<int dim> void UnfittedBinarySpacePart<dim>::branch()
 {
   assert(this->is_leaf());
   assert(this->status_ == ImmersedCellStatus::unknown);
@@ -96,11 +96,11 @@ template<int dim> void UnfittedKDTree<dim>::branch()
 
   const auto [left, right] = this->subgrid_->split();
 
-  this->children_[0] = std::make_shared<UnfittedKDTree<dim>>(left);
-  this->children_[1] = std::make_shared<UnfittedKDTree<dim>>(right);
+  this->children_[0] = std::make_shared<UnfittedBinarySpacePart<dim>>(left);
+  this->children_[1] = std::make_shared<UnfittedBinarySpacePart<dim>>(right);
 }
 
-template<int dim> bool UnfittedKDTree<dim>::is_in_tree(const std::int64_t cell_id) const
+template<int dim> bool UnfittedBinarySpacePart<dim>::is_in_tree(const std::int64_t cell_id) const
 {
   const auto size = this->get_grid()->get_num_cells_dir();
   return this->subgrid_->get_range().is_in_range(cell_id, size);
@@ -108,7 +108,8 @@ template<int dim> bool UnfittedKDTree<dim>::is_in_tree(const std::int64_t cell_i
 
 template<int dim>
 // NOLINTNEXTLINE (misc-no-recursion)
-std::shared_ptr<const UnfittedKDTree<dim>> UnfittedKDTree<dim>::find_leaf(const std::int64_t cell_id) const
+std::shared_ptr<const UnfittedBinarySpacePart<dim>> UnfittedBinarySpacePart<dim>::find_leaf(
+  const std::int64_t cell_id) const
 {
   assert(this->is_in_tree(cell_id));
   if (this->is_leaf()) {
@@ -124,7 +125,7 @@ std::shared_ptr<const UnfittedKDTree<dim>> UnfittedKDTree<dim>::find_leaf(const 
 template<int dim>
 template<typename Func_0, typename Func_1>
 // NOLINTNEXTLINE (misc-no-recursion)
-void UnfittedKDTree<dim>::transverse_tree(const Func_0 &func_0, const Func_1 &func_1) const
+void UnfittedBinarySpacePart<dim>::transverse_tree(const Func_0 &func_0, const Func_1 &func_1) const
 {
   if (this->is_leaf()) {
     if (func_0(*this)) {
@@ -139,7 +140,7 @@ void UnfittedKDTree<dim>::transverse_tree(const Func_0 &func_0, const Func_1 &fu
 template<int dim>
 template<typename Func_0, typename Func_1>
 // NOLINTNEXTLINE (misc-no-recursion)
-std::size_t UnfittedKDTree<dim>::reduce(const Func_0 &func_0, const Func_1 &func_1) const
+std::size_t UnfittedBinarySpacePart<dim>::reduce(const Func_0 &func_0, const Func_1 &func_1) const
 {
   if (this->is_leaf()) {
     if (func_0(*this)) {
@@ -153,7 +154,7 @@ std::size_t UnfittedKDTree<dim>::reduce(const Func_0 &func_0, const Func_1 &func
 }
 
 template<int dim>
-void UnfittedKDTree<dim>::get_leaves(const ImmersedCellStatus status, std::vector<SelfConstPtr> &leaves) const
+void UnfittedBinarySpacePart<dim>::get_leaves(const ImmersedCellStatus status, std::vector<SelfConstPtr> &leaves) const
 {
   leaves.clear();
   leaves.reserve(this->get_num_leaves(status));
@@ -165,7 +166,8 @@ void UnfittedKDTree<dim>::get_leaves(const ImmersedCellStatus status, std::vecto
 }
 
 template<int dim>
-void UnfittedKDTree<dim>::get_cell_ids(const ImmersedCellStatus status, std::vector<std::int64_t> &cell_ids) const
+void UnfittedBinarySpacePart<dim>::get_cell_ids(const ImmersedCellStatus status,
+  std::vector<std::int64_t> &cell_ids) const
 {
   cell_ids.clear();
   cell_ids.reserve(this->get_num_cells(status));
@@ -185,7 +187,7 @@ void UnfittedKDTree<dim>::get_cell_ids(const ImmersedCellStatus status, std::vec
 }
 
 template<int dim>
-void UnfittedKDTree<dim>::get_cell_ids(const ImmersedCellStatus status,
+void UnfittedBinarySpacePart<dim>::get_cell_ids(const ImmersedCellStatus status,
   const std::vector<std::int64_t> &target_cell_ids,
   std::vector<std::int64_t> &cell_ids) const
 {
@@ -209,7 +211,7 @@ void UnfittedKDTree<dim>::get_cell_ids(const ImmersedCellStatus status,
 }
 
 
-template<int dim> std::size_t UnfittedKDTree<dim>::get_num_cells(const ImmersedCellStatus status) const
+template<int dim> std::size_t UnfittedBinarySpacePart<dim>::get_num_cells(const ImmersedCellStatus status) const
 {
   const auto func_0 = create_leaf_checker(status);
   const auto func_1 = [](const auto &leaf) -> std::size_t {
@@ -218,14 +220,15 @@ template<int dim> std::size_t UnfittedKDTree<dim>::get_num_cells(const ImmersedC
   return reduce(func_0, func_1);
 }
 
-template<int dim> std::size_t UnfittedKDTree<dim>::get_num_leaves(const ImmersedCellStatus status) const
+template<int dim> std::size_t UnfittedBinarySpacePart<dim>::get_num_leaves(const ImmersedCellStatus status) const
 {
   const auto func_0 = create_leaf_checker(status);
   const auto func_1 = [](const auto & /*leaf*/) -> std::size_t { return 1; };
   return reduce(func_0, func_1);
 }
 
-template<int dim> bool UnfittedKDTree<dim>::is_cell(const ImmersedCellStatus status, const std::int64_t cell_id) const
+template<int dim>
+bool UnfittedBinarySpacePart<dim>::is_cell(const ImmersedCellStatus status, const std::int64_t cell_id) const
 {
   const auto leaf = this->find_leaf(cell_id);
 
@@ -233,7 +236,8 @@ template<int dim> bool UnfittedKDTree<dim>::is_cell(const ImmersedCellStatus sta
 }
 
 template<int dim>
-auto UnfittedKDTree<dim>::create_leaf_checker(const ImmersedCellStatus status) -> std::function<bool(const Self &)>
+auto UnfittedBinarySpacePart<dim>::create_leaf_checker(
+  const ImmersedCellStatus status) -> std::function<bool(const Self &)>
 {
   return [status](const Self &leaf) {
     assert(leaf.is_leaf());
@@ -242,7 +246,7 @@ auto UnfittedKDTree<dim>::create_leaf_checker(const ImmersedCellStatus status) -
 }
 
 // Instantiations
-template class UnfittedKDTree<2>;
-template class UnfittedKDTree<3>;
+template class UnfittedBinarySpacePart<2>;
+template class UnfittedBinarySpacePart<3>;
 
 }// namespace qugar

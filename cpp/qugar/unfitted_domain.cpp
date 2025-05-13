@@ -17,7 +17,7 @@
 
 #include <qugar/unfitted_domain.hpp>
 
-#include <qugar/unfitted_domain_kd_tree.hpp>
+#include <qugar/unfitted_domain_binary_part.hpp>
 #include <qugar/utils.hpp>
 
 #include <algorithm>
@@ -33,10 +33,10 @@ namespace qugar {
 
 template<int dim>
 UnfittedDomain<dim>::UnfittedDomain(const GridPtr &grid)
-  : grid_(grid), kd_tree_(std::make_shared<UnfittedKDTree<dim>>(grid))
+  : grid_(grid), binary_sp_part_(std::make_shared<UnfittedBinarySpacePart<dim>>(grid))
 {
   assert(grid_ != nullptr);
-  assert(kd_tree_ != nullptr);
+  assert(binary_sp_part_ != nullptr);
 }
 
 
@@ -59,17 +59,17 @@ template<int dim> std::size_t UnfittedDomain<dim>::get_num_total_cells() const
 
 template<int dim> std::size_t UnfittedDomain<dim>::get_num_full_cells() const
 {
-  return this->kd_tree_->get_num_cells(ImmersedCellStatus::full);
+  return this->binary_sp_part_->get_num_cells(ImmersedCellStatus::full);
 }
 
 template<int dim> std::size_t UnfittedDomain<dim>::get_num_empty_cells() const
 {
-  return this->kd_tree_->get_num_cells(ImmersedCellStatus::empty);
+  return this->binary_sp_part_->get_num_cells(ImmersedCellStatus::empty);
 }
 
 template<int dim> std::size_t UnfittedDomain<dim>::get_num_cut_cells() const
 {
-  return this->kd_tree_->get_num_cells(ImmersedCellStatus::cut);
+  return this->binary_sp_part_->get_num_cells(ImmersedCellStatus::cut);
 }
 
 template<int dim> bool UnfittedDomain<dim>::has_facets_with_unf_bdry() const
@@ -81,17 +81,17 @@ template<int dim> bool UnfittedDomain<dim>::has_facets_with_unf_bdry() const
 
 template<int dim> void UnfittedDomain<dim>::get_full_cells(std::vector<std::int64_t> &cell_ids) const
 {
-  this->kd_tree_->get_cell_ids(ImmersedCellStatus::full, cell_ids);
+  this->binary_sp_part_->get_cell_ids(ImmersedCellStatus::full, cell_ids);
 }
 
 template<int dim> void UnfittedDomain<dim>::get_empty_cells(std::vector<std::int64_t> &cell_ids) const
 {
-  this->kd_tree_->get_cell_ids(ImmersedCellStatus::empty, cell_ids);
+  this->binary_sp_part_->get_cell_ids(ImmersedCellStatus::empty, cell_ids);
 }
 
 template<int dim> void UnfittedDomain<dim>::get_cut_cells(std::vector<std::int64_t> &cell_ids) const
 {
-  this->kd_tree_->get_cell_ids(ImmersedCellStatus::cut, cell_ids);
+  this->binary_sp_part_->get_cell_ids(ImmersedCellStatus::cut, cell_ids);
 }
 
 
@@ -99,21 +99,21 @@ template<int dim>
 void UnfittedDomain<dim>::get_full_cells(const std::vector<std::int64_t> &target_cell_ids,
   std::vector<std::int64_t> &cell_ids) const
 {
-  this->kd_tree_->get_cell_ids(ImmersedCellStatus::full, target_cell_ids, cell_ids);
+  this->binary_sp_part_->get_cell_ids(ImmersedCellStatus::full, target_cell_ids, cell_ids);
 }
 
 template<int dim>
 void UnfittedDomain<dim>::get_empty_cells(const std::vector<std::int64_t> &target_cell_ids,
   std::vector<std::int64_t> &cell_ids) const
 {
-  this->kd_tree_->get_cell_ids(ImmersedCellStatus::empty, target_cell_ids, cell_ids);
+  this->binary_sp_part_->get_cell_ids(ImmersedCellStatus::empty, target_cell_ids, cell_ids);
 }
 
 template<int dim>
 void UnfittedDomain<dim>::get_cut_cells(const std::vector<std::int64_t> &target_cell_ids,
   std::vector<std::int64_t> &cell_ids) const
 {
-  this->kd_tree_->get_cell_ids(ImmersedCellStatus::cut, target_cell_ids, cell_ids);
+  this->binary_sp_part_->get_cell_ids(ImmersedCellStatus::cut, target_cell_ids, cell_ids);
 }
 
 template<int dim>
@@ -353,7 +353,7 @@ void UnfittedDomain<dim>::get_unfitted_facets(const std::vector<std::int64_t> &t
 
 template<int dim> bool UnfittedDomain<dim>::is_full_cell(const std::int64_t cell_id) const
 {
-  return this->kd_tree_->is_cell(ImmersedCellStatus::full, cell_id);
+  return this->binary_sp_part_->is_cell(ImmersedCellStatus::full, cell_id);
 }
 
 template<int dim> bool UnfittedDomain<dim>::is_full_with_unf_bdry_cell(const std::int64_t cell_id) const
@@ -363,12 +363,12 @@ template<int dim> bool UnfittedDomain<dim>::is_full_with_unf_bdry_cell(const std
 
 template<int dim> bool UnfittedDomain<dim>::is_empty_cell(const std::int64_t cell_id) const
 {
-  return this->kd_tree_->is_cell(ImmersedCellStatus::empty, cell_id);
+  return this->binary_sp_part_->is_cell(ImmersedCellStatus::empty, cell_id);
 }
 
 template<int dim> bool UnfittedDomain<dim>::is_cut_cell(const std::int64_t cell_id) const
 {
-  return this->facets_status_.contains(cell_id) && this->kd_tree_->is_cell(ImmersedCellStatus::cut, cell_id);
+  return this->facets_status_.contains(cell_id) && this->binary_sp_part_->is_cell(ImmersedCellStatus::cut, cell_id);
 }
 
 // NOLINTNEXTLINE (bugprone-easily-swappable-parameters)

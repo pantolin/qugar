@@ -8,11 +8,11 @@
 //
 // --------------------------------------------------------------------------
 
-#ifndef QUGAR_UNFITTED_DOMAIN_KD_TREE_HPP
-#define QUGAR_UNFITTED_DOMAIN_KD_TREE_HPP
+#ifndef QUGAR_UNFITTED_DOMAIN_BINARY_PART_HPP
+#define QUGAR_UNFITTED_DOMAIN_BINARY_PART_HPP
 
 
-//! @file unfitted_domain_kd_tree.hpp
+//! @file unfitted_domain_binary_part.hpp
 //! @author Pablo Antolin (pablo.antolin@epfl.ch)
 //! @brief Declaration of of UnfittedDomain class.
 //! @date 2025-01-21
@@ -38,17 +38,17 @@ enum class ImmersedCellStatus : std::uint8_t {
   unknown,
 };
 
-template<int dim> class UnfittedKDTree : public std::enable_shared_from_this<UnfittedKDTree<dim>>
+template<int dim> class UnfittedBinarySpacePart : public std::enable_shared_from_this<UnfittedBinarySpacePart<dim>>
 {
   using GridPtr = std::shared_ptr<const CartGridTP<dim>>;
   using SubGridPtr = std::shared_ptr<const SubCartGridTP<dim>>;
-  using Self = UnfittedKDTree<dim>;
+  using Self = UnfittedBinarySpacePart<dim>;
   using SelfConstPtr = std::shared_ptr<const Self>;
   using SelfPtr = std::shared_ptr<Self>;
 
 public:
-  explicit UnfittedKDTree(const GridPtr grid);
-  explicit UnfittedKDTree(const SubGridPtr subgrid);
+  explicit UnfittedBinarySpacePart(const GridPtr grid);
+  explicit UnfittedBinarySpacePart(const SubGridPtr subgrid);
 
   [[nodiscard]] bool is_leaf() const;
 
@@ -87,7 +87,7 @@ public:
 private:
   SubGridPtr subgrid_;
   ImmersedCellStatus status_;
-  std::array<std::shared_ptr<UnfittedKDTree<dim>>, 2> children_;
+  std::array<std::shared_ptr<UnfittedBinarySpacePart<dim>>, 2> children_;
 
   template<typename Func_0, typename Func_1> void transverse_tree(const Func_0 &func_0, const Func_1 &func_1) const;
   template<typename Func_0, typename Func_1> std::size_t reduce(const Func_0 &func_0, const Func_1 &func_1) const;
@@ -98,4 +98,4 @@ private:
 
 }// namespace qugar
 
-#endif// QUGAR_UNFITTED_DOMAIN_KD_TREE_HPP
+#endif// QUGAR_UNFITTED_DOMAIN_BINARY_PART_HPP

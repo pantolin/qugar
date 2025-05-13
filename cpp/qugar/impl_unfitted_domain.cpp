@@ -27,7 +27,7 @@
 #include <qugar/tolerance.hpp>
 #include <qugar/types.hpp>
 #include <qugar/unfitted_domain.hpp>
-#include <qugar/unfitted_domain_kd_tree.hpp>
+#include <qugar/unfitted_domain_binary_part.hpp>
 #include <qugar/utils.hpp>
 #include <qugar/vector.hpp>
 
@@ -119,7 +119,7 @@ namespace {
   //! that are within the range of `subgrid` into `container`. If `target_cells` is not provided,
   //! all cell IDs from the `subgrid` are inserted into `container`.
   template<int dim>
-  void insert_cells(UnfittedKDTree<dim> &tree,
+  void insert_cells(UnfittedBinarySpacePart<dim> &tree,
     const std::optional<std::vector<std::int64_t>> &target_cells,
     const FuncSign sign)
   {
@@ -420,7 +420,7 @@ UnfittedImplDomain<dim>::UnfittedImplDomain(const FuncPtr phi, const GridPtr gri
 
   const std::optional<std::vector<std::int64_t>> cells;
   const auto compute_sign = create_compute_sign_function<dim>(*phi);
-  this->create_decomposition(*(this->kd_tree_), compute_sign, cells);
+  this->create_decomposition(*(this->binary_sp_part_), compute_sign, cells);
   this->init_full_cells_with_unf_bdry();
 }
 
@@ -434,7 +434,7 @@ UnfittedImplDomain<dim>::UnfittedImplDomain(const FuncPtr phi,
   assert(this->phi_ != nullptr);
 
   const auto compute_sign = create_compute_sign_function<dim>(*phi);
-  this->create_decomposition(*(this->kd_tree_), compute_sign, cells);
+  this->create_decomposition(*(this->binary_sp_part_), compute_sign, cells);
   this->init_full_cells_with_unf_bdry();
 }
 

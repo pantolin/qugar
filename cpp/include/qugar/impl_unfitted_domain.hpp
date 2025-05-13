@@ -23,7 +23,7 @@
 #include <qugar/cart_grid_tp.hpp>
 #include <qugar/domain_function.hpp>
 #include <qugar/unfitted_domain.hpp>
-#include <qugar/unfitted_domain_kd_tree.hpp>
+#include <qugar/unfitted_domain_binary_part.hpp>
 
 #include <array>
 #include <cassert>
@@ -43,8 +43,8 @@ public:
   using FacetsStatus = std::array<ImmersedFacetStatus, static_cast<std::size_t>(dim) * 2>;
   using GridPtr = std::shared_ptr<const CartGridTP<dim>>;
   using FuncPtr = std::shared_ptr<const ImplicitFunc<dim>>;
-  using KDTree = UnfittedKDTree<dim>;
-  using KDTreePtr = std::shared_ptr<UnfittedKDTree<dim>>;
+  using KDTree = UnfittedBinarySpacePart<dim>;
+  using KDTreePtr = std::shared_ptr<UnfittedBinarySpacePart<dim>>;
 
   explicit UnfittedImplDomain(const FuncPtr phi, GridPtr grid);
 

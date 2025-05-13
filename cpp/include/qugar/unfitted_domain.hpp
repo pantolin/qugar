@@ -20,7 +20,7 @@
 //! @copyright Copyright (c) 2025-present
 
 #include <qugar/cart_grid_tp.hpp>
-#include <qugar/unfitted_domain_kd_tree.hpp>
+#include <qugar/unfitted_domain_binary_part.hpp>
 
 #include <array>
 #include <cassert>
@@ -53,7 +53,7 @@ public:
   static const int n_facets_per_cell = dim * 2;
   using FacetsStatus = std::array<ImmersedFacetStatus, n_facets_per_cell>;
   using GridPtr = std::shared_ptr<const CartGridTP<dim>>;
-  using KDTreePtr = std::shared_ptr<UnfittedKDTree<dim>>;
+  using BinarySpacePartPtr = std::shared_ptr<UnfittedBinarySpacePart<dim>>;
 
 protected:
   explicit UnfittedDomain(const GridPtr &grid);
@@ -145,7 +145,7 @@ public:
 
 protected:
   GridPtr grid_;
-  KDTreePtr kd_tree_;
+  BinarySpacePartPtr binary_sp_part_;
 
   std::unordered_map<std::int64_t, FacetsStatus> facets_status_;
   std::vector<std::int64_t> full_cells_with_unf_bdry_;
