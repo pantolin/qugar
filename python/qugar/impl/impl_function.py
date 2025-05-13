@@ -50,7 +50,46 @@ class ImplicitFunc:
         """
         return self._cpp_object.dim
 
-    # TODO: to implement evaluation function for a collection of points.
+    def eval(
+        self, points: npt.NDArray[np.float32 | np.float64]
+    ) -> npt.NDArray[np.float32 | np.float64]:
+        """Evaluates the implicit function at the given points.
+
+        Args:
+            points (npt.NDArray[np.float32 | np.float64]):
+                Points to evaluate the implicit function.
+
+        Returns:
+            npt.NDArray[np.float32 | np.float64]: Evaluated values of the implicit function.
+        """
+        assert points.shape[1] == self.dim, (
+            "Invalid points dimension. It must match the function's dimension"
+        )
+
+        points_ = points.astype(np.float64) if points.dtype == np.float32 else points
+        vals = self._cpp_object.eval(points_)
+        return vals.astype(np.float32) if points.dtype == np.float32 else vals
+
+    def grad(
+        self, points: npt.NDArray[np.float32 | np.float64]
+    ) -> npt.NDArray[np.float32 | np.float64]:
+        """Evaluates the implicit function gradient at the given points.
+
+        Args:
+            points (npt.NDArray[np.float32 | np.float64]):
+                Points to evaluate the implicit function.
+
+        Returns:
+            npt.NDArray[np.float32 | np.float64]: Evaluated gradients
+            values of the implicit function.
+        """
+        assert points.shape[1] == self.dim, (
+            "Invalid points dimension. It must match the function's dimension"
+        )
+
+        points_ = points.astype(np.float64) if points.dtype == np.float32 else points
+        vals = self._cpp_object.grad(points_)
+        return vals.astype(np.float32) if points.dtype == np.float32 else vals
 
 
 def create_disk(

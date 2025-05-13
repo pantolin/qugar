@@ -52,7 +52,50 @@ namespace {
 
     const std::string pyclass_name{ std::string("ImplicitFunc_") + std::to_string(dim) + "D" };
     nb::class_<ImplicitFunc>(module, pyclass_name.c_str(), "Implicit function")
-      .def_prop_ro("dim", [](ImplicitFunc & /*func*/) { return dim; }, nb::rv_policy::reference_internal);
+      .def_prop_ro(
+        "dim", [](ImplicitFunc & /*func*/) { return dim; }, nb::rv_policy::reference_internal)
+      .def(
+        "eval",
+        [](ImplicitFunc &func, const npPointConstArray<dim> &points) {
+          const auto n_points = points.shape(0);
+          std::vector<real> values(n_points);
+
+          Point<dim> point;
+          for (std::size_t i = 0; i < n_points; ++i) {
+
+            for (int dir = 0; dir < dim; ++dir) {
+              point(dir) = points(i, dir);
+            }
+            at(values, i) = func(point);
+          }
+
+          return as_nbarray(values, { n_points });
+        },
+        nb::arg("points"))
+      .def(
+        "grad",
+        [](ImplicitFunc &func, const npPointConstArray<dim> &points) {
+          const auto n_points = points.shape(0);
+
+          std::vector<real> grads(n_points * dim);
+
+          Point<dim> point;
+          auto g = grads.begin();
+          for (std::size_t i = 0; i < n_points; ++i) {
+
+            for (int dir = 0; dir < dim; ++dir) {
+              point(dir) = points(i, dir);
+            }
+            const auto grad = func.grad(point);
+
+            for (int dir = 0; dir < dim; ++dir) {
+              *g++ = grad(dir);
+            }
+          }
+
+          return as_nbarray(grads, { n_points, dim });
+        },
+        nb::arg("points"));
   }
 
   void declare_sphere(nanobind::module_ &module)
