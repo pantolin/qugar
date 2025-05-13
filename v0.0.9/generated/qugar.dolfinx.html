@@ -1,0 +1,450 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>qugar.dolfinx &mdash; QUGaR 0.0.9 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/dark_mode_css/general.css?v=c0a7eb24" />
+      <link rel="stylesheet" type="text/css" href="../_static/dark_mode_css/dark.css?v=70edf1c7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=f7cdbf68"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      <script src="../_static/dark_mode_js/default_dark.js?v=fd565c74"></script>
+      <script src="../_static/dark_mode_js/theme_switcher.js?v=358d3910"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="qugar.cpp" href="qugar.cpp.html" />
+    <link rel="prev" title="qugar.plot" href="qugar.plot.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            QUGaR
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../demos.html">Demos</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../api.html">API reference</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="../api_python.html">Python</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="../api_python.html#public-user-interface">Public user interface</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="qugar.html">qugar</a></li>
+<li class="toctree-l4"><a class="reference internal" href="qugar.mesh.html">qugar.mesh</a></li>
+<li class="toctree-l4"><a class="reference internal" href="qugar.impl.html">qugar.impl</a></li>
+<li class="toctree-l4"><a class="reference internal" href="qugar.quad.html">qugar.quad</a></li>
+<li class="toctree-l4"><a class="reference internal" href="qugar.reparam.html">qugar.reparam</a></li>
+<li class="toctree-l4"><a class="reference internal" href="qugar.plot.html">qugar.plot</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">qugar.dolfinx</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../api_python.html#nanobind-c-interface">nanobind/C++interface</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../api_cpp.html">C++</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../developer.html">Developer resources</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../contributing.html">Contributing</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">QUGaR</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../api.html">API reference</a></li>
+          <li class="breadcrumb-item"><a href="../api_python.html">Python</a></li>
+      <li class="breadcrumb-item active">qugar.dolfinx</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/generated/qugar.dolfinx.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-qugar.dolfinx">
+<span id="qugar-dolfinx"></span><h1>qugar.dolfinx<a class="headerlink" href="#module-qugar.dolfinx" title="Link to this heading"></a></h1>
+<p>Custom DOLFINx forms for runtime quadratures</p>
+<p class="rubric">Functions</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#qugar.dolfinx.form_custom" title="qugar.dolfinx.form_custom"><code class="xref py py-obj docutils literal notranslate"><span class="pre">form_custom</span></code></a>(form, domain[, dtype, ...])</p></td>
+<td><p>Creates a CustomForm or a list of CustomForm to be integrated over custom domains.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#qugar.dolfinx.mapped_normal" title="qugar.dolfinx.mapped_normal"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mapped_normal</span></code></a>(domain[, normalize])</p></td>
+<td><p>Returns a normal vector of a custom unfitted boundary mapped with the domain's geometry.</p></td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Classes</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#qugar.dolfinx.CustomForm" title="qugar.dolfinx.CustomForm"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CustomForm</span></code></a>(form, domain, itg_data[, ...])</p></td>
+<td><p>Form for custom integrals.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#qugar.dolfinx.ds_bdry_unf" title="qugar.dolfinx.ds_bdry_unf"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ds_bdry_unf</span></code></a>(domain[, subdomain_id, ...])</p></td>
+<td><p>This is a new ufl Measure class for an unfitted custom boundary.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#qugar.dolfinx.LinearProblem" title="qugar.dolfinx.LinearProblem"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LinearProblem</span></code></a>(a, L[, bcs, u, petsc_options, ...])</p></td>
+<td><p>Class for solving a linear variational problem.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#qugar.dolfinx.NonlinearProblem" title="qugar.dolfinx.NonlinearProblem"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NonlinearProblem</span></code></a>(F, u[, bcs, J, ...])</p></td>
+<td><p>Nonlinear problem class for solving the non-linear problems.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py class">
+<dt class="sig sig-object py" id="qugar.dolfinx.CustomForm">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qugar.dolfinx.</span></span><span class="sig-name descname"><span class="pre">CustomForm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">form</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Form_complex64</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Form_complex128</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Form_float32</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Form_float64</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">domain</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">UnfittedDomainABC</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">itg_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">IntegralData</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ufcx_form</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">code</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">module</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ModuleType</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qugar/dolfinx/forms.html#CustomForm"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qugar.dolfinx.CustomForm" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Form</span></code></p>
+<p>Form for custom integrals.</p>
+<p>It derives from dolfinx.forms.Form just adding an extra
+functionality for computing the required custom coefficients at
+runtime (the method <code class="docutils literal notranslate"><span class="pre">pack_coefficients</span></code>).</p>
+<p>A custom finite element form.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>CustomForms should normally be constructed using
+<a class="reference internal" href="#qugar.dolfinx.form_custom" title="qugar.dolfinx.form_custom"><code class="xref py py-func docutils literal notranslate"><span class="pre">form_custom()</span></code></a> and not using this class initialiser.
+This class is combined with different base classes that
+depend on the scalar type used in the Form.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>form</strong> – Compiled form object.</p></li>
+<li><p><strong>ufcx_form</strong> – UFCx form.</p></li>
+<li><p><strong>code</strong> – Form C++ code.</p></li>
+<li><p><strong>module</strong> – CFFI module.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="qugar.dolfinx.CustomForm.pack_coefficients">
+<span class="sig-name descname"><span class="pre">pack_coefficients</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">IntegralType</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">_ScalarType_co</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/qugar/dolfinx/forms.html#CustomForm.pack_coefficients"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qugar.dolfinx.CustomForm.pack_coefficients" title="Link to this definition"></a></dt>
+<dd><p>Function for generating the coefficients needed for computing
+custom integrals at runtime.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This function mimics the behaviour of
+<code class="docutils literal notranslate"><span class="pre">dolfinx.cpp.fem.pack_coefficients</span></code>.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Generated custom coefficients.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>dict[tuple[IntegralType, int], npt.NDArray]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qugar.dolfinx.CustomForm.update_coefficients">
+<span class="sig-name descname"><span class="pre">update_coefficients</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">old_coeffs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">IntegralType</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">_ScalarType_co</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">IntegralType</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">_ScalarType_co</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/qugar/dolfinx/forms.html#CustomForm.update_coefficients"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qugar.dolfinx.CustomForm.update_coefficients" title="Link to this definition"></a></dt>
+<dd><p>Function for updating the coefficients needed for computing
+custom integrals at runtime.</p>
+<p>It updated coefficients previously generated by just recomputing
+the part of the coefficients associated to the DOLFINx coefficients
+and keeping the part of the coefficients associated to the
+custom integrals.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Generated custom coefficients.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>dict[tuple[IntegralType, int], npt.NDArray]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="qugar.dolfinx.LinearProblem">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qugar.dolfinx.</span></span><span class="sig-name descname"><span class="pre">LinearProblem</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Form</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">L</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Form</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bcs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">DirichletBC</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">u</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Function</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">petsc_options</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">form_compiler_options</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">jit_options</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qugar/dolfinx/petsc.html#LinearProblem"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qugar.dolfinx.LinearProblem" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">LinearProblem</span></code></p>
+<p>Class for solving a linear variational problem.</p>
+<p>Analogous to DOLFINx’ LinearProblem, but for unfitted domains.</p>
+<p>Solves of the form <span class="math notranslate nohighlight">\(a(u, v) = L(v) \,  \forall v \in V\)</span>
+using PETSc as a linear algebra backend.</p>
+<p>Initialize solver for a linear variational problem defined
+over an unfitted domain.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>a</strong> (<em>ulf.Form</em>) – A bilinear UFL form, the left hand side of the
+variational problem. This form must be defined over
+an uniftted domain.</p></li>
+<li><p><strong>L</strong> (<em>ulf.Form</em>) – A linear UFL form, the right hand side of the variational
+problem. This form must be defined over
+an uniftted domain.</p></li>
+<li><p><strong>bcs</strong> (<em>list</em><em>[</em><em>DirichletBC</em><em>]</em>) – A list of Dirichlet boundary conditions.</p></li>
+<li><p><strong>u</strong> (<em>Optional</em><em>[</em><em>_Function</em><em>]</em>) – The solution function.
+It will be created if not provided.</p></li>
+<li><p><strong>petsc_options</strong> (<em>Optional</em><em>[</em><em>dict</em><em>]</em>) – Options that are passed
+to the linear algebra backend PETSc. For available choices
+for the ‘petsc_options’ kwarg, see the <a class="reference external" href="https://petsc4py.readthedocs.io/en/stable/manual/ksp/">PETSc documentation</a>.</p></li>
+<li><p><strong>form_compiler_options</strong> (<em>Optional</em><em>[</em><em>dict</em><em>]</em>) – Options used
+in FFCx compilation of this form. Run <code class="docutils literal notranslate"><span class="pre">ffcx</span> <span class="pre">--help</span></code>
+at the commandline to see all available options.</p></li>
+<li><p><strong>jit_options</strong> (<em>Optional</em><em>[</em><em>dict</em><em>]</em>) – Options used in
+CFFI JIT compilation of C code generated by FFCx
+See DOLFINx’s <cite>python/dolfinx/jit.py</cite> for all available
+options. Takes priority over all other option values.</p></li>
+</ul>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">problem</span> <span class="o">=</span> <span class="n">LinearProblem</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">L</span><span class="p">,</span> <span class="p">[</span><span class="n">bc0</span><span class="p">,</span> <span class="n">bc1</span><span class="p">],</span> <span class="n">petsc_options</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;ksp_type&quot;</span><span class="p">:</span> <span class="s2">&quot;preonly&quot;</span><span class="p">,</span>
+                                                         <span class="s2">&quot;pc_type&quot;</span><span class="p">:</span> <span class="s2">&quot;lu&quot;</span><span class="p">,</span>
+                                                         <span class="s2">&quot;pc_factor_mat_solver_type&quot;</span><span class="p">:</span>
+                                                           <span class="s2">&quot;mumps&quot;</span><span class="p">})</span>
+</pre></div>
+</div>
+<dl class="py method">
+<dt class="sig sig-object py" id="qugar.dolfinx.LinearProblem.solve">
+<span class="sig-name descname"><span class="pre">solve</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Function</span></span></span><a class="reference internal" href="../_modules/qugar/dolfinx/petsc.html#LinearProblem.solve"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qugar.dolfinx.LinearProblem.solve" title="Link to this definition"></a></dt>
+<dd><p>Solve the problem.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="qugar.dolfinx.NonlinearProblem">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qugar.dolfinx.</span></span><span class="sig-name descname"><span class="pre">NonlinearProblem</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">F</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Form</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">u</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Function</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bcs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">DirichletBC</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">J</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Form</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">form_compiler_options</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">jit_options</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qugar/dolfinx/petsc.html#NonlinearProblem"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qugar.dolfinx.NonlinearProblem" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">NonlinearProblem</span></code></p>
+<p>Nonlinear problem class for solving the non-linear problems.</p>
+<p>Solves problems of the form <span class="math notranslate nohighlight">\(F(u, v) = 0 \ \forall v \in V\)</span> using
+PETSc as the linear algebra backend.</p>
+<p>Initialize solver for solving a non-linear problem using Newton’s method`.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>F</strong> – The PDE residual F(u, v)</p></li>
+<li><p><strong>u</strong> – The unknown</p></li>
+<li><p><strong>bcs</strong> – List of Dirichlet boundary conditions</p></li>
+<li><p><strong>J</strong> – UFL representation of the Jacobian (Optional)</p></li>
+<li><p><strong>form_compiler_options</strong> – Options used in FFCx
+compilation of this form. Run <code class="docutils literal notranslate"><span class="pre">ffcx</span> <span class="pre">--help</span></code> at the
+command line to see all available options.</p></li>
+<li><p><strong>jit_options</strong> – Options used in CFFI JIT compilation of C
+code generated by FFCx. See <code class="docutils literal notranslate"><span class="pre">python/dolfinx/jit.py</span></code>
+for all available options. Takes priority over all
+other option values.</p></li>
+</ul>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">problem</span> <span class="o">=</span> <span class="n">LinearProblem</span><span class="p">(</span><span class="n">F</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="p">[</span><span class="n">bc0</span><span class="p">,</span> <span class="n">bc1</span><span class="p">])</span>
+</pre></div>
+</div>
+<dl class="py method">
+<dt class="sig sig-object py" id="qugar.dolfinx.NonlinearProblem.F">
+<span class="sig-name descname"><span class="pre">F</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Vec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Vec</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/qugar/dolfinx/petsc.html#NonlinearProblem.F"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qugar.dolfinx.NonlinearProblem.F" title="Link to this definition"></a></dt>
+<dd><p>Assemble the residual F into the vector b.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> – The vector containing the latest solution</p></li>
+<li><p><strong>b</strong> – Vector to assemble the residual into</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qugar.dolfinx.NonlinearProblem.J">
+<span class="sig-name descname"><span class="pre">J</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Vec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">A</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Mat</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/qugar/dolfinx/petsc.html#NonlinearProblem.J"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qugar.dolfinx.NonlinearProblem.J" title="Link to this definition"></a></dt>
+<dd><p>Assemble the Jacobian matrix.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>x</strong> – The vector containing the latest solution</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="qugar.dolfinx.ds_bdry_unf">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">qugar.dolfinx.</span></span><span class="sig-name descname"><span class="pre">ds_bdry_unf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">domain</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">AbstractDomain</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Mesh</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subdomain_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'everywhere'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metadata</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subdomain_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">MeshTags</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dtype</span><span class="p"><span class="pre">[</span></span><span class="pre">int32</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">degree</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qugar/dolfinx/boundary.html#ds_bdry_unf"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qugar.dolfinx.ds_bdry_unf" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Measure</span></code></p>
+<p>This is a new ufl Measure class for an unfitted custom boundary.</p>
+<p>It has the same functionalities as ufl.dx with the only difference
+that when multiplied by an integrand, it introduces the necessary
+correction for accounting for the boundary orientation by using
+its normal.</p>
+<p>In order to differentiate the generated measure from others,
+sets the option <cite>unfitted_custom_boundary</cite> equal to <code class="docutils literal notranslate"><span class="pre">True</span></code> in
+the quadrature’s metadata, and uses a custom quadrature with two
+(fake) points.</p>
+<p>Initialize.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>domain</strong> (<em>ufl.AbstractDomain</em><em> | </em><em>dolfinx.mesh.Mesh</em>) – An AbstractDomain object (most
+often a Mesh).</p></li>
+<li><p><strong>subdomain_id</strong> (<em>str</em><em> | </em><em>int</em><em> | </em><em>tuple</em><em>[</em><em>int</em><em>]</em><em>, </em><em>optional</em>) – either
+string “everywhere”, a single subdomain id int, or tuple
+of ints. Defaults to “everywhere”.</p></li>
+<li><p><strong>metadata</strong> (<em>dict</em><em> | </em><em>None</em><em>, </em><em>optional</em>) – Dictionary with additional
+compiler-specific parameters for optimization or
+debugging of generated code. Defaults to None.</p></li>
+<li><p><strong>subdomain_data</strong> (<em>dolfinx.mesh.MeshTags</em><em> | </em><em>list</em><em>[</em><em>tuple</em><em>[</em><em>int</em><em>, </em><em>npt.NDArray</em><em>[</em><em>np.int32</em><em>]</em><em>]</em><em>] </em><em>| </em><em>None</em><em>, </em><em>optional</em>) – Object representing data to interpret subdomain_id with. Defaults to None.</p></li>
+<li><p><strong>degree</strong> (<em>int</em><em>, </em><em>optional</em>) – The degree of the quadrature rule.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="qugar.dolfinx.form_custom">
+<span class="sig-prename descclassname"><span class="pre">qugar.dolfinx.</span></span><span class="sig-name descname"><span class="pre">form_custom</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">form:</span> <span class="pre">typing.Union[ufl.Form,</span> <span class="pre">typing.Iterable[ufl.Form]],</span> <span class="pre">domain:</span> <span class="pre">UnfittedDomainABC,</span> <span class="pre">dtype:</span> <span class="pre">npt.DTypeLike</span> <span class="pre">=</span> <span class="pre">&lt;class</span> <span class="pre">'numpy.float64'&gt;,</span> <span class="pre">form_compiler_options:</span> <span class="pre">typing.Optional[dict]</span> <span class="pre">=</span> <span class="pre">None,</span> <span class="pre">jit_options:</span> <span class="pre">typing.Optional[dict]</span> <span class="pre">=</span> <span class="pre">None,</span> <span class="pre">entity_maps:</span> <span class="pre">typing.Optional[dict[Mesh,</span> <span class="pre">npt.NDArray[np.int32]]]</span> <span class="pre">=</span> <span class="pre">None</span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#qugar.dolfinx.CustomForm" title="qugar.dolfinx.CustomForm"><span class="pre">CustomForm</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#qugar.dolfinx.CustomForm" title="qugar.dolfinx.CustomForm"><span class="pre">CustomForm</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/qugar/dolfinx/forms.html#form_custom"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qugar.dolfinx.form_custom" title="Link to this definition"></a></dt>
+<dd><p>Creates a CustomForm or a list of CustomForm to be integrated
+over custom domains.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This function is just a copy of
+<code class="docutils literal notranslate"><span class="pre">dolfinx.fem.forms.form</span></code> with some small
+modifications. Namely:</p>
+<ul class="simple">
+<li><p>replacing <code class="docutils literal notranslate"><span class="pre">dolfinx.jit.ffcx_jit</span></code> with
+<code class="docutils literal notranslate"><span class="pre">qugar.dolfinx.jit.ffcx_jit</span></code>.</p></li>
+<li><p>creating a new form class <code class="docutils literal notranslate"><span class="pre">CustomForm</span></code> (that derives from
+<code class="docutils literal notranslate"><span class="pre">dolfinx.forms.Form</span></code> and adds a new functionalitiy for
+computing the required custom coefficients at runtime).</p></li>
+</ul>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>form</strong> – A UFL form or list(s) of UFL forms.</p></li>
+<li><p><strong>domain</strong> (<em>UnfittedDomainABC</em>) – The unfitted domain to integrate over.</p></li>
+<li><p><strong>dtype</strong> – Scalar type to use for the compiled form.</p></li>
+<li><p><strong>form_compiler_options</strong> – See <code class="xref py py-func docutils literal notranslate"><span class="pre">ffcx_jit</span></code></p></li>
+<li><p><strong>jit_options</strong> – See <code class="xref py py-func docutils literal notranslate"><span class="pre">ffcx_jit</span></code>.</p></li>
+<li><p><strong>entity_maps</strong> – If any trial functions, test functions, or
+coefficients in the form are not defined over the same mesh
+as the integration domain, <cite>entity_maps</cite> must be supplied.
+For each key (a mesh, different to the integration domain
+mesh) a map should be provided relating the entities in the
+integration domain mesh to the entities in the key mesh e.g.
+for a key-value pair (msh, emap) in <cite>entity_maps</cite>, <cite>emap[i]</cite>
+is the entity in <cite>msh</cite> corresponding to entity <cite>i</cite> in the
+integration domain mesh.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Compiled finite element <cite>CustomForm</cite>.
+It can be a single form or a list of forms if the input
+<cite>form</cite> is a list of forms. If the provided form is empty,
+it returns <cite>None</cite>.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#qugar.dolfinx.CustomForm" title="qugar.dolfinx.CustomForm">CustomForm</a> | list[<a class="reference internal" href="#qugar.dolfinx.CustomForm" title="qugar.dolfinx.CustomForm">CustomForm</a>]</p>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This function is responsible for the compilation of a UFL form
+(using FFCx) and attaching coefficients and domains specific
+data to the underlying C++ form. It dynamically create a
+<code class="xref py py-class docutils literal notranslate"><span class="pre">Form</span></code> instance with an appropriate base class for the
+scalar type, e.g. <code class="xref py py-func docutils literal notranslate"><span class="pre">_cpp.fem.Form_float64()</span></code>.</p>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="qugar.dolfinx.mapped_normal">
+<span class="sig-prename descclassname"><span class="pre">qugar.dolfinx.</span></span><span class="sig-name descname"><span class="pre">mapped_normal</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">domain</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">AbstractDomain</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Mesh</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalize</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qugar/dolfinx/boundary.html#mapped_normal"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qugar.dolfinx.mapped_normal" title="Link to this definition"></a></dt>
+<dd><p>Returns a normal vector of a custom unfitted boundary mapped with
+the domain’s geometry. I.e., the normal in the physical space.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>domain</strong> (<em>ufl.AbstractDomain</em><em> | </em><em>dolfinx.mesh.Mesh</em>) – An AbstractDomain object (most
+often a Mesh) to which the normal is associated to.</p></li>
+<li><p><strong>normalize</strong> (<em>bool</em>) – If <code class="docutils literal notranslate"><span class="pre">True</span></code>, the returned normal is
+normalized, otherwise (if <code class="docutils literal notranslate"><span class="pre">False</span></code>) it is not normalized
+and its norm is the ratio of the deformed to reference
+area cells.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Mapped normal.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="qugar.plot.html" class="btn btn-neutral float-left" title="qugar.plot" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="qugar.cpp.html" class="btn btn-neutral float-right" title="qugar.cpp" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Pablo Antolin.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
