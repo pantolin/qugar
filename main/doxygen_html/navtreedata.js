@@ -65,9 +65,9 @@ var NAVTREEINDEX =
 "d1/dca/qugar__export_8hpp.html#abd0fc00a90fc799b39f175551e03885f",
 "d2/dfe/classqugar_1_1BoundBox.html#a891ccbb7739da530693125bf6681e0a6",
 "d7/d46/structqugar_1_1impl_1_1RootsIntervals.html#a3e96d703d30771ec9f534f540ae12750",
-"d9/df1/classqugar_1_1UnfittedKDTree.html#a72183dffaa451b3ebbd40f163910793a",
-"dc/d7b/classqugar_1_1impl_1_1RefSystem.html#ac70ba577ac0fe1bd7a4d1ceefa11e06b",
-"df/d58/classqugar_1_1UnfittedDomain.html#a2a6adc16cb5e53cdd43e4ad23bb81a6e"
+"da/dd6/classqugar_1_1impl_1_1funcs_1_1Annulus.html#acf30e3fd8651ecd2850173bbcf0d1fcc",
+"dd/d35/classqugar_1_1impl_1_1funcs_1_1PlaneBzr.html#a18e427108d1a434dadfbaa1ec70ae10b",
+"df/d58/classqugar_1_1UnfittedDomain.html#aa05e05c30a600f066e7478f09aca7693"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

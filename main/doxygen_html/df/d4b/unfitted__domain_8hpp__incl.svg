@@ -166,10 +166,10 @@
 <!-- Node23 -->
 <g id="Node000023" class="node">
 <title>Node23</title>
-<g id="a_Node000023"><a xlink:href="../../d8/d90/unfitted__domain__kd__tree_8hpp.html" target="_top" xlink:title="Declaration of of UnfittedDomain class.">
+<g id="a_Node000023"><a xlink:href="../../d8/daf/unfitted__domain__binary__part_8hpp.html" target="_top" xlink:title="Declaration of of UnfittedDomain class.">
 <polygon fill="white" stroke="#666666" points="1157.5,-316 1030.5,-316 1030.5,-286 1157.5,-286 1157.5,-316"/>
 <text text-anchor="start" x="1038.5" y="-304" font-family="Helvetica,sans-Serif" font-size="10.00">qugar/unfitted_domain</text>
-<text text-anchor="middle" x="1094" y="-293" font-family="Helvetica,sans-Serif" font-size="10.00">_kd_tree.hpp</text>
+<text text-anchor="middle" x="1094" y="-293" font-family="Helvetica,sans-Serif" font-size="10.00">_binary_part.hpp</text>
 </a>
 </g>
 </g>

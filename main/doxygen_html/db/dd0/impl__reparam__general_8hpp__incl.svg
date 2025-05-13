@@ -951,10 +951,10 @@
 <!-- Node28 -->
 <g id="Node000028" class="node">
 <title>Node28</title>
-<g id="a_Node000028"><a xlink:href="../../d8/d90/unfitted__domain__kd__tree_8hpp.html" target="_top" xlink:title="Declaration of of UnfittedDomain class.">
+<g id="a_Node000028"><a xlink:href="../../d8/daf/unfitted__domain__binary__part_8hpp.html" target="_top" xlink:title="Declaration of of UnfittedDomain class.">
 <polygon fill="white" stroke="#666666" points="701.5,-316 574.5,-316 574.5,-286 701.5,-286 701.5,-316"/>
 <text text-anchor="start" x="582.5" y="-304" font-family="Helvetica,sans-Serif" font-size="10.00">qugar/unfitted_domain</text>
-<text text-anchor="middle" x="638" y="-293" font-family="Helvetica,sans-Serif" font-size="10.00">_kd_tree.hpp</text>
+<text text-anchor="middle" x="638" y="-293" font-family="Helvetica,sans-Serif" font-size="10.00">_binary_part.hpp</text>
 </a>
 </g>
 </g>

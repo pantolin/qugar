@@ -7,7 +7,7 @@ var searchData=
   ['scale_5fweights_4',['scale_weights',['../d8/d30/classqugar_1_1Quadrature.html#a5bd21a2165d9ba9ef92e76e5eb7d0432',1,'qugar::Quadrature']]],
   ['semi_5faxes_5',['semi_axes',['../d9/d7e/classqugar_1_1impl_1_1funcs_1_1EllipsoidBase.html#a49c0caf01f5933b49c7e9316a776f227',1,'qugar::impl::funcs::EllipsoidBase']]],
   ['set_6',['set',['../d2/dfe/classqugar_1_1BoundBox.html#af2575cd3cf1e14d9e429b42d43115355',1,'qugar::BoundBox']]],
-  ['set_5fstatus_7',['set_status',['../d9/df1/classqugar_1_1UnfittedKDTree.html#a9e89266e54b53aed27d492656a9c620a',1,'qugar::UnfittedKDTree']]],
+  ['set_5fstatus_7',['set_status',['../df/de4/classqugar_1_1UnfittedBinarySpacePart.html#a7fabfa56ab2d963efccd7e594e1dd961',1,'qugar::UnfittedBinarySpacePart']]],
   ['sgn_8',['sgn',['../da/d38/classqugar_1_1impl_1_1funcs_1_1Square.html#a77fad35a1b68d8297cfe8dc33f576fd6',1,'qugar::impl::funcs::Square']]],
   ['sign_9',['sign',['../de/dca/classqugar_1_1impl_1_1BezierTP.html#a1fc22ce6b5fd154961d01df54a628d67',1,'qugar::impl::BezierTP']]],
   ['size_10',['size',['../d3/d39/classqugar_1_1TensorSizeTP.html#a7705ecba088a4cfc11c9eb566bd22f71',1,'qugar::TensorSizeTP::size()'],['../d5/df1/classqugar_1_1TensorIndexRangeTP.html#a90e0efcfec4540f4732263135de7423b',1,'qugar::TensorIndexRangeTP::size()']]],

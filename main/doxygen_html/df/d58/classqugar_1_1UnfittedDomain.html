@@ -131,8 +131,8 @@ Public Types</h2></td></tr>
 <tr class="separator:a934e42746b340c926a99ba4979672d52"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aec64583f1f8b1945e39e9ce03185585a" id="r_aec64583f1f8b1945e39e9ce03185585a"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aec64583f1f8b1945e39e9ce03185585a">GridPtr</a> = std::shared_ptr&lt;const <a class="el" href="../../d1/d84/classqugar_1_1CartGridTP.html">CartGridTP</a>&lt;dim&gt;&gt;</td></tr>
 <tr class="separator:aec64583f1f8b1945e39e9ce03185585a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac42cfd1c53e2d40140123ec1b1edcee3" id="r_ac42cfd1c53e2d40140123ec1b1edcee3"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ac42cfd1c53e2d40140123ec1b1edcee3">KDTreePtr</a> = std::shared_ptr&lt;<a class="el" href="../../d9/df1/classqugar_1_1UnfittedKDTree.html">UnfittedKDTree</a>&lt;dim&gt;&gt;</td></tr>
-<tr class="separator:ac42cfd1c53e2d40140123ec1b1edcee3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a28cfbc59942db43465ff5d6f867c4c8c" id="r_a28cfbc59942db43465ff5d6f867c4c8c"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a28cfbc59942db43465ff5d6f867c4c8c">BinarySpacePartPtr</a> = std::shared_ptr&lt;<a class="el" href="../../df/de4/classqugar_1_1UnfittedBinarySpacePart.html">UnfittedBinarySpacePart</a>&lt;dim&gt;&gt;</td></tr>
+<tr class="separator:a28cfbc59942db43465ff5d6f867c4c8c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
@@ -250,8 +250,8 @@ Protected Member Functions</h2></td></tr>
 Protected Attributes</h2></td></tr>
 <tr class="memitem:a2a6adc16cb5e53cdd43e4ad23bb81a6e" id="r_a2a6adc16cb5e53cdd43e4ad23bb81a6e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="#aec64583f1f8b1945e39e9ce03185585a">GridPtr</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a2a6adc16cb5e53cdd43e4ad23bb81a6e">grid_</a></td></tr>
 <tr class="separator:a2a6adc16cb5e53cdd43e4ad23bb81a6e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa58913e4e90a32d384993c687f37ca0c" id="r_aa58913e4e90a32d384993c687f37ca0c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="#ac42cfd1c53e2d40140123ec1b1edcee3">KDTreePtr</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa58913e4e90a32d384993c687f37ca0c">kd_tree_</a></td></tr>
-<tr class="separator:aa58913e4e90a32d384993c687f37ca0c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad3ede2895286311404f220f11acb36ca" id="r_ad3ede2895286311404f220f11acb36ca"><td class="memItemLeft" align="right" valign="top"><a class="el" href="#a28cfbc59942db43465ff5d6f867c4c8c">BinarySpacePartPtr</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad3ede2895286311404f220f11acb36ca">binary_sp_part_</a></td></tr>
+<tr class="separator:ad3ede2895286311404f220f11acb36ca"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3519a2ab44216b144eee7ae0c678cb63" id="r_a3519a2ab44216b144eee7ae0c678cb63"><td class="memItemLeft" align="right" valign="top">std::unordered_map&lt; std::int64_t, <a class="el" href="#a934e42746b340c926a99ba4979672d52">FacetsStatus</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a3519a2ab44216b144eee7ae0c678cb63">facets_status_</a></td></tr>
 <tr class="separator:a3519a2ab44216b144eee7ae0c678cb63"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3e183cf2b5141273fedbb0f9c841d3b4" id="r_a3e183cf2b5141273fedbb0f9c841d3b4"><td class="memItemLeft" align="right" valign="top">std::vector&lt; std::int64_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a3e183cf2b5141273fedbb0f9c841d3b4">full_cells_with_unf_bdry_</a></td></tr>
@@ -263,6 +263,22 @@ Static Private Member Functions</h2></td></tr>
 <tr class="separator:a3cbd0198d789d10cc68a6446d7c01163"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Member Typedef Documentation</h2>
+<a id="a28cfbc59942db43465ff5d6f867c4c8c" name="a28cfbc59942db43465ff5d6f867c4c8c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a28cfbc59942db43465ff5d6f867c4c8c">&#9670;&#160;</a></span>BinarySpacePartPtr</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;int dim&gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname">using <a class="el" href="../../df/d58/classqugar_1_1UnfittedDomain.html">qugar::UnfittedDomain</a>&lt; dim &gt;::BinarySpacePartPtr = std::shared_ptr&lt;<a class="el" href="../../df/de4/classqugar_1_1UnfittedBinarySpacePart.html">UnfittedBinarySpacePart</a>&lt;dim&gt;&gt;</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a934e42746b340c926a99ba4979672d52" name="a934e42746b340c926a99ba4979672d52"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a934e42746b340c926a99ba4979672d52">&#9670;&#160;</a></span>FacetsStatus</h2>
 
@@ -289,22 +305,6 @@ template&lt;int dim&gt; </div>
       <table class="memname">
         <tr>
           <td class="memname">using <a class="el" href="../../df/d58/classqugar_1_1UnfittedDomain.html">qugar::UnfittedDomain</a>&lt; dim &gt;::GridPtr = std::shared_ptr&lt;const <a class="el" href="../../d1/d84/classqugar_1_1CartGridTP.html">CartGridTP</a>&lt;dim&gt;&gt;</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="ac42cfd1c53e2d40140123ec1b1edcee3" name="ac42cfd1c53e2d40140123ec1b1edcee3"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ac42cfd1c53e2d40140123ec1b1edcee3">&#9670;&#160;</a></span>KDTreePtr</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;int dim&gt; </div>
-      <table class="memname">
-        <tr>
-          <td class="memname">using <a class="el" href="../../df/d58/classqugar_1_1UnfittedDomain.html">qugar::UnfittedDomain</a>&lt; dim &gt;::KDTreePtr = std::shared_ptr&lt;<a class="el" href="../../d9/df1/classqugar_1_1UnfittedKDTree.html">UnfittedKDTree</a>&lt;dim&gt;&gt;</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -1644,6 +1644,30 @@ template&lt;int dim&gt; </div>
 </div>
 </div>
 <h2 class="groupheader">Member Data Documentation</h2>
+<a id="ad3ede2895286311404f220f11acb36ca" name="ad3ede2895286311404f220f11acb36ca"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad3ede2895286311404f220f11acb36ca">&#9670;&#160;</a></span>binary_sp_part_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;int dim&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="#a28cfbc59942db43465ff5d6f867c4c8c">BinarySpacePartPtr</a> <a class="el" href="../../df/d58/classqugar_1_1UnfittedDomain.html">qugar::UnfittedDomain</a>&lt; dim &gt;::binary_sp_part_</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">protected</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a3519a2ab44216b144eee7ae0c678cb63" name="a3519a2ab44216b144eee7ae0c678cb63"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a3519a2ab44216b144eee7ae0c678cb63">&#9670;&#160;</a></span>facets_status_</h2>
 
@@ -1705,30 +1729,6 @@ template&lt;int dim&gt; </div>
       <table class="memname">
         <tr>
           <td class="memname"><a class="el" href="#aec64583f1f8b1945e39e9ce03185585a">GridPtr</a> <a class="el" href="../../df/d58/classqugar_1_1UnfittedDomain.html">qugar::UnfittedDomain</a>&lt; dim &gt;::grid_</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">protected</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="aa58913e4e90a32d384993c687f37ca0c" name="aa58913e4e90a32d384993c687f37ca0c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa58913e4e90a32d384993c687f37ca0c">&#9670;&#160;</a></span>kd_tree_</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;int dim&gt; </div>
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="#ac42cfd1c53e2d40140123ec1b1edcee3">KDTreePtr</a> <a class="el" href="../../df/d58/classqugar_1_1UnfittedDomain.html">qugar::UnfittedDomain</a>&lt; dim &gt;::kd_tree_</td>
         </tr>
       </table>
   </td>

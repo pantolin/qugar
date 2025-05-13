@@ -17,5 +17,5 @@ var searchData=
   ['transform_5ftensor_14',['transform_tensor',['../d0/dbc/classqugar_1_1impl_1_1AffineTransf.html#a515acf71268afd1a6464aaddcb94b119',1,'qugar::impl::AffineTransf']]],
   ['transform_5fvector_15',['transform_vector',['../d0/dbc/classqugar_1_1impl_1_1AffineTransf.html#a4c2b0bfb862e2b02d18b1f3cd8016224',1,'qugar::impl::AffineTransf']]],
   ['transformedfunction_16',['TransformedFunction',['../da/db2/classqugar_1_1impl_1_1funcs_1_1TransformedFunction.html#a5920d49d5a5ce15d3bb23784fad81543',1,'qugar::impl::funcs::TransformedFunction']]],
-  ['transverse_5ftree_17',['transverse_tree',['../d9/df1/classqugar_1_1UnfittedKDTree.html#a0ca2151787893052e98147affc9507bd',1,'qugar::UnfittedKDTree']]]
+  ['transverse_5ftree_17',['transverse_tree',['../df/de4/classqugar_1_1UnfittedBinarySpacePart.html#a4a36f25a93297fbe7725e9fe259bb8ae',1,'qugar::UnfittedBinarySpacePart']]]
 ];

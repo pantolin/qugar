@@ -73,8 +73,8 @@ var annotated_dup =
       [ "TensorIndexTP", "de/d1b/classqugar_1_1TensorIndexTP.html", "de/d1b/classqugar_1_1TensorIndexTP" ],
       [ "TensorSizeTP", "d3/d39/classqugar_1_1TensorSizeTP.html", "d3/d39/classqugar_1_1TensorSizeTP" ],
       [ "Tolerance", "db/d28/classqugar_1_1Tolerance.html", "db/d28/classqugar_1_1Tolerance" ],
-      [ "UnfittedDomain", "df/d58/classqugar_1_1UnfittedDomain.html", "df/d58/classqugar_1_1UnfittedDomain" ],
-      [ "UnfittedKDTree", "d9/df1/classqugar_1_1UnfittedKDTree.html", "d9/df1/classqugar_1_1UnfittedKDTree" ]
+      [ "UnfittedBinarySpacePart", "df/de4/classqugar_1_1UnfittedBinarySpacePart.html", "df/de4/classqugar_1_1UnfittedBinarySpacePart" ],
+      [ "UnfittedDomain", "df/d58/classqugar_1_1UnfittedDomain.html", "df/d58/classqugar_1_1UnfittedDomain" ]
     ] ],
     [ "std", "d8/dcc/namespacestd.html", [
       [ "hash< qugar::TensorIndexTP< dim > >", "d6/dc2/structstd_1_1hash_3_01qugar_1_1TensorIndexTP_3_01dim_01_4_01_4.html", "d6/dc2/structstd_1_1hash_3_01qugar_1_1TensorIndexTP_3_01dim_01_4_01_4" ]

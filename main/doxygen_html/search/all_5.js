@@ -3,7 +3,7 @@ var searchData=
   ['facets_5fstatus_5f_0',['facets_status_',['../df/d58/classqugar_1_1UnfittedDomain.html#a3519a2ab44216b144eee7ae0c678cb63',1,'qugar::UnfittedDomain']]],
   ['facetsstatus_1',['FacetsStatus',['../da/de2/classqugar_1_1impl_1_1UnfittedImplDomain.html#a6c0e6abd73f5618b3493cf76ce9e5fa4',1,'qugar::impl::UnfittedImplDomain::FacetsStatus'],['../df/d58/classqugar_1_1UnfittedDomain.html#a934e42746b340c926a99ba4979672d52',1,'qugar::UnfittedDomain::FacetsStatus']]],
   ['find_5fcoincident_5fpoints_2',['find_coincident_points',['../d0/d6b/namespacequgar.html#a810f1ea11af7a4d73dc7071cad604b4c',1,'qugar']]],
-  ['find_5fleaf_3',['find_leaf',['../d9/df1/classqugar_1_1UnfittedKDTree.html#aecf85679a7d8e871c3980d7d4a1ca2bb',1,'qugar::UnfittedKDTree']]],
+  ['find_5fleaf_3',['find_leaf',['../df/de4/classqugar_1_1UnfittedBinarySpacePart.html#aae8787124bcb58a253091a4d1b9f4c1d',1,'qugar::UnfittedBinarySpacePart']]],
   ['five_4',['five',['../dd/dcc/namespacequgar_1_1numbers.html#a6e62ebad4e7bf1eeaff41d95770ec791',1,'qugar::numbers']]],
   ['flat_5',['flat',['../de/d1b/classqugar_1_1TensorIndexTP.html#aafe57058396f8023c69147124582015a',1,'qugar::TensorIndexTP::flat()'],['../d1/d02/classqugar_1_1TensorIndexRangeTP_1_1Iterator.html#aa4ebeecec9519e7871410f332cacc70e',1,'qugar::TensorIndexRangeTP::Iterator::flat()']]],
   ['four_6',['four',['../dd/dcc/namespacequgar_1_1numbers.html#aed385b81f4eb2d4977ccb7f76189cf61',1,'qugar::numbers']]],
