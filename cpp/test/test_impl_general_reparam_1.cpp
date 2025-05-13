@@ -204,21 +204,21 @@ TEST_CASE("General reparameterization for gyroid 3D in a grid", "[impl]")
   test_reparam<dim, false>(gyroid,
     grid,
     order,
-    275728,
+    275722,
     470720,
     18928,
-    137480,
+    137477,
+    138819,
   // TODO: to be fixed.
 #ifndef NDEBUG
-    138821,
-    43051359976,
-    1737929347,
+    43050635076,
+    1737900454,
 #else
-    138822,
-    43051360339,
-    1737930621,
+    43050635439,
+    1737901729,
 #endif
-    Point<3>{ 0.49999581355805495, 0.49994953471206927, 0.50034259284691829 });
+    Point<3>{ 0.499995160198210664, 0.49994071822141356, 0.500341156991491731 });
+
   test_reparam<dim, true>(gyroid,
     grid,
     order,
@@ -236,6 +236,6 @@ TEST_CASE("General reparameterization for gyroid 3D in a grid", "[impl]")
     842940515,
     159280812,
 #endif
-    Point<3>{ 0.50267206966729439, 0.5048150852384049, 0.5032492131051628 });
+    Point<3>{ 0.502672595808896783, 0.504815611380007412, 0.503249213105162796 });
   // NOLINTEND (cppcoreguidelines-avoid-magic-numbers)
 }

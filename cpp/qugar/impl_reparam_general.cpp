@@ -34,6 +34,7 @@
 #include <algoim/hyperrectangle.hpp>
 #include <algoim/interval.hpp>
 #include <algoim/quadrature_general.hpp>
+#include <algoim/uvector.hpp>
 
 #include <cassert>
 #include <cstddef>
@@ -389,6 +390,113 @@ template<int dim, int range, typename R, bool S, bool T = true> struct ImplicitG
     }
   }
 
+  //! @brief Returns the roots of the reference intervals associated to a given
+  //! restriction.
+  //!
+  //! @param ref_intervals Reference intervals.
+  //! @param psi_id Id of the restriction.
+  //! @return Roots of the reference intervals associated to the given restriction.
+  [[nodiscard]] std::vector<real> get_ref_intervals_roots(const RootsIntervals<range> &ref_intervals,
+    const int psi_id) const
+  {
+    std::vector<real> ref_roots;
+
+    for (int i = 0; i < ref_intervals.get_num_roots(); ++i) {
+      if (at(ref_intervals.func_ids, i) == psi_id) {
+        ref_roots.push_back(at(ref_intervals.roots, psi_id));
+      }
+    }
+
+    return ref_roots;
+  }
+
+  //! @brief Computes all the roots in an interval, associated to a given
+  //! restriction, using as reference a set of reference intervals.
+  //!
+  //! @param ref_intervals Reference intervals.
+  //! @param psi_id Id of the restriction.
+  //! @param point Point at which new intervals are computed.
+  //! @return Computed roots.
+  //!
+  //! @warning This method is not bulletproof, and it may fail in corner cases.
+  [[nodiscard]] std::vector<real>
+    compute_similar_roots(const RootsIntervals<range> &ref_intervals, const int psi_id, Vector<real, range> point) const
+  {
+    auto ref_roots = get_ref_intervals_roots(ref_intervals, psi_id);
+
+    if (ref_roots.empty()) {
+      return ref_roots;
+    }
+
+    auto roots = this->compute_roots(point, psi_id);
+
+    const auto tol = this->compute_tolerance();
+
+    // Filtering out roots near x0 and x1.
+    const auto x0 = this->xrange_.min(this->dir_k_);
+    const auto x1 = this->xrange_.max(this->dir_k_);
+    const auto it = std::remove_if(roots.begin(), roots.end(), [tol, x0, x1](const auto &root) {
+      return tol.equal(root, x0) || tol.equal(root, x1);
+    });
+    roots.erase(it, roots.end());
+
+    const auto n_ref_roots = ref_roots.size();
+    auto n_roots = roots.size();
+
+    if (n_roots == n_ref_roots) {
+      return roots;
+    } else if (n_roots > n_ref_roots) {
+      return ref_roots;// Backup strategy
+    }
+    // else // n_roots < n_ref_roots
+
+    this->set_psi_bounds(psi_id, point);
+    const auto val_0 = this->phi_(algoim::set_component(point, this->dir_k_, x0));
+    const auto val_1 = this->phi_(algoim::set_component(point, this->dir_k_, x1));
+
+    bool root_0{ false };
+    bool root_1{ false };
+
+    // Check if the points x0 or x1 are roots of the function
+    // up to different tolerances.
+    for (int i = 0; i < 4; ++i) {
+      const Tolerance new_tol(tol.value() * pow(10.0, i));
+      root_0 = new_tol.is_zero(val_0);
+      root_1 = new_tol.is_zero(val_1);
+      if (root_0 || root_1) {
+        break;
+      }
+    }
+
+    if (root_0 ^ root_1) {
+      roots.insert(roots.end(), n_ref_roots - n_roots, root_0 ? x0 : x1);
+    } else if (root_0 && root_1) {
+      if ((n_roots + 2) == n_ref_roots) {
+        roots.push_back(x0);
+        roots.push_back(x1);
+      } else if ((n_roots + 1) == n_ref_roots) {
+        // We decide if inserting x0 and x1 based on the function signs.
+        auto xx = ref_intervals.point;
+        this->set_psi_bounds(psi_id, xx);
+        xx(this->dir_k_) = numbers::half * (x0 + ref_roots.front());
+        const auto sign = this->phi_(xx) > 0;
+
+        std::sort(roots.begin(), roots.end());
+        const real xmid = roots.empty() ? x1 : roots.front();
+        point(this->dir_k_) = numbers::half * (x0 + xmid);
+        const auto new_sign = this->phi_(point) > 0;
+
+        roots.push_back(sign == new_sign ? x1 : x0);
+      }
+    }
+
+    if (roots.size() == n_ref_roots) {
+      return roots;
+    } else {
+      return ref_roots;// Backup strategy
+    }
+  }
+
   //! @brief Computes all the intervals (between consecutive roots)
   //! at point @p point along direction dir_k_, taking as reference the provided
   //! @p ref_intervals.
@@ -417,80 +525,17 @@ template<int dim, int range, typename R, bool S, bool T = true> struct ImplicitG
       return;
     }
 
-    const auto tol = this->compute_tolerance();
+
+    for (int psi_id = 0; psi_id < this->psi_count_; ++psi_id) {
+      const auto new_roots_i = compute_similar_roots(ref_intervals, psi_id, point);
+
+      for (const auto root : new_roots_i) {
+        intervals.add_root(root, psi_id);
+      }
+    }
 
     const auto x0 = this->xrange_.min(this->dir_k_);
     const auto x1 = this->xrange_.max(this->dir_k_);
-
-    static thread_local std::vector<real> roots_i;
-    // NOLINTNEXTLINE (cppcoreguidelines-avoid-magic-numbers)
-    roots_i.reserve(10);
-
-    for (int i = 0; i < this->psi_count_; ++i) {
-      roots_i.clear();
-
-      for (int j = 0; j < n_roots; ++j) {
-        const auto psi_id = at(ref_intervals.func_ids, j);
-        if (i == psi_id) {
-          roots_i.push_back(at(ref_intervals.roots, j));
-        }
-      }
-
-      if (roots_i.empty()) {
-        continue;
-      }
-
-      const auto n_i = roots_i.size();
-
-      auto new_roots_i = this->compute_roots(point, i);
-
-      // Filtering out roots near x0 and x1.
-      const auto it = std::remove_if(new_roots_i.begin(), new_roots_i.end(), [tol, x0, x1](const auto &root) {
-        return tol.equal(root, x0) || tol.equal(root, x1);
-      });
-      new_roots_i.erase(it, new_roots_i.end());
-      const auto n_i_new = new_roots_i.size();
-
-      if (n_i_new < n_i) {
-        this->set_psi_bounds(i, point);
-        point(this->dir_k_) = x0;
-        const auto root_0 = tol.is_zero(this->phi_(point));
-
-        point(this->dir_k_) = x1;
-        const auto root_1 = tol.is_zero(this->phi_(point));
-
-        if (root_0 ^ root_1) {
-          new_roots_i.insert(new_roots_i.end(), n_i - n_i_new, root_0 ? x0 : x1);
-        } else if (root_0 && root_1) {
-          if ((n_i_new + 2) == n_i) {
-            new_roots_i.push_back(x0);
-            new_roots_i.push_back(x1);
-          } else if ((n_i_new + 1) == n_i) {
-            // We decide if inserting x0 and x1 based on the function signs.
-            auto xx = ref_intervals.point;
-            this->set_psi_bounds(i, xx);
-            xx(this->dir_k_) = numbers::half * (x0 + roots_i.front());
-            const auto sign = this->phi_(xx) > 0;
-
-            std::sort(new_roots_i.begin(), new_roots_i.end());
-            const real xmid = new_roots_i.empty() ? x1 : new_roots_i.front();
-            point(this->dir_k_) = numbers::half * (x0 + xmid);
-            const auto new_sign = this->phi_(point) > 0;
-
-            new_roots_i.push_back(sign == new_sign ? x1 : x0);
-          }
-        }
-      }
-
-      if (new_roots_i.size() != n_i) {
-        // Backup strategy.
-        new_roots_i = roots_i;
-      }
-
-      for (const auto root : new_roots_i) {
-        intervals.add_root(root, i);
-      }
-    }
 
     if constexpr (!S) {
       intervals.add_root(x0, -1);
@@ -499,6 +544,7 @@ template<int dim, int range, typename R, bool S, bool T = true> struct ImplicitG
       assert(intervals.get_num_roots() == ref_intervals.get_num_roots());
     }
 
+    const auto tol = this->compute_tolerance();
     intervals.adjust_roots(tol, x0, x1);
   }
 

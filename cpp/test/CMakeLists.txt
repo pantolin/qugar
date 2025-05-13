@@ -92,6 +92,7 @@ add_new_test(test_impl_poly_reparam_0 test_impl_poly_reparam_0.cpp)
 add_new_test(test_impl_poly_reparam_1 test_impl_poly_reparam_1.cpp)
 add_new_test(test_impl_general_reparam_0 test_impl_general_reparam_0.cpp)
 add_new_test(test_impl_general_reparam_1 test_impl_general_reparam_1.cpp)
+add_new_test(test_impl_general_reparam_2 test_impl_general_reparam_2.cpp)
 
 # execute_process(COMMAND ${CMAKE_COMMAND} -E copy_directory "${qugar_SOURCE_DIR}/data" ${CMAKE_CURRENT_BINARY_DIR}/data)
 
