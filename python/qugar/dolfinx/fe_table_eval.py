@@ -420,7 +420,7 @@ def _evaluate_FE_tables_same_element(
             values[fe_table] = fe_table.values
         return values
 
-    all_derivatives = [table.derivatives for table in fe_tables]
+    all_derivatives = list(set([table.derivatives for table in fe_tables]))
 
     raw_vals = _evaluate_scalar_element_derivatives(
         ref_fe_table.element,
@@ -433,9 +433,15 @@ def _evaluate_FE_tables_same_element(
         vals = raw_vals[fe_table.derivatives]
 
         shape = vals.shape
-        assert len(shape) == 4 and shape[0] == 1 and shape[1] == 1
+        assert (
+            len(shape) == 4 and shape[0] == 1 and shape[1] == 1 and shape[3] % fe_table.funcs == 0
+        )
 
-        values[fe_table] = vals.reshape(shape[2], shape[3])
+        if shape[3] != fe_table.funcs:
+            vals = vals.reshape(shape[2], fe_table.funcs, -1)
+            vals = vals[:, :, fe_table.component]
+
+        values[fe_table] = vals.reshape(shape[2], fe_table.funcs)
 
     return values
 

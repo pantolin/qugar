@@ -436,16 +436,15 @@ class FETable:
 
         short_list = set()
         for element in candidate_elements:
-            block_size = element.block_size
-            if self._component >= block_size:
+            if self._component >= element.reference_value_size:
                 continue
 
-            if block_size > 1:
+            if element.block_size > 1:
                 element_, _, _ = element.get_component_element(self._component)
             else:
                 element_ = element
 
-            if element_.dim == self._funcs:
+            if element_.dim / element_.block_size == self._funcs:
                 short_list.add(element_)
         assert short_list
 
