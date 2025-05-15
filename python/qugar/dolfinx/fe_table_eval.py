@@ -333,7 +333,7 @@ def _format_table_values(
 def _check_groupable_tables(table_0: FETable, table_1: FETable) -> bool:
     """Checks if the two given tables are groupable. We say that they
     are groupable if the share the same base element, they have same
-    average, entity type, integral type, number of permuations and
+    average, entity type, integral type, number of permutations and
     entities. Their component may differ.
 
     Args:
