@@ -1,4 +1,4 @@
-include(../cmake/SystemLink.cmake)
+include(cmake/SystemLink.cmake)
 include(CMakeDependentOption)
 include(CheckCXXCompilerFlag)
 
@@ -89,14 +89,14 @@ endmacro()
 
 macro(qugar_global_options)
   if(qugar_ENABLE_IPO)
-    include(../cmake/InterproceduralOptimization.cmake)
+    include(cmake/InterproceduralOptimization.cmake)
     qugar_enable_ipo()
   endif()
 
   qugar_supports_sanitizers()
 
   if(qugar_ENABLE_HARDENING AND qugar_ENABLE_GLOBAL_HARDENING)
-    include(../cmake/Hardening.cmake)
+    include(cmake/Hardening.cmake)
 
     if(NOT SUPPORTS_UBSAN
       OR qugar_ENABLE_SANITIZER_UNDEFINED
@@ -119,7 +119,7 @@ endmacro()
 
 macro(qugar_local_options)
   if(PROJECT_IS_TOP_LEVEL)
-    include(../cmake/StandardProjectSettings.cmake)
+    include(cmake/StandardProjectSettings.cmake)
   endif()
 
   add_library(qugar_warnings INTERFACE)
@@ -133,7 +133,7 @@ macro(qugar_local_options)
   # add_library(qugar::qugar_options INTERFACE IMPORTED)
   # add_library(qugar::qugar_warnings INTERFACE IMPORTED)
 
-  include(../cmake/CompilerWarnings.cmake)
+  include(cmake/CompilerWarnings.cmake)
   qugar_set_project_warnings(
     qugar_warnings
     ${qugar_WARNINGS_AS_ERRORS}
@@ -143,11 +143,11 @@ macro(qugar_local_options)
     "")
 
   if(qugar_ENABLE_USER_LINKER)
-    include(../cmake/Linker.cmake)
+    include(cmake/Linker.cmake)
     qugar_configure_linker(qugar_options)
   endif()
 
-  include(../cmake/Sanitizers.cmake)
+  include(cmake/Sanitizers.cmake)
   qugar_enable_sanitizers(
     qugar_options
     ${qugar_ENABLE_SANITIZER_ADDRESS}
@@ -168,11 +168,11 @@ macro(qugar_local_options)
   endif()
 
   if(qugar_ENABLE_CACHE)
-    include(../cmake/Cache.cmake)
+    include(cmake/Cache.cmake)
     qugar_enable_cache()
   endif()
 
-  include(../cmake/StaticAnalyzers.cmake)
+  include(cmake/StaticAnalyzers.cmake)
 
   if(qugar_ENABLE_CLANG_TIDY)
     qugar_enable_clang_tidy(qugar_options ${qugar_WARNINGS_AS_ERRORS})
@@ -184,7 +184,7 @@ macro(qugar_local_options)
   endif()
 
   if(qugar_ENABLE_COVERAGE)
-    include(../cmake/Tests.cmake)
+    include(cmake/Tests.cmake)
     qugar_enable_coverage(qugar_options)
   endif()
 
@@ -198,7 +198,7 @@ macro(qugar_local_options)
   endif()
 
   if(qugar_ENABLE_HARDENING AND NOT qugar_ENABLE_GLOBAL_HARDENING)
-    include(../cmake/Hardening.cmake)
+    include(cmake/Hardening.cmake)
 
     if(NOT SUPPORTS_UBSAN
       OR qugar_ENABLE_SANITIZER_UNDEFINED

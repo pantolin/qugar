@@ -42,12 +42,12 @@ if(qugar_FOUND)
   message(STATUS "Found qugar at ${qugar_DIR}")
 endif()
 
-include(../cmake/CPM.cmake)
+include(cmake/CPM.cmake)
 if(NOT algoim::algoim)
   cpmaddpackage("gh:pantolin/algoim@1.0.2")
 endif()
 
-include(../cmake/lapacke.cmake)
+include(cmake/lapacke.cmake)
 qugar_find_lapacke()
 
 # Create the binding library nanobind handles its own calls to

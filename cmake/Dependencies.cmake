@@ -1,5 +1,5 @@
-include(../cmake/CPM.cmake)
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/../cmake/modules")
+include(cmake/CPM.cmake)
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/modules")
 
 macro(qugar_setup_dependencies)
 
@@ -13,7 +13,7 @@ macro(qugar_setup_dependencies)
   # included in algoim, but we prefer to use LAPACK if
   # available.
 
-  include(../cmake/lapacke.cmake)
+  include(cmake/lapacke.cmake)
   qugar_find_lapacke()
 
   if(qugar_BUILD_DOC)
@@ -22,7 +22,7 @@ macro(qugar_setup_dependencies)
 
 
   if(BUILD_TESTING)
-    include(../cmake/Catch2.cmake)
+    include(cmake/Catch2.cmake)
     qugar_find_Catch2()
   endif()
 endmacro()

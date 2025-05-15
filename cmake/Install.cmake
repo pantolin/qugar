@@ -1,6 +1,6 @@
 function(qugar_install_project)
 
-  include(../cmake/PackageProject.cmake)
+  include(cmake/PackageProject.cmake)
 
 # if(qugar_WITH_DEMOS)
   if(CMAKE_SKIP_INSTALL_RULES)
@@ -25,7 +25,7 @@ function(qugar_install_project)
     # FIXME: this does not work! CK
     # PRIVATE_DEPENDENCIES_CONFIGURED qugar_options qugar_warnings
 
-    # See ../cmake/PackageProject.cmake for all the options
+    # See cmake/PackageProject.cmake for all the options
     # PUBLIC_DEPENDENCIES_CONFIGURED
     #   xxx
     # PUBLIC_DEPENDENCIES
