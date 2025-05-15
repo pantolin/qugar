@@ -38,4 +38,4 @@ if(qugar_WITH_DEMOS)
   add_subdirectory(demo)
 endif()
 
-# qugar_install_project()
+qugar_install_project()
