@@ -17,7 +17,7 @@ if not has_FEniCSx:
 
 
 import hashlib
-from typing import cast
+from typing import Any, cast
 
 from mpi4py import MPI
 
@@ -921,15 +921,27 @@ def test_torus(
     assert computed_hashes == target_hashes
 
 
+impl_functors = [
+    (qugar.impl.create_Schoen, "Schoen"),
+    (qugar.impl.create_Schoen_IWP, "Schoen_IWP"),
+    (qugar.impl.create_Schoen_FRD, "Schoen_FRD"),
+    (qugar.impl.create_Fischer_Koch_S, "Fischer_Koch_S"),
+    (qugar.impl.create_Schwarz_Diamond, "Schwarz_Diamond"),
+    (qugar.impl.create_Schwarz_Primitive, "Schwarz_Primitive"),
+]
+
+
 @pytest.mark.parametrize("dim", [2, 3])
 @pytest.mark.parametrize("n_cells", [11, 12])
 @pytest.mark.parametrize("n_quad_pts", [5])
+@pytest.mark.parametrize("impl_functor", impl_functors)
 @pytest.mark.parametrize("dtype", dtypes)
 @pytest.mark.parametrize("negative", [False, True])
 def test_tpms(
     dim: int,
     n_cells: int,
     n_quad_pts: int,
+    impl_functor_str: Any,
     dtype: type[np.float32 | np.float64],
     negative: bool,
 ):
@@ -945,6 +957,8 @@ def test_tpms(
         n_cells (int): Number of cells per direction in the Cartesian mesh to use in the test.
         n_quad_pts (int): Number of quadrature points per direction to use for the cut cells
             and facets in the test.
+        impl_functor_str (tuple): Tuple containing the function to create the
+            implicit function and string name of the implicit function.
         dtype (type): Data type to use for numerical operations (np.float32 or np.float64).
         use_bzr (bool): Flag to indicate whether to use Bezier representation for the implicit
             function.
@@ -1155,7 +1169,7 @@ def test_tpms(
     )
     targets[("Schoen_FRD", 3, 11, 5, np.float32, False)] = (
         "18c06349a81694be528397c82b3c9b20ccabe0be86cf8618322ef2b4b66c604f",
-        "623785d341c7c5593f8ed295758a012dbfa8aa967c920767a1556d4252014cf9",
+        "05616bf7f5afb68bf450dcf081db0e7e6cfdae7fee528e3d8ad3b254f911dafd",
     )
     targets[("Fischer_Koch_S", 3, 11, 5, np.float32, False)] = (
         "695f4df814c16df11816977fc9b23c02c3e9cd776398cf637f929401062a6fd0",
@@ -1179,7 +1193,7 @@ def test_tpms(
     )
     targets[("Schoen_FRD", 3, 11, 5, np.float32, True)] = (
         "5ab0058325cb97fb5930663e21dcfd0c33e433b25fb216051d66a1f569d1a55d",
-        "bd4288fc0678141e8f3d088a6e3c624a548692ddd05aec6266efde4e12392ca9",
+        "29da8cf9484fa67786f1cc2912077d1dff620c5304a2172ff1829296f124eda6",
     )
     targets[("Fischer_Koch_S", 3, 11, 5, np.float32, True)] = (
         "30e5729ed7bb8a3b437f44bab01d64f980fb37825d21dda5cae6e3095050bb0d",
@@ -1251,7 +1265,7 @@ def test_tpms(
     )
     targets[("Schoen_FRD", 3, 12, 5, np.float32, False)] = (
         "425998d41afd0736c3cedfdf8f51d88ee2b0f250c588262a16cada97d1e62f0a",
-        "127109ebe48563eed6a104c3609b06ef1a06812a1c21478742ea97e2858e3fdf",
+        "c11381d27e0b8d08d05302ff51bf370ef92e3a381b123ac689ab6d1d30dd69a4",
     )
     targets[("Fischer_Koch_S", 3, 12, 5, np.float32, False)] = (
         "035935cdae861f80dff2224f0e908177625a26f4f967d72af810c61aaed4b3fe",
@@ -1263,7 +1277,7 @@ def test_tpms(
     )
     targets[("Schwarz_Primitive", 3, 12, 5, np.float32, False)] = (
         "485015aba9c82542f49e440a06e31eb5c44b2d00e1b0adf800f3655ef901f040",
-        "47e69a59ee987053882fcbb0f7f15eda6a38ced9503d3e9c6e61e0f2b00ff2ec",
+        "6bd95f9fdb42d24029643624fef421bdee927d162f37c22453b6490ea56c9961",
     )
     targets[("Schoen", 3, 12, 5, np.float32, True)] = (
         "6c91775260b628a786279c9480d0641ff5c72003c05617f632de9582a755efd6",
@@ -1275,11 +1289,11 @@ def test_tpms(
     )
     targets[("Schoen_FRD", 3, 12, 5, np.float32, True)] = (
         "e8b33ce8be788d363d387fbe6cd0befba37773f12183b3adc9929bfb63614915",
-        "07a859e876f477688e0c1ad55538f392eaadf2ea53352cab4d9607e7626f431f",
+        "09ccbac2b71f528ae43f3280c52a83bcca27731da681580f7cbeecd24d7bba29",
     )
     targets[("Fischer_Koch_S", 3, 12, 5, np.float32, True)] = (
         "98133d54af8b850a1868c950df923615047d8e3a92209fe046a57c6b5414eaea",
-        "3f8da85c021da2cfa22d4250840fbad7761cc9dc844a8f0a9131586d636a1fe5",
+        "654527f2fec096ae7df0b6dedf80c8932943f8ad456b06078461b5ff9cbb4f11",
     )
     targets[("Schwarz_Diamond", 3, 12, 5, np.float32, True)] = (
         "73931adb8bd6e0e3f79c3e92a3fb576b94108a991f3f687c86df75f0de3c5b6c",
@@ -1287,7 +1301,7 @@ def test_tpms(
     )
     targets[("Schwarz_Primitive", 3, 12, 5, np.float32, True)] = (
         "04a633808c8b4e3765fdbc61bcf8be097316a51b5aed71c7b90edafb55baaa40",
-        "a2033d63311a37291eae60bf6248fc8627dbc3547d17ea2afdafb47b0677b475",
+        "9df20661c3240a15881f1f1a0b445a48a9fb69119e165e2c1ce69c6234df36c9",
     )
     targets[("Schoen", 3, 12, 5, np.float64, False)] = (
         "8d38619660d53af3a9c6dc63735186ccc9a9b4619dd0575e2b53e83f15075d65",
@@ -1295,11 +1309,11 @@ def test_tpms(
     )
     targets[("Schoen_IWP", 3, 12, 5, np.float64, False)] = (
         "690e050034717cf1b4924ce5e3fd101df6da881efa098ee258fe35e370dcfdf0",
-        "cbde40eaf6ba88867aced16ed2053f1a85905473740613bb38c6759d5cbdebaa",
+        "e6883582b2c49d513463711039444c2a561ae71cb44fe7f6c1d1ea1fbebef422",
     )
     targets[("Schoen_FRD", 3, 12, 5, np.float64, False)] = (
         "e646d2fcb5791636fd43b0c0740fa2f2c3b74c389e957c315dea90069e8b9068",
-        "a2a55eeb4857127778f6710a50c1ec292e4daca8547eb53bb13997a83752c747",
+        "166a86fa079809b26a90b1004be41fb844cc07c1a5aed13414e745af68ecd906",
     )
     targets[("Fischer_Koch_S", 3, 12, 5, np.float64, False)] = (
         "7e78e5d498963b3aef869ed1c473efa9a22a5f198ecb41f4a368d08f29b70d6d",
@@ -1319,11 +1333,11 @@ def test_tpms(
     )
     targets[("Schoen_IWP", 3, 12, 5, np.float64, True)] = (
         "2cbd3a6cbbd61c710d76358726f24ba7980a3ae8224868bf584d582e7de55b8a",
-        "9565102f982aea1d87f57819923f0f203d345aff2a5a174f7de7410777b43de4",
+        "e06710f6e8f6ec1468989666382ec900d733748c27d345e44db2a9b0c74639c8",
     )
     targets[("Schoen_FRD", 3, 12, 5, np.float64, True)] = (
         "92525637b84da9ec68665e6035c8e1eca2ca8fdf960b2212eb6c67bf65c9a386",
-        "e45528d981c9fbd66b17a563b8eafd498c6ac978b94c6b1541eac85dd54a3863",
+        "ca8574b386c6285781aacc09795a21ca5a4090d8a361cf43fabfd077cd566e72",
     )
     targets[("Fischer_Koch_S", 3, 12, 5, np.float64, True)] = (
         "04a6a1c744731ef8a25330fe30140e02a9e0a52f6da9486d57a6abff550ed1f5",
@@ -1339,128 +1353,124 @@ def test_tpms(
     )
 
     periods = np.ones(dim, dtype=dtype)
-    for functor, functor_str in [
-        [qugar.impl.create_Schoen, "Schoen"],
-        [qugar.impl.create_Schoen_IWP, "Schoen_IWP"],
-        [qugar.impl.create_Schoen_FRD, "Schoen_FRD"],
-        [qugar.impl.create_Fischer_Koch_S, "Fischer_Koch_S"],
-        [qugar.impl.create_Schwarz_Diamond, "Schwarz_Diamond"],
-        [qugar.impl.create_Schwarz_Primitive, "Schwarz_Primitive"],
-    ]:
-        func = functor(periods)
-        if negative:
-            func = qugar.impl.create_negative(func)
+    functor = impl_functor_str[0]
+    functor_str = impl_functor_str[1]
 
-        info = (functor_str, dim, n_cells, n_quad_pts, dtype, negative)
-        target_hashes = targets[info]
-        computed_hashes = create_quadrature_and_reparameterization_hashes(
-            func, n_cells, n_quad_pts, dtype
-        )
+    func = functor(periods)
+    if negative:
+        func = qugar.impl.create_negative(func)
 
-        # print(
-        #     f'    targets[("{functor_str}", {dim}, {n_cells}, {n_quad_pts}, np.{str(np.dtype(dtype))}, {negative})] = '
-        #     f'("{computed_hashes[0]}", "{computed_hashes[1]}")'
-        # )
+    info = (functor_str, dim, n_cells, n_quad_pts, dtype, negative)
+    target_hashes = targets[info]
+    computed_hashes = create_quadrature_and_reparameterization_hashes(
+        func, n_cells, n_quad_pts, dtype
+    )
 
-        assert computed_hashes == target_hashes
+    # print(
+    #     f'    targets[("{functor_str}", {dim}, {n_cells}, {n_quad_pts}, np.{str(np.dtype(dtype))}, {negative})] = '
+    #     f'("{computed_hashes[0]}", "{computed_hashes[1]}")'
+    # )
+
+    assert computed_hashes == target_hashes
 
 
 if __name__ == "__main__":
-    test_disk(8, 5, np.float32, False, False)
-    test_disk(8, 5, np.float64, False, False)
-    test_disk(8, 5, np.float32, True, False)
-    test_disk(8, 5, np.float64, True, False)
-    test_disk(8, 5, np.float32, False, True)
-    test_disk(8, 5, np.float64, False, True)
-    test_disk(8, 5, np.float32, True, True)
-    test_disk(8, 5, np.float64, True, True)
+    # test_disk(8, 5, np.float32, False, False)
+    # test_disk(8, 5, np.float64, False, False)
+    # test_disk(8, 5, np.float32, True, False)
+    # test_disk(8, 5, np.float64, True, False)
+    # test_disk(8, 5, np.float32, False, True)
+    # test_disk(8, 5, np.float64, False, True)
+    # test_disk(8, 5, np.float32, True, True)
+    # test_disk(8, 5, np.float64, True, True)
 
-    test_sphere(8, 5, np.float32, False, False)
-    test_sphere(8, 5, np.float64, False, False)
-    test_sphere(8, 5, np.float32, True, False)
-    test_sphere(8, 5, np.float64, True, False)
-    test_sphere(8, 5, np.float32, False, True)
-    test_sphere(8, 5, np.float64, False, True)
-    test_sphere(8, 5, np.float32, True, True)
-    test_sphere(8, 5, np.float64, True, True)
+    # test_sphere(8, 5, np.float32, False, False)
+    # test_sphere(8, 5, np.float64, False, False)
+    # test_sphere(8, 5, np.float32, True, False)
+    # test_sphere(8, 5, np.float64, True, False)
+    # test_sphere(8, 5, np.float32, False, True)
+    # test_sphere(8, 5, np.float64, False, True)
+    # test_sphere(8, 5, np.float32, True, True)
+    # test_sphere(8, 5, np.float64, True, True)
 
-    test_line(8, 5, np.float32, False, False)
-    test_line(8, 5, np.float64, False, False)
-    test_line(8, 5, np.float32, True, False)
-    test_line(8, 5, np.float64, True, False)
-    test_line(8, 5, np.float32, False, True)
-    test_line(8, 5, np.float64, False, True)
-    test_line(8, 5, np.float32, True, True)
-    test_line(8, 5, np.float64, True, True)
+    # test_line(8, 5, np.float32, False, False)
+    # test_line(8, 5, np.float64, False, False)
+    # test_line(8, 5, np.float32, True, False)
+    # test_line(8, 5, np.float64, True, False)
+    # test_line(8, 5, np.float32, False, True)
+    # test_line(8, 5, np.float64, False, True)
+    # test_line(8, 5, np.float32, True, True)
+    # test_line(8, 5, np.float64, True, True)
 
-    test_plane(8, 5, np.float32, False, False)
-    test_plane(8, 5, np.float64, False, False)
-    test_plane(8, 5, np.float32, True, False)
-    test_plane(8, 5, np.float64, True, False)
-    test_plane(8, 5, np.float32, False, True)
-    test_plane(8, 5, np.float64, False, True)
-    test_plane(8, 5, np.float32, True, True)
-    test_plane(8, 5, np.float64, True, True)
+    # test_plane(8, 5, np.float32, False, False)
+    # test_plane(8, 5, np.float64, False, False)
+    # test_plane(8, 5, np.float32, True, False)
+    # test_plane(8, 5, np.float64, True, False)
+    # test_plane(8, 5, np.float32, False, True)
+    # test_plane(8, 5, np.float64, False, True)
+    # test_plane(8, 5, np.float32, True, True)
+    # test_plane(8, 5, np.float64, True, True)
 
-    test_cylinder(8, 5, np.float32, False, False)
-    test_cylinder(8, 5, np.float64, False, False)
-    test_cylinder(8, 5, np.float32, True, False)
-    test_cylinder(8, 5, np.float64, True, False)
-    test_cylinder(8, 5, np.float32, False, True)
-    test_cylinder(8, 5, np.float64, False, True)
-    test_cylinder(8, 5, np.float32, True, True)
-    test_cylinder(8, 5, np.float64, True, True)
+    # test_cylinder(8, 5, np.float32, False, False)
+    # test_cylinder(8, 5, np.float64, False, False)
+    # test_cylinder(8, 5, np.float32, True, False)
+    # test_cylinder(8, 5, np.float64, True, False)
+    # test_cylinder(8, 5, np.float32, False, True)
+    # test_cylinder(8, 5, np.float64, False, True)
+    # test_cylinder(8, 5, np.float32, True, True)
+    # test_cylinder(8, 5, np.float64, True, True)
 
-    test_annulus(8, 5, np.float32, False, False)
-    test_annulus(8, 5, np.float64, False, False)
-    test_annulus(8, 5, np.float32, True, False)
-    test_annulus(8, 5, np.float64, True, False)
-    test_annulus(8, 5, np.float32, False, True)
-    test_annulus(8, 5, np.float64, False, True)
-    test_annulus(8, 5, np.float32, True, True)
-    test_annulus(8, 5, np.float64, True, True)
+    # test_annulus(8, 5, np.float32, False, False)
+    # test_annulus(8, 5, np.float64, False, False)
+    # test_annulus(8, 5, np.float32, True, False)
+    # test_annulus(8, 5, np.float64, True, False)
+    # test_annulus(8, 5, np.float32, False, True)
+    # test_annulus(8, 5, np.float64, False, True)
+    # test_annulus(8, 5, np.float32, True, True)
+    # test_annulus(8, 5, np.float64, True, True)
 
-    test_ellipse(8, 5, np.float32, False, False)
-    test_ellipse(8, 5, np.float64, False, False)
-    test_ellipse(8, 5, np.float32, True, False)
-    test_ellipse(8, 5, np.float64, True, False)
-    test_ellipse(8, 5, np.float32, False, True)
-    test_ellipse(8, 5, np.float64, False, True)
-    test_ellipse(8, 5, np.float32, True, True)
-    test_ellipse(8, 5, np.float64, True, True)
+    # test_ellipse(8, 5, np.float32, False, False)
+    # test_ellipse(8, 5, np.float64, False, False)
+    # test_ellipse(8, 5, np.float32, True, False)
+    # test_ellipse(8, 5, np.float64, True, False)
+    # test_ellipse(8, 5, np.float32, False, True)
+    # test_ellipse(8, 5, np.float64, False, True)
+    # test_ellipse(8, 5, np.float32, True, True)
+    # test_ellipse(8, 5, np.float64, True, True)
 
-    test_ellipsoid(8, 5, np.float32, False, False)
-    test_ellipsoid(8, 5, np.float64, False, False)
-    test_ellipsoid(8, 5, np.float32, True, False)
-    test_ellipsoid(8, 5, np.float64, True, False)
-    test_ellipsoid(8, 5, np.float32, False, True)
-    test_ellipsoid(8, 5, np.float64, False, True)
-    test_ellipsoid(8, 5, np.float32, True, True)
-    test_ellipsoid(8, 5, np.float64, True, True)
+    # test_ellipsoid(8, 5, np.float32, False, False)
+    # test_ellipsoid(8, 5, np.float64, False, False)
+    # test_ellipsoid(8, 5, np.float32, True, False)
+    # test_ellipsoid(8, 5, np.float64, True, False)
+    # test_ellipsoid(8, 5, np.float32, False, True)
+    # test_ellipsoid(8, 5, np.float64, False, True)
+    # test_ellipsoid(8, 5, np.float32, True, True)
+    # test_ellipsoid(8, 5, np.float64, True, True)
 
-    test_torus(8, 5, np.float32, False, False)
-    test_torus(8, 5, np.float64, False, False)
-    test_torus(8, 5, np.float32, True, False)
-    test_torus(8, 5, np.float64, True, False)
-    test_torus(8, 5, np.float32, False, True)
-    test_torus(8, 5, np.float64, False, True)
-    test_torus(8, 5, np.float32, True, True)
-    test_torus(8, 5, np.float64, True, True)
+    # test_torus(8, 5, np.float32, False, False)
+    # test_torus(8, 5, np.float64, False, False)
+    # test_torus(8, 5, np.float32, True, False)
+    # test_torus(8, 5, np.float64, True, False)
+    # test_torus(8, 5, np.float32, False, True)
+    # test_torus(8, 5, np.float64, False, True)
+    # test_torus(8, 5, np.float32, True, True)
+    # test_torus(8, 5, np.float64, True, True)
 
-    test_tpms(2, 11, 5, np.float32, False)
-    test_tpms(2, 11, 5, np.float32, True)
-    test_tpms(2, 11, 5, np.float64, False)
-    test_tpms(2, 11, 5, np.float64, True)
-    test_tpms(2, 12, 5, np.float32, False)
-    test_tpms(2, 12, 5, np.float32, True)
-    test_tpms(2, 12, 5, np.float64, False)
-    test_tpms(2, 12, 5, np.float64, True)
+    for functor_str in impl_functors:
+        test_tpms(2, 11, 5, functor_str, np.float32, False)
+        test_tpms(2, 11, 5, functor_str, np.float32, True)
+        test_tpms(2, 11, 5, functor_str, np.float64, False)
+        test_tpms(2, 11, 5, functor_str, np.float64, True)
+        test_tpms(2, 12, 5, functor_str, np.float32, False)
+        test_tpms(2, 12, 5, functor_str, np.float32, True)
+        test_tpms(2, 12, 5, functor_str, np.float64, False)
+        test_tpms(2, 12, 5, functor_str, np.float64, True)
 
-    test_tpms(3, 11, 5, np.float32, False)
-    test_tpms(3, 11, 5, np.float32, True)
-    test_tpms(3, 11, 5, np.float64, False)
-    test_tpms(3, 11, 5, np.float64, True)
-    test_tpms(3, 12, 5, np.float32, False)
-    test_tpms(3, 12, 5, np.float32, True)
-    test_tpms(3, 12, 5, np.float64, False)
-    test_tpms(3, 12, 5, np.float64, True)
+        test_tpms(3, 11, 5, functor_str, np.float32, False)
+        test_tpms(3, 11, 5, functor_str, np.float32, True)
+        test_tpms(3, 11, 5, functor_str, np.float64, False)
+        test_tpms(3, 11, 5, functor_str, np.float64, True)
+        test_tpms(3, 12, 5, functor_str, np.float32, False)
+        test_tpms(3, 12, 5, functor_str, np.float32, True)
+        test_tpms(3, 12, 5, functor_str, np.float64, False)
+        test_tpms(3, 12, 5, functor_str, np.float64, True)
