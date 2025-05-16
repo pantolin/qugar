@@ -436,16 +436,11 @@ class FETable:
 
         short_list = set()
         for element in candidate_elements:
-            if self._component >= element.reference_value_size:
-                continue
-
-            if element.block_size > 1:
-                element_, _, _ = element.get_component_element(self._component)
-            else:
-                element_ = element
-
-            if element_.dim / element_.block_size == self._funcs:
-                short_list.add(element_)
+            if (
+                self._component < element.reference_value_size
+                and element.dim / element.block_size == self._funcs
+            ):
+                short_list.add(element)
         assert short_list
 
         def set_derivatives(elem_dim: int) -> None:

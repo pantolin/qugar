@@ -129,10 +129,10 @@ def _evaluate_scalar_element_derivatives(
 
         for der, tbl in tables.items():
             avg_tbl = np.dot(weights, tbl) / wsum  # type: ignore
-            tables[der] = np.reshape(avg_tbl, (1, 1, 1, tbl.shape[1]))
+            tables[der] = np.reshape(avg_tbl, (1, 1, 1, *tbl.shape[1:]))
     else:
         for der, tbl in tables.items():
-            tables[der] = tbl.reshape(1, 1, tbl.shape[0], tbl.shape[1])
+            tables[der] = tbl.reshape(1, 1, *tbl.shape)
 
     return tables
 
@@ -422,8 +422,13 @@ def _evaluate_FE_tables_same_element(
 
     all_derivatives = list(set([table.derivatives for table in fe_tables]))
 
+    element_ = ref_fe_table.element
+    if element_.block_size > 1:
+        # If the element is a vector element, we need to get the
+        # sub-element for the component
+        element_, _, _ = element_.get_component_element(ref_fe_table.component)
     raw_vals = _evaluate_scalar_element_derivatives(
-        ref_fe_table.element,
+        element_,
         points,
         ref_fe_table.avg,
         all_derivatives,
@@ -434,10 +439,10 @@ def _evaluate_FE_tables_same_element(
 
         shape = vals.shape
         assert (
-            len(shape) == 4 and shape[0] == 1 and shape[1] == 1 and shape[3] % fe_table.funcs == 0
+            len(shape) == 4 and shape[0] == 1 and shape[1] == 1 and shape[-1] % fe_table.funcs == 0
         )
 
-        if shape[3] != fe_table.funcs:
+        if shape[-1] != fe_table.funcs:
             vals = vals.reshape(shape[2], fe_table.funcs, -1)
             vals = vals[:, :, fe_table.component]
 
