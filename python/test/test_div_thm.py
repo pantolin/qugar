@@ -15,6 +15,7 @@ from qugar.utils import has_FEniCSx
 if not has_FEniCSx:
     raise ValueError("FEniCSx installation not found is required.")
 
+from typing import Callable
 
 from mpi4py import MPI
 
@@ -703,9 +704,20 @@ def test_torus(
     check_div_thm(func, n_cells, n_quad_pts, exclude_empty_cells, use_tags, dtype, rtol, atol)
 
 
+tpms_impls = [
+    qugar.impl.create_Schoen,
+    qugar.impl.create_Schoen_IWP,
+    qugar.impl.create_Schoen_FRD,
+    qugar.impl.create_Fischer_Koch_S,
+    qugar.impl.create_Schwarz_Diamond,
+    qugar.impl.create_Schwarz_Primitive,
+]
+
+
 @pytest.mark.parametrize("dim", [2, 3])
 @pytest.mark.parametrize("n_cells", [11, 12])
 @pytest.mark.parametrize("n_quad_pts", [8])
+@pytest.mark.parametrize("impl_functor", tpms_impls)
 @pytest.mark.parametrize("exclude_empty_cells", [False, True])
 @pytest.mark.parametrize("use_tags", [True, False])
 @pytest.mark.parametrize("dtype", dtypes)
@@ -714,6 +726,7 @@ def test_tpms(
     dim: int,
     n_cells: int,
     n_quad_pts: int,
+    impl_functor: Callable,
     exclude_empty_cells: bool,
     use_tags: bool,
     dtype: type[np.float32 | np.float64],
@@ -731,6 +744,7 @@ def test_tpms(
         n_cells (int): Number of cells per direction in the Cartesian mesh to use in the test.
         n_quad_pts (int): Number of quadrature points per direction to use for the cut cells
             and facets in the test.
+        impl_functor (Callable): Implicit function functor to use for the TPMS.
         exclude_empty_cells (bool, optional): Flag to exclude empty cells in the
             unfitted mesh. Defaults to True.
         use_tags (bool): Flag to indicate whether to use tags for cut and full cells and facets.
@@ -744,23 +758,15 @@ def test_tpms(
     """
 
     periods = np.ones(dim, dtype=dtype)
-    for functor in [
-        qugar.impl.create_Schoen,
-        qugar.impl.create_Schoen_IWP,
-        qugar.impl.create_Schoen_FRD,
-        qugar.impl.create_Fischer_Koch_S,
-        qugar.impl.create_Schwarz_Diamond,
-        qugar.impl.create_Schwarz_Primitive,
-    ]:
-        func = functor(periods)
-        if negative:
-            func = qugar.impl.create_negative(func)
+    impl_func = impl_functor(periods)
+    if negative:
+        impl_func = qugar.impl.create_negative(impl_func)
 
-        rtol = 1e-4 if dim == 2 else 1e-3
-        atol = 1e-8 if dim == 2 else 2.0e-2
-        check_div_thm(
-            func, n_cells, n_quad_pts, exclude_empty_cells, use_tags, dtype, rtol=rtol, atol=atol
-        )
+    rtol = 1e-4 if dim == 2 else 1e-3
+    atol = 1e-8 if dim == 2 else 2.0e-2
+    check_div_thm(
+        impl_func, n_cells, n_quad_pts, exclude_empty_cells, use_tags, dtype, rtol=rtol, atol=atol
+    )
 
 
 if __name__ == "__main__":
