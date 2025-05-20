@@ -63,9 +63,52 @@ TEST_CASE("Bezier reparameterization for sphere 2D", "[impl]")
   const BoundBox<2> domain_01;
 
   // NOLINTBEGIN (cppcoreguidelines-avoid-magic-numbers)
-  test_reparam_Bezier<2, false>(
-    bzr, domain_01, order, 57, 64, 24, 24, 34, 1113, 502, Point<2>{ 0.5, 0.55526315789473679 });
-  test_reparam_Bezier<2, true>(bzr, domain_01, order, 15, 16, 0, 6, 0, 51, 0, Point<2>{ 0.5, 0.53000000000000003 });
+  test_reparam_Bezier<2, false>(bzr,
+    domain_01,
+    order,
+#ifdef WITH_LAPACK
+    57,
+    64,
+    24,
+    24,
+    34,
+    1113,
+    502,
+    Point<2>{ 0.5, 0.55526315789473679 });
+#else
+    64,
+    64,
+    32,
+    31,
+    31,
+    1333,
+    686,
+    Point<2>{ 0.49999999999999994, 0.50000000000000011 });
+#endif
+
+  test_reparam_Bezier<2, true>(bzr,
+    domain_01,
+    order,
+#ifdef WITH_LAPACK
+    15,
+    16,
+    0,
+    6,
+    0,
+    51,
+    0,
+    Point<2>{ 0.5, 0.53000000000000003 });
+#else
+    16,
+    16,
+    0,
+    7,
+    0,
+    58,
+    0,
+    Point<2>{ 0.5, 0.500000000000000111 });
+#endif
+
   // NOLINTEND (cppcoreguidelines-avoid-magic-numbers)
 }
 
@@ -114,9 +157,51 @@ TEST_CASE("Bezier reparameterization for sphere 3D", "[impl]")
   const BoundBox<3> domain_01;
 
   // NOLINTBEGIN (cppcoreguidelines-avoid-magic-numbers)
-  test_reparam_Bezier<3, false>(
-    bzr, domain_01, order, 463, 512, 0, 223, 0, 59871, 0, Point<3>{ 0.50236724669387545, 0.5185225506305885, 0.5 });
-  test_reparam_Bezier<3, true>(
-    bzr, domain_01, order, 121, 128, 0, 58, 0, 4166, 0, Point<3>{ 0.50129402032971004, 0.51012507785355654, 0.5 });
+  test_reparam_Bezier<3, false>(bzr,
+    domain_01,
+    order,
+#ifdef WITH_LAPACK
+    463,
+    512,
+    0,
+    223,
+    0,
+    59871,
+    0,
+    Point<3>{ 0.50236724669387545, 0.5185225506305885, 0.5 });
+#else
+    470,
+    512,
+    0,
+    231,
+    0,
+    62053,
+    0,
+    Point<3>{ 0.51410601560676028, 0.507529772076287689, 0.499999999999999944 });
+#endif
+
+  test_reparam_Bezier<3, true>(bzr,
+    domain_01,
+    order,
+#ifdef WITH_LAPACK
+    121,
+    128,
+    0,
+    58,
+    0,
+    4166,
+    0,
+    Point<3>{ 0.50129402032971004, 0.51012507785355654, 0.5 });
+#else
+    122,
+    128,
+    0,
+    60,
+    0,
+    4236,
+    0,
+    Point<3>{ 0.507763263858521552, 0.504144019760954132, 0.5 });
+#endif
+
   // NOLINTEND (cppcoreguidelines-avoid-magic-numbers)
 }
