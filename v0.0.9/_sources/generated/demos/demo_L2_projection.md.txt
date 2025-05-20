@@ -186,7 +186,7 @@ used to compute the error for achieving a higher accuracy.
 n_quad_pts = 2 * degree + 2
 quad_degree = 2 * n_quad_pts + 1
 error_form: qugar.dolfinx.CustomForm = form_custom(
-    (uh - f) ** 2 * ufl.dx(degree=quad_degree), unf_mesh, dtype=dtype
+    (uh - f) ** 2 * ufl.dx(degree=quad_degree), dtype=dtype
 )
 error_L2 = np.sqrt(
     unf_mesh.comm.allreduce(
