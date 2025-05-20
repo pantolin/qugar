@@ -64,6 +64,7 @@ class UnfittedDomainABC(ABC):
             mesh: The mesh object to be used.
         """
         self._mesh = mesh
+        setattr(self._mesh._ufl_domain, "unf_domain", self)
 
     @abstractmethod
     def get_cut_cells(self) -> npt.NDArray[np.int32]:

@@ -98,14 +98,12 @@ class FETable:
     def __init__(
         self,
         code: str,
-        name: str,
-        table_type: str,
         itg_tdim: int,
         integral_type: str,
         entity_type: str,
         is_mixed_dim: bool,
-        quad_data: QuadratureData,
-        candidate_elements: list[BasixElement],
+        table_types: dict[str, str],
+        all_quads_data: dict[str, QuadratureData],
     ):
         """Constructor.
 
@@ -116,10 +114,6 @@ class FETable:
         Args:
             code (str): C code containing at least one definition of a
                 basis functions table.
-            table_type(str): FE table type. Possible values are 'zeros',
-                'ones', 'quadrature', 'fixed', 'piecewise', 'uniform',
-                or 'varying'. So far, only 'fixed', 'uniform',
-                'varying', and 'piecewise' are supported.
             itg_tdim (int): Topological dimension of the integral
                 to which the table refers to. E.g., dimension 2 for
                 integrals over triangles or quadrilaterals, and
@@ -131,46 +125,45 @@ class FETable:
             is_mixed_dim (bool): Flag indicating if the integral to
                 which the element table is associated to presents mixed
                 dimensions or not.
-            quad_data (QuadratureData): Data of the quadrature used for
-                reating the table.
-            candidate_elements (list[BasixElement]): List of possible
-                elements that were used for creating the table.
-                Among then, the class selects the element used for
-                creating the table.
+            table_types (dict[str, str]): Dictionary mapping the
+                table names to the table types.
+            all_quads_data (dict[str, QuadratureData]): Dictionary of
+                quadrature data (quadrature names to quadrature data
+                objects).
         """
 
         assert 1 <= itg_tdim and itg_tdim <= 3
 
-        assert table_type in [
+        assert integral_type in ["cell", "exterior_facet", "interior_facet"]
+
+        assert entity_type in ["cell", "facet"]
+
+        self._integral_type = integral_type
+        self._entity_type = entity_type
+        self._avg = None
+
+        self._parse_code(code)
+
+        self._table_type = table_types.get(self._name)
+        assert self._table_type in [
             "uniform",
             "varying",
             "fixed",
             "piecewise",
         ]
 
-        assert integral_type in ["cell", "exterior_facet", "interior_facet"]
-
-        assert entity_type in ["cell", "facet"]
-
-        self._name = name
-        self._table_type = table_type
-        self._integral_type = integral_type
-        self._entity_type = entity_type
-        self._quad_data = quad_data
-        self._avg = None
-
-        self._parse_code(code)
+        self._quad_data = all_quads_data[self._quad_name]
 
         self._values = self._extract_values()
-        self._element = self._find_element(candidate_elements, is_mixed_dim, itg_tdim)
+        # self._element = self._find_element(candidate_elements, is_mixed_dim, itg_tdim)
 
     def _parse_code(self, code: str):
         """Parses the first occurrence of a FE table in the given
         C `code`.
 
-        It initializes the class members `_code`, `_dtype`, `_FE_id`,
-        `_component`, `_permutations`, `_entities`, `_points`, `_funcs`,
-        `_avg`, `_derivatives`, and `_entity_type`.
+        It initializes the class members `_code`, `_name`, `_quad_name`,
+        `_dtype`, `_FE_id`, `_component`, `_permutations`, `_entities`,
+        `_points`, `_funcs`, `_avg`, `_derivatives`, and `_entity_type`.
 
         Args:
             code (str): C code containing at least one definition of a
@@ -182,6 +175,8 @@ class FETable:
 
         self._code = match.group(0)
 
+        self._name = self._parse_FE_name()
+        self._quad_name = match.group(5)
         self._dtype = parse_real_dtype_from_C(match.group(1))
 
         self._FE_id = int(match.group(2))
@@ -194,6 +189,23 @@ class FETable:
         self._entities = int(match.group(7))
         self._points = int(match.group(8))
         self._funcs = int(match.group(9))
+
+    def _parse_FE_name(self) -> str:
+        """Parses the FE table name from the stored C `code`.
+
+        Returns:
+            str: FE table name with a format like
+            ``FE#_C#_D###[_AC|_AF|][_F|V][_Q#]``. See
+            ``FETable._parse_FE_extra_options`` documentation for further
+            details.
+        """
+
+        name_pattern = r"const\s+\w+\s+FE([\w|\_]*)\s*\["
+        match = re.search(name_pattern, self.code)
+        assert match
+
+        name = "FE" + match.group(1)
+        return name
 
     def _extract_values(self) -> npt.NDArray[np.float32 | np.float64]:
         """Extracts the table values from `self._code`.
@@ -404,6 +416,29 @@ class FETable:
             else:
                 assert False, f"Invalid finite element option: {opt}."
 
+    def _set_element(self, element: BasixElement) -> None:
+        """Sets the element associated to the table.
+
+        This method is used for setting the element after the table
+        has been created. If not previously set, it also sets the
+        derivates of the table to 0.
+
+        Args:
+            element (BasixElement): Element associated to the table.
+        """
+        self._element = element
+        elem_dim = element.cell.topological_dimension()
+        self._set_derivatives(elem_dim)
+
+    def _set_derivatives(self, elem_dim: int) -> None:
+        """Sets the derivatives of the table.
+        If the derivatives are not set, it sets them to 0.
+        Args:
+            elem_dim (int): Element dimension.
+        """
+        if not hasattr(self, "_derivatives") or all(der == 0 for der in self._derivatives):
+            self._derivatives = (0,) * elem_dim
+
     def _find_element(
         self, candidate_elements: list[BasixElement], is_mixed_dim: bool, itg_tdim: int
     ) -> BasixElement:
@@ -436,17 +471,11 @@ class FETable:
 
         short_list = set()
         for element in candidate_elements:
-            block_size = element.block_size
-            if self._component >= block_size:
-                continue
-
-            if block_size > 1:
-                element_, _, _ = element.get_component_element(self._component)
-            else:
-                element_ = element
-
-            if element_.dim == self._funcs:
-                short_list.add(element_)
+            if (
+                self._component < element.reference_value_size
+                and element.dim / element.block_size == self._funcs
+            ):
+                short_list.add(element)
         assert short_list
 
         def set_derivatives(elem_dim: int) -> None:
@@ -574,28 +603,6 @@ def _sort_FE_tables(FE_tables: list[FETable]) -> list[FETable]:
     return FE_tables
 
 
-def _parse_FE_name(code: str) -> str:
-    """Parses the FE table name from the given C `code`.
-
-    Args:
-        code (str): C code containing at least one definition of a
-            basis functions table.
-
-    Returns:
-        str: FE table name with a format like
-        ``FE#_C#_D###[_AC|_AF|][_F|V][_Q#]``. See
-        ``FETable._parse_FE_extra_options`` documentation for further
-        details.
-    """
-
-    name_pattern = r"const\s+\w+\s+FE([\w|\_]*)\s*\["
-    match = re.search(name_pattern, code)
-    assert match
-
-    name = "FE" + match.group(1)
-    return name
-
-
 def _parse_quad_name(code: str) -> str:
     """Parses the name of the quadrature associated to the
     FE table defined in the given C `code`.
@@ -675,11 +682,124 @@ def _check_mixed_dim(tdim, elements) -> bool:
     return False
 
 
+def _find_element(
+    FE_table: FETable, candidate_elements: list[BasixElement], itg_tdim: int, is_mixed_dim: bool
+) -> BasixElement:
+    """Finds the element associated to the given FE table.
+
+    Args:
+        FE_table (FETable): FE table to which the element is
+            associated.
+        candidate_elements (dict[str, list[BasixElement]]): Elements
+            used in the integral. It is a dictionary mapping every
+            quadrature (name) used in the integral to the elements
+            using that quadrature.
+        is_mixed_dim (bool): Flag indicating if the integral to
+            which the element table is associated to presents mixed
+            dimensions or not.
+
+    Returns:
+        BasixElement: Element associated to the FE table.
+    """
+
+    assert candidate_elements
+
+    short_list = set()
+    for element in candidate_elements:
+        if FE_table.component < element.reference_value_size:
+            short_list.add(element)
+    assert short_list
+
+    if len(short_list) == 1:
+        element = short_list.pop()
+        elem_dim = element.cell.topological_dimension()
+        FE_table._set_derivatives(elem_dim)
+        assert len(FE_table.derivatives) == elem_dim
+
+        return element
+
+    for element in short_list:
+        from qugar.dolfinx.fe_table_eval import evaluate_FE_table
+
+        elem_dim = element.cell.topological_dimension()
+        codim = itg_tdim - elem_dim
+        assert 0 <= codim <= 1
+
+        FE_table._set_derivatives(elem_dim)
+
+        if len(FE_table.derivatives) != elem_dim:
+            continue
+
+        new_table = evaluate_FE_table(FE_table, element, is_mixed_dim, codim)
+
+        if equal_tables(new_table, FE_table.values, default_rtol, default_atol):
+            return element
+
+    assert False, "No valid element found."
+
+
+def _match_FE_IDs_to_elements(
+    FE_tables: list[FETable],
+    candidate_elements: dict[str, list[BasixElement]],
+    itg_tdim: int,
+    is_mixed_dim: bool,
+) -> dict[tuple[int, str], BasixElement]:
+    """Matches the FE tables to the elements used in the integral.
+
+    The matching is done by first grouping the tables by their id and quadrature.
+    Then, for each id and quadrature we keep the table with the highest component.
+    Finally, we find the element associated to each table.
+    The element is found by comparing the table properties to the
+    properties of the candidate elements.
+
+    Args:
+        FE_tables (list[FETable]): List of FE tables to match.
+        candidate_elements (dict[str, list[BasixElement]]): Elements
+            used in the integral. It is a dictionary mapping every
+            quadrature (name) used in the integral to the elements
+            using that quadrature.
+        itg_tdim (int): Topological dimension of the integral's domain.
+            E.g., dimension 2 if the integral is performed inside
+            (or on the facet of) triangles or quadrilaterals.
+            Dimension 3 in the case of tetrahedra, hexahedra, etc.
+        is_mixed_dim (bool): Flag indicating if the integral to
+            which the element table is associated to presents mixed
+            dimensions or not.
+
+    Returns:
+        dict[tuple[int,str], BasixElement]: Dictionary mapping the FE
+        table id and quadrature name to the element associated to that
+        table. The keys are tuples of the form (FE_id, quad_name),
+        where FE_id is the id of the table and quad_name is the name
+        of the quadrature associated to the table. The values are the
+        elements associated to the tables.
+    """
+
+    # First we group tables by id.
+    tables_by_id_and_quad = {}
+    for table in FE_tables:
+        key = (table.FE_id, table.quad_name)
+        if key not in tables_by_id_and_quad:
+            tables_by_id_and_quad[key] = []
+        tables_by_id_and_quad[key].append(table)
+
+    # Then, for each id and quad we keep the table with the highest component
+    for id_quad, tables in tables_by_id_and_quad.items():
+        tables.sort(key=lambda t: t.component, reverse=True)
+        tables_by_id_and_quad[id_quad] = tables[0]
+
+    # Finally we find the element associated to each (id,quad) pair.
+    return {
+        id_quad: _find_element(table, candidate_elements[id_quad[1]], itg_tdim, is_mixed_dim)
+        for id_quad, table in tables_by_id_and_quad.items()
+    }
+
+
 def extract_FE_tables(
     code: str,
     ir_itg: IntegralIR,
     all_quads_data: dict[str, QuadratureData],
-    tdim: int,
+    itg_tdim: int,
 ) -> list[FETable]:
     """Parses all the FE tables defined in the tabulate integral
     function stored in C `code`.
@@ -692,7 +812,7 @@ def extract_FE_tables(
         all_quads_data (dict[str, QuadratureData]): Dictionary of
             quadrature data (quadrature names to quadrature data
             objects) for the quadratures in `ir_itg`.
-        tdim (int): Topological dimension of the integral's domain.
+        itg_tdim (int): Topological dimension of the integral's domain.
             E.g., dimension 2 if the integral is performed inside
             (or on the facet of) triangles or quadrilaterals.
             Dimension 3 in the case of tetrahedra, hexahedra, etc.
@@ -709,32 +829,30 @@ def extract_FE_tables(
     entity_type = ir_itg.expression.entity_type
     candidate_elements = _extract_elements_in_integral(ir_itg)
 
-    is_mixed_dim = _check_mixed_dim(tdim, candidate_elements)
+    is_mixed_dim = _check_mixed_dim(itg_tdim, candidate_elements)
 
     FE_tables = []
     for match in re.finditer(FETable.pattern, code):
         code_block = code[match.start() :]
 
-        name = _parse_FE_name(code_block)
-        quad_name = _parse_quad_name(code_block)
-
-        table_type = table_types[name]
-        quad_data = all_quads_data[quad_name]
-        elements_quad = candidate_elements[quad_name]
-
         FE_tables.append(
             FETable(
                 code_block,
-                name,
-                table_type,
-                tdim,
+                itg_tdim,
                 integral_type,
                 entity_type,
                 is_mixed_dim,
-                quad_data,
-                elements_quad,
+                table_types,
+                all_quads_data,
             )
         )
+
+    ids_quads_to_element = _match_FE_IDs_to_elements(
+        FE_tables, candidate_elements, itg_tdim, is_mixed_dim
+    )
+
+    for FE_table in FE_tables:
+        FE_table._set_element(ids_quads_to_element[(FE_table.FE_id, FE_table.quad_name)])
 
     FE_tables = _sort_FE_tables(FE_tables)
     return FE_tables

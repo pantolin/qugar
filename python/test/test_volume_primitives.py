@@ -69,7 +69,7 @@ def compute_volume(
     )
     ufl_form = one * (dx(full_tag) + dx_cut)
 
-    custom_form = form_custom(ufl_form, unf_mesh, dtype=dtype)
+    custom_form = form_custom(ufl_form, dtype=dtype)
     assert isinstance(custom_form, CustomForm)
 
     custom_coeffs = custom_form.pack_coefficients()
@@ -107,7 +107,7 @@ def compute_boundary_area(
     )
     ufl_form = one * ds
 
-    custom_form = form_custom(ufl_form, unf_mesh, dtype=dtype)
+    custom_form = form_custom(ufl_form, dtype=dtype)
     assert isinstance(custom_form, CustomForm)
 
     custom_coeffs = custom_form.pack_coefficients()

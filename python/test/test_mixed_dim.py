@@ -120,7 +120,7 @@ def test_mixed_dimension(
     form = dolfinx.fem.form(ufl_form, dtype=dtype, entity_maps=entity_maps)  # type: ignore
     matrix = dolfinx.fem.assemble_matrix(form)
 
-    custom_form = form_custom(ufl_form, unf_domain, dtype=dtype, entity_maps=entity_maps)
+    custom_form = form_custom(ufl_form, dtype=dtype, entity_maps=entity_maps)
     assert isinstance(custom_form, CustomForm)
     custom_matrix = dolfinx.fem.assemble_matrix(form)
 

@@ -109,7 +109,7 @@ def test_unfitted_normal(N, dim, p, simplex_cell, dtype, nnz, max_quad_sets):
 
     ufl_form = ufl_form_0 + ufl_form_1 + ufl_form_2  # type: ignore
 
-    custom_form = form_custom(ufl_form, unf_domain, dtype=dtype)
+    custom_form = form_custom(ufl_form, dtype=dtype)
     assert isinstance(custom_form, CustomForm)
 
     custom_coeffs = custom_form.pack_coefficients()

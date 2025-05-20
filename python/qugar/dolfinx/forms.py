@@ -178,7 +178,6 @@ def _modify_everywhere_exterior_facet_integrals(form):
 
 def form_custom(
     form: typing.Union[ufl.Form, typing.Iterable[ufl.Form]],
-    domain: UnfittedDomainABC,
     dtype: npt.DTypeLike = default_scalar_type,
     form_compiler_options: typing.Optional[dict] = None,
     jit_options: typing.Optional[dict] = None,
@@ -234,7 +233,7 @@ def form_custom(
     form_compiler_options["scalar_type"] = dtype
     ftype = form_cpp_class(dtype)
 
-    def _form(form, unf_domain: UnfittedDomainABC) -> CustomForm:
+    def _form(form) -> CustomForm:
         """Compile a single UFL form."""
 
         # In the case of exterior facets integrals everywhere in the
@@ -245,6 +244,10 @@ def form_custom(
         # Extract subdomain data from UFL form
         sd = form.subdomain_data()
         (domain,) = list(sd.keys())  # Assuming single domain
+
+        assert hasattr(domain, "unf_domain")
+        unf_domain = domain.unf_domain
+        assert isinstance(unf_domain, UnfittedDomainABC)
 
         # Check that subdomain data for each integral type is the same
         for data in sd.get(domain).values():
@@ -339,9 +342,7 @@ def form_custom(
                 new_lst.extend(_flatten_list(i))
         return new_lst
 
-    def _create_form(
-        form, domain: UnfittedDomainABC
-    ) -> CustomForm | None | list[CustomForm | None]:
+    def _create_form(form) -> CustomForm | None | list[CustomForm | None]:
         """Recursively convert ufl.Forms to dolfinx.fem.Form.
 
         Args:
@@ -355,11 +356,11 @@ def form_custom(
             if form.empty():
                 return None
             else:
-                return _form(form, domain)
+                return _form(form)
         elif isinstance(form, collections.abc.Iterable):
-            forms = _flatten_list(list(map(lambda sub_form: _create_form(sub_form, domain), form)))
+            forms = _flatten_list(list(map(lambda sub_form: _create_form(sub_form), form)))
             return forms
         else:
             raise ValueError("Not implemented case.")
 
-    return _create_form(form, domain)
+    return _create_form(form)

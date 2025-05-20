@@ -129,10 +129,10 @@ def _evaluate_scalar_element_derivatives(
 
         for der, tbl in tables.items():
             avg_tbl = np.dot(weights, tbl) / wsum  # type: ignore
-            tables[der] = np.reshape(avg_tbl, (1, 1, 1, tbl.shape[1]))
+            tables[der] = np.reshape(avg_tbl, (1, 1, 1, *tbl.shape[1:]))
     else:
         for der, tbl in tables.items():
-            tables[der] = tbl.reshape(1, 1, tbl.shape[0], tbl.shape[1])
+            tables[der] = tbl.reshape(1, 1, *tbl.shape)
 
     return tables
 
@@ -333,7 +333,7 @@ def _format_table_values(
 def _check_groupable_tables(table_0: FETable, table_1: FETable) -> bool:
     """Checks if the two given tables are groupable. We say that they
     are groupable if the share the same base element, they have same
-    average, entity type, integral type, number of permuations and
+    average, entity type, integral type, number of permutations and
     entities. Their component may differ.
 
     Args:
@@ -420,10 +420,15 @@ def _evaluate_FE_tables_same_element(
             values[fe_table] = fe_table.values
         return values
 
-    all_derivatives = [table.derivatives for table in fe_tables]
+    all_derivatives = list(set([table.derivatives for table in fe_tables]))
 
+    element_ = ref_fe_table.element
+    if element_.block_size > 1:
+        # If the element is a vector element, we need to get the
+        # sub-element for the component
+        element_, _, _ = element_.get_component_element(ref_fe_table.component)
     raw_vals = _evaluate_scalar_element_derivatives(
-        ref_fe_table.element,
+        element_,
         points,
         ref_fe_table.avg,
         all_derivatives,
@@ -433,9 +438,15 @@ def _evaluate_FE_tables_same_element(
         vals = raw_vals[fe_table.derivatives]
 
         shape = vals.shape
-        assert len(shape) == 4 and shape[0] == 1 and shape[1] == 1
+        assert (
+            len(shape) == 4 and shape[0] == 1 and shape[1] == 1 and shape[-1] % fe_table.funcs == 0
+        )
 
-        values[fe_table] = vals.reshape(shape[2], shape[3])
+        if shape[-1] != fe_table.funcs:
+            vals = vals.reshape(shape[2], fe_table.funcs, -1)
+            vals = vals[:, :, fe_table.component]
+
+        values[fe_table] = vals.reshape(shape[2], fe_table.funcs)
 
     return values
 

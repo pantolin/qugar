@@ -138,7 +138,7 @@ def get_dolfinx_forms(ufl_form, unf_domain: UnfittedDomainABC) -> tuple[CustomFo
 
     dtype = get_dtype(ufl_form)
 
-    custom_form = form_custom(ufl_form, unf_domain, dtype=dtype)
+    custom_form = form_custom(ufl_form, dtype=dtype)
     assert isinstance(custom_form, CustomForm)
 
     form: Form = dolfinx.fem.form(ufl_form, dtype=dtype)  # type: ignore
