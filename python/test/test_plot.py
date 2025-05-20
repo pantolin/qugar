@@ -789,11 +789,11 @@ def test_ellipsoid(
     targets = {}
     targets[(8, 5, np.float32, False, False)] = (
         "0ba3e7a4d4cb8389845ff9e3fe450ba336483f6631002b50656a1ff0409e640d",
-        "80fba795b2e3b0f5cfce1559fb1c4e2a86912d5f4eeeb6e0780d2a42e4583edf",
+        "25e13d8d3448b22bdc836a7f2b1191b7aa1a0f9534a891b71b70d82701d70a32",
     )
     targets[(8, 5, np.float64, False, False)] = (
         "3cf39d70aa253bb9f493b07b39a8ddb047d4ed32687d66fb6bffed1f54e3c3ba",
-        "567d20c93d2fbd44712d8402b16243c530afc85a8a5f33d5a223ccca5633e568",
+        "0617529de85b236083149d29da85a1556fffbc8d9aca435e878ee31aef4d460f",
     )
     targets[(8, 5, np.float32, True, False)] = (
         "bb93bab3cd869beba530e41e8d6e2703d4866320d5737adc99644e33ac5e9f59",
@@ -805,11 +805,11 @@ def test_ellipsoid(
     )
     targets[(8, 5, np.float32, False, True)] = (
         "4b93c3acdbd44b79930219f9c20b591477bd8eb15f908e98d29c72787063260e",
-        "3ef9f5438739b7c52f500254a05544a60a827e8bb80f8eebe41432bd05e31434",
+        "5b74cfce2f53df1ac386b61a27f0f87a93ad96e2dac8e1f9095756283ac82f23",
     )
     targets[(8, 5, np.float64, False, True)] = (
         "da7d4237084044eea8f3054b0dc71085d0ea07a7ff85a0bdf988fbe4041556ef",
-        "7486e6fd821b774c70824b46f11e33b81890ded56e4e35454c7b9851fa643117",
+        "4dd5f4e3e88010cdc4d049bb652c85a02c825339e13c5ad054b6f8ac47cd6d07",
     )
     targets[(8, 5, np.float32, True, True)] = (
         "8bf8c40668356cefe9638a1b33cf36f42ceaadb9d469fe1b41724f795fcc8c79",
@@ -934,7 +934,7 @@ impl_functors = [
 @pytest.mark.parametrize("dim", [2, 3])
 @pytest.mark.parametrize("n_cells", [11, 12])
 @pytest.mark.parametrize("n_quad_pts", [5])
-@pytest.mark.parametrize("impl_functor", impl_functors)
+@pytest.mark.parametrize("impl_functor_str", impl_functors)
 @pytest.mark.parametrize("dtype", dtypes)
 @pytest.mark.parametrize("negative", [False, True])
 def test_tpms(
@@ -957,7 +957,7 @@ def test_tpms(
         n_cells (int): Number of cells per direction in the Cartesian mesh to use in the test.
         n_quad_pts (int): Number of quadrature points per direction to use for the cut cells
             and facets in the test.
-        impl_functor_str (tuple): Tuple containing the function to create the
+        impl_functor_str (tuple): List of tuples containing the function to create the
             implicit function and string name of the implicit function.
         dtype (type): Data type to use for numerical operations (np.float32 or np.float64).
         use_bzr (bool): Flag to indicate whether to use Bezier representation for the implicit
