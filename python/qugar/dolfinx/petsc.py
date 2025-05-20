@@ -168,7 +168,6 @@ class LinearProblem(dolfinx.fem.petsc.LinearProblem):
 
         _a = form_custom(
             a,
-            unf_domain,
             dtype=PETSc.ScalarType,  # type: ignore
             form_compiler_options=form_compiler_options,
             jit_options=jit_options,
@@ -178,7 +177,6 @@ class LinearProblem(dolfinx.fem.petsc.LinearProblem):
         self._A = create_matrix(self._a)  # type: ignore
         _L = form_custom(
             L,
-            unf_domain,
             dtype=PETSc.ScalarType,  # type: ignore
             form_compiler_options=form_compiler_options,
             jit_options=jit_options,
@@ -291,7 +289,6 @@ class NonlinearProblem(dolfinx.fem.petsc.NonlinearProblem):
 
         _L = form_custom(
             F,
-            unf_domain,
             dtype=PETSc.ScalarType,  # type: ignore
             form_compiler_options=form_compiler_options,
             jit_options=jit_options,
@@ -306,7 +303,6 @@ class NonlinearProblem(dolfinx.fem.petsc.NonlinearProblem):
 
         _a = form_custom(
             J,
-            unf_domain,
             dtype=PETSc.ScalarType,  # type: ignore
             form_compiler_options=form_compiler_options,
             jit_options=jit_options,

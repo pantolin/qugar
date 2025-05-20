@@ -219,10 +219,10 @@ def check_div_thm(
     ufl_form_vol = create_div_thm_volume_ufl_form(unf_mesh, n_quad_pts, use_tags)
     ufl_form_srf = create_div_thm_surface_ufl_form(unf_mesh, n_quad_pts, use_tags)
 
-    form_vol = form_custom(ufl_form_vol, unf_mesh, dtype=dtype)
+    form_vol = form_custom(ufl_form_vol, dtype=dtype)
     assert isinstance(form_vol, CustomForm)
 
-    form_srf = form_custom(ufl_form_srf, unf_mesh, dtype=dtype)
+    form_srf = form_custom(ufl_form_srf, dtype=dtype)
     assert isinstance(form_srf, CustomForm)
 
     vol_integral = fem.assemble_scalar(form_vol, coeffs=form_vol.pack_coefficients())
@@ -773,5 +773,5 @@ if __name__ == "__main__":
     # test_disk(8, 6, False, True, np.float64, True, False)
     # test_cylinder(8, 6, np.float64, True, False)
     # test_tpms(3, 12, 8, False, np.float32, False)
-    test_tpms(3, 12, 8, False, False, np.float32, False)
+    test_tpms(3, 12, 8, qugar.impl.create_Schoen, False, False, np.float32, False)
     # test_ellipsoid(8, 5, True, True, np.float32, True, False)  # , use_bzr=False)
