@@ -1,11 +1,11 @@
 macro(qugar_find_nanobind)
-  find_package(nanobind 2.1 CONFIG)
+  find_package(nanobind 2.4 CONFIG)
 
   if(nanobind_FOUND)
     message(STATUS "Found nanobind version ${nanobind_VERSION} in: ${nanobind_DIR}")
   else()
-    message(STATUS "nanobind NOT FOUND: version 2.1.0 wil be built from sources.")
-    cpmaddpackage("gh:wjakob/nanobind@2.1.0")
+    message(STATUS "nanobind NOT FOUND: version 2.4.0 wil be built from sources.")
+    cpmaddpackage("gh:wjakob/nanobind@2.4.0")
   endif()
 
   # HACK: The only purpose of creating this dummy module is to trigger
