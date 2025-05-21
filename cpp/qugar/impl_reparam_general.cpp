@@ -834,9 +834,8 @@ template<int dim, int range, typename R, bool S, bool T = true> struct ImplicitG
     }
   }
 
-  //! @brief Reparameterizes the domain defined implicitly by a list of polynomials.
-  //! The interior of the domain is the subregion where all the polynomials are
-  //! negative at the same time.
+  //! @brief Reparameterizes the domain defined implicitly by a single C1 scalar function.
+  //! The interior of the domain is the subregion where that function has a negative value.
   //!
   //! @param Implicit function to reparameterize.
   //! @param domain Domain in which the reparameterization is performed.
