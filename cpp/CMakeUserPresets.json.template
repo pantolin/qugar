@@ -17,6 +17,7 @@
             "cacheVariables": {
                 "qugar_BUILD_DOC": true,
                 "qugar_WITH_DEMOS": true,
+                "qugar_BUILD_CATCH2": false,
                 "BUILD_TESTING": true
             }
         },

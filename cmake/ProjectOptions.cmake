@@ -226,6 +226,7 @@ macro(qugar_setup_config_options)
   option(BUILD_TESTING "Enable testing" OFF)
   option(qugar_BUILD_DOC "Build documentation" OFF)
   option(qugar_WITH_DEMOS "Build demos" OFF)
+  option(qugar_BUILD_CATCH2 "Enforce the build of Catch2 from sources instead of using existing installation" OFF)
 
   unset(_IS_DEBUG_BUILD)
 endmacro()

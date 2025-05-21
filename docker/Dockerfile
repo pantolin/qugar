@@ -49,6 +49,7 @@ RUN  cmake -G Ninja \
     -DBUILD_TESTING=OFF \
     -Dqugar_DEVELOPER_MODE=OFF \
     -Dqugar_BUILD_DOC=OFF \
+    -Dqugar_BUILD_CATCH2=ON \
     -Dqugar_WITH_DEMOS=OFF \
     -B build-release qugar/cpp/ && \
     ninja install -j4 -C build-release && \
