@@ -29,6 +29,7 @@ import numpy as np
 import numpy.typing as npt
 from dolfinx.cpp.mesh import CellType
 from dolfinx.fem.forms import Form
+from mock_unf_mesh import MockUnfittedMesh
 
 from qugar.dolfinx import CustomForm, form_custom
 from qugar.mesh.unfitted_domain_abc import UnfittedDomainABC
@@ -71,7 +72,7 @@ def clean_cache(dir_name: str = str(DOLFINX_CACHE_DIR)):
             os.remove(os.path.join(dir_name, item))
 
 
-def create_mesh(
+def _create_mesh(
     dim: int,
     N: int,
     simplex_cell: bool = False,
@@ -104,6 +105,38 @@ def create_mesh(
         cell_type = CellType.tetrahedron if simplex_cell else CellType.hexahedron
         mesh = dolfinx.mesh.create_unit_cube(comm, N, N, N, cell_type=cell_type, dtype=dtype)
     return mesh
+
+
+def create_mock_unfitted_mesh(
+    dim: int,
+    N: int,
+    simplex_cell: bool = False,
+    nnz: float = 0,
+    max_quad_sets: int = 3,
+    dtype: type[np.float32 | np.float64] = np.float64,
+) -> MockUnfittedMesh:
+    """Create a finite element mesh in the domain [0,1]^dim.
+
+    Args:
+        dim (int): Dimension of the mesh.
+        N (int): Number of cells per direction.
+        simplex_cell (bool, optional): If ``True``, creates simplices
+            (triangles and tetrahedra), otherwise (if ``False``) creates
+            quadrilaterals and hexahedra. Defaults to False.
+        nnz (int, optional): Ratio of entities with custom
+            quadratures respect to the total number of entities.
+            It must be a value in the range [0.0, 1.0].
+        max_quad_sets (int, optional): Maximum number of repetitions
+            of the standard quadrature in each custom cell. For each
+            custom entity a random number is generated between 1 and
+            `max_quad_sets`. Defaults to 3.
+        dtype (np.dtype[np.float32  |  np.float64], optional): `numpy`
+            type to be used in the mesh.
+
+    Returns:
+        dolfinx.mesh.Mesh: Create mesh.
+    """
+    return MockUnfittedMesh(_create_mesh(dim, N, simplex_cell, dtype), nnz, max_quad_sets)
 
 
 def get_dtype(ufl_form) -> type[np.float32 | np.float64]:

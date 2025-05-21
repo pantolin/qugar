@@ -31,9 +31,8 @@ from qugar.mesh.unfitted_domain_abc import UnfittedDomainABC
 from qugar.quad import CustomQuad, CustomQuadFacet, CustomQuadUnfBoundary
 
 
-class MockUnfittedDomain(UnfittedDomainABC):
-    """Class for generating mock custom quadrature for testing
-    purposes.
+class MockUnfittedMesh(dolfinx.mesh.Mesh, UnfittedDomainABC):
+    """Class for generating mock unfitted mesh for testing purposes.
 
     It generates custom quadratures for a few cells (number specified
     in the constructor) and standard quadratures for the rest. The
@@ -72,7 +71,8 @@ class MockUnfittedDomain(UnfittedDomainABC):
         self._compute_custom_cells()
         self._compute_custom_facets()
 
-        super().__init__(mesh)
+        dolfinx.mesh.Mesh.__init__(self, mesh._cpp_object, mesh._ufl_domain)
+        UnfittedDomainABC.__init__(self, mesh)
 
     def _get_cells_ids(self) -> npt.NDArray[np.int32]:
         """Gets the ids of all the cells in the mesh.

@@ -23,8 +23,7 @@ import dolfinx.mesh
 import numpy as np
 import pytest
 import ufl
-from mock_unf_domain import MockUnfittedDomain
-from utils import clean_cache, create_mesh, dtypes  # type: ignore
+from utils import clean_cache, create_mock_unfitted_mesh, dtypes  # type: ignore
 
 from qugar.dolfinx import CustomForm, ds_bdry_unf, form_custom, mapped_normal
 
@@ -69,22 +68,20 @@ def test_unfitted_normal(N, dim, p, simplex_cell, dtype, nnz, max_quad_sets):
             generated between 1 and `max_quad_sets`.
     """
 
-    mesh = create_mesh(dim, N, simplex_cell, dtype)
-
-    unf_domain = MockUnfittedDomain(mesh=mesh, nnz=nnz, max_quad_sets=max_quad_sets)
+    unf_mesh = create_mock_unfitted_mesh(dim, N, simplex_cell, nnz, max_quad_sets, dtype)
 
     bdry_tag = 0
-    unf_bdry_cells = np.sort(unf_domain.get_cut_cells())
+    unf_bdry_cells = np.sort(unf_mesh.get_cut_cells())
     cell_tags = dolfinx.mesh.meshtags(
-        mesh, dim, unf_bdry_cells, np.full_like(unf_bdry_cells, bdry_tag)
+        unf_mesh, dim, unf_bdry_cells, np.full_like(unf_bdry_cells, bdry_tag)
     )
 
-    V0 = dolfinx.fem.functionspace(mesh, ("Lagrange", p))
-    V1 = dolfinx.fem.functionspace(mesh, ("Lagrange", p + 1))
+    V0 = dolfinx.fem.functionspace(unf_mesh, ("Lagrange", p))
+    V1 = dolfinx.fem.functionspace(unf_mesh, ("Lagrange", p + 1))
 
-    n = mapped_normal(mesh)
-    c = dolfinx.fem.Constant(mesh, np.ones(dim, dtype=dtype))
-    c2 = dolfinx.fem.Constant(mesh, dtype(1.0))
+    n = mapped_normal(unf_mesh)
+    c = dolfinx.fem.Constant(unf_mesh, np.ones(dim, dtype=dtype))
+    c2 = dolfinx.fem.Constant(unf_mesh, dtype(1.0))
 
     v = ufl.TestFunction(V0)
 
@@ -95,16 +92,16 @@ def test_unfitted_normal(N, dim, p, simplex_cell, dtype, nnz, max_quad_sets):
         ufl.dot(c, n)
         * e  # type: ignore
         * v
-        * ds_bdry_unf(domain=mesh, subdomain_data=cell_tags, subdomain_id=bdry_tag)
+        * ds_bdry_unf(domain=unf_mesh, subdomain_data=cell_tags, subdomain_id=bdry_tag)
     )
     ufl_form_1 = (
         e
         * v  # type: ignore
-        * ds_bdry_unf(domain=mesh, subdomain_data=cell_tags, subdomain_id=bdry_tag)
+        * ds_bdry_unf(domain=unf_mesh, subdomain_data=cell_tags, subdomain_id=bdry_tag)
     )
 
     ufl_form_2 = (
-        c2 * v * ufl.dx(domain=mesh, subdomain_data=cell_tags, subdomain_id=bdry_tag)  # type: ignore
+        c2 * v * ufl.dx(domain=unf_mesh, subdomain_data=cell_tags, subdomain_id=bdry_tag)  # type: ignore
     )
 
     ufl_form = ufl_form_0 + ufl_form_1 + ufl_form_2  # type: ignore

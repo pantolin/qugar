@@ -22,8 +22,7 @@ import dolfinx.fem
 import numpy as np
 import pytest
 import ufl
-from mock_unf_domain import MockUnfittedDomain
-from utils import clean_cache, create_mesh, dtypes, run_scalar_check  # type: ignore
+from utils import clean_cache, create_mock_unfitted_mesh, dtypes, run_scalar_check  # type: ignore
 
 
 @pytest.mark.parametrize("max_quad_sets", [3])
@@ -68,15 +67,13 @@ def test_measure(
             generated between 1 and `max_quad_sets`.
     """
 
-    mesh = create_mesh(dim, N, simplex_cell, dtype)
+    unf_mesh = create_mock_unfitted_mesh(dim, N, simplex_cell, nnz, max_quad_sets, dtype)
 
-    one = dolfinx.fem.Constant(mesh, dtype(1.0))
+    one = dolfinx.fem.Constant(unf_mesh, dtype(1.0))
 
-    ufl_form = one * dx(domain=mesh)
+    ufl_form = one * dx(domain=unf_mesh)
 
-    unf_domain = MockUnfittedDomain(mesh=mesh, nnz=nnz, max_quad_sets=max_quad_sets)
-
-    run_scalar_check(ufl_form, unf_domain)
+    run_scalar_check(ufl_form, unf_mesh)
 
 
 @pytest.mark.parametrize("max_quad_sets", [3])
@@ -122,11 +119,11 @@ def test_scalar(
             generated between 1 and `max_quad_sets`.
     """
 
-    mesh = create_mesh(dim, N, simplex_cell, dtype)
+    unf_mesh = create_mock_unfitted_mesh(dim, N, simplex_cell, nnz, max_quad_sets, dtype)
 
-    V0 = dolfinx.fem.functionspace(mesh, ("Lagrange", p, (2,)))
-    V1 = dolfinx.fem.functionspace(mesh, ("Lagrange", p + 1, (2,)))
-    V2 = dolfinx.fem.functionspace(mesh, ("Lagrange", p))
+    V0 = dolfinx.fem.functionspace(unf_mesh, ("Lagrange", p, (2,)))
+    V1 = dolfinx.fem.functionspace(unf_mesh, ("Lagrange", p + 1, (2,)))
+    V2 = dolfinx.fem.functionspace(unf_mesh, ("Lagrange", p))
 
     e = dolfinx.fem.Function(V0, dtype=dtype)
     e.interpolate(  # type: ignore
@@ -137,18 +134,16 @@ def test_scalar(
     f.interpolate(  # type: ignore
         lambda x: np.vstack((2 + x[0] ** 2 + 4 * x[1] ** 2, 1 + x[0] ** 2 + 5 * x[1] ** 2))
     )
-    constant_0 = dolfinx.fem.Constant(mesh, np.array([5.0, 6.0], dtype=dtype))
+    constant_0 = dolfinx.fem.Constant(unf_mesh, np.array([5.0, 6.0], dtype=dtype))
 
     ff = dolfinx.fem.Function(V2, dtype=dtype)
     ff.interpolate(lambda x: np.sin(x[0] * x[1]))  # type: ignore
 
-    ufl_form_0 = cast(ufl.Form, ufl.inner(e, constant_0) * dx(domain=mesh))
-    ufl_form_1 = cast(ufl.Form, ufl.inner(f, constant_0) * dx(domain=mesh))
+    ufl_form_0 = cast(ufl.Form, ufl.inner(e, constant_0) * dx(domain=unf_mesh))
+    ufl_form_1 = cast(ufl.Form, ufl.inner(f, constant_0) * dx(domain=unf_mesh))
     ufl_form = ufl_form_0 + ufl_form_1
 
-    unf_domain = MockUnfittedDomain(mesh=mesh, nnz=nnz, max_quad_sets=max_quad_sets)
-
-    run_scalar_check(ufl_form, unf_domain)
+    run_scalar_check(ufl_form, unf_mesh)
 
 
 if __name__ == "__main__":

@@ -22,8 +22,7 @@ import dolfinx.mesh
 import numpy as np
 import pytest
 import ufl
-from mock_unf_domain import MockUnfittedDomain
-from utils import clean_cache, create_mesh, dtypes, run_matrix_check  # type: ignore
+from utils import clean_cache, create_mock_unfitted_mesh, dtypes, run_matrix_check  # type: ignore
 
 
 @pytest.mark.parametrize("max_quad_sets", [3])
@@ -70,23 +69,21 @@ def test_grad_grad(
             generated between 1 and `max_quad_sets`.
     """
 
-    mesh = create_mesh(dim, N, simplex_cell, dtype)
+    unf_mesh = create_mock_unfitted_mesh(dim, N, simplex_cell, nnz, max_quad_sets, dtype)
 
-    V0 = dolfinx.fem.functionspace(mesh, ("Lagrange", p, (dim,)))
-    V1 = dolfinx.fem.functionspace(mesh, ("Lagrange", p + 1, (dim,)))
-    V2 = dolfinx.fem.functionspace(mesh, ("Lagrange", p))
+    V0 = dolfinx.fem.functionspace(unf_mesh, ("Lagrange", p, (dim,)))
+    V1 = dolfinx.fem.functionspace(unf_mesh, ("Lagrange", p + 1, (dim,)))
+    V2 = dolfinx.fem.functionspace(unf_mesh, ("Lagrange", p))
 
     u, v = ufl.TrialFunction(V0), ufl.TestFunction(V1)
 
     e = dolfinx.fem.Function(V2, dtype=dtype)
     e.interpolate(lambda x: 1 + x[0] ** 2 + 2 * x[1] ** 2)  # type: ignore
 
-    ufl_form_0 = e * ufl.inner(ufl.grad(u), ufl.grad(v)) * dx(domain=mesh)  # type: ignore
+    ufl_form_0 = e * ufl.inner(ufl.grad(u), ufl.grad(v)) * dx(domain=unf_mesh)  # type: ignore
     ufl_form = ufl_form_0
 
-    unf_domain = MockUnfittedDomain(mesh=mesh, nnz=nnz, max_quad_sets=max_quad_sets)
-
-    run_matrix_check(ufl_form, unf_domain)
+    run_matrix_check(ufl_form, unf_mesh)
 
 
 @pytest.mark.parametrize("max_quad_sets", [3])
@@ -133,7 +130,7 @@ def test_elasticity(
             generated between 1 and `max_quad_sets`.
     """
 
-    mesh = create_mesh(dim, N, simplex_cell, dtype)
+    unf_mesh = create_mock_unfitted_mesh(dim, N, simplex_cell, nnz, max_quad_sets, dtype)
 
     lambda_ = 1.0
     mu_ = 1.0
@@ -144,22 +141,20 @@ def test_elasticity(
     def sigma(u):
         return lambda_ * ufl.nabla_div(u) * ufl.Identity(len(u)) + 2 * mu_ * epsilon(u)  # type: ignore
 
-    V0 = dolfinx.fem.functionspace(mesh, ("Lagrange", p + 1, (dim,)))
-    V1 = dolfinx.fem.functionspace(mesh, ("Lagrange", p, (dim,)))
-    V2 = dolfinx.fem.functionspace(mesh, ("Lagrange", p))
+    V0 = dolfinx.fem.functionspace(unf_mesh, ("Lagrange", p + 1, (dim,)))
+    V1 = dolfinx.fem.functionspace(unf_mesh, ("Lagrange", p, (dim,)))
+    V2 = dolfinx.fem.functionspace(unf_mesh, ("Lagrange", p))
 
     u, v = ufl.TrialFunction(V0), ufl.TestFunction(V1)
 
     e = dolfinx.fem.Function(V2, dtype=dtype)
     e.interpolate(lambda x: 1 + x[0] ** 2 + 2 * x[1] ** 2)  # type: ignore
 
-    ufl_form_0 = e * ufl.inner(sigma(u), epsilon(v)) * dx(domain=mesh)  # type: ignore
+    ufl_form_0 = e * ufl.inner(sigma(u), epsilon(v)) * dx(domain=unf_mesh)  # type: ignore
 
     ufl_form = ufl_form_0
 
-    unf_domain = MockUnfittedDomain(mesh=mesh, nnz=nnz, max_quad_sets=max_quad_sets)
-
-    run_matrix_check(ufl_form, unf_domain)
+    run_matrix_check(ufl_form, unf_mesh)
 
 
 @pytest.mark.parametrize("max_quad_sets", [3])
@@ -201,10 +196,10 @@ def test_grad_grad_surface(
             generated between 1 and `max_quad_sets`.
     """
 
-    mesh = create_mesh(dim, N, simplex_cell, dtype)
+    unf_mesh = create_mock_unfitted_mesh(dim, N, simplex_cell, nnz, max_quad_sets, dtype)
 
     facet_indices, facet_markers = [], []
-    fdim = mesh.topology.dim - 1
+    fdim = unf_mesh.topology.dim - 1
 
     boundaries = [
         (1, lambda x: np.isclose(x[0], 0)),
@@ -214,18 +209,18 @@ def test_grad_grad_surface(
     ]
 
     for marker, locator in boundaries:
-        facets = dolfinx.mesh.locate_entities(mesh, fdim, locator)
+        facets = dolfinx.mesh.locate_entities(unf_mesh, fdim, locator)
         facet_indices.append(facets)
         facet_markers.append(np.full_like(facets, marker))
     facet_indices = np.hstack(facet_indices).astype(np.int32)
     facet_markers = np.hstack(facet_markers).astype(np.int32)
     sorted_facets = np.argsort(facet_indices)
     facet_tag = dolfinx.mesh.meshtags(
-        mesh, fdim, facet_indices[sorted_facets], facet_markers[sorted_facets]
+        unf_mesh, fdim, facet_indices[sorted_facets], facet_markers[sorted_facets]
     )
 
-    V0 = dolfinx.fem.functionspace(mesh, ("Lagrange", p))
-    V1 = dolfinx.fem.functionspace(mesh, ("Lagrange", p + 1, (2,)))
+    V0 = dolfinx.fem.functionspace(unf_mesh, ("Lagrange", p))
+    V1 = dolfinx.fem.functionspace(unf_mesh, ("Lagrange", p + 1, (2,)))
 
     u, v = ufl.TrialFunction(V0), ufl.TestFunction(V0)
 
@@ -234,11 +229,11 @@ def test_grad_grad_surface(
         lambda x: np.vstack((2 + x[0] ** 2 + 4 * x[1] ** 2, 1 + x[0] ** 2 + 5 * x[1] ** 2))
     )
     constants = []
-    constants.append(dolfinx.fem.Constant(mesh, np.array([5.0, 6.0], dtype=dtype)))
-    constants.append(dolfinx.fem.Constant(mesh, np.array([6.0, 7.0], dtype=dtype)))
-    constants.append(dolfinx.fem.Constant(mesh, np.array([6.0, 7.0], dtype=dtype)))
-    constants.append(dolfinx.fem.Constant(mesh, np.array([6.0, 7.0], dtype=dtype)))
-    ds = ufl.ds(domain=mesh, subdomain_data=facet_tag)
+    constants.append(dolfinx.fem.Constant(unf_mesh, np.array([5.0, 6.0], dtype=dtype)))
+    constants.append(dolfinx.fem.Constant(unf_mesh, np.array([6.0, 7.0], dtype=dtype)))
+    constants.append(dolfinx.fem.Constant(unf_mesh, np.array([6.0, 7.0], dtype=dtype)))
+    constants.append(dolfinx.fem.Constant(unf_mesh, np.array([6.0, 7.0], dtype=dtype)))
+    ds = ufl.ds(domain=unf_mesh, subdomain_data=facet_tag)
 
     ufl_form = None
     for i in range(4):
@@ -250,9 +245,7 @@ def test_grad_grad_surface(
         else:
             ufl_form += new_ufl_form
 
-    unf_domain = MockUnfittedDomain(mesh=mesh, nnz=nnz, max_quad_sets=max_quad_sets)
-
-    run_matrix_check(ufl_form, unf_domain)
+    run_matrix_check(ufl_form, unf_mesh)
 
 
 @pytest.mark.parametrize("max_quad_sets", [3])
@@ -295,12 +288,12 @@ def test_interior_facet(
             generated between 1 and `max_quad_sets`.
     """
 
-    mesh = create_mesh(dim, N, simplex_cell, dtype)
+    unf_mesh = create_mock_unfitted_mesh(dim, N, simplex_cell, nnz, max_quad_sets, dtype)
 
-    V0 = dolfinx.fem.functionspace(mesh, ("Lagrange", p))
-    V1 = dolfinx.fem.functionspace(mesh, ("Lagrange", p))
+    V0 = dolfinx.fem.functionspace(unf_mesh, ("Lagrange", p))
+    V1 = dolfinx.fem.functionspace(unf_mesh, ("Lagrange", p))
 
-    n = ufl.FacetNormal(mesh)
+    n = ufl.FacetNormal(unf_mesh)
 
     u = ufl.TrialFunction(V0)
     v = ufl.TestFunction(V0)
@@ -311,9 +304,7 @@ def test_interior_facet(
         f * ufl.inner(ufl.jump(ufl.grad(u), n), ufl.jump(ufl.grad(v), n)) * ufl.dS  # type: ignore
     )
 
-    unf_domain = MockUnfittedDomain(mesh=mesh, nnz=nnz, max_quad_sets=max_quad_sets)
-
-    run_matrix_check(ufl_form, unf_domain)
+    run_matrix_check(ufl_form, unf_mesh)
 
 
 if __name__ == "__main__":

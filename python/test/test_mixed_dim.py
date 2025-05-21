@@ -21,8 +21,13 @@ import dolfinx.mesh
 import numpy as np
 import pytest
 import ufl
-from mock_unf_domain import MockUnfittedDomain
-from utils import check_vals, clean_cache, create_mesh, dtypes, get_dtype  # type: ignore
+from utils import (  # type: ignore
+    check_vals,
+    clean_cache,
+    create_mock_unfitted_mesh,
+    dtypes,
+    get_dtype,
+)
 
 from qugar.dolfinx import CustomForm, form_custom
 
@@ -69,7 +74,7 @@ def test_mixed_dimension(
             generated between 1 and `max_quad_sets`.
     """
 
-    mesh = create_mesh(dim, N, simplex_cell, dtype)
+    mesh = create_mock_unfitted_mesh(dim, N, simplex_cell, nnz, max_quad_sets, dtype)
 
     # Create a submesh of the boundary
     tdim = mesh.topology.dim
@@ -112,8 +117,6 @@ def test_mixed_dimension(
     entity_maps = {smesh: mesh_to_smesh}
 
     ufl_form = ufl.inner(f * g * u, vbar) * ds  # type: ignore
-
-    unf_domain = MockUnfittedDomain(mesh=mesh, nnz=nnz, max_quad_sets=max_quad_sets)
 
     dtype = get_dtype(ufl_form)
 

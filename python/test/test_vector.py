@@ -20,8 +20,7 @@ import dolfinx.fem
 import numpy as np
 import pytest
 import ufl
-from mock_unf_domain import MockUnfittedDomain
-from utils import clean_cache, create_mesh, dtypes, run_vector_check  # type: ignore
+from utils import clean_cache, create_mock_unfitted_mesh, dtypes, run_vector_check  # type: ignore
 
 
 @pytest.mark.parametrize("max_quad_sets", [3])
@@ -68,22 +67,20 @@ def test_v_f(
             generated between 1 and `max_quad_sets`.
     """
 
-    mesh = create_mesh(dim, N, simplex_cell, dtype)
+    unf_mesh = create_mock_unfitted_mesh(dim, N, simplex_cell, nnz, max_quad_sets, dtype)
 
-    V0 = dolfinx.fem.functionspace(mesh, ("Lagrange", p))
-    V1 = dolfinx.fem.functionspace(mesh, ("Lagrange", p + 1))
+    V0 = dolfinx.fem.functionspace(unf_mesh, ("Lagrange", p))
+    V1 = dolfinx.fem.functionspace(unf_mesh, ("Lagrange", p + 1))
 
     v = ufl.TestFunction(V0)
 
     e = dolfinx.fem.Function(V1, dtype=dtype)
     e.interpolate(lambda x: 1 + x[0] ** 2 + 2 * x[1] ** 2)  # type: ignore
 
-    ufl_form_0 = e * v * dx(domain=mesh)  # type: ignore
+    ufl_form_0 = e * v * dx(domain=unf_mesh)  # type: ignore
     ufl_form = ufl_form_0
 
-    unf_domain = MockUnfittedDomain(mesh=mesh, nnz=nnz, max_quad_sets=max_quad_sets)
-
-    run_vector_check(ufl_form, unf_domain)
+    run_vector_check(ufl_form, unf_mesh)
 
 
 @pytest.mark.parametrize("max_quad_sets", [3])
@@ -126,19 +123,17 @@ def test_interior_facet(
             generated between 1 and `max_quad_sets`.
     """
 
-    mesh = create_mesh(dim, N, simplex_cell, dtype)
+    unf_mesh = create_mock_unfitted_mesh(dim, N, simplex_cell, nnz, max_quad_sets, dtype)
 
-    V0 = dolfinx.fem.functionspace(mesh, ("Lagrange", p))
-    V1 = dolfinx.fem.functionspace(mesh, ("Lagrange", p))
+    V0 = dolfinx.fem.functionspace(unf_mesh, ("Lagrange", p))
+    V1 = dolfinx.fem.functionspace(unf_mesh, ("Lagrange", p))
 
     v = ufl.TestFunction(V0)
 
     f = dolfinx.fem.Function(V1, dtype=dtype)
     ufl_form = f * ufl.jump(v) * ufl.dS  # type: ignore
 
-    unf_domain = MockUnfittedDomain(mesh=mesh, nnz=nnz, max_quad_sets=max_quad_sets)
-
-    run_vector_check(ufl_form, unf_domain)
+    run_vector_check(ufl_form, unf_mesh)
 
 
 if __name__ == "__main__":
