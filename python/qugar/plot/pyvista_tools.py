@@ -397,11 +397,8 @@ if has_FEniCSx:
 
         lex_cell_ids = grid.cell_data["Lexicographical cell ids"]
 
-        dlf_local_cell_ids = mesh.get_DOLFINx_local_cell_ids(lex_cell_ids)
-        dlf_global_cell_ids = mesh.get_DOLFINx_local_to_global_cell_ids(dlf_local_cell_ids)
-
-        grid.cell_data["DOLFINx local cell ids"] = dlf_local_cell_ids
-        grid.cell_data["DOLFINx global cell ids"] = dlf_global_cell_ids
+        grid.cell_data["DOLFINx local cell ids"] = mesh.get_DOLFINx_local_cell_ids(lex_cell_ids)
+        grid.cell_data["DOLFINx global cell ids"] = mesh.get_DOLFINx_global_cell_ids(lex_cell_ids)
 
         return None
 
