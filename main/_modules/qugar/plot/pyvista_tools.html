@@ -475,11 +475,8 @@
 
         <span class="n">lex_cell_ids</span> <span class="o">=</span> <span class="n">grid</span><span class="o">.</span><span class="n">cell_data</span><span class="p">[</span><span class="s2">&quot;Lexicographical cell ids&quot;</span><span class="p">]</span>
 
-        <span class="n">dlf_local_cell_ids</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">get_DOLFINx_local_cell_ids</span><span class="p">(</span><span class="n">lex_cell_ids</span><span class="p">)</span>
-        <span class="n">dlf_global_cell_ids</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">get_DOLFINx_local_to_global_cell_ids</span><span class="p">(</span><span class="n">dlf_local_cell_ids</span><span class="p">)</span>
-
-        <span class="n">grid</span><span class="o">.</span><span class="n">cell_data</span><span class="p">[</span><span class="s2">&quot;DOLFINx local cell ids&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">dlf_local_cell_ids</span>
-        <span class="n">grid</span><span class="o">.</span><span class="n">cell_data</span><span class="p">[</span><span class="s2">&quot;DOLFINx global cell ids&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">dlf_global_cell_ids</span>
+        <span class="n">grid</span><span class="o">.</span><span class="n">cell_data</span><span class="p">[</span><span class="s2">&quot;DOLFINx local cell ids&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">get_DOLFINx_local_cell_ids</span><span class="p">(</span><span class="n">lex_cell_ids</span><span class="p">)</span>
+        <span class="n">grid</span><span class="o">.</span><span class="n">cell_data</span><span class="p">[</span><span class="s2">&quot;DOLFINx global cell ids&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">get_DOLFINx_global_cell_ids</span><span class="p">(</span><span class="n">lex_cell_ids</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="kc">None</span>
 
