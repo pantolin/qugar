@@ -43,7 +43,7 @@ To build and install the Python interface, under the `qugar/` root directory run
 python3 -m pip -v install -r ./python/build-requirements.txt
 python3 -m pip -v install --no-build-isolation ./python -U
 ```
-If you want to use QUGaR's functionalities together with FEniCSx library, [install also DOLFINx](https://github.com/FEniCS/dolfinx#installation), including [pyvista](https://pyvista.org) dependency.    
+If you want to use QUGaR's functionalities together with FEniCSx library, [install also DOLFINx (v0.9.0)](https://github.com/FEniCS/dolfinx#installation), including [pyvista](https://pyvista.org) dependency.    
 
 
 Further details about the installation of the C++ and Python modules can be found at https://pantolin.github.io/qugar/main/installation.html.
