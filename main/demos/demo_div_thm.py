@@ -107,7 +107,7 @@
 # that is immersed (unfitted) in the mesh $\mathcal{T}$ but does not intersect $\mathcal{F}$,
 # we will use special quadrature rules defined over the cut cells $\mathcal{T}_{\text{cut}}$
 # (in some corner cases they may correspond to the boundary of full cells
-# $\mathcal{T}_{\text{cut}}$).
+# $\mathcal{T}_{\text{full}}$).
 #
 # Thus, the surface integral of the divergence theorem will be approximated as
 #

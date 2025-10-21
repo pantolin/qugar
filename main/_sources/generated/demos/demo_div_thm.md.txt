@@ -4,7 +4,7 @@ jupytext:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.17.3
+    jupytext_version: 1.18.1
   main_language: python
 ---
 
@@ -107,7 +107,7 @@ For computing the integral over $\Gamma_{\text{unf}}$, the part of the $\Gamma$
 that is immersed (unfitted) in the mesh $\mathcal{T}$ but does not intersect $\mathcal{F}$,
 we will use special quadrature rules defined over the cut cells $\mathcal{T}_{\text{cut}}$
 (in some corner cases they may correspond to the boundary of full cells
-$\mathcal{T}_{\text{cut}}$).
+$\mathcal{T}_{\text{full}}$).
 
 Thus, the surface integral of the divergence theorem will be approximated as
 
