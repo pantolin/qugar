@@ -424,6 +424,12 @@ class UnfittedDomainABC(ABC):
                     add_cells(getter, tag)
 
             tdim = self._mesh.topology.dim
+
+            # Sort cells and values according to cell indices for consistent ordering
+            order = np.argsort(cells)
+            cells = cells[order]
+            values = values[order]
+
             return meshtags(self._mesh, tdim, cells, values)
 
     def create_facet_tags(

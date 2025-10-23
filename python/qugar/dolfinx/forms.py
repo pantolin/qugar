@@ -162,11 +162,13 @@ def _modify_everywhere_exterior_facet_integrals(form):
         if integral.integral_type() == "exterior_facet":
             # Check if the integral is over the whole domain
             if integral.subdomain_id() in ("everywhere", -1):
-                metadata = integral.metadata().copy()
-                subdomain_id = integral.subdomain_id()
-                subdomain_data = integral.subdomain_data()
                 old_integrals[i] = integral.reconstruct(
-                    subdomain_data, subdomain_id=subdomain_id, metadata=metadata
+                    integral.integrand(),
+                    integral.integral_type(),
+                    integral.ufl_domain(),
+                    integral.subdomain_id(),
+                    integral.metadata().copy(),
+                    integral.subdomain_id(),
                 )
 
                 integral._subdomain_data = None
