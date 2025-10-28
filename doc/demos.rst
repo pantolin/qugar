@@ -23,5 +23,7 @@ List of all demos
    generated/demos/demo_plot.md
    generated/demos/demo_L2_projection.md
    generated/demos/demo_poisson.md
+   generated/demos/demo_poisson_convergence.md
    generated/demos/demo_elasticity.md
+   generated/demos/demo_elasticity_convergence.md
    generated/demos/demo_hyperelasticity.md
