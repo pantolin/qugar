@@ -10,6 +10,7 @@ set -euo pipefail
 ENV_NAME="${QUGAR_ENV_NAME:-qugar-env2}"
 PYTHON_VERSION="${PYTHON_VERSION:-3.10}"
 INSTALL_LAPACKE="${INSTALL_LAPACKE:-true}"
+INSTALL_DOLFINX="${INSTALL_DOLFINX:-true}"
 USE_CONDA_COMPILERS="${USE_CONDA_COMPILERS:-false}"
 SKIP_ENV_SETUP="${SKIP_ENV_SETUP:-false}"
 
@@ -149,6 +150,34 @@ install_lapacke() {
         log_success "LAPACKE installed"
     else
         log_info "Skipping LAPACKE installation (set INSTALL_LAPACKE=true to install)"
+    fi
+}
+
+# Install DOLFINx
+install_dolfinx() {
+    if [[ "${INSTALL_DOLFINX}" == "true" ]]; then
+        log_info "Installing DOLFINx..."
+        
+        # Platform-specific dependencies per https://github.com/FEniCS/dolfinx
+        case "${PLATFORM}" in
+            macos|linux)
+                log_info "Installing DOLFINx with mpich and pyvista for ${PLATFORM}..."
+                conda install -c conda-forge fenics-dolfinx mpich pyvista -y
+                ;;
+            windows)
+                log_info "Installing DOLFINx with pyvista and pyamg for Windows..."
+                log_warn "Note: PETSc and petsc4py are not available on Windows conda packages (beta testing)"
+                conda install -c conda-forge fenics-dolfinx pyvista pyamg -y
+                ;;
+            *)
+                log_warn "Unknown platform ${PLATFORM}, installing with Linux/macOS defaults..."
+                conda install -c conda-forge fenics-dolfinx mpich pyvista -y
+                ;;
+        esac
+        
+        log_success "DOLFINx installed"
+    else
+        log_info "Skipping DOLFINx installation (set INSTALL_DOLFINX=true to install)"
     fi
 }
 
@@ -697,6 +726,7 @@ main() {
         
         install_build_tools
         install_lapacke
+        install_dolfinx
          
         # Platform-specific compiler setup
         case "${PLATFORM}" in
