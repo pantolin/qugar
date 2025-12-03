@@ -130,34 +130,38 @@ check_existing_env() {
     return 1
 }
 
-# Install conda packages directly based on flags and platform
-install_conda_packages() {
-    log_info "Installing conda packages based on configuration..."
+# Build package list based on configuration flags
+# Sets global PACKAGES array (bash 3.2 compatible)
+build_package_list() {
+    PACKAGES=()
     
     # Base packages - always included
-    log_info "Installing base packages..."
-    conda install -c conda-forge python="${PYTHON_VERSION}" cmake>=3.20 ninja git -y
+    PACKAGES+=("python=${PYTHON_VERSION}")
+    PACKAGES+=("cmake>=3.20")
+    PACKAGES+=("ninja")
+    PACKAGES+=("git")
     
     # Add LAPACKE if requested
     if [[ "${INSTALL_LAPACKE}" == "true" ]]; then
-        log_info "Installing LAPACKE packages..."
-        conda install -c conda-forge liblapacke libtmglib -y
+        PACKAGES+=("liblapacke")
+        PACKAGES+=("libtmglib")
     fi
     
     # Add DOLFINx packages if requested (platform-specific)
     if [[ "${INSTALL_DOLFINX}" == "true" ]]; then
-        log_info "Installing DOLFINx packages for ${PLATFORM}..."
+        PACKAGES+=("fenics-dolfinx=0.9.0")
+        PACKAGES+=("pyvista")
         case "${PLATFORM}" in
             macos|linux)
-                conda install -c conda-forge fenics-dolfinx=0.9.0 mpich pyvista -y
+                PACKAGES+=("mpich")
                 ;;
             windows)
                 log_warn "Note: PETSc and petsc4py are not available on Windows conda packages (beta testing)"
-                conda install -c conda-forge fenics-dolfinx=0.9.0 pyvista pyamg -y
+                PACKAGES+=("pyamg")
                 ;;
             *)
                 log_warn "Unknown platform ${PLATFORM}, using Linux/macOS defaults..."
-                conda install -c conda-forge fenics-dolfinx=0.9.0 mpich pyvista -y
+                PACKAGES+=("mpich")
                 ;;
         esac
     fi
@@ -166,8 +170,8 @@ install_conda_packages() {
     if [[ "${USE_CONDA_COMPILERS}" == "true" ]]; then
         case "${PLATFORM}" in
             linux|windows)
-                log_info "Installing conda compilers..."
-                conda install -c conda-forge cxx-compiler c-compiler -y
+                PACKAGES+=("cxx-compiler")
+                PACKAGES+=("c-compiler")
                 ;;
             macos)
                 log_info "Skipping conda compilers on macOS (using system compilers)"
@@ -176,18 +180,39 @@ install_conda_packages() {
     fi
 }
 
+# Install conda packages directly based on flags and platform
+install_conda_packages() {
+    log_info "Installing conda packages based on configuration..."
+    
+    build_package_list
+    
+    # Install all packages in one command
+    if [[ ${#PACKAGES[@]} -gt 0 ]]; then
+        log_info "Installing packages: ${PACKAGES[*]}"
+        conda install -c conda-forge "${PACKAGES[@]}" -y
+    else
+        log_warn "No packages to install"
+    fi
+}
+
 # Create conda environment
 create_conda_env() {
     log_info "Creating conda environment '${ENV_NAME}' with Python ${PYTHON_VERSION}..."
     
-    log_info "Creating base environment..."
-    conda create -n "${ENV_NAME}" python="${PYTHON_VERSION}" -y
+    # Build package list
+    build_package_list
+    
+    # Create environment with all packages in one command
+    if [[ ${#PACKAGES[@]} -gt 0 ]]; then
+        log_info "Creating environment with packages: ${PACKAGES[*]}"
+        conda create -n "${ENV_NAME}" -c conda-forge "${PACKAGES[@]}" -y
+    else
+        log_warn "No packages specified, creating empty environment..."
+        conda create -n "${ENV_NAME}" python="${PYTHON_VERSION}" -y
+    fi
     
     log_info "Activating environment..."
     safe_conda_activate "${ENV_NAME}"
-    
-    log_info "Installing packages..."
-    install_conda_packages
     
     log_success "Environment created and activated"
 }
