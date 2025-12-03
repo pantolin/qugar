@@ -18,14 +18,53 @@ Here is a demo of QUGaR being used to reparametrize an unfitted hyperelastic bod
 Documentation can be viewed at https://pantolin.github.io/qugar/main/index.html.
 
 # Installation
+
 > [!NOTE]  
 > Right now, QUGaR installation has to be done "manually" from the sources. However, it is our intention to provide a [conda-forge](https://conda-forge.org) recipe in the near future. Stay tuned!
 
-First clone the repository and go inside
+## Easiest installation method: Conda script
+
+The easiest way to install QUGaR is to use the provided conda installation script. This script automatically sets up a conda environment with all required dependencies and builds both the C++ library and Python interface.
+
+**Prerequisite:** [Conda](https://docs.conda.io/en/latest/) (Miniconda or Anaconda) must be installed on your system.
+
+First clone the repository and go inside:
 ```bash
 git clone https://github.com/pantolin/qugar.git
 cd qugar
 ```
+
+Then run the installation script:
+```bash
+bash setup_with_conda.sh
+```
+
+### Script options
+
+The script can be customized using environment variables:
+
+- `QUGAR_ENV_NAME` - Name of the conda environment to create/use (default: `qugar-env`)
+- `PYTHON_VERSION` - Python version to install (default: `3.10`)
+- `INSTALL_LAPACKE` - Install LAPACKE support (default: `true`)
+- `INSTALL_DOLFINX` - Install DOLFINx for FEniCSx interoperability (default: `true`)
+- `USE_CONDA_COMPILERS` - Use conda compilers instead of system compilers (default: `false`, Linux/Windows only; macOS always uses system compilers)
+- `SKIP_ENV_SETUP` - Skip conda environment setup and use existing environment (default: `false`)
+
+Example with custom options:
+```bash
+QUGAR_ENV_NAME=my-qugar-env PYTHON_VERSION=3.11 INSTALL_DOLFINX=false bash setup_with_conda.sh
+```
+
+## Manual installation
+
+If you prefer to install manually, follow the instructions below.
+
+First clone the repository and go inside:
+```bash
+git clone https://github.com/pantolin/qugar.git
+cd qugar
+```
+
 ## C++ installation
 To build and install the C++ library, from the `qugar/` root directory run:
 ```bash
