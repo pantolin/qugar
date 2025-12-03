@@ -19,7 +19,7 @@ macro(qugar_find_Catch2)
 
     if (NOT Catch2_FOUND)
       message(STATUS "Catch2 version ${_Catch2_VERSION} wil be built from sources.")
-      cpmaddpackage("gh:catchorg/Catch2@${_Catch2_VERSION}")
+      CPMAddPackage("gh:catchorg/Catch2@${_Catch2_VERSION}")
       list(APPEND CMAKE_MODULE_PATH ${Catch2_SOURCE_DIR}/extras)
     endif()
 

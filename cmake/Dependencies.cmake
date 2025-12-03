@@ -3,8 +3,16 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/../cmake/modules
 
 macro(qugar_setup_dependencies)
 
-  if(NOT algoim::algoim)
-    cpmaddpackage("gh:pantolin/algoim@1.0.3")
+  if(NOT TARGET algoim::algoim)
+    CPMAddPackage("gh:pantolin/algoim@1.0.3")
+    if(NOT TARGET algoim::algoim)
+      if(TARGET algoim)
+        add_library(algoim::algoim ALIAS algoim)
+      elseif(DEFINED algoim_SOURCE_DIR)
+        add_library(algoim::algoim INTERFACE IMPORTED)
+        target_include_directories(algoim::algoim INTERFACE "${algoim_SOURCE_DIR}")
+      endif()
+    endif()
   endif()
 
   # Algoim polynomial funcionalities require to solve
