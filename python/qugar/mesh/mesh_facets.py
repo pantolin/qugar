@@ -32,11 +32,15 @@ import numpy as np
 import numpy.typing as npt
 
 import qugar.utils
-from qugar.mesh.mesh import Mesh
 from qugar.mesh.utils import (
     DOLFINx_to_lexicg_faces,
     lexicg_to_DOLFINx_faces,
 )
+
+if qugar.utils.has_FEniCSx:
+    import dolfinx.mesh
+
+    from qugar.mesh.mesh import Mesh
 
 
 class MeshFacets:
@@ -225,70 +229,6 @@ class MeshFacets:
 
         return MeshFacets(diff_cell_ids, diff_local_facet_ids)
 
-    def to_original(self, mesh: Mesh) -> "MeshFacets":
-        """Transforms the cell ids and local facets ordering to the original
-        numbering according to the given `mesh`.
-
-        Args:
-            mesh (Mesh): The Mesh object to use for the transformation.
-
-        Returns:
-            MeshFacets: A new MeshFacets instance with transformed cell ids and local facets.
-        """
-        assert self.cells_dtype == np.int32, (
-            "Cannot transform to original numbering with cell ids of type "
-            f"{self.cells_dtype}. Only int32 is supported."
-        )
-
-        tdim = mesh.topology.dim
-
-        orig_cell_ids = mesh.get_original_cell_ids(cast(npt.NDArray[np.int32], self._cell_ids))
-        lex_to_dlf_facets = lexicg_to_DOLFINx_faces(tdim)
-        orig_local_facet_ids = lex_to_dlf_facets[self._local_facet_ids]
-
-        return MeshFacets(orig_cell_ids, orig_local_facet_ids)
-
-    def to_DOLFINx(self, mesh: Mesh) -> "MeshFacets":
-        """Transforms the cell ids and local facets ordering to DOLFINx numbering
-        according to the given `mesh`.
-
-        Args:
-            mesh (Mesh): The Mesh object to use for the transformation.
-
-        Returns:
-            MeshFacets: A new MeshFacets instance with transformed cell ids and local facets.
-        """
-        assert self.cells_dtype == np.int64, (
-            "Cannot transform to DOLFINx numbering with cell ids of type "
-            f"{self.cells_dtype}. Only int64 is supported."
-        )
-
-        dlf_cell_ids = mesh.get_DOLFINx_local_cell_ids(cast(npt.NDArray[np.int64], self._cell_ids))
-        dlf_to_orig_facets = DOLFINx_to_lexicg_faces(mesh.tdim)
-        dlf_local_facet_ids = dlf_to_orig_facets[self._local_facet_ids]
-
-        return MeshFacets(dlf_cell_ids, dlf_local_facet_ids)
-
-    def get_facet_ids(self, mesh: Mesh) -> npt.NDArray[np.int32]:
-        """Transforms the stored cell ids and local facets into DOLFINx facet ids,
-        according to the given `mesh`.
-
-        Args:
-            mesh (Mesh): The Mesh object to use for the transformation.
-
-        Returns:
-            npt.NDArray[np.int32]: An array of unique DOLFINx facet ids corresponding
-                                   to the stored cell/local facet pairs.
-        """
-
-        assert self.cells_dtype == np.int32, (
-            "Cannot transform to original numbering with cell ids of type "
-            f"{self.cells_dtype}. Only int32 is supported."
-        )
-
-        cells_to_facets = _create_cells_to_facets_map(mesh)
-        return cells_to_facets[self._cell_ids, self._local_facet_ids]
-
     def find(self, other: "MeshFacets") -> npt.NDArray[np.int32]:
         """Finds the positions of facets in `other` relative to `self`.
 
@@ -334,6 +274,74 @@ class MeshFacets:
             indices[i] = idx
 
         return indices
+
+    if qugar.utils.has_FEniCSx:
+
+        def to_original(self, mesh: Mesh) -> "MeshFacets":
+            """Transforms the cell ids and local facets ordering to the original
+            numbering according to the given `mesh`.
+
+            Args:
+                mesh (Mesh): The Mesh object to use for the transformation.
+
+            Returns:
+                MeshFacets: A new MeshFacets instance with transformed cell ids and local facets.
+            """
+            assert self.cells_dtype == np.int32, (
+                "Cannot transform to original numbering with cell ids of type "
+                f"{self.cells_dtype}. Only int32 is supported."
+            )
+
+            tdim = mesh.topology.dim
+
+            orig_cell_ids = mesh.get_original_cell_ids(cast(npt.NDArray[np.int32], self._cell_ids))
+            lex_to_dlf_facets = lexicg_to_DOLFINx_faces(tdim)
+            orig_local_facet_ids = lex_to_dlf_facets[self._local_facet_ids]
+
+            return MeshFacets(orig_cell_ids, orig_local_facet_ids)
+
+        def to_DOLFINx(self, mesh: Mesh) -> "MeshFacets":
+            """Transforms the cell ids and local facets ordering to DOLFINx numbering
+            according to the given `mesh`.
+
+            Args:
+                mesh (Mesh): The Mesh object to use for the transformation.
+
+            Returns:
+                MeshFacets: A new MeshFacets instance with transformed cell ids and local facets.
+            """
+            assert self.cells_dtype == np.int64, (
+                "Cannot transform to DOLFINx numbering with cell ids of type "
+                f"{self.cells_dtype}. Only int64 is supported."
+            )
+
+            dlf_cell_ids = mesh.get_DOLFINx_local_cell_ids(
+                cast(npt.NDArray[np.int64], self._cell_ids)
+            )
+            dlf_to_orig_facets = DOLFINx_to_lexicg_faces(mesh.tdim)
+            dlf_local_facet_ids = dlf_to_orig_facets[self._local_facet_ids]
+
+            return MeshFacets(dlf_cell_ids, dlf_local_facet_ids)
+
+        def get_facet_ids(self, mesh: Mesh) -> npt.NDArray[np.int32]:
+            """Transforms the stored cell ids and local facets into DOLFINx facet ids,
+            according to the given `mesh`.
+
+            Args:
+                mesh (Mesh): The Mesh object to use for the transformation.
+
+            Returns:
+                npt.NDArray[np.int32]: An array of unique DOLFINx facet ids corresponding
+                                       to the stored cell/local facet pairs.
+            """
+
+            assert self.cells_dtype == np.int32, (
+                "Cannot transform to original numbering with cell ids of type "
+                f"{self.cells_dtype}. Only int32 is supported."
+            )
+
+            cells_to_facets = _create_cells_to_facets_map(mesh)
+            return cells_to_facets[self._cell_ids, self._local_facet_ids]
 
 
 if qugar.utils.has_FEniCSx:
