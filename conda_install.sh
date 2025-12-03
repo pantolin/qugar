@@ -7,7 +7,7 @@ set -euo pipefail
 #   2. Builds and installs QUGaR library and Python interface
 # Supports: macOS (Intel/Apple Silicon), Linux (x86_64/ARM), Windows (via Git Bash/WSL)
 
-ENV_NAME="${QUGAR_ENV_NAME:-qugar-env2}"
+ENV_NAME="${QUGAR_ENV_NAME:-qugar-env}"
 PYTHON_VERSION="${PYTHON_VERSION:-3.10}"
 INSTALL_LAPACKE="${INSTALL_LAPACKE:-true}"
 INSTALL_DOLFINX="${INSTALL_DOLFINX:-true}"
@@ -85,17 +85,34 @@ check_existing_env() {
     if conda env list | grep -q "^${ENV_NAME}\s"; then
         log_warn "Environment '${ENV_NAME}' already exists."
         if [[ "${SKIP_ENV_SETUP}" != "true" ]]; then
-            read -p "Remove and recreate? (y/N): " -n 1 -r
+            echo "Options:"
+            echo "  [r] Remove and recreate environment"
+            echo "  [u] Update environment with current configuration"
+            echo "  [s] Skip (use existing environment)"
+            read -p "Choose option (r/u/s, default: s): " -n 1 -r
             echo
-            if [[ $REPLY =~ ^[Yy]$ ]]; then
-                log_info "Removing existing environment..."
-                conda env remove -n "${ENV_NAME}" -y
-            else
-                log_info "Using existing environment. Activating..."
-                source "$(conda info --base)/etc/profile.d/conda.sh"
-                conda activate "${ENV_NAME}"
-                return 0
-            fi
+            case $REPLY in
+                [Rr]*)
+                    log_info "Removing existing environment..."
+                    conda env remove -n "${ENV_NAME}" -y
+                    ;;
+                [Uu]*)
+                    log_info "Updating environment with current configuration..."
+                    TEMP_ENV_FILE=$(mktemp)
+                    trap "rm -f ${TEMP_ENV_FILE}" RETURN
+                    generate_environment_yml "${TEMP_ENV_FILE}"
+                    conda env update -n "${ENV_NAME}" -f "${TEMP_ENV_FILE}" -y
+                    source "$(conda info --base)/etc/profile.d/conda.sh"
+                    conda activate "${ENV_NAME}"
+                    return 0
+                    ;;
+                *)
+                    log_info "Using existing environment. Activating..."
+                    source "$(conda info --base)/etc/profile.d/conda.sh"
+                    conda activate "${ENV_NAME}"
+                    return 0
+                    ;;
+            esac
         else
             log_info "Using existing environment. Activating..."
             source "$(conda info --base)/etc/profile.d/conda.sh"
@@ -106,10 +123,92 @@ check_existing_env() {
     return 1
 }
 
+# Generate conda environment specification based on flags and platform
+generate_environment_yml() {
+    local env_file="$1"
+    
+    log_info "Generating conda environment specification with packages based on configuration..."
+    
+    # Base packages - always included
+    cat > "${env_file}" <<EOF
+name: ${ENV_NAME}
+channels:
+  - conda-forge
+dependencies:
+  - python=${PYTHON_VERSION}
+  - cmake>=3.20
+  - ninja
+  - git
+EOF
+    
+    # Add LAPACKE if requested
+    if [[ "${INSTALL_LAPACKE}" == "true" ]]; then
+        log_info "Adding LAPACKE packages..."
+        cat >> "${env_file}" <<EOF
+  - liblapacke
+  - libtmglib
+EOF
+    fi
+    
+    # Add DOLFINx packages if requested (platform-specific)
+    if [[ "${INSTALL_DOLFINX}" == "true" ]]; then
+        log_info "Adding DOLFINx packages for ${PLATFORM}..."
+        case "${PLATFORM}" in
+            macos|linux)
+                cat >> "${env_file}" <<EOF
+  - fenics-dolfinx
+  - mpich
+  - pyvista
+EOF
+                ;;
+            windows)
+                log_warn "Note: PETSc and petsc4py are not available on Windows conda packages (beta testing)"
+                cat >> "${env_file}" <<EOF
+  - fenics-dolfinx
+  - pyvista
+  - pyamg
+EOF
+                ;;
+            *)
+                log_warn "Unknown platform ${PLATFORM}, using Linux/macOS defaults..."
+                cat >> "${env_file}" <<EOF
+  - fenics-dolfinx
+  - mpich
+  - pyvista
+EOF
+                ;;
+        esac
+    fi
+    
+    # Add conda compilers if requested (Linux/Windows only, macOS uses system compilers)
+    if [[ "${USE_CONDA_COMPILERS}" == "true" ]]; then
+        case "${PLATFORM}" in
+            linux|windows)
+                log_info "Adding conda compilers..."
+                cat >> "${env_file}" <<EOF
+  - cxx-compiler
+  - c-compiler
+EOF
+                ;;
+            macos)
+                log_info "Skipping conda compilers on macOS (using system compilers)"
+                ;;
+        esac
+    fi
+}
+
 # Create conda environment
 create_conda_env() {
     log_info "Creating conda environment '${ENV_NAME}' with Python ${PYTHON_VERSION}..."
-    conda create -n "${ENV_NAME}" python="${PYTHON_VERSION}" -y
+    
+    # Generate environment file dynamically
+    TEMP_ENV_FILE=$(mktemp)
+    trap "rm -f ${TEMP_ENV_FILE}" RETURN
+    
+    generate_environment_yml "${TEMP_ENV_FILE}"
+    
+    log_info "Creating environment from generated specification..."
+    conda env create -f "${TEMP_ENV_FILE}" -y
     
     log_info "Activating environment..."
     source "$(conda info --base)/etc/profile.d/conda.sh"
@@ -125,59 +224,46 @@ activate_conda_env() {
     log_success "Environment activated"
 }
 
-# Install build tools
-install_build_tools() {
-    log_info "Installing build tools..."
+# Verify packages are installed (all packages should come from environment specification)
+verify_packages() {
+    log_info "Verifying packages from environment specification..."
     
-    conda install -c conda-forge cmake>=3.20 ninja -y
+    local missing_packages=()
     
-    # Install git in conda environment if not already there
+    # Check build tools
+    if [[ ! -f "${CONDA_PREFIX}/bin/cmake" ]]; then
+        missing_packages+=("cmake")
+    fi
+    if [[ ! -f "${CONDA_PREFIX}/bin/ninja" ]]; then
+        missing_packages+=("ninja")
+    fi
     if [[ ! -f "${CONDA_PREFIX}/bin/git" ]]; then
-        log_info "Installing git in conda environment..."
-        conda install -c conda-forge git -y
-    else
-        log_info "git already available in conda environment"
+        missing_packages+=("git")
     fi
     
-    log_success "Build tools installed"
-}
-
-# Install LAPACKE
-install_lapacke() {
+    # Check LAPACKE if requested
     if [[ "${INSTALL_LAPACKE}" == "true" ]]; then
-        log_info "Installing LAPACKE libraries..."
-        conda install -c conda-forge liblapacke libtmglib -y
-        log_success "LAPACKE installed"
-    else
-        log_info "Skipping LAPACKE installation (set INSTALL_LAPACKE=true to install)"
+        if [[ ! -f "${CONDA_PREFIX}/include/lapacke.h" ]] && ! conda list | grep -q "lapacke"; then
+            missing_packages+=("liblapacke")
+        fi
     fi
-}
-
-# Install DOLFINx
-install_dolfinx() {
+    
+    # Check DOLFINx if requested
     if [[ "${INSTALL_DOLFINX}" == "true" ]]; then
-        log_info "Installing DOLFINx..."
-        
-        # Platform-specific dependencies per https://github.com/FEniCS/dolfinx
-        case "${PLATFORM}" in
-            macos|linux)
-                log_info "Installing DOLFINx with mpich and pyvista for ${PLATFORM}..."
-                conda install -c conda-forge fenics-dolfinx mpich pyvista -y
-                ;;
-            windows)
-                log_info "Installing DOLFINx with pyvista and pyamg for Windows..."
-                log_warn "Note: PETSc and petsc4py are not available on Windows conda packages (beta testing)"
-                conda install -c conda-forge fenics-dolfinx pyvista pyamg -y
-                ;;
-            *)
-                log_warn "Unknown platform ${PLATFORM}, installing with Linux/macOS defaults..."
-                conda install -c conda-forge fenics-dolfinx mpich pyvista -y
-                ;;
-        esac
-        
-        log_success "DOLFINx installed"
+        if ! conda list | grep -q "fenics-dolfinx"; then
+            missing_packages+=("fenics-dolfinx")
+        fi
+    fi
+    
+    if [[ ${#missing_packages[@]} -gt 0 ]]; then
+        log_warn "Some packages are missing: ${missing_packages[*]}"
+        log_info "Updating environment to install missing packages..."
+        TEMP_ENV_FILE=$(mktemp)
+        trap "rm -f ${TEMP_ENV_FILE}" RETURN
+        generate_environment_yml "${TEMP_ENV_FILE}"
+        conda env update -n "${ENV_NAME}" -f "${TEMP_ENV_FILE}" -y
     else
-        log_info "Skipping DOLFINx installation (set INSTALL_DOLFINX=true to install)"
+        log_success "All packages verified"
     fi
 }
 
@@ -231,14 +317,21 @@ setup_linux_compiler() {
     log_info "Setting up compiler for Linux..."
     
     if [[ "${USE_CONDA_COMPILERS}" == "true" ]]; then
-        log_info "Installing conda compilers..."
-        conda install -c conda-forge cxx-compiler c-compiler -y
-        log_success "Conda compilers installed"
+        log_info "Using conda compilers (should be installed from environment specification)..."
+        # Verify compilers are installed
+        if [[ ! -f "${CONDA_PREFIX}/bin/x86_64-conda-linux-gnu-c++" ]]; then
+            log_warn "Conda compilers not found, updating environment..."
+            TEMP_ENV_FILE=$(mktemp)
+            trap "rm -f ${TEMP_ENV_FILE}" RETURN
+            generate_environment_yml "${TEMP_ENV_FILE}"
+            conda env update -n "${ENV_NAME}" -f "${TEMP_ENV_FILE}" -y
+        fi
         # Use conda compilers
         export CXX="${CONDA_PREFIX}/bin/x86_64-conda-linux-gnu-c++"
         export CC="${CONDA_PREFIX}/bin/x86_64-conda-linux-gnu-cc"
         export CMAKE_C_COMPILER="${CC}"
         export CMAKE_CXX_COMPILER="${CXX}"
+        log_success "Conda compilers configured"
     else
         # Check for system compiler
         if command -v g++ &> /dev/null; then
@@ -257,12 +350,13 @@ setup_linux_compiler() {
             export CMAKE_CXX_COMPILER="${CXX}"
         else
             log_warn "System g++ not found. Installing conda compilers..."
+            # Install compilers directly as fallback (they should ideally be in environment specification)
             conda install -c conda-forge cxx-compiler c-compiler -y
-            log_success "Conda compilers installed"
             export CXX="${CONDA_PREFIX}/bin/x86_64-conda-linux-gnu-c++"
             export CC="${CONDA_PREFIX}/bin/x86_64-conda-linux-gnu-cc"
             export CMAKE_C_COMPILER="${CC}"
             export CMAKE_CXX_COMPILER="${CXX}"
+            log_success "Conda compilers installed and configured"
         fi
     fi
     
@@ -274,9 +368,16 @@ setup_windows_compiler() {
     log_info "Setting up compiler for Windows..."
     
     if [[ "${USE_CONDA_COMPILERS}" == "true" ]]; then
-        log_info "Installing conda compilers..."
-        conda install -c conda-forge cxx-compiler c-compiler -y
-        log_success "Conda compilers installed"
+        log_info "Using conda compilers (should be installed from environment specification)..."
+        # Verify compilers are installed
+        if ! conda list | grep -q "cxx-compiler"; then
+            log_warn "Conda compilers not found, updating environment..."
+            TEMP_ENV_FILE=$(mktemp)
+            trap "rm -f ${TEMP_ENV_FILE}" RETURN
+            generate_environment_yml "${TEMP_ENV_FILE}"
+            conda env update -n "${ENV_NAME}" -f "${TEMP_ENV_FILE}" -y
+        fi
+        log_success "Conda compilers configured"
     else
         # Check for MSVC (Visual Studio)
         if command -v cl &> /dev/null; then
@@ -289,6 +390,7 @@ setup_windows_compiler() {
             read -p "Install conda compilers now? (Y/n): " -n 1 -r
             echo
             if [[ ! $REPLY =~ ^[Nn]$ ]]; then
+                log_info "Installing conda compilers..."
                 conda install -c conda-forge cxx-compiler c-compiler -y
                 log_success "Conda compilers installed"
             else
@@ -724,9 +826,8 @@ main() {
             create_conda_env
         fi
         
-        install_build_tools
-        install_lapacke
-        install_dolfinx
+        # Verify all packages are installed (they should be from environment specification)
+        verify_packages
          
         # Platform-specific compiler setup
         case "${PLATFORM}" in
