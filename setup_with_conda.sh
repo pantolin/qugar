@@ -151,6 +151,7 @@ build_package_list() {
     if [[ "${INSTALL_DOLFINX}" == "true" ]]; then
         PACKAGES+=("fenics-dolfinx=0.9.0")
         PACKAGES+=("pyvista")
+        PACKAGES+=("scipy")
         case "${PLATFORM}" in
             macos|linux)
                 PACKAGES+=("mpich")
