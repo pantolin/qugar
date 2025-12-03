@@ -279,17 +279,39 @@ setup_macos_compiler() {
         exit 1
     fi
     
-    # Verify clang++
-    if ! command -v clang++ &> /dev/null; then
-        log_error "clang++ not found. Please install Xcode Command Line Tools."
+    # Find system compilers (check standard locations, not PATH which may have conda)
+    # On macOS, system compilers are always in /usr/bin or CommandLineTools
+    SYSTEM_CLANGXX=""
+    if [[ -f "/usr/bin/clang++" ]]; then
+        SYSTEM_CLANGXX="/usr/bin/clang++"
+    elif [[ -f "/Library/Developer/CommandLineTools/usr/bin/clang++" ]]; then
+        SYSTEM_CLANGXX="/Library/Developer/CommandLineTools/usr/bin/clang++"
+    else
+        log_error "System clang++ not found in standard locations"
         exit 1
     fi
     
-    CLANG_VERSION=$(clang++ --version | head -n1 | grep -oE '[0-9]+\.[0-9]+' | head -n1 | cut -d. -f1)
+    SYSTEM_CLANG=""
+    if [[ -f "/usr/bin/clang" ]]; then
+        SYSTEM_CLANG="/usr/bin/clang"
+    elif [[ -f "/Library/Developer/CommandLineTools/usr/bin/clang" ]]; then
+        SYSTEM_CLANG="/Library/Developer/CommandLineTools/usr/bin/clang"
+    else
+        log_error "System clang not found in standard locations"
+        exit 1
+    fi
+    
+    # Verify system compilers work
+    if ! "${SYSTEM_CLANGXX}" --version &> /dev/null; then
+        log_error "System clang++ not working. Please install Xcode Command Line Tools."
+        exit 1
+    fi
+    
+    CLANG_VERSION=$("${SYSTEM_CLANGXX}" --version | head -n1 | grep -oE '[0-9]+\.[0-9]+' | head -n1 | cut -d. -f1)
     if [[ "${CLANG_VERSION}" -lt 14 ]]; then
         log_warn "clang++ version ${CLANG_VERSION} is less than 14. This may cause issues."
     else
-        log_success "clang++ found: $(clang++ --version | head -n1)"
+        log_success "System clang++ found: $("${SYSTEM_CLANGXX}" --version | head -n1)"
     fi
     
     # Remove conda compilers if present (they cause linker issues on macOS)
@@ -298,9 +320,15 @@ setup_macos_compiler() {
         conda remove --force cxx-compiler c-compiler -y 2>/dev/null || true
     fi
     
-    # Set environment variables - use full path to system compiler
-    SYSTEM_CLANGXX=$(which clang++)
-    SYSTEM_CLANG=$(which clang)
+    # Remove conda clang/clang++ if present (they interfere with system compiler)
+    if [[ -f "${CONDA_PREFIX}/bin/clang" ]] || [[ -f "${CONDA_PREFIX}/bin/clang++" ]]; then
+        log_warn "Conda clang/clang++ detected. Removing to avoid linker issues..."
+        conda remove --force clang clangxx -y 2>/dev/null || true
+        # Also try removing via package name variations
+        conda remove --force clang_osx-arm64 clangxx_osx-arm64 -y 2>/dev/null || true
+        conda remove --force clang_osx-64 clangxx_osx-64 -y 2>/dev/null || true
+    fi
+    
     export CXX="${SYSTEM_CLANGXX}"
     export CC="${SYSTEM_CLANG}"
     export CMAKE_C_COMPILER="${SYSTEM_CLANG}"
@@ -521,8 +549,17 @@ get_conda_tool_paths() {
 # Check for a working liblapacke installation
 has_lapacke() {
     local check_dir
-    check_dir=$(mktemp -d 2>/dev/null || mktemp -d -t 'check_lapacke')
-    trap 'rm -rf -- "$check_dir"' RETURN
+    # Temporarily disable unbound variable checking for mktemp
+    set +u
+    check_dir=$(mktemp -d 2>/dev/null || mktemp -d -t 'check_lapacke' 2>/dev/null || echo "")
+    set -u
+    
+    if [[ -z "${check_dir}" ]] || [[ ! -d "${check_dir}" ]]; then
+        log_warn "Failed to create temporary directory for LAPACKE check. Assuming not present."
+        return 1
+    fi
+    
+    trap 'rm -rf -- "${check_dir:-}"' RETURN
 
     cat > "${check_dir}/check.cpp" <<EOF
 #include <lapacke.h>
@@ -861,8 +898,16 @@ main() {
     log_success "  QUGaR setup and installation complete!"
     log_success "=========================================="
     echo
-    log_info "To use QUGaR, activate the environment:"
-    echo "  conda activate ${ENV_NAME}"
+    log_info "To use QUGaR:"
+    echo "  1. Activate the environment:"
+    echo "     conda activate ${ENV_NAME}"
+    echo
+    echo "  2. Launch Python and import qugar:"
+    echo "     python"
+    echo "     >>> import qugar"
+    echo
+    echo "  Or run Python directly:"
+    echo "     python -c \"import qugar; print(qugar.__version__)\""
 }
 
 # Run main function
