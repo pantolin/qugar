@@ -44,7 +44,7 @@ endif()
 
 include(../cmake/CPM.cmake)
 if(NOT algoim::algoim)
-  cpmaddpackage("gh:pantolin/algoim@1.0.2")
+  cpmaddpackage("gh:pantolin/algoim@1.0.3")
 endif()
 
 include(../cmake/lapacke.cmake)
