@@ -22,57 +22,21 @@ This module provides the following functionalities:
 
 Dependencies:
 - numpy
-- dolfinx (for Mesh transformations)
+- dolfinx (optional, for Mesh transformations)
 - qugar.mesh.Mesh
 """
 
 from typing import cast
 
-import qugar.utils
-
-if not qugar.utils.has_FEniCSx:
-    raise ValueError("FEniCSx installation not found is required.")
-
-import dolfinx.mesh
 import numpy as np
 import numpy.typing as npt
 
+import qugar.utils
 from qugar.mesh.mesh import Mesh
 from qugar.mesh.utils import (
     DOLFINx_to_lexicg_faces,
     lexicg_to_DOLFINx_faces,
 )
-
-
-def _create_cells_to_facets_map(
-    mesh: dolfinx.mesh.Mesh,
-) -> npt.NDArray[np.int32]:
-    """Creates a map that allows to find the facets ids in a mesh
-    from their cell ids and the local facet ids referred to that
-    cells.
-
-    Args:
-        mesh (dolfinx.mesh.Mesh): Mesh from which facet ids are
-            extracted.
-
-        Returns:
-            npt.NDArray[np.int32]: Map from the cells and local facet
-            ids to the facet ids. It is a 2D array where the first
-            column corresponds to the cells and the second one to the
-            local facet ids.
-
-            Thus, given the cell and local facet ids of a particular
-            facet, the facet id can be accessed as
-            `facet_id = facets_map[cell_id, local_facet_id]`, where
-            `facets_map` is the generated 2D array.
-    """
-
-    topology = mesh.topology
-    tdim = topology.dim
-    topology.create_connectivity(tdim, tdim - 1)
-    conn = topology.connectivity(tdim, tdim - 1)
-
-    return conn.array.reshape(conn.num_nodes, -1)
 
 
 class MeshFacets:
@@ -372,137 +336,167 @@ class MeshFacets:
         return indices
 
 
-def create_facets_from_ids(
-    mesh: dolfinx.mesh.Mesh,
-    facet_ids: npt.NDArray[np.int32],
-    single_interior_facet: bool = False,
-) -> MeshFacets:
-    """Creates a MeshFacets instance from facet ids of a DOLFINx mesh.
+if qugar.utils.has_FEniCSx:
+    import dolfinx.mesh
 
-    Args:
-        mesh (dolfinx.mesh.Mesh): The mesh.
-        facet_ids (npt.NDArray[np.int32]): Array of facet ids.
-        single_interior_facet (bool): If `True`, only one cell and
-            local facet is returned for each interior facet. If
-            `False`, both cells and local facets are returned.
-            This is useful for the case of interior facets, where
-            the facet belongs to more than one cell. In that case,
-            only one cell and local facet is returned for that
-            particular facet. The one chosen depends on the way in
-            which that information is stored in the mesh connectivity.
+    def _create_cells_to_facets_map(
+        mesh: dolfinx.mesh.Mesh,
+    ) -> npt.NDArray[np.int32]:
+        """Creates a map that allows to find the facets ids in a mesh
+        from their cell ids and the local facet ids referred to that
+        cells.
 
-    Returns:
-        MeshFacets: A MeshFacets instance with the specified facet ids.
-        The entries in the manager are unique.
-    """
+        Args:
+            mesh (dolfinx.mesh.Mesh): Mesh from which facet ids are
+                extracted.
 
-    # TODO: this implementation can be likely improved.
-    # Checking in DOLFINx code.
+            Returns:
+                npt.NDArray[np.int32]: Map from the cells and local facet
+                ids to the facet ids. It is a 2D array where the first
+                column corresponds to the cells and the second one to the
+                local facet ids.
 
-    topology = mesh.topology
-    tdim = topology.dim
-    topology.create_connectivity(tdim - 1, tdim)
-    conn = topology.connectivity(tdim - 1, tdim)
+                Thus, given the cell and local facet ids of a particular
+                facet, the facet id can be accessed as
+                `facet_id = facets_map[cell_id, local_facet_id]`, where
+                `facets_map` is the generated 2D array.
+        """
 
-    cells_to_facets = _create_cells_to_facets_map(mesh)
+        topology = mesh.topology
+        tdim = topology.dim
+        topology.create_connectivity(tdim, tdim - 1)
+        conn = topology.connectivity(tdim, tdim - 1)
 
-    n_cells = (
-        facet_ids.size if single_interior_facet else facet_ids.size * 2
-    )  # This is an overestimation
+        return conn.array.reshape(conn.num_nodes, -1)
 
-    cells = np.zeros(n_cells, dtype=np.int32)
-    local_facets = np.zeros(n_cells, dtype=np.int32)
+    def create_facets_from_ids(
+        mesh: dolfinx.mesh.Mesh,
+        facet_ids: npt.NDArray[np.int32],
+        single_interior_facet: bool = False,
+    ) -> MeshFacets:
+        """Creates a MeshFacets instance from facet ids of a DOLFINx mesh.
 
-    i = 0
-    for facet in facet_ids:
-        facet_cells = conn.links(facet)
-        if single_interior_facet:
-            facet_cells = facet_cells[:1]
+        Args:
+            mesh (dolfinx.mesh.Mesh): The mesh.
+            facet_ids (npt.NDArray[np.int32]): Array of facet ids.
+            single_interior_facet (bool): If `True`, only one cell and
+                local facet is returned for each interior facet. If
+                `False`, both cells and local facets are returned.
+                This is useful for the case of interior facets, where
+                the facet belongs to more than one cell. In that case,
+                only one cell and local facet is returned for that
+                particular facet. The one chosen depends on the way in
+                which that information is stored in the mesh connectivity.
 
-        for cell in facet_cells:
-            cells[i] = cell
-            local_facets[i] = np.where(cells_to_facets[cell] == facet)[0][0]
-            i += 1
+        Returns:
+            MeshFacets: A MeshFacets instance with the specified facet ids.
+            The entries in the manager are unique.
+        """
 
-    if cells.size != i:
-        cells = cells[:i]
-        local_facets = local_facets[:i]
+        # TODO: this implementation can be likely improved.
+        # Checking in DOLFINx code.
 
-    return MeshFacets(
-        cells,
-        local_facets,
-    )
+        topology = mesh.topology
+        tdim = topology.dim
+        topology.create_connectivity(tdim - 1, tdim)
+        conn = topology.connectivity(tdim - 1, tdim)
 
+        cells_to_facets = _create_cells_to_facets_map(mesh)
 
-def create_exterior_mesh_facets(mesh: dolfinx.mesh.Mesh) -> MeshFacets:
-    """Creates a MeshFacets instance including only the exterior facets of the mesh.
+        n_cells = (
+            facet_ids.size if single_interior_facet else facet_ids.size * 2
+        )  # This is an overestimation
 
-    Args:
-        mesh (dolfinx.mesh.Mesh): The mesh.
+        cells = np.zeros(n_cells, dtype=np.int32)
+        local_facets = np.zeros(n_cells, dtype=np.int32)
 
-    Returns:
-        MeshFacets: A MeshFacets instance with exterior facets.
-    """
+        i = 0
+        for facet in facet_ids:
+            facet_cells = conn.links(facet)
+            if single_interior_facet:
+                facet_cells = facet_cells[:1]
 
-    topology = mesh.topology
-    topology.create_connectivity(topology.dim - 1, topology.dim)
-    facet_ids = dolfinx.mesh.exterior_facet_indices(topology)
-    return create_facets_from_ids(mesh, facet_ids, single_interior_facet=True)
+            for cell in facet_cells:
+                cells[i] = cell
+                local_facets[i] = np.where(cells_to_facets[cell] == facet)[0][0]
+                i += 1
 
+        if cells.size != i:
+            cells = cells[:i]
+            local_facets = local_facets[:i]
 
-def create_interior_mesh_facets(
-    mesh: dolfinx.mesh.Mesh, single_interior_facet: bool = False
-) -> MeshFacets:
-    """Creates a MeshFacets instance including only the interior facets of the mesh.
+        return MeshFacets(
+            cells,
+            local_facets,
+        )
 
-    Args:
-        mesh (dolfinx.mesh.Mesh): The mesh.
-        single_interior_facet (bool): If `True`, only one cell and
-            local facet is returned for each interior facet. If
-            `False`, both cells and local facets are returned.
-            This is useful for the case of interior facets, where
-            the facet belongs to more than one cell. In that case,
-            only one cell and local facet is returned for that
-            particular facet. The one chosen depends on the way in
-            which that information is stored in the mesh connectivity.
+    def create_exterior_mesh_facets(mesh: dolfinx.mesh.Mesh) -> MeshFacets:
+        """Creates a MeshFacets instance including only the exterior facets of the mesh.
 
-    Returns:
-        MeshFacets: A MeshFacets instance with interior facets.
-    """
+        Args:
+            mesh (dolfinx.mesh.Mesh): The mesh.
 
-    topology = mesh.topology
-    topology.create_connectivity(topology.dim - 1, topology.dim)
-    ext_facets = dolfinx.mesh.exterior_facet_indices(topology)
+        Returns:
+            MeshFacets: A MeshFacets instance with exterior facets.
+        """
 
-    imap = topology.index_map(topology.dim - 1)
-    all_facets = np.arange(imap.local_range[0], imap.local_range[1], dtype=np.int32)
+        topology = mesh.topology
+        topology.create_connectivity(topology.dim - 1, topology.dim)
+        facet_ids = dolfinx.mesh.exterior_facet_indices(topology)
+        return create_facets_from_ids(mesh, facet_ids, single_interior_facet=True)
 
-    int_facets = np.setdiff1d(all_facets, ext_facets, assume_unique=True)
+    def create_interior_mesh_facets(
+        mesh: dolfinx.mesh.Mesh, single_interior_facet: bool = False
+    ) -> MeshFacets:
+        """Creates a MeshFacets instance including only the interior facets of the mesh.
 
-    return create_facets_from_ids(mesh, int_facets, single_interior_facet)
+        Args:
+            mesh (dolfinx.mesh.Mesh): The mesh.
+            single_interior_facet (bool): If `True`, only one cell and
+                local facet is returned for each interior facet. If
+                `False`, both cells and local facets are returned.
+                This is useful for the case of interior facets, where
+                the facet belongs to more than one cell. In that case,
+                only one cell and local facet is returned for that
+                particular facet. The one chosen depends on the way in
+                which that information is stored in the mesh connectivity.
 
+        Returns:
+            MeshFacets: A MeshFacets instance with interior facets.
+        """
 
-def create_all_mesh_facets(
-    mesh: dolfinx.mesh.Mesh, single_interior_facet: bool = False
-) -> MeshFacets:
-    """Creates a MeshFacets instance including all the facets of the mesh.
+        topology = mesh.topology
+        topology.create_connectivity(topology.dim - 1, topology.dim)
+        ext_facets = dolfinx.mesh.exterior_facet_indices(topology)
 
-    Args:
-        mesh (dolfinx.mesh.Mesh): The mesh.
-        single_interior_facet (bool): If `True`, only one cell and
-            local facet is returned for each interior facet. If
-            `False`, both cells and local facets are returned.
-            This is useful for the case of interior facets, where
-            the facet belongs to more than one cell. In that case,
-            only one cell and local facet is returned for that
-            particular facet. The one chosen depends on the way in
-            which that information is stored in the mesh connectivity.
+        imap = topology.index_map(topology.dim - 1)
+        all_facets = np.arange(imap.local_range[0], imap.local_range[1], dtype=np.int32)
 
-    Returns:
-        MeshFacets: A MeshFacets instance with all facets.
-    """
-    topology = mesh.topology
-    imap = topology.index_map(topology.dim - 1)
-    all_facets = np.arange(imap.local_range[0], imap.local_range[1], dtype=np.int32)
+        int_facets = np.setdiff1d(all_facets, ext_facets, assume_unique=True)
 
-    return create_facets_from_ids(mesh, all_facets, single_interior_facet)
+        return create_facets_from_ids(mesh, int_facets, single_interior_facet)
+
+    def create_all_mesh_facets(
+        mesh: dolfinx.mesh.Mesh, single_interior_facet: bool = False
+    ) -> MeshFacets:
+        """Creates a MeshFacets instance including all the facets of the mesh.
+
+        Args:
+            mesh (dolfinx.mesh.Mesh): The mesh.
+            single_interior_facet (bool): If `True`, only one cell and
+                local facet is returned for each interior facet. If
+                `False`, both cells and local facets are returned.
+                This is useful for the case of interior facets, where
+                the facet belongs to more than one cell. In that case,
+                only one cell and local facet is returned for that
+                particular facet. The one chosen depends on the way in
+                which that information is stored in the mesh connectivity.
+
+        Returns:
+            MeshFacets: A MeshFacets instance with all facets.
+        """
+        topology = mesh.topology
+        imap = topology.index_map(topology.dim - 1)
+        all_facets = np.arange(imap.local_range[0], imap.local_range[1], dtype=np.int32)
+
+        return create_facets_from_ids(mesh, all_facets, single_interior_facet)
