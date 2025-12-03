@@ -14,6 +14,9 @@ INSTALL_DOLFINX="${INSTALL_DOLFINX:-true}"
 USE_CONDA_COMPILERS="${USE_CONDA_COMPILERS:-false}"
 SKIP_ENV_SETUP="${SKIP_ENV_SETUP:-false}"
 
+# Initialize CMAKE_PREFIX_PATH to avoid unbound variable errors in conda deactivation scripts
+export CMAKE_PREFIX_PATH="${CMAKE_PREFIX_PATH:-}"
+
 # Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -80,6 +83,16 @@ check_prerequisites() {
     fi
 }
 
+# Safe conda activate wrapper to handle unbound variables in conda scripts
+safe_conda_activate() {
+    local env_name="$1"
+    # Temporarily disable unbound variable checking for conda operations
+    set +u
+    source "$(conda info --base)/etc/profile.d/conda.sh"
+    conda activate "${env_name}"
+    set -u
+}
+
 # Check if environment already exists
 check_existing_env() {
     if conda env list | grep -q "^${ENV_NAME}\s"; then
@@ -98,84 +111,53 @@ check_existing_env() {
                     ;;
                 [Uu]*)
                     log_info "Updating environment with current configuration..."
-                    TEMP_ENV_FILE=$(mktemp)
-                    trap "rm -f ${TEMP_ENV_FILE}" RETURN
-                    generate_environment_yml "${TEMP_ENV_FILE}"
-                    conda env update -n "${ENV_NAME}" -f "${TEMP_ENV_FILE}" -y
-                    source "$(conda info --base)/etc/profile.d/conda.sh"
-                    conda activate "${ENV_NAME}"
+                    safe_conda_activate "${ENV_NAME}"
+                    install_conda_packages
                     return 0
                     ;;
                 *)
                     log_info "Using existing environment. Activating..."
-                    source "$(conda info --base)/etc/profile.d/conda.sh"
-                    conda activate "${ENV_NAME}"
+                    safe_conda_activate "${ENV_NAME}"
                     return 0
                     ;;
             esac
         else
             log_info "Using existing environment. Activating..."
-            source "$(conda info --base)/etc/profile.d/conda.sh"
-            conda activate "${ENV_NAME}"
+            safe_conda_activate "${ENV_NAME}"
             return 0
         fi
     fi
     return 1
 }
 
-# Generate conda environment specification based on flags and platform
-generate_environment_yml() {
-    local env_file="$1"
-    
-    log_info "Generating conda environment specification with packages based on configuration..."
+# Install conda packages directly based on flags and platform
+install_conda_packages() {
+    log_info "Installing conda packages based on configuration..."
     
     # Base packages - always included
-    cat > "${env_file}" <<EOF
-name: ${ENV_NAME}
-channels:
-  - conda-forge
-dependencies:
-  - python=${PYTHON_VERSION}
-  - cmake>=3.20
-  - ninja
-  - git
-EOF
+    log_info "Installing base packages..."
+    conda install -c conda-forge python="${PYTHON_VERSION}" cmake>=3.20 ninja git -y
     
     # Add LAPACKE if requested
     if [[ "${INSTALL_LAPACKE}" == "true" ]]; then
-        log_info "Adding LAPACKE packages..."
-        cat >> "${env_file}" <<EOF
-  - liblapacke
-  - libtmglib
-EOF
+        log_info "Installing LAPACKE packages..."
+        conda install -c conda-forge liblapacke libtmglib -y
     fi
     
     # Add DOLFINx packages if requested (platform-specific)
     if [[ "${INSTALL_DOLFINX}" == "true" ]]; then
-        log_info "Adding DOLFINx packages for ${PLATFORM}..."
+        log_info "Installing DOLFINx packages for ${PLATFORM}..."
         case "${PLATFORM}" in
             macos|linux)
-                cat >> "${env_file}" <<EOF
-  - fenics-dolfinx
-  - mpich
-  - pyvista
-EOF
+                conda install -c conda-forge fenics-dolfinx=0.9.0 mpich pyvista -y
                 ;;
             windows)
                 log_warn "Note: PETSc and petsc4py are not available on Windows conda packages (beta testing)"
-                cat >> "${env_file}" <<EOF
-  - fenics-dolfinx
-  - pyvista
-  - pyamg
-EOF
+                conda install -c conda-forge fenics-dolfinx=0.9.0 pyvista pyamg -y
                 ;;
             *)
                 log_warn "Unknown platform ${PLATFORM}, using Linux/macOS defaults..."
-                cat >> "${env_file}" <<EOF
-  - fenics-dolfinx
-  - mpich
-  - pyvista
-EOF
+                conda install -c conda-forge fenics-dolfinx=0.9.0 mpich pyvista -y
                 ;;
         esac
     fi
@@ -184,11 +166,8 @@ EOF
     if [[ "${USE_CONDA_COMPILERS}" == "true" ]]; then
         case "${PLATFORM}" in
             linux|windows)
-                log_info "Adding conda compilers..."
-                cat >> "${env_file}" <<EOF
-  - cxx-compiler
-  - c-compiler
-EOF
+                log_info "Installing conda compilers..."
+                conda install -c conda-forge cxx-compiler c-compiler -y
                 ;;
             macos)
                 log_info "Skipping conda compilers on macOS (using system compilers)"
@@ -201,32 +180,27 @@ EOF
 create_conda_env() {
     log_info "Creating conda environment '${ENV_NAME}' with Python ${PYTHON_VERSION}..."
     
-    # Generate environment file dynamically
-    TEMP_ENV_FILE=$(mktemp)
-    trap "rm -f ${TEMP_ENV_FILE}" RETURN
-    
-    generate_environment_yml "${TEMP_ENV_FILE}"
-    
-    log_info "Creating environment from generated specification..."
-    conda env create -f "${TEMP_ENV_FILE}" -y
+    log_info "Creating base environment..."
+    conda create -n "${ENV_NAME}" python="${PYTHON_VERSION}" -y
     
     log_info "Activating environment..."
-    source "$(conda info --base)/etc/profile.d/conda.sh"
-    conda activate "${ENV_NAME}"
+    safe_conda_activate "${ENV_NAME}"
+    
+    log_info "Installing packages..."
+    install_conda_packages
     
     log_success "Environment created and activated"
 }
 
 activate_conda_env() {
     log_info "Activating conda environment '${ENV_NAME}'..."
-    source "$(conda info --base)/etc/profile.d/conda.sh"
-    conda activate "${ENV_NAME}"
+    safe_conda_activate "${ENV_NAME}"
     log_success "Environment activated"
 }
 
-# Verify packages are installed (all packages should come from environment specification)
+# Verify packages are installed
 verify_packages() {
-    log_info "Verifying packages from environment specification..."
+    log_info "Verifying packages..."
     
     local missing_packages=()
     
@@ -257,11 +231,8 @@ verify_packages() {
     
     if [[ ${#missing_packages[@]} -gt 0 ]]; then
         log_warn "Some packages are missing: ${missing_packages[*]}"
-        log_info "Updating environment to install missing packages..."
-        TEMP_ENV_FILE=$(mktemp)
-        trap "rm -f ${TEMP_ENV_FILE}" RETURN
-        generate_environment_yml "${TEMP_ENV_FILE}"
-        conda env update -n "${ENV_NAME}" -f "${TEMP_ENV_FILE}" -y
+        log_info "Installing missing packages..."
+        install_conda_packages
     else
         log_success "All packages verified"
     fi
@@ -317,14 +288,11 @@ setup_linux_compiler() {
     log_info "Setting up compiler for Linux..."
     
     if [[ "${USE_CONDA_COMPILERS}" == "true" ]]; then
-        log_info "Using conda compilers (should be installed from environment specification)..."
+        log_info "Using conda compilers..."
         # Verify compilers are installed
         if [[ ! -f "${CONDA_PREFIX}/bin/x86_64-conda-linux-gnu-c++" ]]; then
-            log_warn "Conda compilers not found, updating environment..."
-            TEMP_ENV_FILE=$(mktemp)
-            trap "rm -f ${TEMP_ENV_FILE}" RETURN
-            generate_environment_yml "${TEMP_ENV_FILE}"
-            conda env update -n "${ENV_NAME}" -f "${TEMP_ENV_FILE}" -y
+            log_warn "Conda compilers not found, installing..."
+            conda install -c conda-forge cxx-compiler c-compiler -y
         fi
         # Use conda compilers
         export CXX="${CONDA_PREFIX}/bin/x86_64-conda-linux-gnu-c++"
@@ -350,7 +318,6 @@ setup_linux_compiler() {
             export CMAKE_CXX_COMPILER="${CXX}"
         else
             log_warn "System g++ not found. Installing conda compilers..."
-            # Install compilers directly as fallback (they should ideally be in environment specification)
             conda install -c conda-forge cxx-compiler c-compiler -y
             export CXX="${CONDA_PREFIX}/bin/x86_64-conda-linux-gnu-c++"
             export CC="${CONDA_PREFIX}/bin/x86_64-conda-linux-gnu-cc"
@@ -368,14 +335,11 @@ setup_windows_compiler() {
     log_info "Setting up compiler for Windows..."
     
     if [[ "${USE_CONDA_COMPILERS}" == "true" ]]; then
-        log_info "Using conda compilers (should be installed from environment specification)..."
+        log_info "Using conda compilers..."
         # Verify compilers are installed
         if ! conda list | grep -q "cxx-compiler"; then
-            log_warn "Conda compilers not found, updating environment..."
-            TEMP_ENV_FILE=$(mktemp)
-            trap "rm -f ${TEMP_ENV_FILE}" RETURN
-            generate_environment_yml "${TEMP_ENV_FILE}"
-            conda env update -n "${ENV_NAME}" -f "${TEMP_ENV_FILE}" -y
+            log_warn "Conda compilers not found, installing..."
+            conda install -c conda-forge cxx-compiler c-compiler -y
         fi
         log_success "Conda compilers configured"
     else
@@ -826,7 +790,7 @@ main() {
             create_conda_env
         fi
         
-        # Verify all packages are installed (they should be from environment specification)
+        # Verify all packages are installed
         verify_packages
          
         # Platform-specific compiler setup
