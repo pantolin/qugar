@@ -17,7 +17,6 @@ function(qugar_install_project)
     qugar
     qugar_options
     qugar_warnings
-    algoim
 
     PUBLIC_INCLUDES
     ${qugar_INCLUDE_DIR}
