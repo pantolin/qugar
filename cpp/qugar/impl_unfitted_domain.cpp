@@ -19,6 +19,7 @@
 
 #include <qugar/bbox.hpp>
 #include <qugar/bezier_tp.hpp>
+#include <qugar/bspline_bezier_tp.hpp>
 #include <qugar/cart_grid_tp.hpp>
 #include <qugar/cut_quadrature.hpp>
 #include <qugar/domain_function.hpp>
@@ -222,11 +223,16 @@ namespace {
     return classify_cell_from_quad(quad, domain_0_1);
   }
 
+  // TODO: What about range tparam?
   template<int dim> ImmersedCellStatusTmp classify_cell(const ImplicitFunc<dim> &phi, const BoundBox<dim> &domain)
   {
     if (is_bezier(phi)) {
       const auto &bezier = dynamic_cast<const BezierTP<dim> &>(phi);
       return classify_cell_Bezier(bezier, domain);
+    } else if (is_bspline_bezier(phi)) {
+      const auto &bspline_bezier = dynamic_cast<const BSplineBezierTP<dim> &>(phi);
+      const auto &bezier = bspline_bezier.get_bezier(domain.mid_point());
+      return classify_cell_Bezier(*bezier, domain);
     } else {
       return classify_cell_general(phi, domain);
     }
@@ -403,11 +409,14 @@ namespace {
     if (is_bezier(phi)) {
       const auto &bzr = dynamic_cast<const BezierTP<dim> &>(phi);
       return classify_facet_Bezier(bzr, subgrid.get_domain(), local_facet_id, cell_status);
+    } else if (is_bspline_bezier(phi)) {
+      const auto &bspline_bezier = dynamic_cast<const BSplineBezierTP<dim> &>(phi);
+      const auto &bezier = bspline_bezier.get_bezier(subgrid.get_domain().mid_point());
+      return classify_facet_Bezier(*bezier, subgrid.get_domain(), local_facet_id, cell_status);
     } else {
       return classify_facet_general(phi, subgrid, local_facet_id, cell_status);
     }
   }
-
 
 }// namespace
 
