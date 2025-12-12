@@ -9,6 +9,8 @@ add_library(qugar
   bezier_tp.cpp
   bezier_tp_utils.cpp
   bezier_tp_utils_composition.cpp
+  bspline_bezier_tp.cpp
+  bspline_tp.cpp
   cart_grid_tp.cpp
   cut_quadrature.cpp
   impl_unfitted_domain.cpp

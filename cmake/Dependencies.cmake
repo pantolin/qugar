@@ -4,13 +4,16 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/../cmake/modules
 macro(qugar_setup_dependencies)
 
   if(NOT TARGET algoim::algoim)
-    CPMAddPackage("gh:pantolin/algoim@1.0.3")
-    if(NOT TARGET algoim::algoim)
-      if(TARGET algoim)
+    if(DEFINED algoim_SOURCE_DIR)
+      # Use local version
+      add_library(algoim::algoim INTERFACE IMPORTED)
+      target_include_directories(algoim::algoim INTERFACE "${algoim_SOURCE_DIR}")
+      message(STATUS "Using local algoim from ${algoim_SOURCE_DIR}")
+    else()
+      # Fetch from GitHub
+      CPMAddPackage("gh:pantolin/algoim@1.0.3")
+      if(TARGET algoim AND NOT TARGET algoim::algoim)
         add_library(algoim::algoim ALIAS algoim)
-      elseif(DEFINED algoim_SOURCE_DIR)
-        add_library(algoim::algoim INTERFACE IMPORTED)
-        target_include_directories(algoim::algoim INTERFACE "${algoim_SOURCE_DIR}")
       endif()
     endif()
   endif()
