@@ -19,6 +19,7 @@
 
 #include <qugar/bbox.hpp>
 #include <qugar/bezier_tp.hpp>
+#include <qugar/bspline_bezier_tp.hpp>
 #include <qugar/cut_quadrature.hpp>
 #include <qugar/domain_function.hpp>
 #include <qugar/impl_unfitted_domain.hpp>
@@ -209,6 +210,10 @@ namespace {
     if (is_bezier(phi)) {
       const auto &bezier = dynamic_cast<const BezierTP<dim, 1> &>(phi);
       compute_quadrature_with_algoim_Bezier<dim, is_srf>(bezier, domain, n_pts_dir, quad_wrapper.quad);
+    } else if (is_bspline_bezier(phi)) {
+      const auto &bspline = dynamic_cast<const BSplineBezierTP<dim, 1> &>(phi);
+      const auto &bezier = bspline.get_bezier(domain.mid_point());
+      compute_quadrature_with_algoim_Bezier<dim, is_srf>(*bezier, domain, n_pts_dir, quad_wrapper.quad);
     } else {
       compute_quadrature_with_algoim_general<dim, is_srf>(phi, domain, n_pts_dir, quad_wrapper);
     }
@@ -481,6 +486,10 @@ namespace {
     if (is_bezier(phi)) {
       const auto &bezier = dynamic_cast<const BezierTP<dim, 1> &>(phi);
       compute_facet_quadrature_with_algoim_Bezier(bezier, unf_domain, cell_id, local_facet_id, n_pts_dir, quad);
+    } else if (is_bspline_bezier(phi)) {
+      const auto &bspline = dynamic_cast<const BSplineBezierTP<dim, 1> &>(phi);
+      const auto &bezier = bspline.get_bezier(unf_domain.get_grid()->get_cell_domain(cell_id).mid_point());
+      compute_facet_quadrature_with_algoim_Bezier(*bezier, unf_domain, cell_id, local_facet_id, n_pts_dir, quad);
     } else {
       compute_facet_quadrature_with_algoim_general(phi, unf_domain, cell_id, local_facet_id, n_pts_dir, quad);
     }
