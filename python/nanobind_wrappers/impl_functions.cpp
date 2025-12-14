@@ -20,6 +20,8 @@
 
 #include <qugar/affine_transf.hpp>
 #include <qugar/bezier_tp.hpp>
+#include <qugar/bspline_tp.hpp>
+#include <qugar/bspline_bezier_tp.hpp>
 #include <qugar/domain_function.hpp>
 #include <qugar/impl_funcs_lib.hpp>
 #include <qugar/point.hpp>
@@ -97,6 +99,143 @@ namespace {
         },
         nb::arg("points"));
   }
+
+
+  template<int dim, int range=1> void declare_bezier(nanobind::module_ &module)
+  {
+    using BezierTP = impl::BezierTP<dim, range>;
+
+    // TODO: Implementation is currently only for range = 1
+    const std::string pyclass_name{ std::string("BezierTP_") + std::to_string(dim) + "D"};
+    nb::class_<BezierTP>(module, pyclass_name.c_str(), "Bézier tensor product class")
+      .def_prop_ro(
+        "dim", [](BezierTP & /*tp*/) { return dim; }, nb::rv_policy::reference_internal)
+      .def_prop_ro(
+        "range", [](BezierTP & /*tp*/) { return range; }, nb::rv_policy::reference_internal)
+      .def(
+        "eval",
+        [](BezierTP &func, const npPointConstArray<dim> &points) {
+          const auto n_points = points.shape(0);
+          std::vector<real> values(n_points);
+
+          Point<dim> point;
+          for (std::size_t i = 0; i < n_points; ++i) {
+
+            for (int dir = 0; dir < dim; ++dir) {
+              point(dir) = points(i, dir);
+            }
+            at(values, i) = func(point);
+          }
+
+          return as_nbarray(values, { n_points });
+        },
+        nb::arg("points"))
+      .def(
+        "grad",
+        [](BezierTP &func, const npPointConstArray<dim> &points) {
+          const auto n_points = points.shape(0);
+
+          std::vector<real> grads(n_points * dim);
+
+          Point<dim> point;
+          auto g = grads.begin();
+          for (std::size_t i = 0; i < n_points; ++i) {
+
+            for (int dir = 0; dir < dim; ++dir) {
+              point(dir) = points(i, dir);
+            }
+            const auto grad = func.grad(point);
+
+            for (int dir = 0; dir < dim; ++dir) {
+              *g++ = grad(dir);
+            }
+          }
+
+          return as_nbarray(grads, { n_points, dim });
+        },
+        nb::arg("points"));
+  }
+
+
+  template<int dim, int range=1> void declare_bspline_bezier(nanobind::module_ &module)
+  {
+    using BSplineBezierTP = impl::BSplineBezierTP<dim, range>;
+
+    // TODO: Implementation is currently only for range = 1
+    const std::string pyclass_name{ std::string("BSplineTP_") + std::to_string(dim) + "D"};
+    nb::class_<BSplineBezierTP>(module, pyclass_name.c_str(), "B-Spline tensor product class")
+      .def_prop_ro(
+        "dim", [](BSplineBezierTP & /*tp*/) { return dim; }, nb::rv_policy::reference_internal)
+      .def_prop_ro(
+        "range", [](BSplineBezierTP & /*tp*/) { return range; }, nb::rv_policy::reference_internal)
+      .def(
+        "eval",
+        [](BSplineBezierTP &func, const npPointConstArray<dim> &points) {
+          const auto n_points = points.shape(0);
+          std::vector<real> values(n_points);
+
+          Point<dim> point;
+          for (std::size_t i = 0; i < n_points; ++i) {
+
+            for (int dir = 0; dir < dim; ++dir) {
+              point(dir) = points(i, dir);
+            }
+            at(values, i) = func(point);
+          }
+
+          return as_nbarray(values, { n_points });
+        },
+        nb::arg("points"))
+      .def(
+        "grad",
+        [](BSplineBezierTP &func, const npPointConstArray<dim> &points) {
+          const auto n_points = points.shape(0);
+
+          std::vector<real> grads(n_points * dim);
+
+          Point<dim> point;
+          auto g = grads.begin();
+          for (std::size_t i = 0; i < n_points; ++i) {
+
+            for (int dir = 0; dir < dim; ++dir) {
+              point(dir) = points(i, dir);
+            }
+            const auto grad = func.grad(point);
+
+            for (int dir = 0; dir < dim; ++dir) {
+              *g++ = grad(dir);
+            }
+          }
+
+          return as_nbarray(grads, { n_points, dim });
+        },
+        nb::arg("points"))
+      .def_static(
+        "form_bspline",
+        [](const std::array<real, dim> &knots_min,
+           const std::array<real, dim> &knots_max,
+           const std::array<int,  dim> &num_spans,
+           const std::array<int,  dim> &order,
+           const std::vector<real>     &coefficients) {
+          return BSplineBezierTP::form_bspline(knots_min, knots_max, num_spans, order, coefficients);
+        },
+        nb::arg("knots_min"),
+        nb::arg("knots_max"),
+        nb::arg("num_spans"),
+        nb::arg("order"),
+        nb::arg("coefficients"))
+      .def_static(
+        "form_bspline",
+        [](const std::array<std::vector<real>, dim> &knots,
+           const std::array<int,  dim> &order,
+           const std::vector<real>     &coefficients) {
+          return BSplineBezierTP::form_bspline(knots, order, coefficients);
+        },
+        nb::arg("knots"),
+        nb::arg("order"),
+        nb::arg("coefficients"));
+  }
+
 
   void declare_sphere(nanobind::module_ &module)
   {
@@ -824,6 +963,8 @@ namespace {
       declare_plane(module);
       declare_ellipsoid(module);
     }
+    declare_bezier<dim>(module);
+    declare_bspline_bezier<dim>(module);
     declare_square<dim>(module);
     declare_constant<dim>(module);
     declare_dim_linear<dim>(module);
