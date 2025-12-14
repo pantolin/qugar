@@ -1,3 +1,4 @@
+#include <algoim/bspline.hpp>
 #include <qugar/bspline_bezier_tp.hpp>
 #include <algoim/bezier.hpp>
 #include <algoim/xarray.hpp>
@@ -183,9 +184,57 @@ Point<dim, ::algoim::Interval<dim>> BSplineBezierTP<dim, range>::get_local_coord
   return Point<dim, Interval<dim>>{};
 }
 
-// Explicit template instantiations
-template class BSplineBezierTP<1, 1>;
-template class BSplineBezierTP<2, 1>;
+
+template<int dim, int range>
+std::shared_ptr<BSplineBezierTP<dim>> BSplineBezierTP<dim, range>::form_bspline(const std::array<real, dim> &knots_min,
+                                                                                const std::array<real, dim> &knots_max,
+                                                                                const std::array<int, dim>  &num_spans,
+                                                                                const std::array<int, dim>  &order,
+                                                                                const std::vector<real>     &coefficients)
+{
+  std::array<std::shared_ptr<algoim::bspline::Knots>, dim> knots;
+  for (int i = 0; i < dim; ++i)
+  {
+    knots[i] = std::make_shared<algoim::bspline::Knots>(knots_min[i], knots_max[i], num_spans[i], order[i]);
+  }
+  
+  std::array<std::shared_ptr<const algoim::bspline::BSpline>, dim> bsplines;
+  for (int i = 0; i < dim; ++i)
+  {
+    bsplines[i] = std::make_shared<algoim::bspline::BSpline>(*(knots[i]), order[i]);
+  }
+
+  auto bspline_tp_algoim = std::make_shared<algoim::bspline::BSplineTP<dim, 1>>(coefficients, bsplines);
+  return std::make_shared<BSplineBezierTP<dim>>(bspline_tp_algoim);
+}
+
+
+template<int dim, int range>
+std::shared_ptr<BSplineBezierTP<dim>> BSplineBezierTP<dim, range>::form_bspline(const std::array<std::vector<real>, dim> &knots,
+                                                                                const std::array<int, dim>  &order,
+                                                                                const std::vector<real>     &coefficients)
+{
+  std::array<std::shared_ptr<algoim::bspline::Knots>, dim> knots_ptrs;
+  for (int i = 0; i < dim; ++i)
+  {
+    knots_ptrs[i] = std::make_shared<algoim::bspline::Knots>(knots[i]);
+  }
+  
+  std::array<std::shared_ptr<const algoim::bspline::BSpline>, dim> bsplines;
+  for (int i = 0; i < dim; ++i)
+  {
+    bsplines[i] = std::make_shared<algoim::bspline::BSpline>(*(knots_ptrs[i]), order[i]);
+  }
+
+  auto bspline_tp_algoim = std::make_shared<algoim::bspline::BSplineTP<dim, 1>>(coefficients, bsplines);
+  return std::make_shared<BSplineBezierTP<dim>>(bspline_tp_algoim);
+}
+
+
+
+// Explicit template instantiations                                   
+template class BSplineBezierTP<1, 1>;                                 
+template class BSplineBezierTP<2, 1>;                                 
 template class BSplineBezierTP<3, 1>;
 
 template class BSplineBezierTP<1, 3>;

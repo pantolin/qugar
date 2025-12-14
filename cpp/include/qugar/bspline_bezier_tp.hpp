@@ -138,6 +138,33 @@ public:
   //! @return Coefficient tensor in column-major order.
   static std::vector<CoefsType> transpose(const ::algoim::xarray<CoefsType, dim> &tensor_rm);
 
+  // TODO: These methods should be moved out of qugar completely.
+  //! @brief Factory method to create a BSplineBezierTP from B-Spline parameters.
+  //! It is assumed that the knot vectors are open, uniform and with maximum regularity.
+  //! Range is assumed to be 1.
+  //!
+  //! @param knots_min Minimum knot values for each dimension.
+  //! @param knots_max Maximum knot values for each dimension.
+  //! @param num_spans Number of spans for each dimension.
+  //! @param order Order of the B-Spline for each dimension.
+  //! @param coefficients Coefficients of the B-Spline tensor-product function,
+  //! ordered such that dimension N-1 is inner-most.
+  static std::shared_ptr<BSplineBezierTP<dim>> form_bspline(const std::array<real, dim> &knots_min,
+                                                            const std::array<real, dim> &knots_max,
+                                                            const std::array<int, dim>  &num_spans,
+                                                            const std::array<int, dim>  &order,
+                                                            const std::vector<real>     &coefficients);
+
+  //! @brief Factory method to create a BSplineBezierTP from B-Spline parameters.
+  //! Range is assumed to be 1.
+  //!
+  /// @param knots Knot vectors for each dimension.
+  //! @param order Order of the B-Spline for each dimension.
+  //! @param coefficients Coefficients of the B-Spline tensor-product function,
+  //! ordered such that dimension N-1 is inner-most.
+  static std::shared_ptr<BSplineBezierTP<dim>> form_bspline(const std::array<std::vector<real>, dim> &knots,
+                                                            const std::array<int, dim>               &order,
+                                                            const std::vector<real>                  &coefficients);
 };
 
 
