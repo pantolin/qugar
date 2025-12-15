@@ -92,6 +92,34 @@ class ImplicitFunc:
         return vals.astype(np.float32) if points.dtype == np.float32 else vals
 
 
+class BezierTP(ImplicitFunc):
+    """Class for storing a Bezier tensor-product function that describes a domain."""
+
+    def __init__(self, cpp_object: ImplicitFunc_2D | ImplicitFunc_3D) -> None:
+        """Constructor.
+
+        Args:
+            cpp_object (ImplicitFunc_2D | ImplicitFunc_3D):
+                Already generated BezierTP function binary object.
+        """
+        super().__init__(cpp_object)
+
+
+class BSplineTP(ImplicitFunc):
+    """Class for storing a BSpline tensor-product function that describes a domain."""
+
+    def __init__(self, cpp_object: ImplicitFunc_2D | ImplicitFunc_3D) -> None:
+        """Constructor.
+
+        Args:
+            cpp_object (ImplicitFunc_2D | ImplicitFunc_3D):
+                Already generated BsplineTP function binary object.
+        """
+        super().__init__(cpp_object)
+
+
+
+
 def create_disk(
     radius: float | np.float32 | np.float64,
     center: Optional[npt.NDArray[np.float32 | np.float64]] = None,
@@ -867,3 +895,80 @@ def create_Schwarz_Diamond(
         AssertionError: If the dimension of the periods is not 2 or 3.
     """
     return _create_tpms(qugar.cpp.create_SchwarzDiamond, periods, z)
+
+
+def create_bspline_tp_from_bounds(
+        knots_min: list[float | np.float32 | np.float64] | npt.NDArray[np.float32 | np.float64],
+        knots_max: list[float | np.float32 | np.float64] | npt.NDArray[np.float32 | np.float64],
+        num_spans: list[int | np.int32 | np.int64] | npt.NDArray[np.int32 | np.int64],
+        order:     list[int | np.int32 | np.int64] | npt.NDArray[np.int32 | np.int64],
+        coefficients: npt.NDArray[np.float32 | np.float64]
+) -> BSplineTP:
+    """
+    Creates a B-Spline tensor product implicit function.
+
+    Args:
+        knots_min (list[float | np.float32 | np.float64] | npt.NDArray[np.float32 | np.float64]):
+            The minimum knot values for each dimension.
+        knots_max (list[float | np.float32 | np.float64] | npt.NDArray[np.float32 | np.float64]):
+            The maximum knot values for each dimension.
+        num_spans (list[int | np.int32 | np.int64] | npt.NDArray[np.int32 | np.int64]):
+            The number of spans for each dimension.
+        order (list[int | np.int32 | np.int64] | npt.NDArray[np.int32 | np.int64]):
+            The order of the B-Spline for each dimension.
+        coefficients (npt.NDArray[np.float32 | np.float64]):
+            The coefficients of the B-Spline tensor product.
+    
+    Returns:
+        BSplineTP: An instance of BSplineTP representing the B-Spline tensor product implicit function.
+    """
+    # TODO: Check dimensions consistency
+    kmin = np.asarray(knots_min, dtype=np.float64).tolist()
+    kmax = np.asarray(knots_max, dtype=np.float64).tolist()
+    nspans = np.asarray(num_spans, dtype=np.int64).tolist()
+    ords = np.asarray(order, dtype=np.int64).tolist()
+    coeffs = coefficients.flatten().tolist()
+
+    dim = len(kmin)
+    assert dim == 2 or dim == 3, "Invalid dimension. It must be 2 or 3"
+
+    if dim == 2:
+        return BSplineTP(
+                qugar.cpp.BSplineTP_2D.form_bspline(kmin, kmax, nspans, ords, coeffs)
+        )
+    else:
+        return BSplineTP(
+                qugar.cpp.BSplineTP_3D.form_bspline(kmin, kmax, nspans, ords, coeffs)
+        )
+
+def create_bspline_tp_from_knots(
+        knots: list[float | np.float32 | np.float64] | npt.NDArray[np.float32 | np.float64],
+        order: list[int | np.int32 | np.int64] | npt.NDArray[np.int32 | np.int64],
+        coefficients: npt.NDArray[np.float32 | np.float64]
+) -> BSplineTP:
+    """
+    Creates a B-Spline tensor product implicit function.
+
+    Args:
+        knots (list[float | np.float32 | np.float64] | npt.NDArray[np.float32 | np.float64]):
+            The knot values for each dimension.
+        order (list[int | np.int32 | np.int64] | npt.NDArray[np.int32 | np.int64]):
+            The order of the B-Spline for each dimension.
+        coefficients (npt.NDArray[np.float32 | np.float64]):
+            The coefficients of the B-Spline tensor product.
+
+    Returns:
+        BSplineTP: An instance of BSplineTP representing the B-Spline tensor product implicit function.
+    """
+    knts = np.asarray(knots, dtype=np.float64).tolist()    
+    ords = np.asarray(order, dtype=np.int64).tolist()
+    coeffs = coefficients.flatten().tolist()
+
+    dim = len(ords)
+    assert dim == 2 or dim == 3, "Invalid dimension. It must be 2 or 3"
+
+    if dim == 2:
+        return BSplineTP(qugar.cpp.BSplineTP_2D.form_bspline(knts, ords, coeffs))
+    else:
+        return BSplineTP(qugar.cpp.BSplineTP_3D.form_bspline(knts, ords, coeffs))
+

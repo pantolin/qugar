@@ -35,6 +35,8 @@ from qugar.impl.impl_function import (
     create_Schwarz_Primitive,
     create_sphere,
     create_torus,
+    create_bspline_tp_from_bounds,
+    create_bspline_tp_from_knots,
 )
 
 __all__ = [
@@ -61,4 +63,6 @@ __all__ = [
     "create_Fischer_Koch_S",
     "create_Schwarz_Primitive",
     "create_Schwarz_Diamond",
+    "create_bspline_tp_from_bounds",
+    "create_bspline_tp_from_knots",
 ]

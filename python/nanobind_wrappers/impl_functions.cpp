@@ -36,6 +36,7 @@
 #include <nanobind/ndarray.h>
 // NOLINTBEGIN (misc-include-cleaner)
 #include <nanobind/stl/array.h>
+#include <nanobind/stl/vector.h>
 #include <nanobind/stl/shared_ptr.h>
 // NOLINTEND (misc-include-cleaner)
 
@@ -104,10 +105,11 @@ namespace {
   template<int dim, int range=1> void declare_bezier(nanobind::module_ &module)
   {
     using BezierTP = impl::BezierTP<dim, range>;
+    using DomainFunc = impl::DomainFunc<dim, range>; 
 
     // TODO: Implementation is currently only for range = 1
     const std::string pyclass_name{ std::string("BezierTP_") + std::to_string(dim) + "D"};
-    nb::class_<BezierTP>(module, pyclass_name.c_str(), "Bézier tensor product class")
+    nb::class_<BezierTP, DomainFunc>(module, pyclass_name.c_str(), "Bézier tensor product class")
       .def_prop_ro(
         "dim", [](BezierTP & /*tp*/) { return dim; }, nb::rv_policy::reference_internal)
       .def_prop_ro(
@@ -160,10 +162,11 @@ namespace {
   template<int dim, int range=1> void declare_bspline_bezier(nanobind::module_ &module)
   {
     using BSplineBezierTP = impl::BSplineBezierTP<dim, range>;
+    using DomainFunc      = impl::DomainFunc<dim, range>;
 
     // TODO: Implementation is currently only for range = 1
     const std::string pyclass_name{ std::string("BSplineTP_") + std::to_string(dim) + "D"};
-    nb::class_<BSplineBezierTP>(module, pyclass_name.c_str(), "B-Spline tensor product class")
+    nb::class_<BSplineBezierTP, DomainFunc>(module, pyclass_name.c_str(), "B-Spline tensor product class")
       .def_prop_ro(
         "dim", [](BSplineBezierTP & /*tp*/) { return dim; }, nb::rv_policy::reference_internal)
       .def_prop_ro(

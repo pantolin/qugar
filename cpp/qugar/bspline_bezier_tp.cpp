@@ -73,7 +73,29 @@ BSplineBezierTP<dim, range>::Gradient<real> BSplineBezierTP<dim, range>::grad(co
 template<int dim, int range>
 BSplineBezierTP<dim, range>::Gradient<::algoim::Interval<dim>> BSplineBezierTP<dim, range>::grad(const Point<dim, Interval<dim>> &point) const
 {
-  throw std::runtime_error("Gradient for Interval points not implemented yet.");
+  auto multi_index = get_knot_multi_index(point);
+  auto bezier_index = get_bezier_index(multi_index);
+  auto local_coords = get_local_coordinates(point, multi_index);
+  
+  auto grad = beziers_[bezier_index]->grad(local_coords);
+  auto a = grad(0);
+  
+  if (range != 1)
+    throw std::runtime_error("Gradient rescaling only implemented for range == 1.");
+
+  // Rescale the gradient according to the knot span sizes 
+  real knot_start = 0;
+  real knot_end = 0;
+  real span_size = 0;
+  for (int i = 0; i < dim; ++i)
+  {
+    knot_start = knots_[i]->getUnique()[multi_index[i]];
+    knot_end = knots_[i]->getUnique()[multi_index[i] + 1];
+    span_size = knot_end - knot_start;
+    grad(i) /= span_size;
+  }
+
+  return grad;
 }
 
 template<int dim, int range>
@@ -180,8 +202,23 @@ std::vector<typename BSplineBezierTP<dim, range>::CoefsType> BSplineBezierTP<dim
 template<int dim, int range>
 Point<dim, ::algoim::Interval<dim>> BSplineBezierTP<dim, range>::get_local_coordinates(const Point<dim, Interval<dim>> &point, const std::array<int, dim> & multi_index) const
 {
-  throw std::runtime_error("get_local_coordinates for Interval points not implemented yet.");
-  return Point<dim, Interval<dim>>{};
+  Point<dim, Interval<dim>> local_coords;
+  real knot_start = 0;
+  real knot_end = 0;
+  real span_size = 0;
+  // TODO: Check if this is correct for Interval points
+  // The Jacobian here should be diagonal, so we can transform each coordinate independently
+  for (int i = 0; i < dim; ++i)
+  {
+    knot_start = knots_[i]->getUnique()[multi_index[i]];
+    knot_end = knots_[i]->getUnique()[multi_index[i] + 1];
+    span_size = knot_end - knot_start;
+    local_coords(i) = (point(i).alpha - knot_start) / span_size;
+    local_coords(i).beta = point(i).beta / span_size;
+    local_coords(i).eps = point(i).eps / span_size;
+  }
+
+  return local_coords;
 }
 
 
