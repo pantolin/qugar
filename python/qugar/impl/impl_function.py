@@ -934,11 +934,11 @@ def create_bspline_tp_from_bounds(
 
     if dim == 2:
         return BSplineTP(
-                qugar.cpp.BSplineTP_2D.form_bspline(kmin, kmax, nspans, ords, coeffs)
+                BSplineTP(qugar.cpp.BSplineTP_2D.form_bspline(kmin, kmax, nspans, ords, coeffs))
         )
     else:
         return BSplineTP(
-                qugar.cpp.BSplineTP_3D.form_bspline(kmin, kmax, nspans, ords, coeffs)
+                BSplineTP(qugar.cpp.BSplineTP_3D.form_bspline(kmin, kmax, nspans, ords, coeffs))
         )
 
 def create_bspline_tp_from_knots(
@@ -962,7 +962,7 @@ def create_bspline_tp_from_knots(
     """
     knts = np.asarray(knots, dtype=np.float64).tolist()    
     ords = np.asarray(order, dtype=np.int64).tolist()
-    coeffs = coefficients.flatten().tolist()
+    coeffs = coefficients.ravel().tolist()
 
     dim = len(ords)
     assert dim == 2 or dim == 3, "Invalid dimension. It must be 2 or 3"

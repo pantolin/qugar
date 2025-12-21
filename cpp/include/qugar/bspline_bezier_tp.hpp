@@ -159,7 +159,7 @@ public:
   //! Range is assumed to be 1.
   //!
   /// @param knots Knot vectors for each dimension.
-  //! @param order Order of the B-Spline for each dimension.
+  //! @param order Order of the B-Spline for each dimension. This means degree + 1.
   //! @param coefficients Coefficients of the B-Spline tensor-product function,
   //! ordered such that dimension N-1 is inner-most.
   static std::shared_ptr<BSplineBezierTP<dim>> form_bspline(const std::array<std::vector<real>, dim> &knots,
