@@ -33,6 +33,7 @@
 #  define QUGAR_DEPRECATED_NO_EXPORT QUGAR_NO_EXPORT QUGAR_DEPRECATED
 #endif
 
+/* NOLINTNEXTLINE(readability-avoid-unconditional-preprocessor-if) */
 #if 0 /* DEFINE_NO_DEPRECATED */
 #  ifndef QUGAR_NO_DEPRECATED
 #    define QUGAR_NO_DEPRECATED

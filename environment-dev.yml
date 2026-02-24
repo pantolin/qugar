@@ -2,23 +2,32 @@ name: QUGaR
 channels:
   - conda-forge
 dependencies:
-  - fenics-dolfinx
+  # Explicit pins for compatibility
+  - python >=3.11,<3.13        # dolfinx 0.9.0 supports <=3.12 very reliably on conda-forge
+  - fenics-dolfinx ==0.9.0
+
   - mpich
   - pyvista
+  - scipy
+  - liblapacke
+  - openblas
+
   - scikit-build-core
   - cmake
   - ninja
   - catch2
   - doxygen
-  - ipython
-  - scipy
-  - liblapacke
+  - nanobind
+
   - sphinx
   - breathe
-  - jupytext
-  - markdown
   - myst-parser
+  - markdown
+
+  - ipython
   - pytest
+  - jupytext
   - pip
   - pip:
-    - sphinx-rtd-dark-mode
+      - sphinx-rtd-dark-mode
+

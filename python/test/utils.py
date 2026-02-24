@@ -58,6 +58,8 @@ def clean_cache(dir_name: str = str(DOLFINX_CACHE_DIR)):
         dir_name (str, optional): Folder to be clean_. Defaults to str
             (DOLFINX_CACHE_DIR).
     """
+    if not os.path.exists(dir_name):
+        return
     test = os.listdir(dir_name)
     for item in test:
         if item.endswith(".c"):

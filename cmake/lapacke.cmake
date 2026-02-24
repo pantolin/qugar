@@ -1,24 +1,51 @@
 macro(qugar_find_lapacke)
-
-  # cmake_policy(SET CMP0069 NEW) 
-  # set(CMAKE_POLICY_DEFAULT_CMP0069 NEW)
-  # cpmaddpackage("gh:Reference-LAPACK/lapack@3.12.0")
-
   set(LAPACKE_VERSION 3.9)
-  if (LAPACKE_DIR)
-    find_package(LAPACKE ${LAPACKE_VERSION} HINTS ${LAPACKE_DIR})
-  else()
-    find_package(LAPACKE ${LAPACKE_VERSION})
-  endif()
-
-  if (${LAPACKE_FOUND})
-    message(STATUS "LAPACKE version ${LAPACKE_VERSION} found in:")
-    add_compile_definitions(WITH_LAPACK)
-    include_directories(${LAPACKE_INCLUDE_DIRS})
+  
+  # Find LAPACKE header
+  find_path(LAPACKE_INCLUDE_DIR
+    NAMES lapacke.h
+    PATHS ${LAPACKE_DIR} $ENV{CONDA_PREFIX}
+    PATH_SUFFIXES include
+    NO_DEFAULT_PATH
+  )
+  
+  # Find LAPACKE library
+  find_library(LAPACKE_LIBRARY
+    NAMES lapacke
+    PATHS ${LAPACKE_DIR} $ENV{CONDA_PREFIX}
+    PATH_SUFFIXES lib lib64
+    NO_DEFAULT_PATH
+  )
+  
+  # Also find LAPACK library (LAPACKE depends on it)
+  find_library(LAPACK_LIBRARY
+    NAMES lapack
+    PATHS ${LAPACKE_DIR} $ENV{CONDA_PREFIX}
+    PATH_SUFFIXES lib lib64
+    NO_DEFAULT_PATH
+  )
+  
+  if(LAPACKE_INCLUDE_DIR AND LAPACKE_LIBRARY AND LAPACK_LIBRARY)
+    set(LAPACKE_FOUND TRUE)
+    set(LAPACKE_INCLUDE_DIRS ${LAPACKE_INCLUDE_DIR})
+    set(LAPACKE_LIBRARIES ${LAPACKE_LIBRARY} ${LAPACK_LIBRARY})
+    
+    message(STATUS "LAPACKE found:")
     message(STATUS "  LAPACKE_LIBRARIES: ${LAPACKE_LIBRARIES}")
     message(STATUS "  LAPACKE_INCLUDE_DIRS: ${LAPACKE_INCLUDE_DIRS}")
+    
+    add_compile_definitions(WITH_LAPACK)
+    include_directories(${LAPACKE_INCLUDE_DIRS})
   else()
     message(STATUS "LAPACKE not found. Algoim's eigenvalue solvers will be used.")
+    if(NOT LAPACKE_INCLUDE_DIR)
+      message(STATUS "  - Could not find lapacke.h")
+    endif()
+    if(NOT LAPACKE_LIBRARY)
+      message(STATUS "  - Could not find liblapacke")
+    endif()
+    if(NOT LAPACK_LIBRARY)
+      message(STATUS "  - Could not find liblapack")
+    endif()
   endif()
-
 endmacro()

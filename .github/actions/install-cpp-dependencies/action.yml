@@ -1,0 +1,63 @@
+name: "Install C++ Dependencies"
+description: "Install C++ dependencies for build and test jobs"
+inputs:
+  os:
+    description: "Operating system"
+    required: true
+    type: string
+runs:
+  using: "composite"
+  steps:
+    - name: Show runner info
+      shell: bash -el {0}
+      run: |
+        echo "Running on OS: ${{ runner.os }}"
+        echo "Runner name: ${{ runner.name }}"
+    
+    - name: Setup Miniconda
+      uses: conda-incubator/setup-miniconda@v3
+      with:
+        auto-update-conda: true
+        activate-environment: QUGaR
+        channels: conda-forge
+        channel-priority: strict
+    
+    - name: Install dependencies via conda
+      shell: bash -el {0}
+      run: |
+        conda install -y cmake ninja liblapacke openblas catch2
+
+    - name: Install MinGW-w64 (Windows only)
+      if: runner.os == 'Windows'
+      shell: bash -el {0}
+      run: |
+        conda install clang clangxx
+        
+    - name: Verify installations (Linux/macOS)
+      if: runner.os != 'Windows'
+      shell: bash -el {0}
+      run: |
+        cmake --version
+        ninja --version
+        ls $CONDA_PREFIX/include/lapacke.h 
+        ls $CONDA_PREFIX/lib/cmake/Catch2 
+
+    - name: Verify installations (Windows)
+      if: runner.os == 'Windows'
+      shell: bash -el {0}
+      run: |
+        cmake --version
+        ninja --version
+        UNIX_PREFIX=$(cygpath "$CONDA_PREFIX" 2>/dev/null || echo "$CONDA_PREFIX")
+        if [ -f "$UNIX_PREFIX/Library/include/openblas/lapacke.h" ] || [ -f "$UNIX_PREFIX/include/lapacke.h" ]; then
+          echo "lapacke.h found"
+        else
+          echo "lapacke.h not found"
+          exit 1
+        fi
+        if [ -d "$UNIX_PREFIX/Library/include/catch2" ] || [ -d "$UNIX_PREFIX/lib/cmake/Catch2" ]; then
+          echo "Catch2 found"
+        else
+          echo "Catch2 not found"
+          exit 1
+        fi

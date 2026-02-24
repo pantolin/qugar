@@ -1,0 +1,135 @@
+name: CI
+
+on:
+  workflow_call:
+    inputs:
+      os:
+        description: 'Operating system to build and test on'
+        required: true
+        type: string
+
+jobs:
+  build-and-test:
+    runs-on: ${{ inputs.os }}
+    defaults:
+      run:
+        shell: bash -el {0}
+    strategy:
+      fail-fast: false
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install C++ dependencies
+        uses: ./.github/actions/install-cpp-dependencies
+        with:
+          os: ${{ inputs.os }}
+
+      - name: Configure, build and install C++ library (Linux/macOS)
+        if: runner.os != 'Windows'
+        run: |
+          cmake -S cpp -B build \
+                -G Ninja \
+                -DBUILD_TESTING=ON \
+                -DCMAKE_BUILD_TYPE=Release \
+                -DCMAKE_PREFIX_PATH=$CONDA_PREFIX \
+                -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/install"
+          cmake --build build --parallel
+          cmake --install build
+
+      - name: Configure, build and install C++ library (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          UNIX_PREFIX=$(cygpath "$CONDA_PREFIX" 2>/dev/null || echo "$CONDA_PREFIX")
+          cmake -S cpp -B build \
+                -G Ninja \
+                -DCMAKE_C_COMPILER=clang \
+                -DCMAKE_CXX_COMPILER=clang++ \
+                -DCMAKE_DISABLE_FIND_PACKAGE_clang-tidy=TRUE \ 
+                -DCMAKE_DISABLE_FIND_PACKAGE_cppcheck=TRUE \
+                -DBUILD_TESTING=ON \
+                -DCMAKE_PREFIX_PATH="$UNIX_PREFIX;$UNIX_PREFIX/Library" \
+                -DLAPACKE_DIR="$UNIX_PREFIX/Library/include/openblas;$UNIX_PREFIX/Library" \
+                -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/install"
+          cmake --build build --parallel
+          cmake --install build
+
+      - name: Package C++ library
+        run: |
+          tar -C "${{ github.workspace }}/install" -caf \
+            qugar-${{ runner.os }}-${{ runner.arch }}.tar.zst .
+
+      - name: Run C++ tests
+        run: |
+          ctest --test-dir build --output-on-failure
+
+      # These still run even if the previous step failed:
+      - uses: actions/upload-artifact@v4
+        if: ${{ always() }}
+        with:
+          name: junit-${{ runner.os }}-${{ runner.arch }}
+          path: ${{ github.workspace }}/build/cpp/test-results.xml
+
+      - uses: actions/upload-artifact@v4
+        if: ${{ always() }}
+        with:
+          name: logs-${{ runner.os }}-${{ runner.arch }}
+          path: |
+            ${{ github.workspace }}/build/cpp/Testing/Temporary/LastTest.log
+            ${{ github.workspace }}/build/cpp/CTestTestfile.cmake
+
+      - name: Upload C++ library artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: qugar-${{ runner.os }}-${{ runner.arch }}
+          path: ${{ github.workspace }}/qugar-${{ runner.os }}-${{ runner.arch }}.tar.zst
+
+
+  build-test-wheel:
+    runs-on: ${{ inputs.os }}
+    defaults:
+      run:
+        shell: bash -el {0}
+    strategy:
+      fail-fast: false
+    needs: build-and-test
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download C++ library artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: qugar-${{ runner.os }}-${{ runner.arch }}
+
+      - name: Extract C++ library
+        run: |
+          mkdir -p "${{ github.workspace }}/install"
+          tar -C "${{ github.workspace }}/install" -xf \
+            qugar-${{ runner.os }}-${{ runner.arch }}.tar.zst
+
+      - name: Set QUGaR install path
+        run: echo "qugar_DIR=${{ github.workspace }}/install" >> $GITHUB_ENV
+
+      - name: Install Python and dependencies
+        uses: ./.github/actions/install-python-dependencies
+
+      - name: Build Python wheel
+        run: |
+          python -m build --wheel --outdir dist ./python
+
+      - name: Install Python wheel
+        run: |
+          pip install dist/*.whl
+
+      - name: Run Python tests
+        run: |
+          pytest -v --junitxml=test-results.xml python/test
+
+      - name: Upload Python test results
+        uses: actions/upload-artifact@v4
+        with:
+          name: python-junit-${{ matrix.os }}-${{ runner.arch }}
+          path: ${{ github.workspace }}/test-results.xml
+

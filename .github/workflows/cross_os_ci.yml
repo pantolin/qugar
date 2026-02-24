@@ -1,0 +1,26 @@
+name: CI
+on: 
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  linux:
+    uses: ./.github/workflows/build_and_test.yml
+    with:
+      os: ubuntu-latest
+
+  macos:
+    uses: ./.github/workflows/build_and_test.yml
+    with:
+      os: macos-latest
+
+  # windows:
+  #   uses: ./.github/workflows/build_and_test.yml
+  #   with:
+  #     os: windows-latest
+

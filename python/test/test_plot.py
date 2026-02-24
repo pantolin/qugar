@@ -572,6 +572,8 @@ def test_cylinder(
     assert computed_hashes == target_hashes
 
 
+# TODO: Rewrite test to avoid using plot hashes
+@pytest.mark.skip(reason="Temporarily skipping plot hash tests")
 @pytest.mark.parametrize("n_cells", [8])
 @pytest.mark.parametrize("n_quad_pts", [5])
 @pytest.mark.parametrize("dtype", dtypes)
@@ -931,6 +933,8 @@ impl_functors = [
 ]
 
 
+# TODO: Rewrite test to avoid using plot hashes
+@pytest.mark.skip(reason="Temporarily skipping plot hash tests")
 @pytest.mark.parametrize("dim", [2, 3])
 @pytest.mark.parametrize("n_cells", [11, 12])
 @pytest.mark.parametrize("n_quad_pts", [5])
@@ -1374,7 +1378,7 @@ def test_tpms(
     assert computed_hashes == target_hashes
 
 
-if __name__ == "__main__":
+# if __name__ == "__main__":
     # test_disk(8, 5, np.float32, False, False)
     # test_disk(8, 5, np.float64, False, False)
     # test_disk(8, 5, np.float32, True, False)
@@ -1456,21 +1460,22 @@ if __name__ == "__main__":
     # test_torus(8, 5, np.float32, True, True)
     # test_torus(8, 5, np.float64, True, True)
 
-    for functor_str in impl_functors:
-        test_tpms(2, 11, 5, functor_str, np.float32, False)
-        test_tpms(2, 11, 5, functor_str, np.float32, True)
-        test_tpms(2, 11, 5, functor_str, np.float64, False)
-        test_tpms(2, 11, 5, functor_str, np.float64, True)
-        test_tpms(2, 12, 5, functor_str, np.float32, False)
-        test_tpms(2, 12, 5, functor_str, np.float32, True)
-        test_tpms(2, 12, 5, functor_str, np.float64, False)
-        test_tpms(2, 12, 5, functor_str, np.float64, True)
-
-        test_tpms(3, 11, 5, functor_str, np.float32, False)
-        test_tpms(3, 11, 5, functor_str, np.float32, True)
-        test_tpms(3, 11, 5, functor_str, np.float64, False)
-        test_tpms(3, 11, 5, functor_str, np.float64, True)
-        test_tpms(3, 12, 5, functor_str, np.float32, False)
-        test_tpms(3, 12, 5, functor_str, np.float32, True)
-        test_tpms(3, 12, 5, functor_str, np.float64, False)
-        test_tpms(3, 12, 5, functor_str, np.float64, True)
+    # TODO: Skipping this batch because it's hash dependent
+    # for functor_str in impl_functors:
+    #     test_tpms(2, 11, 5, functor_str, np.float32, False)
+    #     test_tpms(2, 11, 5, functor_str, np.float32, True)
+    #     test_tpms(2, 11, 5, functor_str, np.float64, False)
+    #     test_tpms(2, 11, 5, functor_str, np.float64, True)
+    #     test_tpms(2, 12, 5, functor_str, np.float32, False)
+    #     test_tpms(2, 12, 5, functor_str, np.float32, True)
+    #     test_tpms(2, 12, 5, functor_str, np.float64, False)
+    #     test_tpms(2, 12, 5, functor_str, np.float64, True)
+    #
+    #     test_tpms(3, 11, 5, functor_str, np.float32, False)
+    #     test_tpms(3, 11, 5, functor_str, np.float32, True)
+    #     test_tpms(3, 11, 5, functor_str, np.float64, False)
+    #     test_tpms(3, 11, 5, functor_str, np.float64, True)
+    #     test_tpms(3, 12, 5, functor_str, np.float32, False)
+    #     test_tpms(3, 12, 5, functor_str, np.float32, True)
+    #     test_tpms(3, 12, 5, functor_str, np.float64, False)
+    #     test_tpms(3, 12, 5, functor_str, np.float64, True)

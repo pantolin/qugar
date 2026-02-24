@@ -42,21 +42,26 @@ if(qugar_FOUND)
   message(STATUS "Found qugar at ${qugar_DIR}")
 endif()
 
-include(../cmake/CPM.cmake)
-if(NOT algoim::algoim)
-  CPMAddPackage("gh:pantolin/algoim@1.0.3")
-  if(NOT TARGET algoim::algoim)
-    if(TARGET algoim)
-      add_library(algoim::algoim ALIAS algoim)
-    elseif(DEFINED algoim_SOURCE_DIR)
-      add_library(algoim::algoim INTERFACE IMPORTED)
-      target_include_directories(algoim::algoim INTERFACE "${algoim_SOURCE_DIR}")
-    endif()
-  endif()
-endif()
+# include(../cmake/CPM.cmake)
+# if(NOT algoim::algoim)
+#   CPMAddPackage("gh:pantolin/algoim@1.0.3")
+#   if(NOT TARGET algoim::algoim)
+#     if(TARGET algoim)
+#       add_library(algoim::algoim ALIAS algoim)
+#     elseif(DEFINED algoim_SOURCE_DIR)
+#       add_library(algoim::algoim INTERFACE IMPORTED)
+#       target_include_directories(algoim::algoim INTERFACE "${algoim_SOURCE_DIR}")
+#     endif()
+#   endif()
+# endif()
+#
+# include(../cmake/lapacke.cmake)
+# qugar_find_lapacke()
 
-include(../cmake/lapacke.cmake)
-qugar_find_lapacke()
+# TODO: Seems better than copying code, and shouldn't add any overhead, since we
+# are neither building docs nor tests.
+include(../cmake/Dependencies.cmake)
+qugar_setup_dependencies()
 
 # Create the binding library nanobind handles its own calls to
 # target_link_libraries
