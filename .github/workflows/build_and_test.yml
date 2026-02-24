@@ -32,6 +32,7 @@ jobs:
           cmake -S cpp -B build \
                 -G Ninja \
                 -DBUILD_TESTING=ON \
+                -DCMAKE_BUILD_TYPE=Release \
                 -DCMAKE_PREFIX_PATH=$CONDA_PREFIX \
                 -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/install"
           cmake --build build --parallel
@@ -59,9 +60,7 @@ jobs:
           tar -C "${{ github.workspace }}/install" -caf \
             qugar-${{ runner.os }}-${{ runner.arch }}.tar.zst .
 
-      # TODO: C++ tests are temporarily disabled because they are failing
       - name: Run C++ tests
-        if: false
         run: |
           ctest --test-dir build --output-on-failure
 
