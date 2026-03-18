@@ -598,7 +598,7 @@ def create_functions_addition(lhs_func: ImplicitFunc, rhs_func: ImplicitFunc) ->
         ImplicitFunc: A new implicit function representing the addition of the two input functions.
     """
     return ImplicitFunc(
-        qugar.cpp.create_functions_addision(lhs_func.cpp_object, rhs_func.cpp_object)
+        qugar.cpp.create_functions_addition(lhs_func.cpp_object, rhs_func.cpp_object)
     )
 
 
@@ -636,7 +636,7 @@ def create_affinely_transformed_functions(
         ImplicitFunc: A new implicit function that represents the affine transformation
             of the original function.
     """
-    return ImplicitFunc(qugar.cpp.affinely_transformed(func.cpp_object, affine_transf))
+    return ImplicitFunc(qugar.cpp.create_affinely_transformed(func.cpp_object, affine_transf))
 
 
 def _process_tpms_periods(
