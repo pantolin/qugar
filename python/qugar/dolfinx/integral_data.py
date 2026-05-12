@@ -141,12 +141,12 @@ class IntegralData(NamedTuple):
         return FE_tables[0].dtype
 
     @property
-    def itg_infos(self) -> list[tuple[dolfinx.cpp.fem.IntegralType, int]]:
+    def itg_infos(self) -> list[tuple[dolfinx.cpp.fem._IntegralType, int]]:
         """Tuple of integral type and integral's subdomain id."""
         itg_type_strs = {
-            "cell": dolfinx.cpp.fem.IntegralType.cell,
-            "interior_facet": dolfinx.cpp.fem.IntegralType.interior_facet,
-            "exterior_facet": dolfinx.cpp.fem.IntegralType.exterior_facet,
+            "cell": dolfinx.cpp.fem._IntegralType.cell,
+            "interior_facet": dolfinx.cpp.fem._IntegralType.interior_facet,
+            "exterior_facet": dolfinx.cpp.fem._IntegralType.exterior_facet,
         }
         itg_type = itg_type_strs[self.integral_type]
         return [(itg_type, id) for id in self.subdomain_ids]

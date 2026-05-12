@@ -20,7 +20,7 @@ import dolfinx.cpp.fem as cpp_fem
 import dolfinx.mesh
 import numpy as np
 import numpy.typing as npt
-from dolfinx.cpp.fem import IntegralType
+from dolfinx.cpp.fem import _IntegralType as IntegralType
 from dolfinx.fem.forms import Form
 
 from qugar.dolfinx.custom_quad_utils import map_facets_points, permute_facet_points
