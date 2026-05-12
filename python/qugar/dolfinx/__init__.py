@@ -25,6 +25,8 @@ __all__ = ["CustomForm", "ds_bdry_unf", "form_custom", "mapped_normal"]
 from qugar.utils import has_PETSc
 
 if has_PETSc:
-    from qugar.dolfinx.petsc import LinearProblem, NonlinearProblem
+    pass
+    # TODO: FIX THIS
+    # from qugar.dolfinx.petsc import LinearProblem, NonlinearProblem
 
-    __all__ += ["LinearProblem", "NonlinearProblem"]
+    # __all__ += ["LinearProblem", "NonlinearProblem"]
