@@ -149,7 +149,7 @@ build_package_list() {
     
     # Add DOLFINx packages if requested (platform-specific)
     if [[ "${INSTALL_DOLFINX}" == "true" ]]; then
-        PACKAGES+=("fenics-dolfinx=0.9.0")
+        PACKAGES+=("fenics-dolfinx=0.10.0")
         PACKAGES+=("pyvista")
         PACKAGES+=("scipy")
         case "${PLATFORM}" in
