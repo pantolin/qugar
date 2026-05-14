@@ -1036,8 +1036,10 @@ class CustomCoeffsPacker:
         """Gets the integral data whose info matches `itg_info`.
 
         Args:
-            itg_info (tuple[IntegralType, int]): Integral info (type and
-                subdomain id) sought.
+            itg_info (tuple[IntegralType, int]): Integral info as
+                returned by DOLFINx ``pack_coefficients``. In v0.9.0
+                this was ``(integral_type, subdomain_id)``; in v0.10.0
+                it became ``(integral_type, position_in_per_type_list)``.
 
         Returns:
             IntegralData: Integral data instance found.
@@ -1051,11 +1053,49 @@ class CustomCoeffsPacker:
 
         assert itg_info[0] in valid_integral_types
 
-        for data in self._itg_data:
-            if itg_info in data.itg_infos:
-                return data
+        if not hasattr(self, "_position_to_data"):
+            self._position_to_data = self._build_position_to_data()
 
-        assert False, "Integral data not found."
+        if itg_info in self._position_to_data:
+            return self._position_to_data[itg_info]
+
+        assert False, f"Integral data not found for {itg_info!r}."
+
+    def _build_position_to_data(self) -> dict[tuple[IntegralType, int], IntegralData]:
+        """Build a (integral_type, position) -> IntegralData map.
+
+        DOLFINx 0.10.0 changed the convention for ``pack_coefficients``
+        keys from ``(integral_type, subdomain_id)`` to
+        ``(integral_type, position_in_per_type_list)``. The
+        position-to-subdomain_id mapping is exactly what dolfinx itself
+        reads from ``ufcx_form.form_integral_ids`` /
+        ``form_integral_offsets`` when it builds the form, so replicate
+        that here to translate the new positional keys back to the
+        IntegralData objects qugar keeps around.
+        """
+        ufcx_form = self._form._ufcx_form
+        ufcx_types = ("cell", "exterior_facet", "interior_facet", "vertex", "ridge")
+        type_to_enum = {
+            "cell": IntegralType.cell,
+            "exterior_facet": IntegralType.exterior_facet,
+            "interior_facet": IntegralType.interior_facet,
+        }
+        offsets = [
+            ufcx_form.form_integral_offsets[i] for i in range(len(ufcx_types) + 1)
+        ]
+
+        result: dict[tuple[IntegralType, int], IntegralData] = {}
+        for i, type_str in enumerate(ufcx_types):
+            if type_str not in type_to_enum:
+                continue
+            type_enum = type_to_enum[type_str]
+            for position, j in enumerate(range(offsets[i], offsets[i + 1])):
+                sid = ufcx_form.form_integral_ids[j]
+                for data in self._itg_data:
+                    if data.integral_type == type_str and sid in data.subdomain_ids:
+                        result[(type_enum, position)] = data
+                        break
+        return result
 
     def pack_coefficients(
         self,
