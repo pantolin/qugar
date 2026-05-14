@@ -638,7 +638,7 @@ def _extract_elements_in_integral(
     """
 
     elements = {}
-    for quad, integrand in ir_itg.expression.integrand.items():
+    for [cell_type, quad], integrand in ir_itg.expression.integrand.items():
         # This code was partially copied from the function
         # ffcx.ir.integral.compute_integral_ir
 
@@ -824,7 +824,14 @@ def extract_FE_tables(
         sessions.
     """
 
-    table_types = ir_itg.expression.unique_table_types
+    # In FEniCSx 0.10.0, unique_table_types became dict[CellType, dict[str, str]].
+    # qugar's regex-based extraction works on a single cell type at a time, so flatten here.
+    table_types_by_cell = ir_itg.expression.unique_table_types
+    assert len(table_types_by_cell) == 1, (
+        "qugar's FE-table extraction only supports a single cell type per integral"
+    )
+    table_types = next(iter(table_types_by_cell.values()))
+
     integral_type = ir_itg.expression.integral_type
     entity_type = ir_itg.expression.entity_type
     candidate_elements = _extract_elements_in_integral(ir_itg)

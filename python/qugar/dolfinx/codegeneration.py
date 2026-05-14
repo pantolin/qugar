@@ -233,7 +233,7 @@ class _IntegralModifier:
 
         # Checking that sum-factorization is disabled.
 
-        for quad in self._ir.expression.integrand.keys():
+        for _cell_type, quad in self._ir.expression.integrand.keys():
             if quad.has_tensor_factors:  # type: ignore
                 raise ValueError(
                     "Sum-factorization quadrature it is incompatible with "
@@ -939,6 +939,15 @@ def generate_code(
 
     code_blocks = ffcx.codegeneration.codegeneration.generate_code(ir, ffcx_options)
     code_blocks = _modify_header(code_blocks)
+
+    # In FEniCSx 0.10.0, ffcx emits one code block per (integral, cell_type)
+    # pair, so the lists may diverge when an integral spans multiple cell
+    # types. qugar currently supports a single cell type per integral, so the
+    # lengths must match for the index pairing below to be valid.
+    assert len(code_blocks.integrals) == len(ir.integrals), (
+        "qugar requires one cell type per integral; multi-cell-type integrals "
+        "(e.g. prism/pyramid facets) are not yet supported."
+    )
 
     itg_datas = []
     for i, (header, impl) in enumerate(code_blocks.integrals):

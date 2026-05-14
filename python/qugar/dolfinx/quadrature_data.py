@@ -89,7 +89,10 @@ def _extract_single_quadrature_data(
         weights = metadata["quadrature_weights"]
         tensor_factors = None
     else:
-        points, weights, tensor_factors = create_quadrature_points_and_weights(
+        # In FEniCSx 0.10.0, create_quadrature_points_and_weights returns dicts
+        # keyed by cell name (to support facet integrals where multiple facet
+        # types may share an integral). qugar handles one cell type per integral.
+        points_d, weights_d, tensor_factors_d = create_quadrature_points_and_weights(
             ufl_integrand.integral_type(),
             ufl_integrand.ufl_domain().ufl_cell(),
             degree,
@@ -97,6 +100,11 @@ def _extract_single_quadrature_data(
             ufl_form.argument_elements,  # type: ignore
             use_sum_factorization,
         )
+        assert len(points_d) == 1, "qugar supports one cell type per integral"
+        cell_name = next(iter(points_d))
+        points = points_d[cell_name]
+        weights = weights_d[cell_name]
+        tensor_factors = tensor_factors_d.get(cell_name)
 
     points = np.asarray(points)
     weights = np.asarray(weights)
