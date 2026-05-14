@@ -264,18 +264,20 @@ class LinearProblem(dolfinx.fem.petsc.LinearProblem):
         return self._u
 
 
-class NonlinearProblem(dolfinx.fem.petsc.NonlinearProblem):
+class NonlinearProblem(dolfinx.fem.petsc.NewtonSolverNonlinearProblem):
     """Nonlinear problem class for solving the non-linear problems.
 
     Solves problems of the form :math:`F(u, v) = 0 \\ \\forall v \\in V` using
     PETSc as the linear algebra backend.
 
     .. note::
-       In DOLFINx 0.10.0, ``dolfinx.fem.petsc.NonlinearProblem`` was
-       restructured and a separate ``NewtonSolverNonlinearProblem``
-       class was added. This subclass still imports but has not yet
-       been re-validated against the new parent API; demos that use it
-       will need to drive the v0.10.0 port before relying on it.
+       In DOLFINx 0.10.0 the v0.9.0 ``NonlinearProblem`` (the one paired
+       with ``dolfinx.nls.petsc.NewtonSolver``) was renamed to
+       ``NewtonSolverNonlinearProblem`` and marked deprecated, while a
+       new SNES-based ``NonlinearProblem`` took its place. qugar still
+       targets the NewtonSolver-compatible class so existing demos
+       (e.g. ``demo_hyperelasticity.py``) keep working unchanged;
+       migrating to the SNES interface is a follow-up.
     """
 
     def __init__(
