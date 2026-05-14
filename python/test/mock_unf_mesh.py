@@ -188,10 +188,16 @@ class MockUnfittedMesh(dolfinx.mesh.Mesh, UnfittedDomainABC):
 
         ufl_cell = self._mesh.ufl_domain().ufl_cell()
 
-        points, weights, _ = create_quadrature_points_and_weights(
+        # In FEniCSx 0.10.0 ``create_quadrature_points_and_weights`` returns
+        # dicts keyed by cell name (one entry per cell type the integral
+        # may run on). The mock here only deals with one cell type, so
+        # flatten the result to a single ``(points, weights)`` pair.
+        points_d, weights_d, _ = create_quadrature_points_and_weights(
             itg_type, ufl_cell, degree, "default", [], False
         )
-        return points, weights  # type: ignore
+        assert len(points_d) == 1
+        cell_name = next(iter(points_d))
+        return points_d[cell_name], weights_d[cell_name]  # type: ignore
 
     def _create_quadrature(
         self, degree: int, n_sets_per_cell: npt.NDArray[np.int32], facet: bool
