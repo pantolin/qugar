@@ -37,14 +37,16 @@ import dolfinx.fem.petsc
 
 # import dolfinx.la
 import ufl
-from dolfinx.fem import IntegralType  # type: ignore
+from dolfinx.fem import IntegralType, extract_function_spaces  # type: ignore
 from dolfinx.fem.bcs import DirichletBC
 from dolfinx.fem.function import Function as _Function
 from dolfinx.fem.petsc import create_matrix, create_vector
-from dolfinx.la import create_petsc_vector_wrap
+
+# In DOLFINx 0.10.0 ``create_petsc_vector_wrap`` was moved from
+# ``dolfinx.la`` to ``dolfinx.la.petsc`` and renamed to ``create_vector_wrap``.
+from dolfinx.la.petsc import create_vector_wrap as create_petsc_vector_wrap
 
 from qugar.dolfinx import CustomForm, form_custom
-from qugar.mesh import UnfittedDomain
 
 
 def _pack_coefficients(
@@ -163,8 +165,18 @@ class LinearProblem(dolfinx.fem.petsc.LinearProblem):
                                                                        "mumps"})
         """
 
+        # In v0.10.0 the parent class's ``__del__`` reads
+        # ``_solver``, ``_A``, ``_b``, ``_x``, ``_P_mat`` and calls
+        # ``destroy()`` on them, so initialise them eagerly to ``None``
+        # before any line that might raise; otherwise a half-constructed
+        # instance triggers ``AttributeError`` during garbage collection.
+        self._solver = None
+        self._A = None
+        self._b = None
+        self._x = None
+        self._P_mat = None
+
         funtion_space = a.arguments()[-1].ufl_function_space()  # type: ignore
-        unf_domain = typing.cast(UnfittedDomain, funtion_space.mesh)
 
         _a = form_custom(
             a,
@@ -183,20 +195,24 @@ class LinearProblem(dolfinx.fem.petsc.LinearProblem):
         )
         self._L = typing.cast(CustomForm | list[CustomForm], _L)
 
-        self._b = create_vector(self._L)  # type: ignore
+        # DOLFINx 0.10.0's ``create_vector`` takes function spaces (not
+        # forms) as its first argument.
+        self._b = create_vector(extract_function_spaces(self._L))  # type: ignore
 
         if u is None:
             # Extract function space from TrialFunction (which is at the
             # end of the argument list as it is numbered as 1, while the
-            # Test function is numbered as 0)
-            self.u = typing.cast(_Function, _Function(funtion_space))
+            # Test function is numbered as 0). In v0.10.0 the parent
+            # exposes ``u`` as a read-only property over ``self._u``, so
+            # we assign through the underlying attribute.
+            self._u = typing.cast(_Function, _Function(funtion_space))
         else:
-            self.u = u
+            self._u = u
 
-        self._x = create_petsc_vector_wrap(self.u.x)
+        self._x = create_petsc_vector_wrap(self._u.x)
         self.bcs = bcs
 
-        self._solver = PETSc.KSP().create(self.u.function_space.mesh.comm)
+        self._solver = PETSc.KSP().create(self._u.function_space.mesh.comm)
         self._solver.setOperators(self._A)
 
         # Give PETSc solver options a unique prefix
@@ -243,9 +259,9 @@ class LinearProblem(dolfinx.fem.petsc.LinearProblem):
 
         # Solve linear system and update ghost values in the solution
         self._solver.solve(self._b, self._x)
-        self.u.x.scatter_forward()
+        self._u.x.scatter_forward()
 
-        return self.u
+        return self._u
 
 
 class NonlinearProblem(dolfinx.fem.petsc.NonlinearProblem):
@@ -253,6 +269,13 @@ class NonlinearProblem(dolfinx.fem.petsc.NonlinearProblem):
 
     Solves problems of the form :math:`F(u, v) = 0 \\ \\forall v \\in V` using
     PETSc as the linear algebra backend.
+
+    .. note::
+       In DOLFINx 0.10.0, ``dolfinx.fem.petsc.NonlinearProblem`` was
+       restructured and a separate ``NewtonSolverNonlinearProblem``
+       class was added. This subclass still imports but has not yet
+       been re-validated against the new parent API; demos that use it
+       will need to drive the v0.10.0 port before relying on it.
     """
 
     def __init__(
@@ -283,9 +306,6 @@ class NonlinearProblem(dolfinx.fem.petsc.NonlinearProblem):
 
             problem = LinearProblem(F, u, [bc0, bc1])
         """
-
-        funtion_space = F.arguments()[-1].ufl_function_space()  # type: ignore
-        unf_domain = typing.cast(UnfittedDomain, funtion_space.mesh)
 
         _L = form_custom(
             F,
