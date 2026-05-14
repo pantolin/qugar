@@ -61,25 +61,51 @@ def create_domain(
 
 
 def create_quad_PyVista_grid_hash(grid) -> str:
+    """Return an ordering-invariant SHA-256 hash of a PyVista grid.
+
+    The previous implementation hashed ``str(grid.points)`` and
+    ``str(grid.cell_connectivity)`` directly. That is fragile: DOLFINx
+    0.10.0 sometimes reorders vertices when constructing meshes (notably
+    the 1D interval meshes used for the reparameterization wirebasket),
+    which yields a different byte representation for the *same* physical
+    mesh and therefore a different hash.
+
+    The canonical form built here is invariant to:
+
+    * vertex permutations within a cell -- vertices inside each cell
+      are sorted lexicographically by their physical coordinates.
+    * cell reordering -- cells are sorted lexicographically by their
+      canonical vertex tuple.
+    * point reordering of the underlying point array.
+
+    Coordinates are emitted via ``np.array2string`` with a fixed
+    precision so the hash is also stable across minor changes in
+    numpy's default print formatting.
     """
-    Generates a unique hash for a PyVista grid based on its points and cell connectivity.
+    pts = np.asarray(grid.points)
+    conn = np.asarray(grid.cell_connectivity)
+    offsets = np.asarray(grid.offset)  # n_cells+1 entries; cell i = conn[offsets[i]:offsets[i+1]]
 
-    This function computes SHA-256 hashes for the grid's points and cell connectivity
-    (string representations), combines them, and returns a final SHA-256 hash representing the grid.
+    # Per-cell canonical blob: sort that cell's vertex coordinates lex.
+    n_cells = len(offsets) - 1
+    canon_cell_blobs = []
+    for i in range(n_cells):
+        vert_idx = conn[offsets[i] : offsets[i + 1]]
+        cell_pts = pts[vert_idx]  # (n_verts, gdim)
+        cell_pts_sorted = cell_pts[np.lexsort(cell_pts.T)]
+        canon_cell_blobs.append(cell_pts_sorted)
 
-    Args:
-        grid: A PyVista grid object containing `points` and `cell_connectivity` attributes.
+    # Canonicalize cell order: sort cells by their canonical content.
+    canon_cell_blobs.sort(key=lambda c: c.tobytes())
 
-    Returns:
-        str: A SHA-256 hash string uniquely identifying the grid.
-    """
-    pts_hash = hashlib.sha256(str(grid.points).encode("utf-8")).hexdigest()
-    conn_hash = hashlib.sha256(str(grid.cell_connectivity).encode("utf-8")).hexdigest()
+    # Canonicalize the raw point set so isolated points (if any) still
+    # contribute to the hash deterministically.
+    pts_canon = pts[np.lexsort(pts.T)]
 
     combined = hashlib.sha256()
-    combined.update(pts_hash.encode("utf-8"))
-    combined.update(conn_hash.encode("utf-8"))
-
+    combined.update(np.array2string(pts_canon, precision=10, separator=",").encode("utf-8"))
+    for blob in canon_cell_blobs:
+        combined.update(np.array2string(blob, precision=10, separator=",").encode("utf-8"))
     return combined.hexdigest()
 
 
@@ -184,36 +210,36 @@ def test_disk(
 
     targets = {}
     targets[(8, 5, np.float32, False, False)] = (
-        "935bed3f7e152488c80cabac0c85e92ab55ac858d054c7897d025314a55dd8dd",
-        "66d04631572faa96335036b6eff187da05726917c10f5edfb5ceaad9a36dd115",
+        "eca442ff7f2169972bc168e3e22d0b01d0ee0333613b1199af14454849cc554e",
+        "4e24bf8435b8819bc62939b457d837097ede525b77accc427a00f2c99e514fae",
     )
     targets[(8, 5, np.float64, False, False)] = (
-        "fba12cf61483d379aa6829cd82358b84c5c320184fc0878c5764919e6f709b7e",
-        "410edf30ebe1c56758426020be009f86efaa60deb18a9d9917570da87b19e305",
+        "df6f224d05c5c3ddb26f900f814673581f1930db1fc44cc4fd307ba7ec86aff5",
+        "a4948b097fe082880ad0375615df896a81ae33bf6fa3f034aa9b1d227e262405",
     )
     targets[(8, 5, np.float32, True, False)] = (
-        "935bed3f7e152488c80cabac0c85e92ab55ac858d054c7897d025314a55dd8dd",
-        "66d04631572faa96335036b6eff187da05726917c10f5edfb5ceaad9a36dd115",
+        "2a16161050975698a70e2b3255c1dc7b02d5519c96defa72964abe39ade4b4d0",
+        "259496eb53c02d39d3c225c7615bca09e8cc16734a5d7bc5321f4b13ea81fdcd",
     )
     targets[(8, 5, np.float64, True, False)] = (
-        "fba12cf61483d379aa6829cd82358b84c5c320184fc0878c5764919e6f709b7e",
-        "410edf30ebe1c56758426020be009f86efaa60deb18a9d9917570da87b19e305",
+        "6e9a929c069e754859686430475afa1f56f32a4ed7aab14088dd4758d2790519",
+        "911e2410ed77108d5a6a5c7805e70a1da98796ffeed11fa9d46e0f39471d9562",
     )
     targets[(8, 5, np.float32, False, True)] = (
-        "97608eb53302a500c215891d97e0d0bfbd99a21651104aeb7fbe06078aff14db",
-        "ff6c8b0f42f522c8fd8a83952edc1d54cd52c99f7d090a79c36be5c769c3f598",
+        "1d567c670ac736abc6f4788f81064911e2566e20849e849de49d0e20c3a78ff0",
+        "84ea9c7aac1001334956f75cc99756c6f1c6485235b410aa769c65541f1e72f8",
     )
     targets[(8, 5, np.float64, False, True)] = (
-        "c270407f531f829892ed5e2f47c34ec44b001f57da3d3dbb36069b59400601cd",
-        "af7909dac4d08bcc63e925dc19e6067da928553e6e05beee2fec98d320d8eedb",
+        "b1c3c8cc45e9a1c4977a558a8bc48d8e155c42f6fd220838503234ffbca8f5da",
+        "bc996548a9649a8135bf4f1ab5251fc4107e69b822a286c621309f861748fbe2",
     )
     targets[(8, 5, np.float32, True, True)] = (
-        "97608eb53302a500c215891d97e0d0bfbd99a21651104aeb7fbe06078aff14db",
-        "ff6c8b0f42f522c8fd8a83952edc1d54cd52c99f7d090a79c36be5c769c3f598",
+        "7d82466a375ba8d1ec7a4a1c1092f94860136ed8c1909cf0daba0cd20cc26b11",
+        "70b2f8a698c617d53c8822fa18892e4d750423ae5c6edcb4bfa0a520e2c59c11",
     )
     targets[(8, 5, np.float64, True, True)] = (
-        "c270407f531f829892ed5e2f47c34ec44b001f57da3d3dbb36069b59400601cd",
-        "af7909dac4d08bcc63e925dc19e6067da928553e6e05beee2fec98d320d8eedb",
+        "21c2a643d330e167ad82d869eb572d38a174ee9defd877ccaa75b7ce73057302",
+        "ad6a4481c40f7cc59b522042e34d38f94a9bd4819e5e2b7c78d0ce2484d0894c",
     )
 
     info = (n_cells, n_quad_pts, dtype, use_bzr, negative)
@@ -268,36 +294,36 @@ def test_sphere(
 
     targets = {}
     targets[(8, 5, np.float32, False, False)] = (
-        "d0d8d501301b635fca61f6a2214a954d82aea844859756d74e9822f2daa5bd50",
-        "08ced48a77ad8d73e3dbed6b74986cdfecfff64334c756798e346e8675b5e7b1",
+        "ae2bc2843a9bb38319753d54204153f31474f0026f90763da78ef730a026e624",
+        "f715e7a2cbba74127d9559073f6590fecd52bc545dcb459ce37b4dab6b0571e3",
     )
     targets[(8, 5, np.float64, False, False)] = (
-        "4a3ff2788529c9cd5d91665cf0b88c394d6a4c83cbf393f33fd7f0a3c42a6cbf",
-        "5748c27eaf5684e3ee109e8f22f507dcb5289dc06c7425265afdb8d8706b7798",
+        "74965505b8ad91766c6d67e3e13c5075206245e0a4afd43deedf514672895fee",
+        "4a514e890099c6345c15d15920484fa5cd8a7a17adfaca11f0bc05fad93e3503",
     )
     targets[(8, 5, np.float32, True, False)] = (
-        "d0d8d501301b635fca61f6a2214a954d82aea844859756d74e9822f2daa5bd50",
-        "531ad82f0f8473e4565a6a3a8519b9309afb4a9fef96b19128422869767efb41",
+        "325225f2c648cb6a0607148eab065b62ba773113f692ad53c767536f0d6ee0e9",
+        "3ff3fe4ca0d1871b18cf324509ad58a228d9206e3edb51170f6e3f51a4716f3c",
     )
     targets[(8, 5, np.float64, True, False)] = (
-        "4a3ff2788529c9cd5d91665cf0b88c394d6a4c83cbf393f33fd7f0a3c42a6cbf",
-        "40330fd57a79d78fbbbbc16cc7a86679265dab36e9a40d89e9d3a5cd994f65ab",
+        "45917b7836dff00a35d0bbfda9c109c4b2cbfd066f89503313c0a7bb6b9d7021",
+        "5946936b0fd8381bf15062d5d7e262c7d6e2a508887fbbf3ac6f99f9829a00bf",
     )
     targets[(8, 5, np.float32, False, True)] = (
-        "d18e4f95fe39d68062e7455311bdf545f94368ff34c4ccbea55e50ea88ad0fcc",
-        "426e29c505f3fa418b120b81a0dd0d4e5758d4de8891627ec28477a89b2052cd",
+        "9f9ae5792ca01570b74dbca4f2ac317e3a5f647930f03e6c3ef4c9aeff388712",
+        "8685a9790102f17031dffd98e8226d21cf57e02ea6a10c04d3776657ef3e355e",
     )
     targets[(8, 5, np.float64, False, True)] = (
-        "9ad82d23c15760e242c7c55e2110d5a2a6d2303e051a2abbe5347b3f4b7f88cf",
-        "0c5851ed28943076db1c88da8ee62a671a011baae0e10dcde2f89722e9fc7876",
+        "4d90d553c8c25c4c9beb1cc384939addf7402b6b4deeed771d8b7ec2fd692505",
+        "9e647023ef4500cae6f0f0a9c845e05bb6c1ffd2c08f3835411a264c31327352",
     )
     targets[(8, 5, np.float32, True, True)] = (
-        "d18e4f95fe39d68062e7455311bdf545f94368ff34c4ccbea55e50ea88ad0fcc",
-        "64faff9b803840bdb570db1d1dd70f5198043b3967cc207286bd954e319fd2a1",
+        "9547bd10dad7c84741e1b2e7cace42508d38ea62c252f7d5177f57d59c8618f1",
+        "fd82beb6f89f4f35e855eeba81cc24f4cf984379f41cc71766813e1e88b5b20a",
     )
     targets[(8, 5, np.float64, True, True)] = (
-        "9ad82d23c15760e242c7c55e2110d5a2a6d2303e051a2abbe5347b3f4b7f88cf",
-        "0409b4225433396388421d5a1f4e692ed913a06245375e507096ee094179da51",
+        "5233a4e7cf1f8e53dca68a84c98dc39b11ec8c1da88e53ea778b6c2d66e4ecb8",
+        "34fac0f28d3a9e50cb42019a96eaebe81130806649d839273cfabf0bca9b9bde",
     )
 
     info = (n_cells, n_quad_pts, dtype, use_bzr, negative)
@@ -355,36 +381,36 @@ def test_line(
 
     targets = {}
     targets[(8, 5, np.float32, False, False)] = (
-        "fc6f0c5de937b7489da0554658516645e25cee15af1e2e9ccb924ed23d541547",
-        "bfa3f68fd3676f00f914bb093bbf170ab99f34a007f345618ca9032e49b3e130",
+        "7c03b1ba0fe35788d6d5f51de2ddcfa210ef25d74896fd6d8e6c0906ba1bc8f5",
+        "f0ef2cfb1e5aa7bd118ad507f2831eb4a8ee9da0319b5909b70bb964b2b41740",
     )
     targets[(8, 5, np.float64, False, False)] = (
-        "08d1f77114073e5dda6d9f82dfaa1286b494f79b3fbda95d26868df8328f4405",
-        "bfa3f68fd3676f00f914bb093bbf170ab99f34a007f345618ca9032e49b3e130",
+        "825ab009ed58d704f56af1343d7421a3f5e821c5dbad423563a2df644163b705",
+        "ba470c5ac0faeda439e366d01e1f85672676e35c81104ff0cb0f1f2331b1ab52",
     )
     targets[(8, 5, np.float32, True, False)] = (
-        "a96aff523e1d6263ac93b174806aa4abf72a61427a8de4c2dfc330848a7ec8a0",
-        "302a303881b2b6bd6b0202b94c5e10b21f81db079bbf064803e78abdefcacbcb",
+        "e56cd012b103653f471fee1e560c6f0d8114dd49af93215deae25cbe4239c88c",
+        "cbaf9264bd30254eda97982adb09623a1418fdff384068659d2c1731acd9986d",
     )
     targets[(8, 5, np.float64, True, False)] = (
-        "08d1f77114073e5dda6d9f82dfaa1286b494f79b3fbda95d26868df8328f4405",
-        "bfa3f68fd3676f00f914bb093bbf170ab99f34a007f345618ca9032e49b3e130",
+        "2968aa18e25fb71a61ba7106ed5bd714bc1d6455edcbbd49e8e91d6a6c353b64",
+        "ba470c5ac0faeda439e366d01e1f85672676e35c81104ff0cb0f1f2331b1ab52",
     )
     targets[(8, 5, np.float32, False, True)] = (
-        "55153c915dfdd1af3ff348c824b924610f7f015b69f93d5b4d2d09774e358724",
-        "6eb8f32e6366a7a6e11ff370cb8eb6b5279a4725be5fd8cf0c7f2bf3df545ad5",
+        "6a4456f7613f135426ee0a96938ea9fbe73d3a3eb4bf44099b39d204aa620798",
+        "6e29c70f4d06eed8dbd8a047aac076e5d4146216e16b6469a798d8f26a958524",
     )
     targets[(8, 5, np.float64, False, True)] = (
-        "2d4cb9b12701d1ead396424ab53eb1bd43835ae88297c7531cc9c03fd8bb8261",
-        "6eb8f32e6366a7a6e11ff370cb8eb6b5279a4725be5fd8cf0c7f2bf3df545ad5",
+        "adb79517d8bd99a8ae284813d4bc9cbcd8e47bea5e6dc075e31d9f4219d89afa",
+        "d29ea5710f08befc1be1ce7d69a97b7e185047774202bd51ef455a55d7fe9ffa",
     )
     targets[(8, 5, np.float32, True, True)] = (
-        "52e0e3cfeffc117b8bb289028ec4688195ef8d82cea811afb5e2e1035cc3c07f",
-        "6eb8f32e6366a7a6e11ff370cb8eb6b5279a4725be5fd8cf0c7f2bf3df545ad5",
+        "ea69b823aac71987425889f649e92ecd13a26ad89531f15c8c01ae3e6d6790d9",
+        "092ac3395b1abbd266923484062c5813d5d8b95daa1d3650d600777a4a2e50f3",
     )
     targets[(8, 5, np.float64, True, True)] = (
-        "597c06c6ad59507f351a5fd9ff6ff23d745dda19cf7cb69700f6a98503a5d122",
-        "521c447bbf29fa5548c6b5faadcf615b294a0d30f2350dbb59f9cf63f5aa65f3",
+        "0fd21d5b15d02991d4347b4450d87368698d4c9b9cf41a7a3b78d5ed10bae3b6",
+        "108cedf0306eb86e165c45a00b2c66ea13ec22c7c79942423d43c9de6f82e334",
     )
 
     info = (n_cells, n_quad_pts, dtype, use_bzr, negative)
@@ -440,36 +466,36 @@ def test_plane(
 
     targets = {}
     targets[(8, 5, np.float32, False, False)] = (
-        "658cfc2438a92bd82890f9174066b4fefa94252ef777ce56ef778e462278be4b",
-        "e06d1c1f4638ccc49523ad110f0fbcdc5312b3a1b4fb40df90ff9915088abcdb",
+        "b03d4511de48b6d463d108850caebc8a03d75992a6ebe10d583ef7f919929101",
+        "12215d40851f962779bb3afa95ddda0091f95d7c597f4ee6332d57df99d492d5",
     )
     targets[(8, 5, np.float64, False, False)] = (
-        "2ad1c282cb29fc0aa40edaf9475003a0c55f52f482f0324c47109dba724ab454",
-        "2714ab3a6aef0f5d906677cde739994c79e4b694512cf5eec153370adfcc0691",
+        "c548922f9c6ab53dd8b419485a65d80e7155cb00cb235772308f81950040712d",
+        "66c16b76ba617c10df6e23a04845cf21e65f0b915994e0fd3fc55232685529e3",
     )
     targets[(8, 5, np.float32, True, False)] = (
-        "c867208199b95ca5494e181109a4c3b783c7300d82573c03ffe07864cadd6213",
-        "985c6fd6f9940ac9d6bcd41582b4913aa08da661eb5e2a9850c12815354b389e",
+        "d72b29c42078adcb120a1323dc631e6b2db3aeb37046c860ef96c8e0f760e293",
+        "2690d3c69ee713cb5a60f42a6a63ba1d3fb1d5ee642154baa090e0ccc5fa1e19",
     )
     targets[(8, 5, np.float64, True, False)] = (
-        "8d5408803135a09dc89ca9c4c9b9a6920f29ef6933424baedba90be36253ef07",
-        "92db4ae1bdcd62b915062dac4f4d958681837c313eb59a31bb7e31e8b0434170",
+        "0b696693a970f20871db49be477e317ae19291bad25853ebb6bbe5d6e35b603a",
+        "99a3f29b6f50f2cdae52dab37ce2a6c9ba3dc29768b33bf2052642e27db1bdfa",
     )
     targets[(8, 5, np.float32, False, True)] = (
-        "b11279697aa3047c7fc4b3d7cc52f340847dff19969be8b3d451e9ee4f61700a",
-        "298e49c9c517facb182fe142d4861ed17f7c358a4208f1e468da3106dbc728e6",
+        "9af26aaf7000a7217d66ec8803bb24ea270a66c142b56e8ed2c5b2fe06a851cb",
+        "bbc386563fae24f3d20529c652c38c97869812584e47c21be6b8171323eef31c",
     )
     targets[(8, 5, np.float64, False, True)] = (
-        "3e3398123d238530194067b4d4f796390dde429b5cb326dd2bba35e42d5eab07",
-        "f1cc8e49f20ca11d248dee642d450ff5d33058b7fe0cadafb7c186f33a922969",
+        "c385c70beda2575063733dcd7f3981c03b7e4f74d1dd167bd66a3386debaf205",
+        "be3f7c1b1a25480efe5bcf339813ed54409923def3fe337e13f4367a0398b029",
     )
     targets[(8, 5, np.float32, True, True)] = (
-        "eaf2826ba0f64e2215cf3b414ed314e9c4bfcca7a4514d07d416d0032459d081",
-        "9a26ce74cac89cbe29fdfeeeb3ae44b42e22a759673a877c7e3c91e849af5c48",
+        "027e49e3dadcb5f231d2cd503356360c6fcafd138de088ff26db534c1cb9ff94",
+        "efa5029492e60eb4fe5e245322857b860c4a1227bef2c2b6a20f3bf4fa5d6972",
     )
     targets[(8, 5, np.float64, True, True)] = (
-        "42c08fea0fc32dcc94ab693402ce373bca220353380cf00248648039205318c6",
-        "cebf15085802ad35e62a06ead4a2f33ce7afbed70ce0366c1524a9ab23fb3ec9",
+        "3ebf6f8ed88fbf016294b4a4e697405c36fbf8b8cd42f91bd20f0171b163b8c0",
+        "9002c9747c0191986e7568c31646a93972385fc28308bd58eef4a64c4e90a8a8",
     )
 
     info = (n_cells, n_quad_pts, dtype, use_bzr, negative)
@@ -526,36 +552,36 @@ def test_cylinder(
 
     targets = {}
     targets[(8, 5, np.float32, False, False)] = (
-        "c1f6bc4e10e9477dcb807a721ad2539e2d00ed1e62e69c5dbc796b369fcb6809",
-        "1e155f63f13b11b922515e2b34fbc52f51e9bba0e57a5e4d1504e77d70cde431",
+        "326a30a90af4d64d307b9708989d43d73dce12cc4d167be62409456c3b719e92",
+        "8fc5db77052aa184bdc7cd7656eea12b2cbeea29dabd02d451f5a81add73490f",
     )
     targets[(8, 5, np.float64, False, False)] = (
-        "eb41c5bcd99a66a34242ad7e47c4ef463f142a6ed0dc3296a1891e7321211a14",
-        "fc1b69cd40fe8183efdd50505e6785e392bc0546068f6e20f34008130453f179",
+        "e162a1a7c445e873e9f037e21ddbdf550c9f0668327e8d86f2c074c024267242",
+        "666ecaa9d22e1e3d318b598fd24532f9388f2c47f31b1fd53cb80fcdf94808bb",
     )
     targets[(8, 5, np.float32, True, False)] = (
-        "c1f6bc4e10e9477dcb807a721ad2539e2d00ed1e62e69c5dbc796b369fcb6809",
-        "0cb63fa440399742c577bd8160e1c25fa9924552459a821af14f02271f0c12f8",
+        "562dcb17830a5715ee320e7ca9bb0cfb68e01b9674ab5ad1ee821e0bc7a634f4",
+        "b112cddbf476b21736401a6c408645a358a06c4d118338d6fdc1ce526666d380",
     )
     targets[(8, 5, np.float64, True, False)] = (
-        "eb41c5bcd99a66a34242ad7e47c4ef463f142a6ed0dc3296a1891e7321211a14",
-        "9612f30f78753c6ce39854d14906716bfdb41398e2f372e1f30d6747d7734bdc",
+        "96ec85db7edb12f449546f6ee0aa5aad1ad1ebe7dff9b61c73ac670d9133eb2c",
+        "8a0ec3302a89c915c48a3478f63b44c0db0c9f885413ac8d19aa7c74df65a9a1",
     )
     targets[(8, 5, np.float32, False, True)] = (
-        "717655e8aa24293a5f1b52c9bf030c3627c8b0da0a33344044941e831a1865f2",
-        "30be4f0278693a55eee9ea7c3f50d43cb450d7fe5050d468fb6fff42dda29d52",
+        "a4efffe9b39fb52e1380bda02ba4142ab2df277b05b0d40e0b9a6b5877826807",
+        "3e3bf302f31fb2c106cadd89adf63e52c9f195334953c56860354411287f5412",
     )
     targets[(8, 5, np.float64, False, True)] = (
-        "8584263066cf71793204f8bed7a1ee7f0d8191901534665efa7543f3b19b74ec",
-        "c6e2084ef1acdc83175470b98ba5068592b016404fc85e92486264c21d595e66",
+        "574b25414a3246aea40b62fb63ba001193501eed6545d730b104953a61c030ee",
+        "b1e596fa68529518195f4d4208c2c33f05e7c51702c4c3bebc0a85b265fd4831",
     )
     targets[(8, 5, np.float32, True, True)] = (
-        "717655e8aa24293a5f1b52c9bf030c3627c8b0da0a33344044941e831a1865f2",
-        "0702acb69114725bd83f35626839fbbc46f3d46f58fcf79c4f90275ea6a79243",
+        "7193d39c1f7fd6c670687f4ff3937fe8d69a0190e97b00618e8e7abd357ca6ae",
+        "7999bcc62fe4edd9f8dd8ce670588055ba9f58b583808745d51cdf13de6e9201",
     )
     targets[(8, 5, np.float64, True, True)] = (
-        "8584263066cf71793204f8bed7a1ee7f0d8191901534665efa7543f3b19b74ec",
-        "42c88f6565379755e46767a7cbcad3d5f00505615801be041af901aa583272d3",
+        "7417f04070c3a6722c1d5eba8ed13bd15f75c8188e69ea1bab5e5a044f3842cb",
+        "3ca091492ef3a077d5b3f243cbee4db2a3c9d5a564cfdd4c73850f093a5527fd",
     )
 
     info = (n_cells, n_quad_pts, dtype, use_bzr, negative)
@@ -701,36 +727,36 @@ def test_ellipse(
 
     targets = {}
     targets[(8, 5, np.float32, False, False)] = (
-        "35045a899098ff135a5bb5780bb5e1812513589438f5767fba386f1fe193b2b2",
-        "b2d455b6aff072a5842f2707b27a3c013ccd60d288cc57db5ad7dd47eee4a088",
+        "be21c36261e6eb6c670d36ff6575377344e9ea36cb27a7a0fe633b85d490553f",
+        "a832acc2710457b4f9f696a56e1b3f40ca919ae8e9d8b4c9337a13d24d693dc8",
     )
     targets[(8, 5, np.float64, False, False)] = (
-        "6990a3b45def317fd891fdf18bc3f30b6e58776415af0a59b5c3ff88a9bcddf7",
-        "a390698db103911a59e60f11c8b78a14c6bab3faf931bc230d9cfd415e4c5515",
+        "18f1ffdb0e55d9074b21306513706b336ef1a0ee0f5ad24e448f13bdf8b3505a",
+        "866afe6e0abc30a392229a22a2439d6a650729e328d9fc3dfdfd849f1f501fd1",
     )
     targets[(8, 5, np.float32, True, False)] = (
-        "2c2b889cb3df9ff8c906b2bc859822f22dcd77cd7c4ec336aea1139fb623066b",
-        "e5ac6895b9c71bfc9e810c0ad2d9124c5d07aae8ce65c29f5e10cf33a27cad7d",
+        "463d00ab1fcb333655454fd9fd4e66e67f16ae0ee9a1871cf6c73265510d330e",
+        "d0145486c3a092538e7446b18347f56a3ccf0887a1ec460b98a0a326822aebce",
     )
     targets[(8, 5, np.float64, True, False)] = (
-        "77dca8b602f64db7c97a1ce7f88be189ffe20de55bb74f11925943c8089c687d",
-        "7a8a6ce820a9d73210dae7bc6ac0fff620fab3b38c2bc0db0dace2585f2d2aa4",
+        "8e5fde7f976bd5263085005225bcc6021a8d7034fef1980853cde8eaa88b99af",
+        "1f1a05ffb266959df85afb6fb76a71ef0cf1d3fae0349041c65918dc85ccd76d",
     )
     targets[(8, 5, np.float32, False, True)] = (
-        "ead88c8a6e4c36d7234f4530ee2501853e1fc9c8f36e23a02671f8fcd46269d1",
-        "add3fa52d77ab252c03468025e7eac607566a0cd4358a257ebadf726a6a4f939",
+        "5af027dcc2016bca92f3ebbec6c415c282182172d9edc2bf53b21b95e1859d37",
+        "0d99422b7d40ce2f856d697062b6c8d129c26f4d02455dc762f6abe479bc3c51",
     )
     targets[(8, 5, np.float64, False, True)] = (
-        "c81fd013162edc9ad220b83a0eab2e34c65337f1f73f0de2695b867f12bce04a",
-        "d0a161783270725a7884f6bf110e6a4719bf9f9c3a5efe1c504c44f55381a275",
+        "d0486e558d15ba9cb56210e4742d9391d2461206903b672463ff9c348dd9882f",
+        "62519291c78179de96bd27e097d02a8f16deb445ce967f47b5ce7c5f31a4e4d9",
     )
     targets[(8, 5, np.float32, True, True)] = (
-        "25d57833895051068535a8d8ab1ac3b3edae6bc2f7c1af6e230da9245337f532",
-        "c9072927e8934c9e0eb9f0831dd19ba9559133adee18a828a40a0892c64d769f",
+        "d2d73940c51c93fb56915d29f9c7a1de154573093b14583ea78b6661d25439bd",
+        "b9e125e8787dd67343418c3bbe1c745aca153e98f643dc7fa95959ccad042328",
     )
     targets[(8, 5, np.float64, True, True)] = (
-        "90075c152a7b6a0eb8d0a95291bd10f8299088c8ef313c6dd700e49caf19a7f7",
-        "908da56ecf57ce9365d50f40b083d2c44c98a02909215ac07f7dbf43d9e2fb71",
+        "e8730640d99b358b1a4982404a8fdbf7b057c2c36863b566b2eb4e09b0e9bea1",
+        "eb20f05bd76f18de039d9c729f26ca7ee835d92aaad174333a1695b17eed6d1c",
     )
 
     info = (n_cells, n_quad_pts, dtype, use_bzr, negative)
@@ -790,36 +816,36 @@ def test_ellipsoid(
 
     targets = {}
     targets[(8, 5, np.float32, False, False)] = (
-        "0ba3e7a4d4cb8389845ff9e3fe450ba336483f6631002b50656a1ff0409e640d",
-        "25e13d8d3448b22bdc836a7f2b1191b7aa1a0f9534a891b71b70d82701d70a32",
+        "b0fe360a45e14f382c450d258f7b28ef194fea5d7bf70b7b0c7620fa78aa9f74",
+        "5e2455c76a09a52392d880ea685acba8611356f8613c83fa6d16129b1bd56279",
     )
     targets[(8, 5, np.float64, False, False)] = (
-        "3cf39d70aa253bb9f493b07b39a8ddb047d4ed32687d66fb6bffed1f54e3c3ba",
-        "0617529de85b236083149d29da85a1556fffbc8d9aca435e878ee31aef4d460f",
+        "b1fd2beb39f4fc35e164b5e918372b188a0b66d991b57f191082273ea0784b7d",
+        "959212b7cab2557170d6e2f2ce7705f3daec895e556647f6402d0145599e1d8e",
     )
     targets[(8, 5, np.float32, True, False)] = (
-        "bb93bab3cd869beba530e41e8d6e2703d4866320d5737adc99644e33ac5e9f59",
-        "279775a0ab0e3b377c0ea70b254d142a12710461408e7c70103aeed52f358689",
+        "a6e8c1ecf16952830a8ae29153ebe24edaaf61fd0b439aa7d5f4c70eff893dc9",
+        "1c1c3db23cfab5c37bbc278d2eef9b5a94b708afc2e81dbe843999d73d8eed3a",
     )
     targets[(8, 5, np.float64, True, False)] = (
-        "40f0c4c1f4b131bb7d3438d96ae2817c5e9af3fa64c3000036eda0aaee39ca07",
-        "2710293aed8a3317d515ebe63ea354ba8d0f830fbecd4046bdf324ee4dfb12f4",
+        "0bb9c098c6aae883d836c474c4eaac1a370ae8a90bcfd8b8ad5c6aa169568cc4",
+        "cd12c34231a3e438c97cd5162be0e40efedea6705289d472a5a2b18ce0653f45",
     )
     targets[(8, 5, np.float32, False, True)] = (
-        "4b93c3acdbd44b79930219f9c20b591477bd8eb15f908e98d29c72787063260e",
-        "5b74cfce2f53df1ac386b61a27f0f87a93ad96e2dac8e1f9095756283ac82f23",
+        "357cc724744c8dd6062bdfa5204e1df4e6e25b48eb713a44e403d3bb20375ec6",
+        "27fed929be64306115ff060a86445b5f6b0a0f56f43599e32757cead463248a7",
     )
     targets[(8, 5, np.float64, False, True)] = (
-        "da7d4237084044eea8f3054b0dc71085d0ea07a7ff85a0bdf988fbe4041556ef",
-        "4dd5f4e3e88010cdc4d049bb652c85a02c825339e13c5ad054b6f8ac47cd6d07",
+        "5d43d13b0aab3810007de8581ec5e5a97967f537d0becdb317989a4ed9ddc865",
+        "cc8035d41e876345942d6f77ab78a1aab3aeed068b2e5c9ac00179381c124863",
     )
     targets[(8, 5, np.float32, True, True)] = (
-        "8bf8c40668356cefe9638a1b33cf36f42ceaadb9d469fe1b41724f795fcc8c79",
-        "2ba8f2089350c830c8531ecb3c9c89edc7894ab6d22a5cd90b8dedd449b8b188",
+        "392334e06a341777cfc478de9beb1f81865d2f2f4497cffec2381e81f2d206df",
+        "3621658fc34e4a8959e47d18339c39158e99203c2e34e58a6a405f5b2b87a0d9",
     )
     targets[(8, 5, np.float64, True, True)] = (
-        "75ccba9ed34285b357550845d9d3eaeafe4373ab3ae7481166292d4ad6a7b451",
-        "a224c85b8daac01666a4058d05e190f4358098e66aa014f6c9bef0b59fe909d2",
+        "6e2476b0553253ab2a86e5ad02b0dc232c3a2dabd7fdfb16dd0336722ab878f3",
+        "82909ca6414f03ee0d0fc46bfe4d057f391e6d8176f09264cc3fbae642dfb4a9",
     )
 
     info = (n_cells, n_quad_pts, dtype, use_bzr, negative)
@@ -877,36 +903,36 @@ def test_torus(
 
     targets = {}
     targets[(8, 5, np.float32, False, False)] = (
-        "302ab3095440b29920fde98ffa50ab68fc6bb8a37a686e9db07196764fe1d388",
-        "c81b37ea55f7cb7afc092541bbc7e2f6e96a0cf73987a8b290598b9e23b6d333",
+        "b7d5b19e8ccfa800b4ca68ccc48aff6c179214564bdf7287280833856cbd3c28",
+        "30a2dc1d662ac270775336911167a091f0817feedf98d459fa1a46cf58f62f4c",
     )
     targets[(8, 5, np.float64, False, False)] = (
-        "f49859eb4e79ee6db67ff5a4083a21f8dec7d9cd62b515ded2942421606c8301",
-        "2a443175fffabee8a2fbf6a0001927ee2dd0af1a7177608ea609388df7769209",
+        "cdaf4dfc011692017e7601afe6ef35014da0249de23ff9b27338ff9555c16076",
+        "cba4730f880bb408e51a094eb1d724436ca85be45a82c004f90f2240ee32d87b",
     )
     targets[(8, 5, np.float32, True, False)] = (
-        "159d4da4f0134dc56090e1a048c11670e2b7ac8aa9753a6d75961c8d0585ca4d",
-        "9ff977e8500871d57027c6c0de4e4e40afefde5dd86ca800cf269bc4936d1f0a",
+        "9ab8203a7d0e8860ce4606e517695a9fe9eaaeb3a2827804e585afadc075d79b",
+        "385fbb1ad20cab1ae143f1390ae7000ba15576defb1be7b0af88b1a0a3a48e45",
     )
     targets[(8, 5, np.float64, True, False)] = (
-        "c14383773ede2fdf7a878dd147c56380a714672f514c033b8ffa25e608139116",
-        "93a9dbbb1ad55407a0da092174b2967eeb2843801a581214385326040b1f49a7",
+        "e3239f9d5774d5b5e1477fae92fec35429c209c045c732d88473647472bc314c",
+        "2c28ccfdbf1be982bab3211340561d1c43296562d1bbb002e96f70f06e68ef82",
     )
     targets[(8, 5, np.float32, False, True)] = (
-        "c790dced3a5c5f366bf327f76beae9414f187c378f6d61b9380b760d6fe79c6a",
-        "43327bef9ba0722145edf48cdb976643ff49e672b1a7632f94aca1eff9862e79",
+        "df97b869fd0228803e08a8e80abbc5fe93c979cf061ea8622658cd457e656ef0",
+        "2dca5f3ddf85b3fc65b3ded67edc60e3aa39896945ec5be60393e077f4e03795",
     )
     targets[(8, 5, np.float64, False, True)] = (
-        "3ebe0211663ed011bf062cdfb8a1d618df307a3cc4f5ce583f7b59a79fc746dc",
-        "2b47f8ec919fb4abbe619d4c387c25fd0176a570211fa616033b24d8d9a5fa57",
+        "85363149a7a1091600d2a73576d8721d938da9c85e2522c4303c501a908c325b",
+        "78359e2a5a72c62fb8ad380341c5a3433c7c534963cf86bcb0a2a5d64ca6a97a",
     )
     targets[(8, 5, np.float32, True, True)] = (
-        "50c60ff0d708d4f08e8e2ed33dd229160e7c8397e634afe5151cb94969d29054",
-        "0b87d67786e09df6e22ce58eb8d9d6be368b597658487462d2ef4bcece376a22",
+        "4cb32723e2c884817faf8421be601c249049a468c15c9d7b9252919d28410ac9",
+        "f57e26ff148f9bdfd6df03e533926dd35fb6ac2e5dce608ef03f5a4cba01f875",
     )
     targets[(8, 5, np.float64, True, True)] = (
-        "ce28f5a9d8f14937fd02c568e463820303436b6564b447f3075ed9b8ac4caf86",
-        "a87256c6ecaf4a9570ff45ee848394c60e74c117c1b7af5cf066462eac5776c8",
+        "f637d4a6ee97de980a2523e6d1c70c77ca2e269ce95d0de497059d3256afe5a6",
+        "70207bc8c227468d5be7959da7e91cc1fd7cb0a8e0504c9c696e49d14239679d",
     )
 
     info = (n_cells, n_quad_pts, dtype, use_bzr, negative)
