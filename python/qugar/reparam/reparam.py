@@ -163,7 +163,10 @@ class UnfDomainReparamMesh:
         # partitioner = identity_partitioner if comm.size > 1 else None
         partitioner = identity_partitioner
 
-        return dlf_mesh.create_mesh(comm, conn.astype(np.int64), points, domain, partitioner)
+        # In DOLFINx 0.10.0 the third and fourth positional arguments of
+        # ``create_mesh`` swapped: the signature is now
+        # ``create_mesh(comm, cells, e, x, partitioner=None, ...)``.
+        return dlf_mesh.create_mesh(comm, conn.astype(np.int64), domain, points, partitioner)
 
 
 def create_reparam_mesh(
