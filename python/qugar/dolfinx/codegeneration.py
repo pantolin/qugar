@@ -161,12 +161,16 @@ class _IntegralModifier:
                 tensor integral function to be split in blocks.
         """
 
-        itg_pattern = r"void\s*tabulate_tensor_integral_\w+\s*\([\w|\s|\,|*]*\)"
+        itg_pattern = r"void\s*tabulate_tensor_integral_(\w+)\s*\([\w|\s|\,|*]*\)"
         match = re.search(itg_pattern, code)
         assert match, "Integral not found."
 
         self._before_func = code[: match.start()]
         self._func_signt = match.group(0)
+        # In FEniCSx 0.10.0, the kernel name is "integral_<hash>_<cell_type>"
+        # (e.g. "_hexahedron"). self._data.name only carries the hash part, so
+        # we read the full suffix-aware name from the actual function signature.
+        self._integral_name = match.group(1)
 
         sub_code = code[match.end() :]
 
@@ -773,7 +777,7 @@ class _IntegralModifier:
             str: New generated C code.
         """
 
-        name = self._data.name
+        name = self._integral_name
         new_code = self._func_signt.replace(name, f"{name}_original")
 
         if self._has_unfitted_boundary():
@@ -803,7 +807,7 @@ class _IntegralModifier:
         """
 
         # Creating new function signature.
-        name = self._data.name
+        name = self._integral_name
         new_signt = self._func_signt.replace(name, f"{name}_custom")
 
         coeff_dtype_str = dtype_to_C_str(self._coeffs_dtype)
@@ -866,15 +870,15 @@ class _IntegralModifier:
             code_impl += f"(const {dtype_str} *) ({offset_str})"
         code_impl += ";\n"
 
-        name = self._data.name
+        name = self._integral_name
         code_impl += (
             f"  tabulate_tensor_integral_{name}_custom(A, w, w_custom, c, "
-            "coordinate_dofs, entity_local_index, quadrature_permutation);\n"
+            "coordinate_dofs, entity_local_index, quadrature_permutation, custom_data);\n"
         )
         code_impl += "}\nelse if (is_full)\n{\n"
         code_impl += (
             f"  tabulate_tensor_integral_{name}_original(A, w, c, "
-            "coordinate_dofs, entity_local_index, quadrature_permutation);\n"
+            "coordinate_dofs, entity_local_index, quadrature_permutation, custom_data);\n"
         )
         code_impl += "}\n}\n"
 
