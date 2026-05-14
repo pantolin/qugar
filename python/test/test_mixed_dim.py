@@ -110,11 +110,11 @@ def test_mixed_dimension(
     # higher-dimensional domain as the integration domain
     ds = ufl.Measure("ds", domain=mesh)
 
-    facet_imap = mesh.topology.index_map(tdim - 1)
-    num_facets = facet_imap.size_local + facet_imap.num_ghosts
-    mesh_to_smesh = np.full(num_facets, -1)
-    mesh_to_smesh[smesh_to_mesh] = np.arange(len(smesh_to_mesh))
-    entity_maps = {smesh: mesh_to_smesh}
+    # In FEniCSx 0.10.0 ``create_submesh`` returns ``EntityMap`` objects
+    # (not raw index arrays), and ``dolfinx.fem.form`` / qugar's
+    # ``form_custom`` take ``entity_maps`` as a ``Sequence[EntityMap]``
+    # rather than the v0.9.0 ``dict[Mesh, ndarray]`` reverse-map form.
+    entity_maps = [smesh_to_mesh]
 
     ufl_form = ufl.inner(f * g * u, vbar) * ds  # type: ignore
 
