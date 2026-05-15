@@ -202,14 +202,6 @@ class _CustomCoeffsPackerIntegral:
         # We use np.intp type to store a ptrdiff_t C type.
         self._offsets_dtype = np.dtype(np.intp)
 
-    def _get_subdomain_tag(self) -> int:
-        """Returns the integral subdomain id.
-
-        Returns:
-            int: Integral subdomain id.
-        """
-        return self._subdomain_id
-
     @property
     def _integral_type(self) -> str:
         """Returns the integral type.
@@ -257,29 +249,6 @@ class _CustomCoeffsPackerIntegral:
             ``False`` otherwise.
         """
         return self._is_exterior_facet() or self._is_interior_facet()
-
-    def _has_unfitted_boundary(self) -> bool:
-        """Checks if the current integral any integrand that is performed
-        over unfitted boundaries.
-
-        Returns:
-            bool: ``True`` if the current integral has at least one integrand
-            computed over unfitted  boundaries, ``False`` otherwise.
-        """
-
-        return any(qd.unfitted_boundary for qd in self._itg_data.quad_data_FE_tables)
-
-    def _has_no_unfitted_boundary(self) -> bool:
-        """Checks if the current integral any integrand that is not performed
-        over unfitted boundaries, i.e., that is performed in the interior of
-        a cell.
-
-        Returns:
-            bool: ``True`` if the current integral has at least one integrand
-            not computed over unfitted  boundaries, ``False`` otherwise.
-        """
-
-        return any(not qd.unfitted_boundary for qd in self._itg_data.quad_data_FE_tables)
 
     def _get_n_extra_cols(self) -> int:
         """Gets the number of columns in the coefficients array required
@@ -385,17 +354,6 @@ class _CustomCoeffsPackerIntegral:
             n_vals_per_custom_entity += 1
 
         if np.issubdtype(self._coeffs_dtype, np.complexfloating):
-            # # If the coefficients are complex, we can pack two extra
-            # # values into every complex coefficient.
-            # assert (self._coeffs_dtype.itemsize
-            #   / self._dtype.itemsize) == 2
-            # dtype = n_vals_per_entity.dtype
-            # # We roundup, so, at the end of the extra values for every
-            # # cell there may be some extra (unused) space.
-            # # This is done for simplying the offsets calculation and
-            # # accesing.
-            # n_vals_per_entity = np.ceil(n_vals_per_entity / 2).astype(
-            #   dtype)
             assert False, "Not implemented yet for complex values."
 
         return n_vals_per_custom_entity
@@ -960,9 +918,6 @@ class _CustomCoeffsPackerIntegral:
         # Copying old coefficients to the new array.
         old_shape = self._old_coeffs.shape
         self._new_coeffs[: old_shape[0], : old_shape[1]] = self._old_coeffs
-
-        if old_shape == self._new_coeffs.shape[0]:
-            return
 
         self._compute_offsets()
         self._copy_vals(self._compute_new_vals())

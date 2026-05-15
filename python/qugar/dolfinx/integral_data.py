@@ -17,7 +17,6 @@ if not has_FEniCSx:
 
 from typing import NamedTuple
 
-import dolfinx.cpp.fem
 import ffcx.analysis
 import ffcx.ir.representation
 import numpy as np
@@ -139,18 +138,6 @@ class IntegralData(NamedTuple):
         FE_tables = next(iter(self.quad_data_FE_tables.values()))
         assert FE_tables
         return FE_tables[0].dtype
-
-    @property
-    def itg_infos(self) -> list[tuple[dolfinx.cpp.fem._IntegralType, int]]:
-        """Tuple of integral type and integral's subdomain id."""
-        itg_type_strs = {
-            "cell": dolfinx.cpp.fem._IntegralType.cell,
-            "interior_facet": dolfinx.cpp.fem._IntegralType.interior_facet,
-            "exterior_facet": dolfinx.cpp.fem._IntegralType.exterior_facet,
-        }
-        itg_type = itg_type_strs[self.integral_type]
-        return [(itg_type, id) for id in self.subdomain_ids]
-
 
 def extract_integral_data(
     ufl_analysis: ffcx.analysis.UFLData,

@@ -330,12 +330,6 @@ class FETable:
         return self._funcs
 
     @property
-    def is_permuted(self) -> bool:
-        """Returns whether if the values table present permutations.
-        I.e., its first dimension is greater than 1."""
-        return self._permutations > 1
-
-    @property
     def values(self) -> npt.NDArray:
         """Returns the table values."""
         return self._values
@@ -516,25 +510,6 @@ def _sort_FE_tables(FE_tables: list[FETable]) -> list[FETable]:
     FE_tables.sort(key=tables_sort)
 
     return FE_tables
-
-
-def _parse_quad_name(code: str) -> str:
-    """Parses the name of the quadrature associated to the
-    FE table defined in the given C `code`.
-
-    The quadrature rule name is extracted from the FE table's
-    name.
-
-    Args:
-        code (str): C code containing at least one definition of a
-            basis functions table.
-
-    Returns:
-        str: Quadrature rule name (three alphanumeric characters).
-    """
-    table_name = _parse_FE_name(code)
-    quad_name = table_name.split("Q")[-1]
-    return quad_name
 
 
 def _build_table_name_to_element_map(

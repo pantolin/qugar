@@ -34,8 +34,6 @@ assert dolfinx.has_petsc4py  # type: ignore
 
 import dolfinx.fem
 import dolfinx.fem.petsc
-
-# import dolfinx.la
 import ufl
 from dolfinx.fem import IntegralType, extract_function_spaces  # type: ignore
 from dolfinx.fem.bcs import DirichletBC
