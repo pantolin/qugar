@@ -451,66 +451,6 @@ def _evaluate_FE_tables_same_element(
     return values
 
 
-def evaluate_FE_table(
-    fe_table: FETable,
-    element: BasixElement,
-    is_mixed_dim: bool,
-    codim: int,
-    tabletype: Optional[str] = None,
-    is_permuted: Optional[bool] = None,
-    rtol: float = default_rtol,
-    atol: float = default_atol,
-) -> npt.NDArray[np.float64]:
-    """Creates the values associated to a FE table.
-
-    This piece of code was copied from the function
-    ``ffcx.ir.elementtables.build_optimized_tables``, adapting it for
-    the case in which sum factorization is not considered, and for
-    accepting new arguments `tabletype` and `is_permuted`.
-
-    Args:
-        fe_table (FETable): FE table whose associated values are going
-            to be recomputed using the extra provided information in
-            this function.
-        element (BasixElement): Element to be used for the table
-            evaluation.
-        is_mixed_dim (bool): Flag indicating if the integral to which
-            the element evaluation is associated to presents mixed
-            dimensions or not.
-        codim (int): Codimension of the evaluation domain respect
-            to the element.
-        tabletype (str, optional): Type of table, i.e., "fixed",
-            "piecewise", "uniform", or "varying". If not provided,
-            the table type is computed, what may be expensive (even
-            more than computing the table itself). Defaults to None.
-        is_permuted (bool, optional): Whether or not the table must
-            contain permutations. If not provided, it is computed.
-            Defaults to None.
-        rtol (float, optional): Relative tolerance used for clamping
-            near zero values. Defaults to default_rtol.
-        atol (float, optional): Absolute tolerance used for clamping
-            near zero values. Defaults to default_atol.
-
-    Returns:
-        npt.NDArray[np.float64]: Generated values in a 4-dimensional
-        `numpy` array.
-    """
-
-    vals = _evaluate_element(
-        element,
-        fe_table._quad_data.rule.points,  # type: ignore
-        fe_table.integral_type,
-        fe_table.avg,
-        fe_table.entity,
-        fe_table.derivatives,
-        fe_table.component,
-        is_mixed_dim,
-        codim,
-    )
-
-    return _format_table_values(vals, tabletype, is_permuted, rtol, atol)
-
-
 def evaluate_FE_tables(
     fe_tables: list[FETable],
     points: npt.NDArray[np.float64],
