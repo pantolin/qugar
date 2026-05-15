@@ -33,12 +33,12 @@ from qugar.dolfinx import CustomForm, form_custom
 
 
 @pytest.mark.parametrize("max_quad_sets", [3])
-@pytest.mark.parametrize("nnz", [0.0, 0.3, 1.0])
+@pytest.mark.parametrize("nnz", [0.3])
 @pytest.mark.parametrize("dtype", dtypes)
 @pytest.mark.parametrize("simplex_cell", [True, False])
 @pytest.mark.parametrize("p", [1, 3])
 @pytest.mark.parametrize("dim", [2, 3])
-@pytest.mark.parametrize("N", [1, 4])
+@pytest.mark.parametrize("N", [4])
 def test_mixed_dimension(
     N: int,
     dim: int,

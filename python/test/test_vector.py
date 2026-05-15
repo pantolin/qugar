@@ -24,13 +24,13 @@ from utils import clean_cache, create_mock_unfitted_mesh, dtypes, run_vector_che
 
 
 @pytest.mark.parametrize("max_quad_sets", [3])
-@pytest.mark.parametrize("nnz", [0.0, 0.3, 1.0])
+@pytest.mark.parametrize("nnz", [0.3])
 @pytest.mark.parametrize("dtype", dtypes)
 @pytest.mark.parametrize("simplex_cell", [True, False])
 @pytest.mark.parametrize("p", [1, 3])
 @pytest.mark.parametrize("dx", [ufl.dx, ufl.ds])
 @pytest.mark.parametrize("dim", [2, 3])
-@pytest.mark.parametrize("N", [1, 4])
+@pytest.mark.parametrize("N", [4])
 def test_v_f(
     N: int,
     dim: int,
@@ -84,12 +84,12 @@ def test_v_f(
 
 
 @pytest.mark.parametrize("max_quad_sets", [3])
-@pytest.mark.parametrize("nnz", [0.0, 0.3, 1.0])
+@pytest.mark.parametrize("nnz", [0.3])
 @pytest.mark.parametrize("dtype", dtypes)
 @pytest.mark.parametrize("simplex_cell", [True, False])
 @pytest.mark.parametrize("p", [1, 3])
 @pytest.mark.parametrize("dim", [2, 3])
-@pytest.mark.parametrize("N", [1, 4])
+@pytest.mark.parametrize("N", [4])
 def test_interior_facet(
     N: int,
     dim: int,

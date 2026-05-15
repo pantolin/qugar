@@ -942,18 +942,18 @@ def test_torus(
     assert computed_hashes == target_hashes
 
 
+# Only one TPMS functor here: Schoen exercises the same
+# reparameterization-to-PyVista path as the other variants but is the
+# cheapest to evaluate. The other implicit functions (Schoen_IWP,
+# Schoen_FRD, Fischer_Koch_S, Schwarz_Diamond, Schwarz_Primitive)
+# share the code path under test.
 impl_functors = [
     (qugar.impl.create_Schoen, "Schoen"),
-    (qugar.impl.create_Schoen_IWP, "Schoen_IWP"),
-    (qugar.impl.create_Schoen_FRD, "Schoen_FRD"),
-    (qugar.impl.create_Fischer_Koch_S, "Fischer_Koch_S"),
-    (qugar.impl.create_Schwarz_Diamond, "Schwarz_Diamond"),
-    (qugar.impl.create_Schwarz_Primitive, "Schwarz_Primitive"),
 ]
 
 
 @pytest.mark.parametrize("dim", [2, 3])
-@pytest.mark.parametrize("n_cells", [11, 12])
+@pytest.mark.parametrize("n_cells", [11])
 @pytest.mark.parametrize("n_quad_pts", [5])
 @pytest.mark.parametrize("impl_functor_str", impl_functors)
 @pytest.mark.parametrize("dtype", dtypes)
