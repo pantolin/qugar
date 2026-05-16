@@ -5,8 +5,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>qugar.impl.impl_function &mdash; QUGaR 0.1.3 documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
+  <title>qugar.impl.impl_function &mdash; QUGaR 0.3.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="../../../_static/dark_mode_css/general.css?v=c0a7eb24" />
       <link rel="stylesheet" type="text/css" href="../../../_static/dark_mode_css/dark.css?v=70edf1c7" />
@@ -14,7 +14,7 @@
   
       <script src="../../../_static/jquery.js?v=5d32c60e"></script>
       <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../../../_static/documentation_options.js?v=360bc84d"></script>
+      <script src="../../../_static/documentation_options.js?v=e259d695"></script>
       <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script src="../../../_static/dark_mode_js/default_dark.js?v=fd565c74"></script>
@@ -86,23 +86,23 @@
 <span class="c1">#</span>
 <span class="c1"># --------------------------------------------------------------------------</span>
 
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Optional</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Optional</span>
 
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">import</span> <span class="nn">numpy.typing</span> <span class="k">as</span> <span class="nn">npt</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy.typing</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">npt</span>
 
-<span class="kn">import</span> <span class="nn">qugar.cpp</span>
-<span class="kn">import</span> <span class="nn">qugar.impl</span>
-<span class="kn">import</span> <span class="nn">qugar.utils</span>
-<span class="kn">from</span> <span class="nn">qugar.cpp</span> <span class="kn">import</span> <span class="n">ImplicitFunc_2D</span><span class="p">,</span> <span class="n">ImplicitFunc_3D</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">qugar.cpp</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">qugar.impl</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">qugar.utils</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qugar.cpp</span><span class="w"> </span><span class="kn">import</span> <span class="n">ImplicitFunc_2D</span><span class="p">,</span> <span class="n">ImplicitFunc_3D</span>
 
 
 <div class="viewcode-block" id="ImplicitFunc">
 <a class="viewcode-back" href="../../../generated/qugar.impl.html#qugar.impl.ImplicitFunc">[docs]</a>
-<span class="k">class</span> <span class="nc">ImplicitFunc</span><span class="p">:</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ImplicitFunc</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Class for storing an implicit function that describes a domain.&quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cpp_object</span><span class="p">:</span> <span class="n">ImplicitFunc_2D</span> <span class="o">|</span> <span class="n">ImplicitFunc_3D</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cpp_object</span><span class="p">:</span> <span class="n">ImplicitFunc_2D</span> <span class="o">|</span> <span class="n">ImplicitFunc_3D</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Constructor.</span>
 
 <span class="sd">        Args:</span>
@@ -113,7 +113,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_cpp_object</span> <span class="o">=</span> <span class="n">cpp_object</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">cpp_object</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ImplicitFunc_2D</span> <span class="o">|</span> <span class="n">ImplicitFunc_3D</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">cpp_object</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ImplicitFunc_2D</span> <span class="o">|</span> <span class="n">ImplicitFunc_3D</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the C++ object.</span>
 
 <span class="sd">        Returns:</span>
@@ -122,7 +122,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cpp_object</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">dim</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">dim</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Gets the dimension of the function&#39;s domain.</span>
 
 <span class="sd">        Returns:</span>
@@ -132,7 +132,7 @@
 
 <div class="viewcode-block" id="ImplicitFunc.eval">
 <a class="viewcode-back" href="../../../generated/qugar.impl.html#qugar.impl.ImplicitFunc.eval">[docs]</a>
-    <span class="k">def</span> <span class="nf">eval</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">eval</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">points</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Evaluates the implicit function at the given points.</span>
@@ -155,7 +155,7 @@
 
 <div class="viewcode-block" id="ImplicitFunc.grad">
 <a class="viewcode-back" href="../../../generated/qugar.impl.html#qugar.impl.ImplicitFunc.grad">[docs]</a>
-    <span class="k">def</span> <span class="nf">grad</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">grad</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">points</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Evaluates the implicit function gradient at the given points.</span>
@@ -181,7 +181,7 @@
 
 <div class="viewcode-block" id="create_disk">
 <a class="viewcode-back" href="../../../generated/qugar.impl.html#qugar.impl.create_disk">[docs]</a>
-<span class="k">def</span> <span class="nf">create_disk</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">create_disk</span><span class="p">(</span>
     <span class="n">radius</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">,</span>
     <span class="n">center</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">use_bzr</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
@@ -218,7 +218,7 @@
 
 <div class="viewcode-block" id="create_sphere">
 <a class="viewcode-back" href="../../../generated/qugar.impl.html#qugar.impl.create_sphere">[docs]</a>
-<span class="k">def</span> <span class="nf">create_sphere</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">create_sphere</span><span class="p">(</span>
     <span class="n">radius</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">,</span>
     <span class="n">center</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">use_bzr</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
@@ -255,7 +255,7 @@
 
 <div class="viewcode-block" id="create_ellipse">
 <a class="viewcode-back" href="../../../generated/qugar.impl.html#qugar.impl.create_ellipse">[docs]</a>
-<span class="k">def</span> <span class="nf">create_ellipse</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">create_ellipse</span><span class="p">(</span>
     <span class="n">semi_axes</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">],</span>
     <span class="n">ref_system</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">qugar</span><span class="o">.</span><span class="n">cpp</span><span class="o">.</span><span class="n">RefSystem_2D</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">use_bzr</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
@@ -292,7 +292,7 @@
 
 <div class="viewcode-block" id="create_ellipsoid">
 <a class="viewcode-back" href="../../../generated/qugar.impl.html#qugar.impl.create_ellipsoid">[docs]</a>
-<span class="k">def</span> <span class="nf">create_ellipsoid</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">create_ellipsoid</span><span class="p">(</span>
     <span class="n">semi_axes</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">],</span>
     <span class="n">ref_system</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">qugar</span><span class="o">.</span><span class="n">cpp</span><span class="o">.</span><span class="n">RefSystem_3D</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">use_bzr</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
@@ -329,7 +329,7 @@
 
 <div class="viewcode-block" id="create_cylinder">
 <a class="viewcode-back" href="../../../generated/qugar.impl.html#qugar.impl.create_cylinder">[docs]</a>
-<span class="k">def</span> <span class="nf">create_cylinder</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">create_cylinder</span><span class="p">(</span>
     <span class="n">radius</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">,</span>
     <span class="n">origin</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">],</span>
     <span class="n">axis</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]],</span>
@@ -369,7 +369,7 @@
 
 <div class="viewcode-block" id="create_annulus">
 <a class="viewcode-back" href="../../../generated/qugar.impl.html#qugar.impl.create_annulus">[docs]</a>
-<span class="k">def</span> <span class="nf">create_annulus</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">create_annulus</span><span class="p">(</span>
     <span class="n">inner_radius</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">,</span>
     <span class="n">outer_radius</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">,</span>
     <span class="n">center</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -414,7 +414,7 @@
 
 <div class="viewcode-block" id="create_torus">
 <a class="viewcode-back" href="../../../generated/qugar.impl.html#qugar.impl.create_torus">[docs]</a>
-<span class="k">def</span> <span class="nf">create_torus</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">create_torus</span><span class="p">(</span>
     <span class="n">major_radius</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">,</span>
     <span class="n">minor_radius</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">,</span>
     <span class="n">center</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -476,7 +476,7 @@
 
 <div class="viewcode-block" id="create_constant">
 <a class="viewcode-back" href="../../../generated/qugar.impl.html#qugar.impl.create_constant">[docs]</a>
-<span class="k">def</span> <span class="nf">create_constant</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">create_constant</span><span class="p">(</span>
     <span class="n">value</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">,</span>
     <span class="n">dim</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
     <span class="n">use_bzr</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
@@ -510,7 +510,7 @@
 
 <div class="viewcode-block" id="create_plane">
 <a class="viewcode-back" href="../../../generated/qugar.impl.html#qugar.impl.create_plane">[docs]</a>
-<span class="k">def</span> <span class="nf">create_plane</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">create_plane</span><span class="p">(</span>
     <span class="n">origin</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]],</span>
     <span class="n">normal</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]],</span>
     <span class="n">use_bzr</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
@@ -554,7 +554,7 @@
 
 <div class="viewcode-block" id="create_line">
 <a class="viewcode-back" href="../../../generated/qugar.impl.html#qugar.impl.create_line">[docs]</a>
-<span class="k">def</span> <span class="nf">create_line</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">create_line</span><span class="p">(</span>
     <span class="n">origin</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]],</span>
     <span class="n">normal</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]],</span>
     <span class="n">use_bzr</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
@@ -598,7 +598,7 @@
 
 <div class="viewcode-block" id="create_dim_linear">
 <a class="viewcode-back" href="../../../generated/qugar.impl.html#qugar.impl.create_dim_linear">[docs]</a>
-<span class="k">def</span> <span class="nf">create_dim_linear</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">create_dim_linear</span><span class="p">(</span>
     <span class="n">coefs</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]</span> <span class="o">|</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">],</span>
     <span class="n">affine_trans</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">qugar</span><span class="o">.</span><span class="n">cpp</span><span class="o">.</span><span class="n">AffineTransf_2D</span> <span class="o">|</span> <span class="n">qugar</span><span class="o">.</span><span class="n">cpp</span><span class="o">.</span><span class="n">AffineTransf_2D</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ImplicitFunc</span><span class="p">:</span>
@@ -648,7 +648,7 @@
 
 <div class="viewcode-block" id="create_box">
 <a class="viewcode-back" href="../../../generated/qugar.impl.html#qugar.impl.create_box">[docs]</a>
-<span class="k">def</span> <span class="nf">create_box</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">create_box</span><span class="p">(</span>
     <span class="n">affine_trans</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">qugar</span><span class="o">.</span><span class="n">cpp</span><span class="o">.</span><span class="n">AffineTransf_2D</span> <span class="o">|</span> <span class="n">qugar</span><span class="o">.</span><span class="n">cpp</span><span class="o">.</span><span class="n">AffineTransf_2D</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">dim</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ImplicitFunc</span><span class="p">:</span>
@@ -698,7 +698,7 @@
 
 <div class="viewcode-block" id="create_negative">
 <a class="viewcode-back" href="../../../generated/qugar.impl.html#qugar.impl.create_negative">[docs]</a>
-<span class="k">def</span> <span class="nf">create_negative</span><span class="p">(</span><span class="n">func</span><span class="p">:</span> <span class="n">ImplicitFunc</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ImplicitFunc</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">create_negative</span><span class="p">(</span><span class="n">func</span><span class="p">:</span> <span class="n">ImplicitFunc</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ImplicitFunc</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Creates a new implicit function that represents the negative of the input function.</span>
 
@@ -714,7 +714,7 @@
 
 <div class="viewcode-block" id="create_functions_addition">
 <a class="viewcode-back" href="../../../generated/qugar.impl.html#qugar.impl.create_functions_addition">[docs]</a>
-<span class="k">def</span> <span class="nf">create_functions_addition</span><span class="p">(</span><span class="n">lhs_func</span><span class="p">:</span> <span class="n">ImplicitFunc</span><span class="p">,</span> <span class="n">rhs_func</span><span class="p">:</span> <span class="n">ImplicitFunc</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ImplicitFunc</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">create_functions_addition</span><span class="p">(</span><span class="n">lhs_func</span><span class="p">:</span> <span class="n">ImplicitFunc</span><span class="p">,</span> <span class="n">rhs_func</span><span class="p">:</span> <span class="n">ImplicitFunc</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ImplicitFunc</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Creates a new implicit function that represents the addition of two given implicit functions.</span>
 
@@ -733,7 +733,7 @@
 
 <div class="viewcode-block" id="create_functions_subtraction">
 <a class="viewcode-back" href="../../../generated/qugar.impl.html#qugar.impl.create_functions_subtraction">[docs]</a>
-<span class="k">def</span> <span class="nf">create_functions_subtraction</span><span class="p">(</span><span class="n">lhs_func</span><span class="p">:</span> <span class="n">ImplicitFunc</span><span class="p">,</span> <span class="n">rhs_func</span><span class="p">:</span> <span class="n">ImplicitFunc</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ImplicitFunc</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">create_functions_subtraction</span><span class="p">(</span><span class="n">lhs_func</span><span class="p">:</span> <span class="n">ImplicitFunc</span><span class="p">,</span> <span class="n">rhs_func</span><span class="p">:</span> <span class="n">ImplicitFunc</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ImplicitFunc</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Creates a new implicit function that represents the subtraction of two given implicit functions.</span>
 
@@ -753,7 +753,7 @@
 
 <div class="viewcode-block" id="create_affinely_transformed_functions">
 <a class="viewcode-back" href="../../../generated/qugar.impl.html#qugar.impl.create_affinely_transformed_functions">[docs]</a>
-<span class="k">def</span> <span class="nf">create_affinely_transformed_functions</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">create_affinely_transformed_functions</span><span class="p">(</span>
     <span class="n">func</span><span class="p">:</span> <span class="n">ImplicitFunc</span><span class="p">,</span> <span class="n">affine_transf</span><span class="p">:</span> <span class="n">qugar</span><span class="o">.</span><span class="n">cpp</span><span class="o">.</span><span class="n">AffineTransf_2D</span> <span class="o">|</span> <span class="n">qugar</span><span class="o">.</span><span class="n">cpp</span><span class="o">.</span><span class="n">AffineTransf_3D</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ImplicitFunc</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
@@ -774,7 +774,7 @@
 
 
 
-<span class="k">def</span> <span class="nf">_process_tpms_periods</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_process_tpms_periods</span><span class="p">(</span>
     <span class="n">periods</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]</span> <span class="o">|</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">],</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]:</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">periods</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
@@ -785,7 +785,7 @@
     <span class="k">return</span> <span class="n">periods</span>
 
 
-<span class="k">def</span> <span class="nf">_create_tpms</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_create_tpms</span><span class="p">(</span>
     <span class="n">func</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[</span>
         <span class="p">[</span><span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">],</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]],</span> <span class="n">ImplicitFunc_2D</span> <span class="o">|</span> <span class="n">ImplicitFunc_3D</span>
     <span class="p">],</span>
@@ -822,7 +822,7 @@
 
 <div class="viewcode-block" id="create_Schoen">
 <a class="viewcode-back" href="../../../generated/qugar.impl.html#qugar.impl.create_Schoen">[docs]</a>
-<span class="k">def</span> <span class="nf">create_Schoen</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">create_Schoen</span><span class="p">(</span>
     <span class="n">periods</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]</span> <span class="o">|</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">],</span>
     <span class="n">z</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ImplicitFunc</span><span class="p">:</span>
@@ -856,7 +856,7 @@
 
 <div class="viewcode-block" id="create_Schoen_IWP">
 <a class="viewcode-back" href="../../../generated/qugar.impl.html#qugar.impl.create_Schoen_IWP">[docs]</a>
-<span class="k">def</span> <span class="nf">create_Schoen_IWP</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">create_Schoen_IWP</span><span class="p">(</span>
     <span class="n">periods</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]</span> <span class="o">|</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">],</span>
     <span class="n">z</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ImplicitFunc</span><span class="p">:</span>
@@ -889,7 +889,7 @@
 
 <div class="viewcode-block" id="create_Schoen_FRD">
 <a class="viewcode-back" href="../../../generated/qugar.impl.html#qugar.impl.create_Schoen_FRD">[docs]</a>
-<span class="k">def</span> <span class="nf">create_Schoen_FRD</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">create_Schoen_FRD</span><span class="p">(</span>
     <span class="n">periods</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]</span> <span class="o">|</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">],</span>
     <span class="n">z</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ImplicitFunc</span><span class="p">:</span>
@@ -922,7 +922,7 @@
 
 <div class="viewcode-block" id="create_Fischer_Koch_S">
 <a class="viewcode-back" href="../../../generated/qugar.impl.html#qugar.impl.create_Fischer_Koch_S">[docs]</a>
-<span class="k">def</span> <span class="nf">create_Fischer_Koch_S</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">create_Fischer_Koch_S</span><span class="p">(</span>
     <span class="n">periods</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]</span> <span class="o">|</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">],</span>
     <span class="n">z</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ImplicitFunc</span><span class="p">:</span>
@@ -956,7 +956,7 @@
 
 <div class="viewcode-block" id="create_Schwarz_Primitive">
 <a class="viewcode-back" href="../../../generated/qugar.impl.html#qugar.impl.create_Schwarz_Primitive">[docs]</a>
-<span class="k">def</span> <span class="nf">create_Schwarz_Primitive</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">create_Schwarz_Primitive</span><span class="p">(</span>
     <span class="n">periods</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]</span> <span class="o">|</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">],</span>
     <span class="n">z</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ImplicitFunc</span><span class="p">:</span>
@@ -990,7 +990,7 @@
 
 <div class="viewcode-block" id="create_Schwarz_Diamond">
 <a class="viewcode-back" href="../../../generated/qugar.impl.html#qugar.impl.create_Schwarz_Diamond">[docs]</a>
-<span class="k">def</span> <span class="nf">create_Schwarz_Diamond</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">create_Schwarz_Diamond</span><span class="p">(</span>
     <span class="n">periods</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]</span> <span class="o">|</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">],</span>
     <span class="n">z</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ImplicitFunc</span><span class="p">:</span>

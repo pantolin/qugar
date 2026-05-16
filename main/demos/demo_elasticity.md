@@ -4,7 +4,7 @@ jupytext:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.19.1
+    jupytext_version: 1.19.2
   main_language: python
 ---
 
@@ -262,10 +262,10 @@ V_tensor = dolfinx.fem.functionspace(unf_mesh, ("Lagrange", degree, (dim, dim)))
 strain = dolfinx.fem.Function(V_tensor)
 stress = dolfinx.fem.Function(V_tensor)
 
-strain_expr = dolfinx.fem.Expression(epsilon(uh), V_tensor.element.interpolation_points())
+strain_expr = dolfinx.fem.Expression(epsilon(uh), V_tensor.element.interpolation_points)
 strain.interpolate(strain_expr)
 
-stress_expr = dolfinx.fem.Expression(sigma(uh), V_tensor.element.interpolation_points())
+stress_expr = dolfinx.fem.Expression(sigma(uh), V_tensor.element.interpolation_points)
 stress.interpolate(stress_expr)
 ```
 
@@ -282,7 +282,7 @@ von_mises = dolfinx.fem.Function(V_scalar)
 s = sigma(uh)
 s_dev = s - (1 / 3) * ufl.tr(s) * ufl.Identity(len(uh))
 von_mises_expr = dolfinx.fem.Expression(
-    ufl.sqrt((3 / 2) * ufl.inner(s_dev, s_dev)), V_scalar.element.interpolation_points()
+    ufl.sqrt((3 / 2) * ufl.inner(s_dev, s_dev)), V_scalar.element.interpolation_points
 )
 von_mises.interpolate(von_mises_expr)
 ```

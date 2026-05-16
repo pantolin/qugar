@@ -5,8 +5,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>qugar.mesh.tp_mesh &mdash; QUGaR 0.1.3 documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
+  <title>qugar.mesh.tp_mesh &mdash; QUGaR 0.3.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="../../../_static/dark_mode_css/general.css?v=c0a7eb24" />
       <link rel="stylesheet" type="text/css" href="../../../_static/dark_mode_css/dark.css?v=70edf1c7" />
@@ -14,7 +14,7 @@
   
       <script src="../../../_static/jquery.js?v=5d32c60e"></script>
       <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../../../_static/documentation_options.js?v=360bc84d"></script>
+      <script src="../../../_static/documentation_options.js?v=e259d695"></script>
       <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script src="../../../_static/dark_mode_js/default_dark.js?v=fd565c74"></script>
@@ -88,31 +88,31 @@
 
 <span class="sd">&quot;&quot;&quot;Tensor-product and Cartesian meshes.&quot;&quot;&quot;</span>
 
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Optional</span>
 
-<span class="kn">import</span> <span class="nn">qugar.utils</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">qugar.utils</span>
 
 <span class="k">if</span> <span class="ow">not</span> <span class="n">qugar</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">has_FEniCSx</span><span class="p">:</span>
     <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;FEniCSx installation not found is required.&quot;</span><span class="p">)</span>
 
 
-<span class="kn">from</span> <span class="nn">mpi4py</span> <span class="kn">import</span> <span class="n">MPI</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mpi4py</span><span class="w"> </span><span class="kn">import</span> <span class="n">MPI</span>
 
-<span class="kn">import</span> <span class="nn">dolfinx.mesh</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">import</span> <span class="nn">numpy.typing</span> <span class="k">as</span> <span class="nn">npt</span>
-<span class="kn">from</span> <span class="nn">basix</span> <span class="kn">import</span> <span class="n">CellType</span>
-<span class="kn">from</span> <span class="nn">dolfinx.cpp.mesh</span> <span class="kn">import</span> <span class="n">GhostMode</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">dolfinx.mesh</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy.typing</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">npt</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">basix</span><span class="w"> </span><span class="kn">import</span> <span class="n">CellType</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dolfinx.cpp.mesh</span><span class="w"> </span><span class="kn">import</span> <span class="n">GhostMode</span>
 
-<span class="kn">import</span> <span class="nn">qugar.cpp</span>
-<span class="kn">from</span> <span class="nn">qugar.mesh.mesh</span> <span class="kn">import</span> <span class="n">Mesh</span>
-<span class="kn">from</span> <span class="nn">qugar.mesh.tp_index</span> <span class="kn">import</span> <span class="n">TensorProdIndex</span>
-<span class="kn">from</span> <span class="nn">qugar.mesh.utils</span> <span class="kn">import</span> <span class="p">(</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">qugar.cpp</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qugar.mesh.mesh</span><span class="w"> </span><span class="kn">import</span> <span class="n">Mesh</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qugar.mesh.tp_index</span><span class="w"> </span><span class="kn">import</span> <span class="n">TensorProdIndex</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qugar.mesh.utils</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">DOLFINx_to_lexicg_nodes</span><span class="p">,</span>
 <span class="p">)</span>
 
 
-<span class="k">def</span> <span class="nf">_create_first_cell_conn_Cartesian</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_create_first_cell_conn_Cartesian</span><span class="p">(</span>
     <span class="n">dim</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">degree</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">n_cells</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">]</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Creates the connectivity of the first cell of a tensor-product</span>
@@ -162,7 +162,7 @@
     <span class="p">)</span>
 
 
-<span class="k">def</span> <span class="nf">_create_tensor_prod_mesh_conn</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_create_tensor_prod_mesh_conn</span><span class="p">(</span>
     <span class="n">dim</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">degree</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">n_cells</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">]</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Creates the cell&#39;s connectivity of a Cartesian mesh.</span>
@@ -206,7 +206,7 @@
     <span class="k">return</span> <span class="n">conn</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">n_nodes_per_cell</span><span class="p">)</span>
 
 
-<span class="k">def</span> <span class="nf">_create_Cartesian_mesh_nodes_from_points</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_create_Cartesian_mesh_nodes_from_points</span><span class="p">(</span>
     <span class="n">pts_1D</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]],</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Creates the coordinates matrix of the nodes of a tensor-product</span>
@@ -242,7 +242,7 @@
     <span class="k">return</span> <span class="n">nodes</span>
 
 
-<span class="k">def</span> <span class="nf">_create_Cartesian_mesh_nodes_from_cells</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_create_Cartesian_mesh_nodes_from_cells</span><span class="p">(</span>
     <span class="n">cell_breaks_1D</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]],</span> <span class="n">degree</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Creates the coordinates matrix of the nodes of a tensor-product</span>
@@ -288,7 +288,7 @@
 
 <div class="viewcode-block" id="TensorProductMesh">
 <a class="viewcode-back" href="../../../generated/qugar.mesh.html#qugar.mesh.TensorProductMesh">[docs]</a>
-<span class="k">class</span> <span class="nc">TensorProductMesh</span><span class="p">(</span><span class="n">Mesh</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">TensorProductMesh</span><span class="p">(</span><span class="n">Mesh</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Tensor-product mesh data structure.</span>
 
 <span class="sd">    This class derives from `dolfinx.mesh.Mesh`, easing the management of</span>
@@ -331,7 +331,7 @@
 <span class="sd">    `self.get_DOLFINx_global_cell_ids`,</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">comm</span><span class="p">:</span> <span class="n">MPI</span><span class="o">.</span><span class="n">Comm</span><span class="p">,</span>
         <span class="n">nodes_coords</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">],</span>
@@ -410,7 +410,7 @@
         <span class="p">)</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">num_pts_dir</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">]:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">num_pts_dir</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Gets the number of points per direction in the mesh</span>
 <span class="sd">        taking into account the number of cells per direction and</span>
 <span class="sd">        the mesh&#39;s degree.</span>
@@ -421,7 +421,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_n_cells</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_degree</span> <span class="o">+</span> <span class="mi">1</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">num_cells_dir</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">]:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">num_cells_dir</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Gets the number of cells per direction in the mesh.</span>
 
 <span class="sd">        Returns:</span>
@@ -430,7 +430,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_n_cells</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">num_cells_tp</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">num_cells_tp</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Gets the total number of cells of the underlying tensor-product mesh.</span>
 
 <span class="sd">        Returns:</span>
@@ -440,7 +440,7 @@
 
 <div class="viewcode-block" id="TensorProductMesh.create_facet_bdry_tags">
 <a class="viewcode-back" href="../../../generated/qugar.mesh.html#qugar.mesh.TensorProductMesh.create_facet_bdry_tags">[docs]</a>
-    <span class="k">def</span> <span class="nf">create_facet_bdry_tags</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">dolfinx</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">MeshTags</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">create_facet_bdry_tags</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">dolfinx</span><span class="o">.</span><span class="n">mesh</span><span class="o">.</span><span class="n">MeshTags</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Creates face facet tags for the tensor product mesh.</span>
 
 <span class="sd">        It creates the tags for the facets of the underlying DOLFINx mesh,</span>
@@ -477,7 +477,7 @@
 
 <div class="viewcode-block" id="TensorProductMesh.get_face_DOLFINx_cells">
 <a class="viewcode-back" href="../../../generated/qugar.mesh.html#qugar.mesh.TensorProductMesh.get_face_DOLFINx_cells">[docs]</a>
-    <span class="k">def</span> <span class="nf">get_face_DOLFINx_cells</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tp_face_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">]:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_face_DOLFINx_cells</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tp_face_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Extracts the (local) DOLFINx indices of the cells touching the given face</span>
 <span class="sd">        of the tensor-product mesh.</span>
 
@@ -501,7 +501,7 @@
 
 <div class="viewcode-block" id="TensorProductMesh.get_face_facets">
 <a class="viewcode-back" href="../../../generated/qugar.mesh.html#qugar.mesh.TensorProductMesh.get_face_facets">[docs]</a>
-    <span class="k">def</span> <span class="nf">get_face_facets</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">face_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">]:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_face_facets</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">face_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Extracts the facets indices of the given face of the tensor-product</span>
 <span class="sd">        mesh.</span>
 
@@ -528,7 +528,7 @@
 
 <div class="viewcode-block" id="TensorProductMesh.get_cell_tensor_index">
 <a class="viewcode-back" href="../../../generated/qugar.mesh.html#qugar.mesh.TensorProductMesh.get_cell_tensor_index">[docs]</a>
-    <span class="k">def</span> <span class="nf">get_cell_tensor_index</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dlf_local_cell_id</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">]:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_cell_tensor_index</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dlf_local_cell_id</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Computes the tensor index referred to the tensor-product mesh</span>
 <span class="sd">        of a given (local) DOLFINx cell index.</span>
 
@@ -547,7 +547,7 @@
 
 <div class="viewcode-block" id="CartesianMesh">
 <a class="viewcode-back" href="../../../generated/qugar.mesh.html#qugar.mesh.CartesianMesh">[docs]</a>
-<span class="k">class</span> <span class="nc">CartesianMesh</span><span class="p">(</span><span class="n">TensorProductMesh</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">CartesianMesh</span><span class="p">(</span><span class="n">TensorProductMesh</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Cartesian mesh data structure. This class is a helper class to</span>
 <span class="sd">    ease the construction and management of tensor-product (hypercube)</span>
 <span class="sd">    meshes aligned with the Cartesian axes.</span>
@@ -558,7 +558,7 @@
 <span class="sd">    are distributed according to the Cartesian axes.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">comm</span><span class="p">:</span> <span class="n">MPI</span><span class="o">.</span><span class="n">Comm</span><span class="p">,</span>
         <span class="n">cart_grid_tp_cpp</span><span class="p">:</span> <span class="n">qugar</span><span class="o">.</span><span class="n">cpp</span><span class="o">.</span><span class="n">CartGridTP_2D</span> <span class="o">|</span> <span class="n">qugar</span><span class="o">.</span><span class="n">cpp</span><span class="o">.</span><span class="n">CartGridTP_3D</span><span class="p">,</span>
@@ -612,7 +612,7 @@
         <span class="p">)</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">cart_grid_tp_cpp_object</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">qugar</span><span class="o">.</span><span class="n">cpp</span><span class="o">.</span><span class="n">CartGridTP_2D</span> <span class="o">|</span> <span class="n">qugar</span><span class="o">.</span><span class="n">cpp</span><span class="o">.</span><span class="n">CartGridTP_2D</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">cart_grid_tp_cpp_object</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">qugar</span><span class="o">.</span><span class="n">cpp</span><span class="o">.</span><span class="n">CartGridTP_2D</span> <span class="o">|</span> <span class="n">qugar</span><span class="o">.</span><span class="n">cpp</span><span class="o">.</span><span class="n">CartGridTP_2D</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the stored (C++) Cartesian grid object.</span>
 
 <span class="sd">        Returns:</span>
@@ -622,7 +622,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cart_grid_tp_cpp_object</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">cell_breaks</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]]:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">cell_breaks</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Gets the coordinates of the Cartesian grid cells along each direction</span>
 
 <span class="sd">        Returns:</span>
@@ -633,7 +633,7 @@
 
 <div class="viewcode-block" id="CartesianMesh.get_cell_bbox">
 <a class="viewcode-back" href="../../../generated/qugar.mesh.html#qugar.mesh.CartesianMesh.get_cell_bbox">[docs]</a>
-    <span class="k">def</span> <span class="nf">get_cell_bbox</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dlf_local_cell_id</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_cell_bbox</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dlf_local_cell_id</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Computes the bounding box of a single cell.</span>
 
 <span class="sd">        Arguments:</span>
@@ -660,7 +660,7 @@
 
 <div class="viewcode-block" id="create_Cartesian_mesh">
 <a class="viewcode-back" href="../../../generated/qugar.mesh.html#qugar.mesh.create_Cartesian_mesh">[docs]</a>
-<span class="k">def</span> <span class="nf">create_Cartesian_mesh</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">create_Cartesian_mesh</span><span class="p">(</span>
     <span class="n">comm</span><span class="p">:</span> <span class="n">MPI</span><span class="o">.</span><span class="n">Comm</span><span class="p">,</span>
     <span class="n">n_cells</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">]</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">]</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span>
     <span class="n">xmin</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>

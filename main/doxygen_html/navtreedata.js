@@ -62,13 +62,14 @@ var NAVTREE =
 var NAVTREEINDEX =
 [
 "annotated.html",
-"d1/dca/qugar__export_8hpp.html#abd0fc00a90fc799b39f175551e03885f",
-"d2/dfe/classqugar_1_1BoundBox.html#a891ccbb7739da530693125bf6681e0a6",
-"d7/d46/structqugar_1_1impl_1_1RootsIntervals.html#a3e96d703d30771ec9f534f540ae12750",
-"da/dd6/classqugar_1_1impl_1_1funcs_1_1Annulus.html#acf30e3fd8651ecd2850173bbcf0d1fcc",
-"dd/d35/classqugar_1_1impl_1_1funcs_1_1PlaneBzr.html#a18e427108d1a434dadfbaa1ec70ae10b",
-"df/d58/classqugar_1_1UnfittedDomain.html#aa05e05c30a600f066e7478f09aca7693"
+"d1/dfc/classqugar_1_1impl_1_1funcs_1_1SphereBzr.html#a63afa907efd2765f838bc41963ac09b0",
+"d2/dfe/classqugar_1_1BoundBox.html#aeb31247db2f559ad6235eb41074c3dfe",
+"d7/dd8/concepts_8hpp_source.html",
+"db/d28/classqugar_1_1Tolerance.html#acbae50b5c4df57d316544be693b02368",
+"de/d1b/classqugar_1_1TensorIndexTP.html#aafe57058396f8023c69147124582015a",
+"df/de4/classqugar_1_1UnfittedBinarySpacePart.html#a8ad805d511758db9717f838360cc3a7b"
 ];
 
-var SYNCONMSG = 'click to disable panel synchronisation';
-var SYNCOFFMSG = 'click to enable panel synchronisation';
+var SYNCONMSG = 'click to disable panel synchronization';
+var SYNCOFFMSG = 'click to enable panel synchronization';
+var LISTOFALLMEMBERS = 'List of all members';

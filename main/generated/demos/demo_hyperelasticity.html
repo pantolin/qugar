@@ -6,8 +6,8 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Hyperelasticity problem &mdash; QUGaR 0.1.3 documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=fa44fd50" />
+  <title>Hyperelasticity problem &mdash; QUGaR 0.3.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="../../_static/dark_mode_css/general.css?v=c0a7eb24" />
       <link rel="stylesheet" type="text/css" href="../../_static/dark_mode_css/dark.css?v=70edf1c7" />
@@ -15,7 +15,7 @@
   
       <script src="../../_static/jquery.js?v=5d32c60e"></script>
       <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../../_static/documentation_options.js?v=360bc84d"></script>
+      <script src="../../_static/documentation_options.js?v=e259d695"></script>
       <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
@@ -155,24 +155,24 @@ the determinant of the deformation gradient.</p>
 <h3>Modules import<a class="headerlink" href="#modules-import" title="Link to this heading"></a></h3>
 <p>First, we import the necessary modules.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span>
-<span class="kn">from</span> <span class="nn">mpi4py</span> <span class="kn">import</span> <span class="n">MPI</span>
-<span class="kn">from</span> <span class="nn">petsc4py</span> <span class="kn">import</span> <span class="n">PETSc</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mpi4py</span><span class="w"> </span><span class="kn">import</span> <span class="n">MPI</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">petsc4py</span><span class="w"> </span><span class="kn">import</span> <span class="n">PETSc</span>
 
-<span class="kn">import</span> <span class="nn">dolfinx.fem</span> <span class="k">as</span> <span class="nn">fem</span>
-<span class="kn">import</span> <span class="nn">dolfinx.log</span> <span class="k">as</span> <span class="nn">log</span>
-<span class="kn">import</span> <span class="nn">dolfinx.mesh</span> <span class="k">as</span> <span class="nn">mesh_dlf</span>
-<span class="kn">import</span> <span class="nn">dolfinx.nls.petsc</span> <span class="k">as</span> <span class="nn">nls_petsc</span>
-<span class="kn">import</span> <span class="nn">dolfinx.plot</span> <span class="k">as</span> <span class="nn">plot_dlf</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">import</span> <span class="nn">pyvista</span>
-<span class="kn">import</span> <span class="nn">ufl</span>
-<span class="kn">from</span> <span class="nn">dolfinx</span> <span class="kn">import</span> <span class="n">default_scalar_type</span> <span class="k">as</span> <span class="n">dtype</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">dolfinx.fem</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">fem</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">dolfinx.log</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">log</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">dolfinx.mesh</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">mesh_dlf</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">dolfinx.nls.petsc</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nls_petsc</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">dolfinx.plot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plot_dlf</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pyvista</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">ufl</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dolfinx</span><span class="w"> </span><span class="kn">import</span> <span class="n">default_scalar_type</span> <span class="k">as</span> <span class="n">dtype</span>
 
-<span class="kn">import</span> <span class="nn">qugar</span>
-<span class="kn">import</span> <span class="nn">qugar.impl</span>
-<span class="kn">from</span> <span class="nn">qugar.dolfinx</span> <span class="kn">import</span> <span class="n">NonlinearProblem</span>
-<span class="kn">from</span> <span class="nn">qugar.mesh</span> <span class="kn">import</span> <span class="n">create_unfitted_impl_Cartesian_mesh</span>
-<span class="kn">from</span> <span class="nn">qugar.utils</span> <span class="kn">import</span> <span class="n">has_FEniCSx</span><span class="p">,</span> <span class="n">has_PETSc</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">qugar</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">qugar.impl</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qugar.dolfinx</span><span class="w"> </span><span class="kn">import</span> <span class="n">NonlinearProblem</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qugar.mesh</span><span class="w"> </span><span class="kn">import</span> <span class="n">create_unfitted_impl_Cartesian_mesh</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qugar.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">has_FEniCSx</span><span class="p">,</span> <span class="n">has_PETSc</span>
 
 <span class="c1"># Check for required dependencies</span>
 <span class="k">if</span> <span class="ow">not</span> <span class="n">has_FEniCSx</span><span class="p">:</span>
@@ -330,8 +330,12 @@ and the variational form for the hyperelasticity problem.</p>
 <h3>Visualization Setup<a class="headerlink" href="#visualization-setup" title="Link to this heading"></a></h3>
 <p>We set up PyVista for plotting and potentially creating a GIF of the deformation.
 Reparameterization meshes are created for smoother visualization.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Initialize PyVista plotter, enabling off-screen rendering if needed</span>
-<span class="n">pyvista</span><span class="o">.</span><span class="n">start_xvfb</span><span class="p">()</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Initialize PyVista plotter, enabling off-screen rendering if needed.</span>
+<span class="c1"># ``pyvista.start_xvfb`` is only useful on Linux for headless rendering,</span>
+<span class="c1"># and recent pyvista releases drop it from the top-level namespace, so</span>
+<span class="c1"># call it only when present.</span>
+<span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">pyvista</span><span class="p">,</span> <span class="s2">&quot;start_xvfb&quot;</span><span class="p">):</span>
+    <span class="n">pyvista</span><span class="o">.</span><span class="n">start_xvfb</span><span class="p">()</span>
 <span class="n">plotter</span> <span class="o">=</span> <span class="n">pyvista</span><span class="o">.</span><span class="n">Plotter</span><span class="p">()</span>
 
 <span class="c1"># Attempt to set up GIF creation</span>
@@ -396,7 +400,7 @@ Reparameterization meshes are created for smoother visualization.</p>
 <span class="n">magnitude</span> <span class="o">=</span> <span class="n">fem</span><span class="o">.</span><span class="n">Function</span><span class="p">(</span><span class="n">Vs</span><span class="p">)</span>
 <span class="c1"># Define expression for displacement magnitude: sqrt(u_x^2 + u_y^2 + u_z^2)</span>
 <span class="n">us_expr</span> <span class="o">=</span> <span class="n">ufl</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="nb">sum</span><span class="p">([</span><span class="n">u_rep</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">**</span> <span class="mi">2</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">dim</span><span class="p">)]))</span>
-<span class="n">us</span> <span class="o">=</span> <span class="n">fem</span><span class="o">.</span><span class="n">Expression</span><span class="p">(</span><span class="n">us_expr</span><span class="p">,</span> <span class="n">Vs</span><span class="o">.</span><span class="n">element</span><span class="o">.</span><span class="n">interpolation_points</span><span class="p">())</span>
+<span class="n">us</span> <span class="o">=</span> <span class="n">fem</span><span class="o">.</span><span class="n">Expression</span><span class="p">(</span><span class="n">us_expr</span><span class="p">,</span> <span class="n">Vs</span><span class="o">.</span><span class="n">element</span><span class="o">.</span><span class="n">interpolation_points</span><span class="p">)</span>
 <span class="n">magnitude</span><span class="o">.</span><span class="n">interpolate</span><span class="p">(</span><span class="n">us</span><span class="p">)</span>  <span class="c1"># Interpolate initial magnitude (zero)</span>
 <span class="n">warped</span><span class="p">[</span><span class="s2">&quot;mag&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">magnitude</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">array</span>  <span class="c1"># Add magnitude data to warped grid</span>
 </pre></div>

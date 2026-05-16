@@ -5,8 +5,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>qugar.plot.pyvista_tools &mdash; QUGaR 0.1.3 documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
+  <title>qugar.plot.pyvista_tools &mdash; QUGaR 0.3.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="../../../_static/dark_mode_css/general.css?v=c0a7eb24" />
       <link rel="stylesheet" type="text/css" href="../../../_static/dark_mode_css/dark.css?v=70edf1c7" />
@@ -14,7 +14,7 @@
   
       <script src="../../../_static/jquery.js?v=5d32c60e"></script>
       <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../../../_static/documentation_options.js?v=360bc84d"></script>
+      <script src="../../../_static/documentation_options.js?v=e259d695"></script>
       <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script src="../../../_static/dark_mode_js/default_dark.js?v=fd565c74"></script>
@@ -90,19 +90,19 @@
 <span class="sd">quadratures and reparameterizations.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">TypeAlias</span><span class="p">,</span> <span class="n">cast</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">TypeAlias</span><span class="p">,</span> <span class="n">cast</span>
 
-<span class="kn">from</span> <span class="nn">qugar.utils</span> <span class="kn">import</span> <span class="n">has_FEniCSx</span><span class="p">,</span> <span class="n">has_PyVista</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qugar.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">has_FEniCSx</span><span class="p">,</span> <span class="n">has_PyVista</span>
 
 <span class="k">if</span> <span class="ow">not</span> <span class="n">has_PyVista</span><span class="p">:</span>
     <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;PyVista installation not found is required.&quot;</span><span class="p">)</span>
 
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">import</span> <span class="nn">numpy.typing</span> <span class="k">as</span> <span class="nn">npt</span>
-<span class="kn">import</span> <span class="nn">pyvista</span> <span class="k">as</span> <span class="nn">pv</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy.typing</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">npt</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pyvista</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pv</span>
 
-<span class="kn">import</span> <span class="nn">qugar.cpp</span>
-<span class="kn">from</span> <span class="nn">qugar.cpp</span> <span class="kn">import</span> <span class="p">(</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">qugar.cpp</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qugar.cpp</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">CartGridTP_2D</span><span class="p">,</span>
     <span class="n">CartGridTP_3D</span><span class="p">,</span>
     <span class="n">CutCellsQuad_2D</span><span class="p">,</span>
@@ -118,7 +118,7 @@
     <span class="n">UnfittedDomain_2D</span><span class="p">,</span>
     <span class="n">UnfittedDomain_3D</span><span class="p">,</span>
 <span class="p">)</span>
-<span class="kn">from</span> <span class="nn">qugar.mesh</span> <span class="kn">import</span> <span class="p">(</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qugar.mesh</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">DOLFINx_to_lexicg_faces</span><span class="p">,</span>
     <span class="n">VTK_to_lexicg_faces</span><span class="p">,</span>
     <span class="n">VTK_to_lexicg_nodes</span><span class="p">,</span>
@@ -126,7 +126,7 @@
 <span class="p">)</span>
 
 
-<span class="k">def</span> <span class="nf">_scale_points</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_scale_points</span><span class="p">(</span>
     <span class="n">bbox</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">],</span> <span class="n">points_0_1</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
@@ -150,7 +150,7 @@
     <span class="k">return</span> <span class="n">points_0_1</span> <span class="o">*</span> <span class="p">(</span><span class="n">xmax</span> <span class="o">-</span> <span class="n">xmin</span><span class="p">)</span> <span class="o">+</span> <span class="n">xmin</span>
 
 
-<span class="k">def</span> <span class="nf">_facets_const_dirs</span><span class="p">(</span><span class="n">dim</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">]:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_facets_const_dirs</span><span class="p">(</span><span class="n">dim</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Generates an array of the constant directions of the facets of a reference cell.</span>
 
@@ -174,7 +174,7 @@
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
 
 
-<span class="k">def</span> <span class="nf">_facets_const_sides</span><span class="p">(</span><span class="n">dim</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">]:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_facets_const_sides</span><span class="p">(</span><span class="n">dim</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Generates an array representing the constant sides of the facets for a reference cell.</span>
 
@@ -198,7 +198,7 @@
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
 
 
-<span class="k">def</span> <span class="nf">_facets_active_dirs</span><span class="p">(</span><span class="n">dim</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">]:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_facets_active_dirs</span><span class="p">(</span><span class="n">dim</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns the active directions for the facets of a 2D or 3D reference cell.</span>
 
@@ -222,7 +222,7 @@
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
 
 
-<span class="k">def</span> <span class="nf">_get_PyVista_cell_type</span><span class="p">(</span><span class="n">dim</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">degree</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pv</span><span class="o">.</span><span class="n">CellType</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_get_PyVista_cell_type</span><span class="p">(</span><span class="n">dim</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">degree</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pv</span><span class="o">.</span><span class="n">CellType</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns the PyVista cell type based on the given dimension.</span>
 
@@ -258,7 +258,7 @@
     <span class="k">return</span> <span class="n">cast</span><span class="p">(</span><span class="n">pv</span><span class="o">.</span><span class="n">CellType</span><span class="p">,</span> <span class="n">cell_types</span><span class="p">[</span><span class="n">dim</span> <span class="o">-</span> <span class="mi">1</span><span class="p">])</span>
 
 
-<span class="k">def</span> <span class="nf">_create_unstructured_grid_from_points</span><span class="p">(</span><span class="n">points</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">pv</span><span class="o">.</span><span class="n">UnstructuredGrid</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_create_unstructured_grid_from_points</span><span class="p">(</span><span class="n">points</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">pv</span><span class="o">.</span><span class="n">UnstructuredGrid</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Create a PyVista unstructured grid from a set of points.</span>
 
@@ -282,7 +282,7 @@
     <span class="k">return</span> <span class="n">pv</span><span class="o">.</span><span class="n">UnstructuredGrid</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">cell_types</span><span class="p">,</span> <span class="n">points</span><span class="p">)</span>
 
 
-<span class="k">def</span> <span class="nf">_create_quad_points_grid</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_create_quad_points_grid</span><span class="p">(</span>
     <span class="n">grid</span><span class="p">:</span> <span class="n">CartGridTP_2D</span> <span class="o">|</span> <span class="n">CartGridTP_3D</span><span class="p">,</span>
     <span class="n">points</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">],</span>
     <span class="n">n_pts_per_entity</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">],</span>
@@ -349,7 +349,7 @@
     <span class="k">return</span> <span class="n">points_grid</span>
 
 
-<span class="k">def</span> <span class="nf">_cut_quad_to_PyVista</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_cut_quad_to_PyVista</span><span class="p">(</span>
     <span class="n">grid</span><span class="p">:</span> <span class="n">CartGridTP_2D</span> <span class="o">|</span> <span class="n">CartGridTP_3D</span><span class="p">,</span>
     <span class="n">quad</span><span class="p">:</span> <span class="n">CutCellsQuad_2D</span> <span class="o">|</span> <span class="n">CutCellsQuad_3D</span> <span class="o">|</span> <span class="n">CutUnfBoundsQuad_2D</span> <span class="o">|</span> <span class="n">CutUnfBoundsQuad_3D</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pv</span><span class="o">.</span><span class="n">UnstructuredGrid</span><span class="p">:</span>
@@ -378,7 +378,7 @@
     <span class="p">)</span>
 
 
-<span class="k">def</span> <span class="nf">_create_quad_facet_points_grid</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_create_quad_facet_points_grid</span><span class="p">(</span>
     <span class="n">grid</span><span class="p">:</span> <span class="n">CartGridTP_2D</span> <span class="o">|</span> <span class="n">CartGridTP_3D</span><span class="p">,</span>
     <span class="n">quads</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">CutIsoBoundsQuad_1D</span> <span class="o">|</span> <span class="n">CutIsoBoundsQuad_2D</span><span class="p">],</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pv</span><span class="o">.</span><span class="n">UnstructuredGrid</span><span class="p">:</span>
@@ -451,9 +451,9 @@
 
 
 <span class="k">if</span> <span class="n">has_FEniCSx</span><span class="p">:</span>
-    <span class="kn">from</span> <span class="nn">qugar.mesh</span> <span class="kn">import</span> <span class="n">Mesh</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">qugar.mesh</span><span class="w"> </span><span class="kn">import</span> <span class="n">Mesh</span>
 
-    <span class="k">def</span> <span class="nf">_append_DOLFINx_cell_ids</span><span class="p">(</span><span class="n">grid</span><span class="p">:</span> <span class="n">pv</span><span class="o">.</span><span class="n">UnstructuredGrid</span><span class="p">,</span> <span class="n">mesh</span><span class="p">:</span> <span class="n">Mesh</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_append_DOLFINx_cell_ids</span><span class="p">(</span><span class="n">grid</span><span class="p">:</span> <span class="n">pv</span><span class="o">.</span><span class="n">UnstructuredGrid</span><span class="p">,</span> <span class="n">mesh</span><span class="p">:</span> <span class="n">Mesh</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Appends DOLFINx local and global cell IDs to the given PyVista UnstructuredGrid.</span>
 
@@ -480,7 +480,7 @@
 
         <span class="k">return</span> <span class="kc">None</span>
 
-    <span class="k">def</span> <span class="nf">_append_DOLFINx_facets_ids</span><span class="p">(</span><span class="n">grid</span><span class="p">:</span> <span class="n">pv</span><span class="o">.</span><span class="n">UnstructuredGrid</span><span class="p">,</span> <span class="n">dim</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_append_DOLFINx_facets_ids</span><span class="p">(</span><span class="n">grid</span><span class="p">:</span> <span class="n">pv</span><span class="o">.</span><span class="n">UnstructuredGrid</span><span class="p">,</span> <span class="n">dim</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Appends DOLFINx local facet IDs to the given PyVista UnstructuredGrid.</span>
 
@@ -504,7 +504,7 @@
 
 <div class="viewcode-block" id="quadrature_to_PyVista">
 <a class="viewcode-back" href="../../../generated/qugar.plot.html#qugar.plot.quadrature_to_PyVista">[docs]</a>
-<span class="k">def</span> <span class="nf">quadrature_to_PyVista</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">quadrature_to_PyVista</span><span class="p">(</span>
     <span class="n">domain</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
     <span class="n">n_pts_dir</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">4</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pv</span><span class="o">.</span><span class="n">MultiBlock</span><span class="p">:</span>
@@ -533,7 +533,7 @@
         <span class="n">domain_</span> <span class="o">=</span> <span class="n">domain</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">assert</span> <span class="n">has_FEniCSx</span><span class="p">,</span> <span class="s2">&quot;FEniCSx is required to convert a TensorProductMesh to PyVista.&quot;</span>
-        <span class="kn">from</span> <span class="nn">qugar.mesh</span> <span class="kn">import</span> <span class="n">UnfittedDomain</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">qugar.mesh</span><span class="w"> </span><span class="kn">import</span> <span class="n">UnfittedDomain</span>
 
         <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">domain</span><span class="p">,</span> <span class="n">UnfittedDomain</span><span class="p">),</span> <span class="s2">&quot;Invalid type.&quot;</span>
         <span class="n">domain_</span> <span class="o">=</span> <span class="n">domain</span><span class="o">.</span><span class="n">cpp_unf_domain_object</span>
@@ -585,7 +585,7 @@
 
 <div class="viewcode-block" id="unfitted_domain_facets_to_PyVista">
 <a class="viewcode-back" href="../../../generated/qugar.plot.html#qugar.plot.unfitted_domain_facets_to_PyVista">[docs]</a>
-<span class="k">def</span> <span class="nf">unfitted_domain_facets_to_PyVista</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">unfitted_domain_facets_to_PyVista</span><span class="p">(</span>
     <span class="n">domain</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">cut</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">full</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">empty</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pv</span><span class="o">.</span><span class="n">UnstructuredGrid</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
@@ -663,7 +663,7 @@
 
 <div class="viewcode-block" id="unfitted_domain_to_PyVista">
 <a class="viewcode-back" href="../../../generated/qugar.plot.html#qugar.plot.unfitted_domain_to_PyVista">[docs]</a>
-<span class="k">def</span> <span class="nf">unfitted_domain_to_PyVista</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">unfitted_domain_to_PyVista</span><span class="p">(</span>
     <span class="n">domain</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">cut</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">full</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">empty</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pv</span><span class="o">.</span><span class="n">UnstructuredGrid</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
@@ -692,7 +692,7 @@
         <span class="n">n_cells</span> <span class="o">=</span> <span class="n">domain</span><span class="o">.</span><span class="n">num_total_cells</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">assert</span> <span class="n">has_FEniCSx</span><span class="p">,</span> <span class="s2">&quot;FEniCSx is required to convert a TensorProductMesh to PyVista.&quot;</span>
-        <span class="kn">from</span> <span class="nn">qugar.mesh</span> <span class="kn">import</span> <span class="n">UnfittedDomain</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">qugar.mesh</span><span class="w"> </span><span class="kn">import</span> <span class="n">UnfittedDomain</span>
 
         <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">domain</span><span class="p">,</span> <span class="n">UnfittedDomain</span><span class="p">),</span> <span class="s2">&quot;Invalid type.&quot;</span>
 
@@ -721,7 +721,7 @@
 
 <div class="viewcode-block" id="cart_grid_tp_to_PyVista">
 <a class="viewcode-back" href="../../../generated/qugar.plot.html#qugar.plot.cart_grid_tp_to_PyVista">[docs]</a>
-<span class="k">def</span> <span class="nf">cart_grid_tp_to_PyVista</span><span class="p">(</span><span class="n">grid</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pv</span><span class="o">.</span><span class="n">RectilinearGrid</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">cart_grid_tp_to_PyVista</span><span class="p">(</span><span class="n">grid</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pv</span><span class="o">.</span><span class="n">RectilinearGrid</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Converts a Cartesian grid to a PyVista `RectilinearGrid`.</span>
 
@@ -760,7 +760,7 @@
 
 
 
-<span class="k">def</span> <span class="nf">grid_tp_to_PyVista</span><span class="p">(</span><span class="n">grid</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pv</span><span class="o">.</span><span class="n">Grid</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">grid_tp_to_PyVista</span><span class="p">(</span><span class="n">grid</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pv</span><span class="o">.</span><span class="n">Grid</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Converts a tensor-product grid to a PyVista `Grid`.</span>
 
@@ -777,7 +777,7 @@
         <span class="k">return</span> <span class="n">cart_grid_tp_to_PyVista</span><span class="p">(</span><span class="n">grid</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">assert</span> <span class="n">has_FEniCSx</span><span class="p">,</span> <span class="s2">&quot;FEniCSx is required to convert a TensorProductMesh to PyVista.&quot;</span>
-        <span class="kn">from</span> <span class="nn">qugar.mesh</span> <span class="kn">import</span> <span class="n">CartesianMesh</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">qugar.mesh</span><span class="w"> </span><span class="kn">import</span> <span class="n">CartesianMesh</span>
 
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">grid</span><span class="p">,</span> <span class="n">CartesianMesh</span><span class="p">):</span>
             <span class="k">return</span> <span class="n">cart_grid_tp_to_PyVista</span><span class="p">(</span><span class="n">grid</span><span class="p">)</span>
@@ -788,7 +788,7 @@
 <span class="n">ReparamMesh</span><span class="p">:</span> <span class="n">TypeAlias</span> <span class="o">=</span> <span class="n">ReparamMesh_1_2</span> <span class="o">|</span> <span class="n">ReparamMesh_2_2</span> <span class="o">|</span> <span class="n">ReparamMesh_2_3</span> <span class="o">|</span> <span class="n">ReparamMesh_3_3</span>
 
 
-<span class="k">def</span> <span class="nf">_reparam_mesh_to_PyVista</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_reparam_mesh_to_PyVista</span><span class="p">(</span>
     <span class="n">reparam</span><span class="p">:</span> <span class="n">ReparamMesh</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pv</span><span class="o">.</span><span class="n">MultiBlock</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
@@ -819,7 +819,7 @@
         <span class="n">zeros</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">points</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">1</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">points</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
         <span class="n">points</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">((</span><span class="n">points</span><span class="p">,</span> <span class="n">zeros</span><span class="p">))</span>
 
-    <span class="k">def</span> <span class="nf">_create_unstructured_grid</span><span class="p">(</span><span class="n">conn</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">],</span> <span class="n">dim</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pv</span><span class="o">.</span><span class="n">UnstructuredGrid</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_create_unstructured_grid</span><span class="p">(</span><span class="n">conn</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">],</span> <span class="n">dim</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pv</span><span class="o">.</span><span class="n">UnstructuredGrid</span><span class="p">:</span>
         <span class="n">vtk_mask</span> <span class="o">=</span> <span class="n">VTK_to_lexicg_nodes</span><span class="p">(</span><span class="n">dim</span><span class="p">,</span> <span class="n">degree</span><span class="p">)</span>
 
         <span class="n">n_cells</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
@@ -839,7 +839,7 @@
 
 <div class="viewcode-block" id="reparam_mesh_to_PyVista">
 <a class="viewcode-back" href="../../../generated/qugar.plot.html#qugar.plot.reparam_mesh_to_PyVista">[docs]</a>
-<span class="k">def</span> <span class="nf">reparam_mesh_to_PyVista</span><span class="p">(</span><span class="n">reparam</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pv</span><span class="o">.</span><span class="n">MultiBlock</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">reparam_mesh_to_PyVista</span><span class="p">(</span><span class="n">reparam</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pv</span><span class="o">.</span><span class="n">MultiBlock</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Converts a reparameterization mesh object to a PyVista `MultiBlock`.</span>
 
@@ -860,9 +860,9 @@
         <span class="k">return</span> <span class="n">_reparam_mesh_to_PyVista</span><span class="p">(</span><span class="n">reparam</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">assert</span> <span class="n">has_FEniCSx</span><span class="p">,</span> <span class="s2">&quot;FEniCSx is required to convert a TensorProductMesh to PyVista.&quot;</span>
-        <span class="kn">import</span> <span class="nn">dolfinx.plot</span> <span class="k">as</span> <span class="nn">plot_dlf</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">dolfinx.plot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plot_dlf</span>
 
-        <span class="kn">from</span> <span class="nn">qugar.reparam</span> <span class="kn">import</span> <span class="n">UnfDomainReparamMesh</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">qugar.reparam</span><span class="w"> </span><span class="kn">import</span> <span class="n">UnfDomainReparamMesh</span>
 
         <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">reparam</span><span class="p">,</span> <span class="n">UnfDomainReparamMesh</span><span class="p">),</span> <span class="s2">&quot;Invalid type.&quot;</span>
 

@@ -15,8 +15,8 @@ var impl__funcs__lib_8hpp =
     [ "qugar::impl::funcs::Negative< dim >", "d2/d90/classqugar_1_1impl_1_1funcs_1_1Negative.html", "d2/d90/classqugar_1_1impl_1_1funcs_1_1Negative" ],
     [ "qugar::impl::funcs::AddFunctions< dim >", "d3/deb/classqugar_1_1impl_1_1funcs_1_1AddFunctions.html", "d3/deb/classqugar_1_1impl_1_1funcs_1_1AddFunctions" ],
     [ "qugar::impl::funcs::SubtractFunctions< dim >", "dc/dde/classqugar_1_1impl_1_1funcs_1_1SubtractFunctions.html", "dc/dde/classqugar_1_1impl_1_1funcs_1_1SubtractFunctions" ],
-    [ "Hessian_t", "d5/d2a/impl__funcs__lib_8hpp.html#aeeafa0044eebc834e90c76f13c9416d3", null ],
-    [ "NewVector_t", "d5/d2a/impl__funcs__lib_8hpp.html#adc04d4bb00e1faf9bee1bbecc7988531", null ],
-    [ "VectorType_t", "d5/d2a/impl__funcs__lib_8hpp.html#a976b561a3e4314c2880e5bf84b2f3dce", null ],
-    [ "pow", "d5/d2a/impl__funcs__lib_8hpp.html#a21a5a848ca38b8876f22beeb9613ec8a", null ]
+    [ "qugar::impl::funcs::_impl::Hessian_t", "d1/d03/namespacequgar_1_1impl_1_1funcs_1_1__impl.html#aeeafa0044eebc834e90c76f13c9416d3", null ],
+    [ "qugar::impl::funcs::_impl::NewVector_t", "d1/d03/namespacequgar_1_1impl_1_1funcs_1_1__impl.html#adc04d4bb00e1faf9bee1bbecc7988531", null ],
+    [ "qugar::impl::funcs::_impl::VectorType_t", "d1/d03/namespacequgar_1_1impl_1_1funcs_1_1__impl.html#a976b561a3e4314c2880e5bf84b2f3dce", null ],
+    [ "qugar::impl::funcs::_impl::pow", "d1/d03/namespacequgar_1_1impl_1_1funcs_1_1__impl.html#a21a5a848ca38b8876f22beeb9613ec8a", null ]
 ];

@@ -20,6 +20,7 @@ var hierarchy =
     ] ],
     [ "qugar::impl::DomainFunc< dim, range >", "dd/d80/classqugar_1_1impl_1_1DomainFunc.html", [
       [ "qugar::impl::PolynomialTP< dim, 1 >", "d2/d05/classqugar_1_1impl_1_1PolynomialTP.html", [
+        [ "qugar::impl::BezierTP< dim, range >", "de/dca/classqugar_1_1impl_1_1BezierTP.html", null ],
         [ "qugar::impl::MonomialsTP< dim, range >", "d2/d87/classqugar_1_1impl_1_1MonomialsTP.html", null ]
       ] ],
       [ "qugar::impl::PolynomialTP< dim, range >", "d2/d05/classqugar_1_1impl_1_1PolynomialTP.html", [
@@ -35,9 +36,10 @@ var hierarchy =
         [ "qugar::impl::BezierTP< 3, 1 >", "de/dca/classqugar_1_1impl_1_1BezierTP.html", [
           [ "qugar::impl::funcs::CylinderBzr", "dc/de2/classqugar_1_1impl_1_1funcs_1_1CylinderBzr.html", null ],
           [ "qugar::impl::funcs::TorusBzr", "d0/dc9/classqugar_1_1impl_1_1funcs_1_1TorusBzr.html", null ]
-        ] ],
-        [ "qugar::impl::BezierTP< dim, range >", "de/dca/classqugar_1_1impl_1_1BezierTP.html", null ]
-      ] ],
+        ] ]
+      ] ]
+    ] ],
+    [ "qugar::impl::DomainFunc< dim, 1 >", "dd/d80/classqugar_1_1impl_1_1DomainFunc.html", [
       [ "qugar::impl::funcs::AddFunctions< dim >", "d3/deb/classqugar_1_1impl_1_1funcs_1_1AddFunctions.html", null ],
       [ "qugar::impl::funcs::Annulus", "da/dd6/classqugar_1_1impl_1_1funcs_1_1Annulus.html", null ],
       [ "qugar::impl::funcs::Constant< dim >", "d7/d02/classqugar_1_1impl_1_1funcs_1_1Constant.html", null ],

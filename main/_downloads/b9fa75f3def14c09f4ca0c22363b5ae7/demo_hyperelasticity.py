@@ -246,8 +246,12 @@ ksp.setFromOptions()
 # Reparameterization meshes are created for smoother visualization.
 
 # +
-# Initialize PyVista plotter, enabling off-screen rendering if needed
-pyvista.start_xvfb()
+# Initialize PyVista plotter, enabling off-screen rendering if needed.
+# ``pyvista.start_xvfb`` is only useful on Linux for headless rendering,
+# and recent pyvista releases drop it from the top-level namespace, so
+# call it only when present.
+if hasattr(pyvista, "start_xvfb"):
+    pyvista.start_xvfb()
 plotter = pyvista.Plotter()
 
 # Attempt to set up GIF creation
@@ -312,7 +316,7 @@ Vs = fem.functionspace(rep_mesh, ("Lagrange", rep_degree))  # Scalar space for m
 magnitude = fem.Function(Vs)
 # Define expression for displacement magnitude: sqrt(u_x^2 + u_y^2 + u_z^2)
 us_expr = ufl.sqrt(sum([u_rep[i] ** 2 for i in range(dim)]))
-us = fem.Expression(us_expr, Vs.element.interpolation_points())
+us = fem.Expression(us_expr, Vs.element.interpolation_points)
 magnitude.interpolate(us)  # Interpolate initial magnitude (zero)
 warped["mag"] = magnitude.x.array  # Add magnitude data to warped grid
 # -
