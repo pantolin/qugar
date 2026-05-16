@@ -239,8 +239,16 @@ def _evaluate_FE_tables_same_element(
         )
 
         if shape[-1] != fe_table.funcs:
-            vals = vals.reshape(shape[2], fe_table.funcs, -1)
-            vals = vals[:, :, fe_table.component]
+            # Non-blocked vector elements (Raviart-Thomas, Nedelec, BDM,
+            # ...): ``basix.ufl._BasixElement.tabulate`` flattens the
+            # ``(n_basis_functions, value_size)`` tail into a single
+            # axis in **component-first** order, i.e.
+            # ``[phi0_c0, phi1_c0, ..., phi(n-1)_c0, phi0_c1, ...]``.
+            # FFCx stores each component in its own FE table, so for a
+            # ``fe_table`` referring to ``component = c`` we take the
+            # ``c``-th slice along that axis.
+            vals = vals.reshape(shape[2], -1, fe_table.funcs)
+            vals = vals[:, fe_table.component, :]
 
         values[fe_table] = vals.reshape(shape[2], fe_table.funcs)
 

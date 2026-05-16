@@ -16,20 +16,16 @@ only use ``Lagrange`` (and its vector variant). The qugar custom
 form / quadrature pipeline must also handle:
 
 * Discontinuous Galerkin (``Lagrange`` with ``discontinuous=True``) --
-  same basis as Lagrange but with a different DOF layout. Currently
-  works.
-* H(curl) Nedelec elements -- covariant Piola transform. Currently
-  produces wrong values (xfail).
-* H(div) Raviart-Thomas / BDM elements -- contravariant Piola
-  transform. Currently produces wrong values (xfail).
+  same basis as Lagrange but with a different DOF layout.
+* H(curl) Nedelec elements -- covariant Piola transform applied by the
+  ffcx kernel; qugar's job is to provide reference-space basis values
+  in the right component ordering.
+* H(div) Raviart-Thomas / BDM elements -- contravariant Piola transform
+  applied by the ffcx kernel; same constraint on qugar.
 * Mixed elements built via ``basix.ufl.mixed_element`` -- multiple
   sub-elements sharing a single function space. Currently raises
   ``ValueError`` from ``element.tabulate(...)`` inside qugar's
-  ``_evaluate_scalar_element_derivatives`` (xfail).
-
-The xfail-marked tests are scaffolding for the upcoming refactor: as
-the fixes land they should turn into XPASS and then have the marker
-removed.
+  ``_evaluate_scalar_element_derivatives`` (xfail; pending refactor).
 """
 
 from qugar.utils import has_FEniCSx
@@ -112,15 +108,6 @@ def test_dg_vector_grad_grad(dim, simplex_cell, dtype):
 # ---------------------------------------------------------------------------
 
 
-@pytest.mark.xfail(
-    reason=(
-        "Nedelec 1st kind requires covariant Piola transform J^-T phi_ref "
-        "when re-evaluating basis on cut cells; qugar's "
-        "_evaluate_FE_tables_same_element treats it as an affine-mapped "
-        "element. Fix is part of the upcoming refactor."
-    ),
-    strict=False,
-)
 @pytest.mark.parametrize("dtype", dtypes)
 @pytest.mark.parametrize("dim", [2, 3])
 def test_nedelec_1st_mass(dim, dtype):
@@ -137,10 +124,6 @@ def test_nedelec_1st_mass(dim, dtype):
     run_matrix_check(a, unf)
 
 
-@pytest.mark.xfail(
-    reason="See test_nedelec_1st_mass. Same Piola-transform issue.",
-    strict=False,
-)
 @pytest.mark.parametrize("dtype", dtypes)
 @pytest.mark.parametrize("dim", [2, 3])
 def test_nedelec_2nd_mass(dim, dtype):
@@ -157,13 +140,6 @@ def test_nedelec_2nd_mass(dim, dtype):
     run_matrix_check(a, unf)
 
 
-@pytest.mark.xfail(
-    reason=(
-        "Raviart-Thomas needs contravariant Piola transform (J/det J) phi_ref "
-        "for basis re-evaluation; qugar applies an affine map instead."
-    ),
-    strict=False,
-)
 @pytest.mark.parametrize("dtype", dtypes)
 @pytest.mark.parametrize("dim", [2, 3])
 def test_raviart_thomas_mass(dim, dtype):
@@ -178,10 +154,6 @@ def test_raviart_thomas_mass(dim, dtype):
     run_matrix_check(a, unf)
 
 
-@pytest.mark.xfail(
-    reason="See test_raviart_thomas_mass. Same contravariant Piola issue.",
-    strict=False,
-)
 @pytest.mark.parametrize("dtype", dtypes)
 @pytest.mark.parametrize("dim", [2, 3])
 def test_bdm_mass(dim, dtype):
@@ -264,10 +236,7 @@ def test_mixed_lagrange_dg(dim, simplex_cell, dtype):
 
 
 @pytest.mark.xfail(
-    reason=(
-        "Combines two qugar limitations: mixed-element tabulate AND "
-        "covariant Piola for the Nedelec block."
-    ),
+    reason="See test_mixed_taylor_hood. Mixed-element tabulate issue.",
     strict=False,
 )
 @pytest.mark.parametrize("dtype", dtypes)
