@@ -23,9 +23,10 @@ form / quadrature pipeline must also handle:
 * H(div) Raviart-Thomas / BDM elements -- contravariant Piola transform
   applied by the ffcx kernel; same constraint on qugar.
 * Mixed elements built via ``basix.ufl.mixed_element`` -- multiple
-  sub-elements sharing a single function space. Currently raises
-  ``ValueError`` from ``element.tabulate(...)`` inside qugar's
-  ``_evaluate_scalar_element_derivatives`` (xfail; pending refactor).
+  sub-elements sharing a single function space. qugar drills into the
+  correct sub-element per flat component (see
+  ``fe_table_eval._resolve_mixed_component``) instead of calling
+  ``tabulate`` on the mixed element directly.
 """
 
 from qugar.utils import has_FEniCSx
@@ -175,15 +176,6 @@ def test_bdm_mass(dim, dtype):
 # ---------------------------------------------------------------------------
 
 
-@pytest.mark.xfail(
-    reason=(
-        "qugar's _evaluate_scalar_element_derivatives calls "
-        "basix.ufl._BlockedElement.tabulate (the mixed-element wrapper) "
-        "but cannot unflatten its block-structured output. Fix is part of "
-        "the upcoming refactor."
-    ),
-    strict=False,
-)
 @pytest.mark.parametrize("dtype", dtypes)
 @pytest.mark.parametrize("simplex_cell", [True, False])
 @pytest.mark.parametrize("dim", [2, 3])
@@ -206,10 +198,6 @@ def test_mixed_taylor_hood(dim, simplex_cell, dtype):
     run_matrix_check(a, unf)
 
 
-@pytest.mark.xfail(
-    reason="See test_mixed_taylor_hood. Mixed-element tabulate issue.",
-    strict=False,
-)
 @pytest.mark.parametrize("dtype", dtypes)
 @pytest.mark.parametrize("simplex_cell", [True, False])
 @pytest.mark.parametrize("dim", [2, 3])
@@ -235,10 +223,6 @@ def test_mixed_lagrange_dg(dim, simplex_cell, dtype):
     run_matrix_check(a, unf)
 
 
-@pytest.mark.xfail(
-    reason="See test_mixed_taylor_hood. Mixed-element tabulate issue.",
-    strict=False,
-)
 @pytest.mark.parametrize("dtype", dtypes)
 def test_mixed_nedelec_lagrange(dtype):
     """Mixed H(curl) formulation: Nedelec + Lagrange (3D simplex)."""

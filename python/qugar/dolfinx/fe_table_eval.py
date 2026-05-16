@@ -126,6 +126,38 @@ def _evaluate_scalar_element_derivatives(
     return tables
 
 
+def _resolve_mixed_component(
+    element: ElementBase, flat_component: int
+) -> tuple[ElementBase, int]:
+    """For a ``basix.ufl._MixedElement``, drill into the sub-element
+    that owns ``flat_component`` and return
+    ``(sub_element, component_within_sub)``.
+
+    For non-mixed elements (plain ``_BasixElement``, ``_BlockedElement``,
+    ``_QuadratureElement``, ...) the input is returned unchanged.
+
+    Recursive so nested mixed elements work.
+
+    This is the qugar workaround for an inconsistency in
+    ``basix.ufl._MixedElement.tabulate`` (it can't aggregate
+    sub-element tabulations whose shapes differ -- e.g. mixing a
+    ``_BlockedElement``'s 4-D output with a scalar element's 3-D
+    output). Instead of calling ``tabulate`` on the mixed element, we
+    tabulate the resolved sub-element directly.
+    """
+    if not isinstance(element, basix.ufl._MixedElement):
+        return element, flat_component
+    acc = 0
+    for sub in element.sub_elements:
+        if flat_component < acc + sub.reference_value_size:
+            return _resolve_mixed_component(sub, flat_component - acc)
+        acc += sub.reference_value_size
+    raise ValueError(
+        f"flat_component {flat_component} out of range for mixed element "
+        f"with reference_value_size {element.reference_value_size}"
+    )
+
+
 def _check_groupable_tables(table_0: FETable, table_1: FETable) -> bool:
     """Checks if the two given tables are groupable. We say that they
     are groupable if the share the same base element, they have same
@@ -143,11 +175,14 @@ def _check_groupable_tables(table_0: FETable, table_1: FETable) -> bool:
 
     sub_elems = []
     for table in [table_0, table_1]:
-        elem = table.element
+        # For mixed elements, the table's ``component`` is a flat index
+        # into the full mixed element; drill into the sub-element
+        # before comparing.
+        elem, local_c = _resolve_mixed_component(table.element, table.component)
         if elem.block_size == 1:
             sub_elems.append(elem)
         else:
-            sub_elem, _, _ = elem.get_component_element(table.component)
+            sub_elem, _, _ = elem.get_component_element(local_c)
             sub_elems.append(sub_elem)
 
     return (
@@ -218,11 +253,19 @@ def _evaluate_FE_tables_same_element(
 
     all_derivatives = list(set([table.derivatives for table in fe_tables]))
 
-    element_ = ref_fe_table.element
+    # Drill through ``basix.ufl._MixedElement`` to the sub-element
+    # responsible for the reference table's component. Tables in the
+    # same group (per ``_check_groupable_tables``) all resolve to the
+    # same sub-element, so the first table is representative.
+    element_, _ref_local_c = _resolve_mixed_component(
+        ref_fe_table.element, ref_fe_table.component
+    )
     if element_.block_size > 1:
-        # If the element is a vector element, we need to get the
-        # sub-element for the component
-        element_, _, _ = element_.get_component_element(ref_fe_table.component)
+        # Blocked (vector) element such as vector Lagrange: drill down
+        # to the underlying scalar sub-element. The scalar tabulate
+        # values are block-replicated across all components of the
+        # vector, so any valid local component will do.
+        element_, _, _ = element_.get_component_element(_ref_local_c)
     raw_vals = _evaluate_scalar_element_derivatives(
         element_,
         points,
@@ -231,6 +274,11 @@ def _evaluate_FE_tables_same_element(
     )
 
     for fe_table in fe_tables:
+        # Per-table local component within its (post-mixed-resolution)
+        # element. For pure non-mixed elements this is just
+        # ``fe_table.component``.
+        _, local_c = _resolve_mixed_component(fe_table.element, fe_table.component)
+
         vals = raw_vals[fe_table.derivatives]
 
         shape = vals.shape
@@ -245,10 +293,11 @@ def _evaluate_FE_tables_same_element(
             # axis in **component-first** order, i.e.
             # ``[phi0_c0, phi1_c0, ..., phi(n-1)_c0, phi0_c1, ...]``.
             # FFCx stores each component in its own FE table, so for a
-            # ``fe_table`` referring to ``component = c`` we take the
+            # ``fe_table`` referring to local component ``c`` (within
+            # its sub-element after mixed resolution) we take the
             # ``c``-th slice along that axis.
             vals = vals.reshape(shape[2], -1, fe_table.funcs)
-            vals = vals[:, fe_table.component, :]
+            vals = vals[:, local_c, :]
 
         values[fe_table] = vals.reshape(shape[2], fe_table.funcs)
 
