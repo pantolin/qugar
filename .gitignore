@@ -8,7 +8,12 @@ conan-cache/
 # User specific settings
 CMakeUserPresets.json
 CLAUDE.md
+AGENTS.md
 .claude/
+
+# Demo / test output artifacts
+results/
+demo_hyperelasticity_final.pdf
 
 # Headers generated at compile time
 cpp/include/qugar/version.hpp
