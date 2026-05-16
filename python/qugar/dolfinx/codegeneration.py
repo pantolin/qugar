@@ -161,12 +161,16 @@ class _IntegralModifier:
                 tensor integral function to be split in blocks.
         """
 
-        itg_pattern = r"void\s*tabulate_tensor_integral_\w+\s*\([\w|\s|\,|*]*\)"
+        itg_pattern = r"void\s*tabulate_tensor_integral_(\w+)\s*\([\w|\s|\,|*]*\)"
         match = re.search(itg_pattern, code)
         assert match, "Integral not found."
 
         self._before_func = code[: match.start()]
         self._func_signt = match.group(0)
+        # In FEniCSx 0.10.0, the kernel name is "integral_<hash>_<cell_type>"
+        # (e.g. "_hexahedron"). self._data.name only carries the hash part, so
+        # we read the full suffix-aware name from the actual function signature.
+        self._integral_name = match.group(1)
 
         sub_code = code[match.end() :]
 
@@ -233,7 +237,7 @@ class _IntegralModifier:
 
         # Checking that sum-factorization is disabled.
 
-        for quad in self._ir.expression.integrand.keys():
+        for _cell_type, quad in self._ir.expression.integrand.keys():
             if quad.has_tensor_factors:  # type: ignore
                 raise ValueError(
                     "Sum-factorization quadrature it is incompatible with "
@@ -773,7 +777,7 @@ class _IntegralModifier:
             str: New generated C code.
         """
 
-        name = self._data.name
+        name = self._integral_name
         new_code = self._func_signt.replace(name, f"{name}_original")
 
         if self._has_unfitted_boundary():
@@ -803,7 +807,7 @@ class _IntegralModifier:
         """
 
         # Creating new function signature.
-        name = self._data.name
+        name = self._integral_name
         new_signt = self._func_signt.replace(name, f"{name}_custom")
 
         coeff_dtype_str = dtype_to_C_str(self._coeffs_dtype)
@@ -866,15 +870,15 @@ class _IntegralModifier:
             code_impl += f"(const {dtype_str} *) ({offset_str})"
         code_impl += ";\n"
 
-        name = self._data.name
+        name = self._integral_name
         code_impl += (
             f"  tabulate_tensor_integral_{name}_custom(A, w, w_custom, c, "
-            "coordinate_dofs, entity_local_index, quadrature_permutation);\n"
+            "coordinate_dofs, entity_local_index, quadrature_permutation, custom_data);\n"
         )
         code_impl += "}\nelse if (is_full)\n{\n"
         code_impl += (
             f"  tabulate_tensor_integral_{name}_original(A, w, c, "
-            "coordinate_dofs, entity_local_index, quadrature_permutation);\n"
+            "coordinate_dofs, entity_local_index, quadrature_permutation, custom_data);\n"
         )
         code_impl += "}\n}\n"
 
@@ -939,6 +943,15 @@ def generate_code(
 
     code_blocks = ffcx.codegeneration.codegeneration.generate_code(ir, ffcx_options)
     code_blocks = _modify_header(code_blocks)
+
+    # In FEniCSx 0.10.0, ffcx emits one code block per (integral, cell_type)
+    # pair, so the lists may diverge when an integral spans multiple cell
+    # types. qugar currently supports a single cell type per integral, so the
+    # lengths must match for the index pairing below to be valid.
+    assert len(code_blocks.integrals) == len(ir.integrals), (
+        "qugar requires one cell type per integral; multi-cell-type integrals "
+        "(e.g. prism/pyramid facets) are not yet supported."
+    )
 
     itg_datas = []
     for i, (header, impl) in enumerate(code_blocks.integrals):

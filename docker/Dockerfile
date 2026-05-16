@@ -1,4 +1,4 @@
-FROM ghcr.io/fenics/dolfinx/dolfinx:v0.9.0
+FROM ghcr.io/fenics/dolfinx/dolfinx:v0.10.0
 
 WORKDIR /tmp
 
@@ -17,7 +17,7 @@ RUN apt-get -qq update && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-# The following is taken from DOLFINx. This shouldn't be needed in a newer (>0.9.X) DOLFINx version
+# The following is taken from DOLFINx. This shouldn't be needed in a newer (>0.10.X) DOLFINx version
 ARG PYVISTA_VERSION=0.44.1
 
 # pyvista dependencies from apt

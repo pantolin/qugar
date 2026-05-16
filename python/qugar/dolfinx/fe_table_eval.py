@@ -15,28 +15,17 @@ from qugar.utils import has_FEniCSx
 if not has_FEniCSx:
     raise ValueError("FEniCSx installation not found is required.")
 
-import typing
 from typing import Optional, Tuple, cast
 
 import basix.ufl
-import ffcx.ir.elementtables
 import numpy as np
 import numpy.typing as npt
-import ufl.cell
-from basix.ufl import _BasixElement as BasixElement
 from basix.ufl import _ElementBase as ElementBase
 from ffcx.element_interface import basix_index
 from ffcx.ir.elementtables import (
-    analyse_table_type,
     clamp_table_small_numbers,
     default_atol,
     default_rtol,
-    is_permuted_table,
-    permute_quadrature_interval,
-    permute_quadrature_quadrilateral,
-    permute_quadrature_triangle,
-    piecewise_ttypes,
-    uniform_ttypes,
 )
 from ffcx.ir.representationutils import create_quadrature_points_and_weights
 
@@ -137,197 +126,36 @@ def _evaluate_scalar_element_derivatives(
     return tables
 
 
-def _get_cell_permutations(cell: ufl.cell.Cell) -> tuple[list[list[int]], typing.Any]:
-    """Creates all the permutations, and the function for performing
-    them, for a given cell
+def _resolve_mixed_component(
+    element: ElementBase, flat_component: int
+) -> tuple[ElementBase, int]:
+    """For a ``basix.ufl._MixedElement``, drill into the sub-element
+    that owns ``flat_component`` and return
+    ``(sub_element, component_within_sub)``.
 
-    Args:
-        cell (_type_): _description_
+    For non-mixed elements (plain ``_BasixElement``, ``_BlockedElement``,
+    ``_QuadratureElement``, ...) the input is returned unchanged.
 
-    Returns:
-        tuple[list[list[int]], typing.Any]: First, list with all the
-        permutations, that in 2D and 3D are defined by a reflection
-        and rotation couple, while in 1D is just a reflection.
-        Second, the function for permuting an array of points using
-        the permutations.
+    Recursive so nested mixed elements work.
+
+    This is the qugar workaround for an inconsistency in
+    ``basix.ufl._MixedElement.tabulate`` (it can't aggregate
+    sub-element tabulations whose shapes differ -- e.g. mixing a
+    ``_BlockedElement``'s 4-D output with a scalar element's 3-D
+    output). Instead of calling ``tabulate`` on the mixed element, we
+    tabulate the resolved sub-element directly.
     """
-    perm_args = []
-
-    tdim = cell.topological_dimension()
-    if tdim == 1:
-        perm_args.append([0])
-
-        def identity(points, perm):
-            return points
-
-        permute_func = identity
-    elif tdim == 2:
-        perm_args.append([0])
-        perm_args.append([1])
-        permute_func = permute_quadrature_interval
-    else:
-        assert tdim == 3
-        cell_type = cell.cellname()
-        if cell_type == "tetrahedron":
-            permute_func = permute_quadrature_triangle
-            num_sides = 3
-        else:
-            assert cell_type == "hexahedron"
-            permute_func = permute_quadrature_quadrilateral
-            num_sides = 4
-
-        for rot in range(num_sides):
-            for ref in [0, 1]:
-                perm_args.append([ref, rot])
-
-    return perm_args, permute_func
-
-
-def _evaluate_element(
-    element: BasixElement,
-    points: npt.NDArray[np.float64],
-    integral_type: str,
-    avg: Optional[str],
-    entity_type: str,
-    local_derivatives: tuple[int, ...],
-    flat_component: int,
-    is_mixed_dim: bool,
-    codim: int,
-) -> npt.NDArray[np.float64]:
-    """Evaluates the given `element` for creating FE table values, given
-    some additional inputs.
-
-    This piece of code was initially copied from
-    ``ffcx.ir.elementtables.build_optimized_tables``,
-    and subsequently modified.
-
-    Args:
-        element (BasixElement): Element whose basis functions are
-            evaluated. It may be a vector element (its corresponding
-            component is specified by `flat_component`).
-        points (npt.NDArray[np.float64]): Points (in the reference
-            domain of the element) where the derivatives are computed.
-            In the case of facet `integral_type`, these points will be
-            referred to the facet reference domain.
-        integral_type (str): Integral type. It may be ``cell``,
-            ``interior_facet``, or ``exterior_facet``.
-        avg (Optional[str]): String indicating indicating if basis
-            functions average must be computed. If defined, it only
-            can be ``cell`` or ``facet``.
-        entity_type (str): Entity type. It may be ``facet`` or ``cell``.
-            ``vertex`` is not allowed.
-        local_derivatives (tuple[int, ...]): Order of the derivatives
-            along the parametric directions to compute. If 0, no
-            derivative is computed along that specific direction.
-        flat_component (int): Component of the basis to compute.
-        is_mixed_dim (bool): Flag indicating if the integral to which
-            the element evaluation is associated to presents mixed
-            dimensions or not.
-        codim (int): Codimension of the evaluation domain respect
-            to the element.
-
-    Returns:
-        npt.NDArray[np.float64]: Computed values.
-    """
-
-    def get_ffcx_table_values(
-        points: npt.NDArray[np.float64],
-    ) -> npt.NDArray[np.float64]:
-        return ffcx.ir.elementtables.get_ffcx_table_values(
-            points,
-            cell,
-            integral_type,
-            element,
-            avg,
-            entity_type,
-            local_derivatives,
-            flat_component,
-            codim,
-        )["array"]
-
-    cell = element.cell
-    tdim = cell.topological_dimension()
-
-    # Code adapted from ffcx.ir.elementtables.py build_optimized_tables
-
-    # Only permute quadrature rules for interior facets integrals and
-    # for the codim zero element in mixed-dimensional integrals. The
-    # latter is needed because a cell may see its sub-entities as being
-    # oriented differently to their global orientation
-    if integral_type == "interior_facet" or (is_mixed_dim and codim == 0):
-        # Do not add permutations if codim=1 as facets have already
-        # gotten a global orientation in DOLFINx
-        if 2 <= tdim and codim == 0:
-            perm_args, permute_func = _get_cell_permutations(cell)
-
-            new_table = []
-            for perm_arg in perm_args:
-                perm_points = permute_func(points, *perm_arg)
-                new_table.append(get_ffcx_table_values(perm_points))
-
-            return np.vstack(new_table)
-
-    return get_ffcx_table_values(points)
-
-
-def _format_table_values(
-    tbl: npt.NDArray[np.float64],
-    table_type: Optional[str] = None,
-    is_permuted: Optional[bool] = None,
-    rtol: float = default_rtol,
-    atol: float = default_atol,
-) -> npt.NDArray[np.float64]:
-    """Formats the values for a FE table.
-
-    This piece of code was copied from
-    `ffcx.ir.elementtables.build_optimized_tables`, adapting it for the
-    case in which sum factorization is not considered, and for accepting
-    new arguments `tabletype` and `is_permuted`.
-
-    Args:
-        tbl (npt.NDArray[np.float64]): 4-dimensional array containing
-            the table values.
-        table_type (str, optional): Type of table, i.e., ``fixed``,
-            ``piecewise``, ``uniform``, or ``varying``. If not provided,
-            the table type is computed, what may be expensive (even
-            more than computing the table itself). Defaults to None.
-        is_permuted (bool, optional): Whether or not the table must
-            contain permutations. If not provided, it is computed.
-            Defaults to None.
-        rtol (float, optional): Relative tolerance used for clamping
-            near zero values. Defaults to default_rtol.
-        atol (float, optional): Absolute tolerance used for clamping
-            near zero values. Defaults to default_atol.
-
-    Returns:
-        npt.NDArray[np.float64]: Formated values.
-    """
-
-    assert len(tbl.shape) == 4
-
-    # Clean up table
-    if table_type is None or is_permuted is None:
-        tbl = clamp_table_small_numbers(tbl, rtol=rtol, atol=atol)
-        table_type = analyse_table_type(tbl)
-
-    if table_type in piecewise_ttypes:
-        # Reduce table to dimension 1 along num_points axis in
-        # generated code
-        tbl = tbl[:, :, :1, :]
-
-    if table_type in uniform_ttypes:
-        # Reduce table to dimension 1 along num_entities axis in
-        # generated code
-        tbl = tbl[:, :1, :, :]
-
-    if is_permuted is None:
-        is_permuted = is_permuted_table(tbl)
-
-    if not is_permuted:
-        # Reduce table along num_perms axis
-        tbl = tbl[:1, :, :, :]
-
-    return tbl
+    if not isinstance(element, basix.ufl._MixedElement):
+        return element, flat_component
+    acc = 0
+    for sub in element.sub_elements:
+        if flat_component < acc + sub.reference_value_size:
+            return _resolve_mixed_component(sub, flat_component - acc)
+        acc += sub.reference_value_size
+    raise ValueError(
+        f"flat_component {flat_component} out of range for mixed element "
+        f"with reference_value_size {element.reference_value_size}"
+    )
 
 
 def _check_groupable_tables(table_0: FETable, table_1: FETable) -> bool:
@@ -347,11 +175,14 @@ def _check_groupable_tables(table_0: FETable, table_1: FETable) -> bool:
 
     sub_elems = []
     for table in [table_0, table_1]:
-        elem = table.element
+        # For mixed elements, the table's ``component`` is a flat index
+        # into the full mixed element; drill into the sub-element
+        # before comparing.
+        elem, local_c = _resolve_mixed_component(table.element, table.component)
         if elem.block_size == 1:
             sub_elems.append(elem)
         else:
-            sub_elem, _, _ = elem.get_component_element(table.component)
+            sub_elem, _, _ = elem.get_component_element(local_c)
             sub_elems.append(sub_elem)
 
     return (
@@ -422,11 +253,19 @@ def _evaluate_FE_tables_same_element(
 
     all_derivatives = list(set([table.derivatives for table in fe_tables]))
 
-    element_ = ref_fe_table.element
+    # Drill through ``basix.ufl._MixedElement`` to the sub-element
+    # responsible for the reference table's component. Tables in the
+    # same group (per ``_check_groupable_tables``) all resolve to the
+    # same sub-element, so the first table is representative.
+    element_, _ref_local_c = _resolve_mixed_component(
+        ref_fe_table.element, ref_fe_table.component
+    )
     if element_.block_size > 1:
-        # If the element is a vector element, we need to get the
-        # sub-element for the component
-        element_, _, _ = element_.get_component_element(ref_fe_table.component)
+        # Blocked (vector) element such as vector Lagrange: drill down
+        # to the underlying scalar sub-element. The scalar tabulate
+        # values are block-replicated across all components of the
+        # vector, so any valid local component will do.
+        element_, _, _ = element_.get_component_element(_ref_local_c)
     raw_vals = _evaluate_scalar_element_derivatives(
         element_,
         points,
@@ -435,6 +274,11 @@ def _evaluate_FE_tables_same_element(
     )
 
     for fe_table in fe_tables:
+        # Per-table local component within its (post-mixed-resolution)
+        # element. For pure non-mixed elements this is just
+        # ``fe_table.component``.
+        _, local_c = _resolve_mixed_component(fe_table.element, fe_table.component)
+
         vals = raw_vals[fe_table.derivatives]
 
         shape = vals.shape
@@ -443,72 +287,21 @@ def _evaluate_FE_tables_same_element(
         )
 
         if shape[-1] != fe_table.funcs:
-            vals = vals.reshape(shape[2], fe_table.funcs, -1)
-            vals = vals[:, :, fe_table.component]
+            # Non-blocked vector elements (Raviart-Thomas, Nedelec, BDM,
+            # ...): ``basix.ufl._BasixElement.tabulate`` flattens the
+            # ``(n_basis_functions, value_size)`` tail into a single
+            # axis in **component-first** order, i.e.
+            # ``[phi0_c0, phi1_c0, ..., phi(n-1)_c0, phi0_c1, ...]``.
+            # FFCx stores each component in its own FE table, so for a
+            # ``fe_table`` referring to local component ``c`` (within
+            # its sub-element after mixed resolution) we take the
+            # ``c``-th slice along that axis.
+            vals = vals.reshape(shape[2], -1, fe_table.funcs)
+            vals = vals[:, local_c, :]
 
         values[fe_table] = vals.reshape(shape[2], fe_table.funcs)
 
     return values
-
-
-def evaluate_FE_table(
-    fe_table: FETable,
-    element: BasixElement,
-    is_mixed_dim: bool,
-    codim: int,
-    tabletype: Optional[str] = None,
-    is_permuted: Optional[bool] = None,
-    rtol: float = default_rtol,
-    atol: float = default_atol,
-) -> npt.NDArray[np.float64]:
-    """Creates the values associated to a FE table.
-
-    This piece of code was copied from the function
-    ``ffcx.ir.elementtables.build_optimized_tables``, adapting it for
-    the case in which sum factorization is not considered, and for
-    accepting new arguments `tabletype` and `is_permuted`.
-
-    Args:
-        fe_table (FETable): FE table whose associated values are going
-            to be recomputed using the extra provided information in
-            this function.
-        element (BasixElement): Element to be used for the table
-            evaluation.
-        is_mixed_dim (bool): Flag indicating if the integral to which
-            the element evaluation is associated to presents mixed
-            dimensions or not.
-        codim (int): Codimension of the evaluation domain respect
-            to the element.
-        tabletype (str, optional): Type of table, i.e., "fixed",
-            "piecewise", "uniform", or "varying". If not provided,
-            the table type is computed, what may be expensive (even
-            more than computing the table itself). Defaults to None.
-        is_permuted (bool, optional): Whether or not the table must
-            contain permutations. If not provided, it is computed.
-            Defaults to None.
-        rtol (float, optional): Relative tolerance used for clamping
-            near zero values. Defaults to default_rtol.
-        atol (float, optional): Absolute tolerance used for clamping
-            near zero values. Defaults to default_atol.
-
-    Returns:
-        npt.NDArray[np.float64]: Generated values in a 4-dimensional
-        `numpy` array.
-    """
-
-    vals = _evaluate_element(
-        element,
-        fe_table._quad_data.rule.points,  # type: ignore
-        fe_table.integral_type,
-        fe_table.avg,
-        fe_table.entity,
-        fe_table.derivatives,
-        fe_table.component,
-        is_mixed_dim,
-        codim,
-    )
-
-    return _format_table_values(vals, tabletype, is_permuted, rtol, atol)
 
 
 def evaluate_FE_tables(

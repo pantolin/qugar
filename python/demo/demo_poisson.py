@@ -267,7 +267,7 @@ uh_rep_wb.name = "uh"
 
 # +
 uex_rep = dolfinx.fem.Function(Vrep, dtype=dtype)
-uex_expression = dolfinx.fem.Expression(uex, Vrep.element.interpolation_points())
+uex_expression = dolfinx.fem.Expression(uex, Vrep.element.interpolation_points)
 uex_rep.interpolate(uex_expression)
 uex_rep.name = "uex"
 # -

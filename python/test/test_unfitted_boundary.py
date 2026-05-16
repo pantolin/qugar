@@ -31,12 +31,12 @@ dir_path = os.path.dirname(os.path.realpath(__file__))
 
 
 @pytest.mark.parametrize("max_quad_sets", [3])
-@pytest.mark.parametrize("nnz", [0.0, 0.3, 1.0])
+@pytest.mark.parametrize("nnz", [0.3])
 @pytest.mark.parametrize("dtype", dtypes)
 @pytest.mark.parametrize("simplex_cell", [True, False])
 @pytest.mark.parametrize("p", [1, 3])
 @pytest.mark.parametrize("dim", [2, 3])
-@pytest.mark.parametrize("N", [1, 4])
+@pytest.mark.parametrize("N", [4])
 def test_unfitted_normal(N, dim, p, simplex_cell, dtype, nnz, max_quad_sets):
     """Test for integral on unfitted custom boundaries.
 

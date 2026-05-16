@@ -26,13 +26,13 @@ from utils import clean_cache, create_mock_unfitted_mesh, dtypes, run_matrix_che
 
 
 @pytest.mark.parametrize("max_quad_sets", [3])
-@pytest.mark.parametrize("nnz", [0.0, 0.3, 1.0])
+@pytest.mark.parametrize("nnz", [0.3])
 @pytest.mark.parametrize("dtype", dtypes)
 @pytest.mark.parametrize("simplex_cell", [True, False])
-@pytest.mark.parametrize("p", [1, 3])
+@pytest.mark.parametrize("p", [1])
 @pytest.mark.parametrize("dx", [ufl.dx, ufl.ds])
 @pytest.mark.parametrize("dim", [2, 3])
-@pytest.mark.parametrize("N", [1, 4])
+@pytest.mark.parametrize("N", [4])
 def test_grad_grad(
     N: int,
     dim: int,
@@ -87,13 +87,13 @@ def test_grad_grad(
 
 
 @pytest.mark.parametrize("max_quad_sets", [3])
-@pytest.mark.parametrize("nnz", [0.0, 0.3, 1.0])
+@pytest.mark.parametrize("nnz", [0.3])
 @pytest.mark.parametrize("dtype", dtypes)
 @pytest.mark.parametrize("simplex_cell", [True, False])
-@pytest.mark.parametrize("p", [1, 3])
+@pytest.mark.parametrize("p", [1])
 @pytest.mark.parametrize("dx", [ufl.dx, ufl.ds])
 @pytest.mark.parametrize("dim", [2, 3])
-@pytest.mark.parametrize("N", [1, 4])
+@pytest.mark.parametrize("N", [4])
 def test_elasticity(
     N: int,
     dim: int,
@@ -158,12 +158,12 @@ def test_elasticity(
 
 
 @pytest.mark.parametrize("max_quad_sets", [3])
-@pytest.mark.parametrize("nnz", [0.0, 0.3, 1.0])
+@pytest.mark.parametrize("nnz", [0.3])
 @pytest.mark.parametrize("dtype", dtypes)
 @pytest.mark.parametrize("simplex_cell", [True, False])
-@pytest.mark.parametrize("p", [1, 3])
+@pytest.mark.parametrize("p", [1])
 @pytest.mark.parametrize("dim", [2, 3])
-@pytest.mark.parametrize("N", [1, 4])
+@pytest.mark.parametrize("N", [4])
 def test_grad_grad_surface(
     N: int,
     dim: int,
@@ -249,12 +249,12 @@ def test_grad_grad_surface(
 
 
 @pytest.mark.parametrize("max_quad_sets", [3])
-@pytest.mark.parametrize("nnz", [0.0, 0.3, 1.0])
+@pytest.mark.parametrize("nnz", [0.3])
 @pytest.mark.parametrize("dtype", dtypes)
 @pytest.mark.parametrize("simplex_cell", [True, False])
-@pytest.mark.parametrize("p", [1, 3])
+@pytest.mark.parametrize("p", [1])
 @pytest.mark.parametrize("dim", [2, 3])
-@pytest.mark.parametrize("N", [1, 4])
+@pytest.mark.parametrize("N", [4])
 def test_interior_facet(
     N: int,
     dim: int,

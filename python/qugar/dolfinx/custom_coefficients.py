@@ -20,7 +20,7 @@ import dolfinx.cpp.fem as cpp_fem
 import dolfinx.mesh
 import numpy as np
 import numpy.typing as npt
-from dolfinx.cpp.fem import IntegralType
+from dolfinx.cpp.fem import _IntegralType as IntegralType
 from dolfinx.fem.forms import Form
 
 from qugar.dolfinx.custom_quad_utils import map_facets_points, permute_facet_points
@@ -202,14 +202,6 @@ class _CustomCoeffsPackerIntegral:
         # We use np.intp type to store a ptrdiff_t C type.
         self._offsets_dtype = np.dtype(np.intp)
 
-    def _get_subdomain_tag(self) -> int:
-        """Returns the integral subdomain id.
-
-        Returns:
-            int: Integral subdomain id.
-        """
-        return self._subdomain_id
-
     @property
     def _integral_type(self) -> str:
         """Returns the integral type.
@@ -257,29 +249,6 @@ class _CustomCoeffsPackerIntegral:
             ``False`` otherwise.
         """
         return self._is_exterior_facet() or self._is_interior_facet()
-
-    def _has_unfitted_boundary(self) -> bool:
-        """Checks if the current integral any integrand that is performed
-        over unfitted boundaries.
-
-        Returns:
-            bool: ``True`` if the current integral has at least one integrand
-            computed over unfitted  boundaries, ``False`` otherwise.
-        """
-
-        return any(qd.unfitted_boundary for qd in self._itg_data.quad_data_FE_tables)
-
-    def _has_no_unfitted_boundary(self) -> bool:
-        """Checks if the current integral any integrand that is not performed
-        over unfitted boundaries, i.e., that is performed in the interior of
-        a cell.
-
-        Returns:
-            bool: ``True`` if the current integral has at least one integrand
-            not computed over unfitted  boundaries, ``False`` otherwise.
-        """
-
-        return any(not qd.unfitted_boundary for qd in self._itg_data.quad_data_FE_tables)
 
     def _get_n_extra_cols(self) -> int:
         """Gets the number of columns in the coefficients array required
@@ -385,17 +354,6 @@ class _CustomCoeffsPackerIntegral:
             n_vals_per_custom_entity += 1
 
         if np.issubdtype(self._coeffs_dtype, np.complexfloating):
-            # # If the coefficients are complex, we can pack two extra
-            # # values into every complex coefficient.
-            # assert (self._coeffs_dtype.itemsize
-            #   / self._dtype.itemsize) == 2
-            # dtype = n_vals_per_entity.dtype
-            # # We roundup, so, at the end of the extra values for every
-            # # cell there may be some extra (unused) space.
-            # # This is done for simplying the offsets calculation and
-            # # accesing.
-            # n_vals_per_entity = np.ceil(n_vals_per_entity / 2).astype(
-            #   dtype)
             assert False, "Not implemented yet for complex values."
 
         return n_vals_per_custom_entity
@@ -961,9 +919,6 @@ class _CustomCoeffsPackerIntegral:
         old_shape = self._old_coeffs.shape
         self._new_coeffs[: old_shape[0], : old_shape[1]] = self._old_coeffs
 
-        if old_shape == self._new_coeffs.shape[0]:
-            return
-
         self._compute_offsets()
         self._copy_vals(self._compute_new_vals())
 
@@ -1036,8 +991,10 @@ class CustomCoeffsPacker:
         """Gets the integral data whose info matches `itg_info`.
 
         Args:
-            itg_info (tuple[IntegralType, int]): Integral info (type and
-                subdomain id) sought.
+            itg_info (tuple[IntegralType, int]): Integral info as
+                returned by DOLFINx ``pack_coefficients``. In v0.9.0
+                this was ``(integral_type, subdomain_id)``; in v0.10.0
+                it became ``(integral_type, position_in_per_type_list)``.
 
         Returns:
             IntegralData: Integral data instance found.
@@ -1051,11 +1008,49 @@ class CustomCoeffsPacker:
 
         assert itg_info[0] in valid_integral_types
 
-        for data in self._itg_data:
-            if itg_info in data.itg_infos:
-                return data
+        if not hasattr(self, "_position_to_data"):
+            self._position_to_data = self._build_position_to_data()
 
-        assert False, "Integral data not found."
+        if itg_info in self._position_to_data:
+            return self._position_to_data[itg_info]
+
+        assert False, f"Integral data not found for {itg_info!r}."
+
+    def _build_position_to_data(self) -> dict[tuple[IntegralType, int], IntegralData]:
+        """Build a (integral_type, position) -> IntegralData map.
+
+        DOLFINx 0.10.0 changed the convention for ``pack_coefficients``
+        keys from ``(integral_type, subdomain_id)`` to
+        ``(integral_type, position_in_per_type_list)``. The
+        position-to-subdomain_id mapping is exactly what dolfinx itself
+        reads from ``ufcx_form.form_integral_ids`` /
+        ``form_integral_offsets`` when it builds the form, so replicate
+        that here to translate the new positional keys back to the
+        IntegralData objects qugar keeps around.
+        """
+        ufcx_form = self._form._ufcx_form
+        ufcx_types = ("cell", "exterior_facet", "interior_facet", "vertex", "ridge")
+        type_to_enum = {
+            "cell": IntegralType.cell,
+            "exterior_facet": IntegralType.exterior_facet,
+            "interior_facet": IntegralType.interior_facet,
+        }
+        offsets = [
+            ufcx_form.form_integral_offsets[i] for i in range(len(ufcx_types) + 1)
+        ]
+
+        result: dict[tuple[IntegralType, int], IntegralData] = {}
+        for i, type_str in enumerate(ufcx_types):
+            if type_str not in type_to_enum:
+                continue
+            type_enum = type_to_enum[type_str]
+            for position, j in enumerate(range(offsets[i], offsets[i + 1])):
+                sid = ufcx_form.form_integral_ids[j]
+                for data in self._itg_data:
+                    if data.integral_type == type_str and sid in data.subdomain_ids:
+                        result[(type_enum, position)] = data
+                        break
+        return result
 
     def pack_coefficients(
         self,
