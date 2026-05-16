@@ -54,7 +54,7 @@ during the Python package installation process.
 
 .. rubric:: Optional
 
-- `FEniCSx <https://fenicsproject.org>`_ (check the file ``python/pyproject.toml`` for required version compatibility)
+- `FEniCSx <https://fenicsproject.org>`_ v0.10.0 (``fenics-dolfinx``, ``fenics-basix``, ``fenics-ffcx`` all ``>=0.10.0,<0.11.0``; ``fenics-ufl`` ``>=2025.2.0,<2025.3.0``). See ``python/pyproject.toml`` for the authoritative pin list.
 - `PyVista <https://pypi.org/project/pyvista>`__
 
 .. rubric:: Optional for testing
@@ -128,7 +128,7 @@ Optional dependencies, including the documentation dependencies (see below), can
     python3 -m pip -v install --no-build-isolation ./python[all]
 
 QUGaR's Python interface is designed to interact nicely with `FEniCSx <https://fenicsproject.org>`_. Check the Demos page examples.
-So, if you want to solve your PDEs using unfitted domains through FEniCSx, make sure to install a compatible version of `DOLFINx <https://github.com/FEniCS/dolfinx>`_.
+So, if you want to solve your PDEs using unfitted domains through FEniCSx, make sure to install `DOLFINx <https://github.com/FEniCS/dolfinx>`_ v0.10.0 (and the matching versions of basix, ffcx and ufl listed above).
 
 
 However, it is also possible to use QUGaR's Python interface without DOLFINx (check the demos page for examples).
