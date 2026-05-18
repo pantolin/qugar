@@ -343,6 +343,21 @@ debugging of generated code. Defaults to None.</p></li>
 </ul>
 </dd>
 </dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="qugar.dolfinx.ds_bdry_unf.reconstruct">
+<span class="sig-name descname"><span class="pre">reconstruct</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">integral_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subdomain_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">domain</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metadata</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subdomain_data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/qugar/dolfinx/boundary.html#ds_bdry_unf.reconstruct"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qugar.dolfinx.ds_bdry_unf.reconstruct" title="Link to this definition"></a></dt>
+<dd><p>Construct a new Measure object with some properties replaced with new values.</p>
+<p class="rubric">Example</p>
+<p>&lt;dm = Measure instance&gt;
+b = dm.reconstruct(subdomain_id=2)
+c = dm.reconstruct(metadata={ “quadrature_degree”: 3 })</p>
+<dl class="simple">
+<dt>Used by the call operator, so this is equivalent:</dt><dd><p>b = dm(2)
+c = dm(0, { “quadrature_degree”: 3 })</p>
+</dd>
+</dl>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="py function">
