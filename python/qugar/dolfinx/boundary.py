@@ -161,6 +161,11 @@ class ds_bdry_unf(ufl.Measure):
             subdomain_data=subdomain_data,
         )
 
+        # The dolfinx mesh is needed (rather than ufl_domain(), which is
+        # a plain ufl.Mesh) for ``reconstruct`` to rebuild this subclass
+        # and re-run ParamNormal/mapped_normal on subdomain_id changes.
+        self._dolfinx_domain = domain
+
         n = mapped_normal(domain, normalize=False)
         # This is the missing term in Nanson's formula (the Jacobian
         # determinant should by already included in dx).
@@ -208,6 +213,32 @@ class ds_bdry_unf(ufl.Measure):
         Integration properties are taken from this Measure object.
         """
         return super().__rmul__(integrand * self._measure_complement)
+
+    def reconstruct(
+        self,
+        integral_type=None,
+        subdomain_id=None,
+        domain=None,
+        metadata=None,
+        subdomain_data=None,
+    ):
+        # Without this override the syntax ``ds(cut_tag)`` (and the
+        # tuple-id branch in ufl.Measure.__rmul__) would return a plain
+        # ufl.Measure, silently dropping the Nanson correction.
+        new_domain = domain if domain is not None else self._dolfinx_domain
+        new = type(self)(
+            domain=new_domain,
+            subdomain_id=subdomain_id if subdomain_id is not None else self.subdomain_id(),
+            metadata=metadata if metadata is not None else self.metadata(),
+            subdomain_data=subdomain_data if subdomain_data is not None else self.subdomain_data(),
+        )
+        # Reuse the existing Nanson term when the domain is unchanged so
+        # that ``f * ds(id)`` and a freshly-constructed equivalent form
+        # share form signatures (otherwise each call would mint a new
+        # ParamNormal Constant and bust the FFCx JIT cache).
+        if new_domain is self._dolfinx_domain:
+            new._measure_complement = self._measure_complement
+        return new
 
     def __str__(self) -> str:
         """Formats the class instance as a string.
