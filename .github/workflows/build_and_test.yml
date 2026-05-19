@@ -71,13 +71,13 @@ jobs:
                 --exclude-regex 'General function quadrature$|General polynomial unfitted implicit domain decomposition$|Bezier reparameterization for (sphere|plane) (2D|3D)( in a grid)?$|General reparameterization for|Fischer Koch S reparameterization'
 
       # These still run even if the previous step failed:
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: ${{ always() }}
         with:
           name: junit-${{ runner.os }}-${{ runner.arch }}
           path: ${{ github.workspace }}/build/cpp/test-results.xml
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: ${{ always() }}
         with:
           name: logs-${{ runner.os }}-${{ runner.arch }}
@@ -86,7 +86,7 @@ jobs:
             ${{ github.workspace }}/build/cpp/CTestTestfile.cmake
 
       - name: Upload C++ library artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: qugar-${{ runner.os }}-${{ runner.arch }}
           path: ${{ github.workspace }}/qugar-${{ runner.os }}-${{ runner.arch }}.tar.zst
@@ -150,7 +150,7 @@ jobs:
                  python/test
 
       - name: Upload Python test results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: python-junit-${{ matrix.os }}-${{ runner.arch }}
           path: ${{ github.workspace }}/test-results.xml
