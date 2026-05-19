@@ -139,12 +139,14 @@ jobs:
           # different quadrature points. The full C++ module is
           # scheduled for removal; not investing in tolerance-based
           # baselines until then.
+          # --deselect node IDs are relative to pytest's rootdir
+          # (python/, via python/pyproject.toml), not to this script's cwd.
           pytest -v --junitxml=test-results.xml \
                  --ignore=python/test/test_plot.py \
-                 --deselect 'python/test/test_volume_primitives.py::test_plane[False-False-float32-6-8]' \
-                 --deselect 'python/test/test_volume_primitives.py::test_plane[False-True-float32-6-8]' \
-                 --deselect 'python/test/test_volume_primitives.py::test_plane[True-False-float32-6-8]' \
-                 --deselect 'python/test/test_volume_primitives.py::test_plane[True-True-float32-6-8]' \
+                 --deselect 'test/test_volume_primitives.py::test_plane[False-False-float32-6-8]' \
+                 --deselect 'test/test_volume_primitives.py::test_plane[False-True-float32-6-8]' \
+                 --deselect 'test/test_volume_primitives.py::test_plane[True-False-float32-6-8]' \
+                 --deselect 'test/test_volume_primitives.py::test_plane[True-True-float32-6-8]' \
                  python/test
 
       - name: Upload Python test results
