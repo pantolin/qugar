@@ -1,0 +1,4 @@
+# Build artifacts from the isolated shim prototype
+*.dylib
+*.so
+*.o
