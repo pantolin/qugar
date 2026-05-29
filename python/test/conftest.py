@@ -19,6 +19,11 @@ def pytest_configure(config):
     This hook is called for every plugin and initial conftest
     file after command line options have been parsed.
     """
+    config.addinivalue_line(
+        "markers",
+        "slow: tests that take significantly longer than the rest "
+        '(deselect with -m "not slow").',
+    )
 
 
 def pytest_sessionstart(session):

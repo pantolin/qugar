@@ -24,12 +24,10 @@
 
 using namespace basix;
 
-namespace
-{
+namespace {
 // One registry per real type. Static => created once, lives for the process,
 // freed via qugar_shim_reset(). Handles are indices into these vectors.
-template <typename T>
-std::vector<FiniteElement<T>>& registry()
+template<typename T> std::vector<FiniteElement<T>> &registry()
 {
   static std::vector<FiniteElement<T>> r;
   return r;
@@ -40,91 +38,72 @@ std::vector<FiniteElement<T>>& registry()
 // element is created exactly ONCE and later calls are a cheap map lookup.
 using ElementKey = std::array<int, 6>;
 
-template <typename T>
-std::map<ElementKey, int>& index()
+template<typename T> std::map<ElementKey, int> &index()
 {
   static std::map<ElementKey, int> idx;
   return idx;
 }
 
-template <typename T>
-int register_impl(int family, int cell, int degree, int lvariant, int dvariant,
-                  int discontinuous)
+template<typename T> int register_impl(int family, int cell, int degree, int lvariant, int dvariant, int discontinuous)
 {
-  const ElementKey key{family, cell, degree, lvariant, dvariant, discontinuous};
+  const ElementKey key{ family, cell, degree, lvariant, dvariant, discontinuous };
   if (auto it = index<T>().find(key); it != index<T>().end())
-    return it->second; // already created -> return cached handle
+    return it->second;// already created -> return cached handle
 
-  try
-  {
-    FiniteElement<T> el = create_element<T>(
-        static_cast<element::family>(family), static_cast<cell::type>(cell),
-        degree, static_cast<element::lagrange_variant>(lvariant),
-        static_cast<element::dpc_variant>(dvariant),
-        static_cast<bool>(discontinuous));
+  try {
+    FiniteElement<T> el = create_element<T>(static_cast<element::family>(family),
+      static_cast<cell::type>(cell),
+      degree,
+      static_cast<element::lagrange_variant>(lvariant),
+      static_cast<element::dpc_variant>(dvariant),
+      static_cast<bool>(discontinuous));
     registry<T>().push_back(std::move(el));
     const int handle = static_cast<int>(registry<T>().size()) - 1;
     index<T>()[key] = handle;
     return handle;
-  }
-  catch (const std::exception&)
-  {
-    return -1; // basix rejected the parameters
-  }
-  catch (...)
-  {
-    return -2; // unknown failure
+  } catch (const std::exception &) {
+    return -1;// basix rejected the parameters
+  } catch (...) {
+    return -2;// unknown failure
   }
 }
 
-template <typename T>
-int shape_impl(int handle, int nd, int npts, long* out4)
+template<typename T> int shape_impl(int handle, int nd, int npts, long *out4)
 {
-  try
-  {
-    auto& r = registry<T>();
+  try {
+    auto &r = registry<T>();
     if (handle < 0 || handle >= static_cast<int>(r.size()))
       return -3;
-    std::array<std::size_t, 4> s = r[handle].tabulate_shape(
-        static_cast<std::size_t>(nd), static_cast<std::size_t>(npts));
+    std::array<std::size_t, 4> s =
+      r[handle].tabulate_shape(static_cast<std::size_t>(nd), static_cast<std::size_t>(npts));
     for (int i = 0; i < 4; ++i)
       out4[i] = static_cast<long>(s[i]);
     return 0;
-  }
-  catch (...)
-  {
+  } catch (...) {
     return -1;
   }
 }
 
-template <typename T>
-int tabulate_impl(int handle, int nd, const T* x, int npts, int gdim, T* basis,
-                  long basis_capacity)
+template<typename T>
+int tabulate_impl(int handle, int nd, const T *x, int npts, int gdim, T *basis, long basis_capacity)
 {
-  try
-  {
-    auto& r = registry<T>();
+  try {
+    auto &r = registry<T>();
     if (handle < 0 || handle >= static_cast<int>(r.size()))
       return -3;
-    const FiniteElement<T>& el = r[handle];
-    std::array<std::size_t, 4> s = el.tabulate_shape(
-        static_cast<std::size_t>(nd), static_cast<std::size_t>(npts));
+    const FiniteElement<T> &el = r[handle];
+    std::array<std::size_t, 4> s = el.tabulate_shape(static_cast<std::size_t>(nd), static_cast<std::size_t>(npts));
     const std::size_t need = s[0] * s[1] * s[2] * s[3];
     if (static_cast<long>(need) > basis_capacity)
-      return -4; // caller's buffer too small
+      return -4;// caller's buffer too small
     el.tabulate(nd,
-                std::span<const T>(x, static_cast<std::size_t>(npts) * gdim),
-                {static_cast<std::size_t>(npts),
-                 static_cast<std::size_t>(gdim)},
-                std::span<T>(basis, need));
+      std::span<const T>(x, static_cast<std::size_t>(npts) * gdim),
+      { static_cast<std::size_t>(npts), static_cast<std::size_t>(gdim) },
+      std::span<T>(basis, need));
     return 0;
-  }
-  catch (const std::exception&)
-  {
+  } catch (const std::exception &) {
     return -1;
-  }
-  catch (...)
-  {
+  } catch (...) {
     return -2;
   }
 }
@@ -133,73 +112,72 @@ int tabulate_impl(int handle, int nd, const T* x, int npts, int gdim, T* basis,
 // and grows on demand, so the kernel doesn't have to put large VLAs on
 // the stack -- which on macOS overflows the (smaller) worker-thread
 // stack for higher-degree 3D forms.
-template <typename T>
-T* get_scratch_impl(long n)
+template<typename T> T *get_scratch_impl(long n)
 {
   thread_local std::vector<T> s;
-  try
-  {
+  try {
     if (s.size() < static_cast<std::size_t>(n))
       s.resize(static_cast<std::size_t>(n));
     return s.data();
-  }
-  catch (...)
-  {
+  } catch (...) {
     return nullptr;
   }
 }
-} // namespace
+}// namespace
 
-extern "C"
+extern "C" {
+// --- float64 (double) entry points ---
+int qugar_register_element_f64(int family, int cell, int degree, int lvariant, int dvariant, int discontinuous)
 {
-  // --- float64 (double) entry points ---
-  int qugar_register_element_f64(int family, int cell, int degree, int lvariant,
-                                 int dvariant, int discontinuous)
-  {
-    return register_impl<double>(family, cell, degree, lvariant, dvariant,
-                                 discontinuous);
-  }
-  int qugar_tabulate_shape_f64(int handle, int nd, int npts, long* out4)
-  {
-    return shape_impl<double>(handle, nd, npts, out4);
-  }
-  int qugar_tabulate_f64(int handle, int nd, const double* x, int npts,
-                         int gdim, double* basis, long basis_capacity)
-  {
-    return tabulate_impl<double>(handle, nd, x, npts, gdim, basis,
-                                 basis_capacity);
-  }
+  return register_impl<double>(family, cell, degree, lvariant, dvariant, discontinuous);
+}
+int qugar_tabulate_shape_f64(int handle, int nd, int npts, long *out4)
+{
+  return shape_impl<double>(handle, nd, npts, out4);
+}
+int qugar_tabulate_f64(int handle, int nd, const double *x, int npts, int gdim, double *basis, long basis_capacity)
+{
+  return tabulate_impl<double>(handle, nd, x, npts, gdim, basis, basis_capacity);
+}
 
-  // --- float32 (float) entry points ---
-  int qugar_register_element_f32(int family, int cell, int degree, int lvariant,
-                                 int dvariant, int discontinuous)
-  {
-    return register_impl<float>(family, cell, degree, lvariant, dvariant,
-                                discontinuous);
-  }
-  int qugar_tabulate_shape_f32(int handle, int nd, int npts, long* out4)
-  {
-    return shape_impl<float>(handle, nd, npts, out4);
-  }
-  int qugar_tabulate_f32(int handle, int nd, const float* x, int npts, int gdim,
-                         float* basis, long basis_capacity)
-  {
-    return tabulate_impl<float>(handle, nd, x, npts, gdim, basis,
-                                basis_capacity);
-  }
+// --- float32 (float) entry points ---
+int qugar_register_element_f32(int family, int cell, int degree, int lvariant, int dvariant, int discontinuous)
+{
+  return register_impl<float>(family, cell, degree, lvariant, dvariant, discontinuous);
+}
+int qugar_tabulate_shape_f32(int handle, int nd, int npts, long *out4)
+{
+  return shape_impl<float>(handle, nd, npts, out4);
+}
+int qugar_tabulate_f32(int handle, int nd, const float *x, int npts, int gdim, float *basis, long basis_capacity)
+{
+  return tabulate_impl<float>(handle, nd, x, npts, gdim, basis, basis_capacity);
+}
 
-  // Thread-local scratch buffer accessors used by the generated kernel.
-  double* qugar_get_scratch_f64(long n) { return get_scratch_impl<double>(n); }
-  float* qugar_get_scratch_f32(long n) { return get_scratch_impl<float>(n); }
+// Thread-local scratch buffer accessors used by the generated kernel.
+double *qugar_get_scratch_f64(long n)
+{
+  return get_scratch_impl<double>(n);
+}
+float *qugar_get_scratch_f32(long n)
+{
+  return get_scratch_impl<float>(n);
+}
 
-  // Introspection / teardown.
-  int qugar_registry_size_f64() { return (int)registry<double>().size(); }
-  int qugar_registry_size_f32() { return (int)registry<float>().size(); }
-  void qugar_shim_reset()
-  {
-    registry<double>().clear();
-    registry<float>().clear();
-    index<double>().clear();
-    index<float>().clear();
-  }
+// Introspection / teardown.
+int qugar_registry_size_f64()
+{
+  return (int)registry<double>().size();
+}
+int qugar_registry_size_f32()
+{
+  return (int)registry<float>().size();
+}
+void qugar_shim_reset()
+{
+  registry<double>().clear();
+  registry<float>().clear();
+  index<double>().clear();
+  index<float>().clear();
+}
 }

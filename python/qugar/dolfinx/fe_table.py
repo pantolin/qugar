@@ -20,7 +20,6 @@ import hashlib
 import re
 
 import numpy as np
-import numpy.typing as npt
 from basix.ufl import _BasixElement as BasixElement
 from ffcx.ir.elementtables import get_modified_terminal_element
 from ffcx.ir.representation import IntegralIR

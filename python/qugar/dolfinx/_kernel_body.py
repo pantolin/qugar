@@ -24,11 +24,21 @@ subsequent transformation operates on the relevant piece directly. The
 regex layer remains, but each regex is confined to a single, narrow
 substring rather than scanning the whole function body.
 
-For the moment this module only implements parsing + rendering. The
-existing :class:`_IntegralModifier` still drives transformations on the
-raw text, and a round-trip assertion (``body.render() == func_impl``) is
-used to validate the parser against every form in the test suite. The
-per-transformation migration happens in follow-up steps.
+Usage pattern: parse once with :meth:`KernelBody.from_ffcx`, then build
+the variant kernels with a fluent chain such as::
+
+    (body.copy()
+         .erase_static_declarations()
+         .rewrite_table_accesses()
+         .dynamic_loop_bounds()
+         .inline_pre_loop_into_loops()
+         .substitute_normals(offsets)
+         .render(suffix="_custom"))
+
+Each transformation mutates and returns ``self`` so chains read top to
+bottom in transformation order. :meth:`copy` is a shallow clone of the
+mutable ``loops`` list (the underlying IR is shared by reference because
+it contains unpicklable ``_hashlib.HASH`` objects).
 """
 
 from __future__ import annotations
@@ -361,7 +371,6 @@ class KernelBody:
         ``constant_for_pts`` tables keep their 4-D static-array access
         (their declarations are re-emitted by the caller-side codegen).
         """
-        from qugar.dolfinx.fe_table import FETable  # local import: avoid cycle
 
         bracket = r"\[\s*(\w+\[\d+\]|[^\]]*)\s*\]\s*"
         fe_re = re.compile(r"FE([\w|\_]+)\s*" + bracket * 4)

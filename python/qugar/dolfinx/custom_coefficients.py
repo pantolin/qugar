@@ -24,7 +24,6 @@ from dolfinx.cpp.fem import _IntegralType as IntegralType
 from dolfinx.fem.forms import Form
 
 from qugar.dolfinx.custom_quad_utils import map_facets_points, permute_facet_points
-from qugar.dolfinx.fe_table import FETable
 from qugar.dolfinx.integral_data import IntegralData
 from qugar.dolfinx.quadrature_data import QuadratureData
 from qugar.mesh.mesh_facets import MeshFacets
@@ -947,9 +946,7 @@ class CustomCoeffsPacker:
             ``dolfinx.cpp.fem.pack_coefficients``).
         """
 
-        # t0 = time.time()
         coeffs = cpp_fem.pack_coefficients(self._form._cpp_object)
-        # print(f"Computing original coefficients: {time.time() - t0} seconds.")
 
         new_pack_coeffs: dict[
             tuple[IntegralType, int],

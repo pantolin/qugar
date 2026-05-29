@@ -1,54 +1,48 @@
-"""Reusable loader + pythonic wrapper for the isolated basix tabulation shim.
+# --------------------------------------------------------------------------
+#
+# Copyright (C) 2025-present by Pablo Antolin
+#
+# This file is part of the QUGaR library.
+#
+# SPDX-License-Identifier:    MIT
+#
+# --------------------------------------------------------------------------
 
-Builds the C++ shim (mimicking the future JIT-compile-and-cache step), loads it
-through ctypes, and exposes a numpy-friendly ``tabulate`` that mirrors what the
-generated C kernel will call at runtime.
+"""Test helpers for the on-the-fly basix tabulation shim.
+
+Loads the *production* shim (the one ``qugar.dolfinx.jit`` links against)
+through ctypes so tests can drive it directly without going via a JIT'd
+kernel.
 """
 
 from __future__ import annotations
 
 import ctypes
-import subprocess
 import sys
 from pathlib import Path
 
-import basix
-import basix.ufl
 import numpy as np
 
-HERE = Path(__file__).resolve().parent
-PREFIX = Path(sys.prefix)
-# Canonical shim source now lives in the qugar package; proto compiles from
-# the same file so the M0/M1 validation tests track any change to the shipped
-# shim.
-SRC = HERE.parent.parent / "python" / "qugar" / "dolfinx" / "_shim" / "qugar_basix_shim.cpp"
-LIB = HERE / "libqugar_basix_shim.dylib"
+from qugar.dolfinx._shim import ensure_built
 
 _CT = {np.float64: ctypes.c_double, np.float32: ctypes.c_float}
 _SUFFIX = {np.float64: "f64", np.float32: "f32"}
 
 
-def build() -> None:
-    """Compile the shim against the env's basix (cache: skip if up to date)."""
-    if LIB.exists() and LIB.stat().st_mtime >= SRC.stat().st_mtime:
-        return
-    bindir = PREFIX / "bin"
-    candidates = [bindir / "clang++", *sorted(bindir.glob("clang++-*"))]
-    cxx = next((c for c in candidates if c.exists()), None)
-    if cxx is None:
-        raise FileNotFoundError(f"no clang++ driver found in {bindir}")
-    cmd = [
-        str(cxx), "-std=c++20", "-O2", "-fPIC", "-shared",
-        f"-I{PREFIX / 'include'}", f"-L{PREFIX / 'lib'}", "-lbasix",
-        f"-Wl,-rpath,{PREFIX / 'lib'}", "-o", str(LIB), str(SRC),
-    ]
-    subprocess.run(cmd, check=True)
+def _libfile() -> Path:
+    cache, name = ensure_built()
+    if sys.platform == "darwin":
+        suffix = "dylib"
+    elif sys.platform == "win32":
+        suffix = "dll"
+    else:
+        suffix = "so"
+    return cache / f"lib{name}.{suffix}"
 
 
-def load() -> ctypes.CDLL:
-    """Load the shim and configure ctypes signatures."""
-    build()
-    lib = ctypes.CDLL(str(LIB))
+def load_shim() -> ctypes.CDLL:
+    """Build (if needed) and load the production shim through ctypes."""
+    lib = ctypes.CDLL(str(_libfile()))
     for dtype, suffix in _SUFFIX.items():
         ct = _CT[dtype]
         reg = getattr(lib, f"qugar_register_element_{suffix}")
@@ -89,11 +83,11 @@ def core_params(ufl_element):
 def tabulate(lib, ufl_element, dtype, nd, points):
     """Tabulate the (scalar core of the) element at ``points`` via the shim.
 
-    Returns a numpy array of shape (n_derivs, n_points, n_dofs, value_size),
-    matching basix's C++ tabulate layout.
+    Returns a numpy array of shape (n_derivs, n_points, n_dofs, value_size).
     """
-    suffix = _SUFFIX[dtype]
-    ct = _CT[dtype]
+    np_dtype = np.dtype(dtype).type
+    suffix = _SUFFIX[np_dtype]
+    ct = _CT[np_dtype]
     family, cell, degree, lv, dv, disc, _block = core_params(ufl_element)
 
     handle = getattr(lib, f"qugar_register_element_{suffix}")(
@@ -101,7 +95,7 @@ def tabulate(lib, ufl_element, dtype, nd, points):
     if handle < 0:
         raise RuntimeError(f"shim register failed: {handle}")
 
-    pts = np.ascontiguousarray(points, dtype=dtype)
+    pts = np.ascontiguousarray(points, dtype=np_dtype)
     npts, gdim = pts.shape
 
     out4 = (ctypes.c_long * 4)()
@@ -111,7 +105,7 @@ def tabulate(lib, ufl_element, dtype, nd, points):
     shape = tuple(int(x) for x in out4)
     need = int(np.prod(shape))
 
-    basis = np.zeros(need, dtype=dtype)
+    basis = np.zeros(need, dtype=np_dtype)
     rc = getattr(lib, f"qugar_tabulate_{suffix}")(
         handle, nd, pts.ctypes.data_as(ctypes.POINTER(ct)), npts, gdim,
         basis.ctypes.data_as(ctypes.POINTER(ct)), need)
