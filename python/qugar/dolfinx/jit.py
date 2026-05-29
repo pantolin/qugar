@@ -58,6 +58,7 @@ from ffcx.codegeneration.jit import (
     root_logger,
 )
 
+from qugar.dolfinx._shim import ensure_built as _ensure_shim_built
 from qugar.dolfinx.compiler import compile_ufl_objects
 from qugar.dolfinx.integral_data import IntegralData
 
@@ -87,6 +88,11 @@ def _compile_objects(
     """
 
     libraries = _libraries + cffi_libraries if cffi_libraries is not None else _libraries
+
+    # The on-the-fly custom kernel calls into a tiny C++ shim that wraps basix.
+    # Build it once (cached) and link the kernel against it.
+    _shim_dir, _shim_name = _ensure_shim_built()
+    libraries = libraries + [_shim_name]
 
     # JIT uses module_name as prefix, which is needed to make names of
     # all struct/function
@@ -120,6 +126,8 @@ def _compile_objects(
         include_dirs=[ffcx.codegeneration.get_include_path()],
         extra_compile_args=cffi_final_compile_args,
         libraries=libraries,
+        library_dirs=[str(_shim_dir)],
+        extra_link_args=[f"-Wl,-rpath,{_shim_dir}"],
     )
 
     ffibuilder.cdef(decl)

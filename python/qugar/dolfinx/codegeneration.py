@@ -15,8 +15,10 @@ from qugar.utils import has_FEniCSx
 if not has_FEniCSx:
     raise ValueError("FEniCSx installation not found is required.")
 
+import math
 import re
 
+import basix
 import ffcx.codegeneration.codegeneration
 import numpy as np
 import numpy.typing as npt
@@ -545,25 +547,68 @@ class _IntegralModifier:
 
         return code[:start] + code[end:]
 
+    def _shim_suffix(self) -> str:
+        """Returns the shim entry-point suffix for the real dtype."""
+        return "f64" if self._data.dtype == np.float64 else "f32"
+
+    def _create_shim_decls(self) -> str:
+        """Emits the ``extern`` declarations of the basix tabulation shim
+        entry points used by the on-the-fly custom kernel."""
+        suffix = self._shim_suffix()
+        dtype_str = dtype_to_C_str(self._data.dtype)
+        return (
+            f"extern int qugar_register_element_{suffix}"
+            "(int, int, int, int, int, int);\n"
+            f"extern int qugar_tabulate_{suffix}"
+            f"(int, int, const {dtype_str}*, int, int, {dtype_str}*, long);\n\n"
+        )
+
+    @staticmethod
+    def _table_codegen_info(table: FETable) -> dict:
+        """Computes the constants needed to repack a basix tabulation
+        block into a single FFCx FE table.
+
+        Returns a dict with the core-element ``create_element`` parameters
+        and the indices used by the repack: ``didx`` (basix derivative
+        index), ``vaxis`` (value-axis index), ``ndofs`` and ``vs`` (basix
+        block dims), and ``gdim`` (points dimension).
+        """
+        el = table.element
+        block_size = getattr(el, "block_size", 1)
+        scalar = el.sub_elements[0] if block_size > 1 else el
+        be = scalar.basix_element
+        params = (
+            int(be.family),
+            int(be.cell_type),
+            be.degree,
+            int(be.lagrange_variant),
+            int(be.dpc_variant),
+            int(be.discontinuous),
+        )
+        gdim = table.element_dim
+        vs = 1 if block_size > 1 else int(el.reference_value_size)
+        derivs = list(table.derivatives) if table.derivatives else []
+        derivs = (derivs + [0] * gdim)[:gdim]
+        return {
+            "params": params,
+            "gdim": gdim,
+            "vs": vs,
+            "ndofs": table.funcs,
+            "didx": basix.index(*derivs),
+            "vaxis": 0 if block_size > 1 else table.component,
+            "maxnd": sum(derivs),
+        }
+
     def _create_custom_data_loaders(self) -> str:
-        """Creates new C functions for dynamically loading weights array
-        and FE tables from a custom coefficients array.
+        """Creates C functions that load, per quadrature/integrand, the
+        custom quadrature *points* and *weights* (and unfitted-boundary
+        normals) from the custom coefficients array.
 
-        For every quadrature rule available in the integral (i.e., for
-        every integrand), a function is created for loading its number
-        of points, weights array, unfitted boundary normals (if needed),
-        and all the FE tables associated to that quadrature.
-
-        Every function takes as input a pointer to the array of
-        coefficients, and arrays of weights, normals, and FE tables
-        associated to a particular quadrature.
-
-        The function returns the number of quadrature points for that
-        particular integrand.
-
-        After calling one loader function, the pointer to the array of
-        coefficients is updated, pointing to a new position passed the
-        already processed information.
+        Unlike the previous design, FE table *values* are NOT read here:
+        they are computed on the fly by tabulating the basix elements at
+        the loaded points (see ``_create_custom_data_callers``). The
+        loader only advances the ``w_custom`` pointer past the per-cell
+        points/weights/normals and returns the number of points.
 
         Returns:
             str: C code for the generated loader functions.
@@ -571,62 +616,39 @@ class _IntegralModifier:
 
         dtype_str = dtype_to_C_str(self._data.dtype)
         name = self._data.name
-        has_interior_facets = self._data.integral_type == "interior_facet"
+        gdim = self._data.tdim
 
         code = ""
 
-        for quad_data, FE_tables in self._data.quad_data_FE_tables.items():
+        for quad_data, _FE_tables in self._data.quad_data_FE_tables.items():
             quad_name = quad_data.name
 
-            func_name = f"load_values_{name}_Q{quad_name}"
+            func_name = f"load_points_{name}_Q{quad_name}"
+            points_name = f"points_{quad_name}"
             weights_name = f"weights_{quad_name}"
             normals_name = f"normals_{quad_name}"
             n_pts_name = f"n_pts_Q{quad_name}"
 
             has_normals = quad_data.unfitted_boundary
 
-            # Creating function's signature.
             indent = " " * len(f"int {func_name}(")
             code += f"\nint {func_name}(const {dtype_str}* restrict *w_custom"
+            code += f",\n{indent}const {dtype_str}* restrict *{points_name}"
             code += f",\n{indent}const {dtype_str}* restrict *{weights_name}"
-
             if has_normals:
                 code += f",\n{indent}const {dtype_str}* restrict *{normals_name}"
+            code += ")\n{\n"
 
-            for FE_table in FE_tables:
-                if not FE_table.is_constant_for_pts():
-                    code += f",\n{indent}const {dtype_str}* restrict *{FE_table.name}"
-            code += ")\n"
-
-            # Creating function's body.
-            code += "{\n"
-
-            code += f"const int {n_pts_name} = (int) **w_custom;\n"
-            code += "*w_custom += 1;\n"
-
-            code += f"\n*{weights_name} = *w_custom;\n"
+            code += f"const int {n_pts_name} = (int) **w_custom;\n*w_custom += 1;\n\n"
+            code += f"*{points_name} = *w_custom;\n"
+            code += f"*w_custom += {gdim} * {n_pts_name};\n\n"
+            code += f"*{weights_name} = *w_custom;\n"
             code += f"*w_custom += {n_pts_name};\n\n"
-
             if has_normals:
                 code += f"*{normals_name} = *w_custom;\n"
                 code += f"*w_custom += {self._data.tdim} * {n_pts_name};\n\n"
 
-            for FE_table in FE_tables:
-                if not FE_table.is_constant_for_pts():
-                    offset = FE_table.funcs
-
-                    if has_interior_facets and FE_table.permutations > 1:
-                        code += f"{FE_table.name}[0] = *w_custom;\n"
-                        code += f"*w_custom += {offset} * {n_pts_name};\n\n"
-                        code += f"{FE_table.name}[1] = *w_custom;\n"
-                        code += f"*w_custom += {offset} * {n_pts_name};\n\n"
-                    else:
-                        code += f"*{FE_table.name} = *w_custom;\n"
-                        code += f"*w_custom += {offset} * {n_pts_name};\n\n"
-
-            code += f"return {n_pts_name};\n"
-
-            code += "}\n\n\n"
+            code += f"return {n_pts_name};\n}}\n\n\n"
 
         return code
 
@@ -643,6 +665,7 @@ class _IntegralModifier:
         """
 
         dtype_str = dtype_to_C_str(self._data.dtype)
+        suffix = self._shim_suffix()
 
         itg_name = self._data.name
 
@@ -654,43 +677,83 @@ class _IntegralModifier:
 
             has_normals = quad_data.unfitted_boundary
 
-            func_name = f"load_values_{itg_name}_Q{quad_name}"
+            func_name = f"load_points_{itg_name}_Q{quad_name}"
+            points_name = f"points_{quad_name}"
             weights_name = f"weights_{quad_name}"
             normals_name = f"normals_{quad_name}"
             n_pts_name = f"n_pts_Q{quad_name}"
 
-            # Arrays declarations.
-            call_code += f"const {dtype_str}* restrict {weights_name};\n"
-
-            if has_normals:
-                call_code += f"const {dtype_str}* restrict {normals_name};\n"
-
+            # Constant-for-points tables stay statically defined.
             for table in FE_tables:
                 if table.is_constant_for_pts():
                     call_code += table.code + "\n"
-                elif is_interior_facet and table.permutations > 1:
-                    call_code += f"const {dtype_str}* restrict {table.name}[2];\n"
-                else:
-                    call_code += f"const {dtype_str}* restrict {table.name};\n"
 
-            # Loader execution.
+            # Per-cell points/weights (+normals) pointer declarations.
+            call_code += f"const {dtype_str}* restrict {points_name};\n"
+            call_code += f"const {dtype_str}* restrict {weights_name};\n"
+            if has_normals:
+                call_code += f"const {dtype_str}* restrict {normals_name};\n"
+
+            # Loader execution (returns the runtime number of points).
             aux = f"const int {n_pts_name} = {func_name}("
             indent = " " * len(aux)
-            call_code += f"{aux}&w_custom"
-            call_code += f",\n{indent}&{weights_name}"
-
+            call_code += f"{aux}&w_custom,\n{indent}&{points_name},\n{indent}&{weights_name}"
             if has_normals:
                 call_code += f",\n{indent}&{normals_name}"
-
-            for table in FE_tables:
-                if table.is_constant_for_pts():
-                    continue
-                elif is_interior_facet and table.permutations > 1:
-                    call_code += f",\n{indent}{table.name}"
-                else:
-                    call_code += f",\n{indent}&{table.name}"
-
             call_code += ");\n\n"
+
+            # On-the-fly tabulation + repack, grouped per element so each
+            # element is tabulated once (one basix block feeds all of its
+            # component/derivative tables).
+            varying = [t for t in FE_tables if not t.is_constant_for_pts()]
+            if is_interior_facet and any(t.permutations > 1 for t in varying):
+                raise NotImplementedError(
+                    "On-the-fly tabulation for interior-facet integrals "
+                    "(two-sided permuted tables) is not implemented yet."
+                )
+
+            groups: dict[tuple, list[tuple[FETable, dict]]] = {}
+            for table in varying:
+                info = self._table_codegen_info(table)
+                groups.setdefault(info["params"], []).append((table, info))
+
+            for gi, (params, items) in enumerate(groups.items()):
+                fam, cell, deg, lv, dv, disc = params
+                info0 = items[0][1]
+                gdim, ndofs, vs = info0["gdim"], info0["ndofs"], info0["vs"]
+                maxnd = max(info["maxnd"] for _t, info in items)
+                nderiv = math.comb(maxnd + gdim, gdim)
+
+                handle = f"h_{quad_name}_{gi}"
+                blk = f"block_{quad_name}_{gi}"
+                blk_size = f"{nderiv} * {n_pts_name} * {ndofs} * {vs}"
+                stride = f"{ndofs} * {vs}"
+
+                call_code += (
+                    f"const int {handle} = qugar_register_element_{suffix}"
+                    f"({fam}, {cell}, {deg}, {lv}, {dv}, {disc});\n"
+                )
+                call_code += f"{dtype_str} {blk}[{blk_size}];\n"
+                call_code += (
+                    f"qugar_tabulate_{suffix}({handle}, {maxnd}, {points_name}, "
+                    f"{n_pts_name}, {gdim}, {blk}, (long)({blk_size}));\n\n"
+                )
+
+                for table, info in items:
+                    funcs = table.funcs
+                    didx, vaxis = info["didx"], info["vaxis"]
+                    buf = f"{table.name}_buf"
+                    call_code += f"{dtype_str} {buf}[{n_pts_name} * {funcs}];\n"
+                    call_code += f"for (int iq = 0; iq < {n_pts_name}; ++iq)\n"
+                    call_code += f"  for (int kd = 0; kd < {funcs}; ++kd)\n"
+                    call_code += (
+                        f"    {buf}[iq * {funcs} + kd] = {blk}"
+                        f"[{didx} * {n_pts_name} * {stride} + iq * {stride} "
+                        f"+ kd * {vs} + {vaxis}];\n"
+                    )
+                    call_code += (
+                        f"const {dtype_str}* restrict {table.name} = {buf};\n\n"
+                    )
 
         return call_code
 
@@ -897,6 +960,7 @@ class _IntegralModifier:
 
         new_code = ""
         new_code += self._before_func
+        new_code += self._create_shim_decls()
         new_code += self._create_non_custom_quad_function()
         new_code += self._create_custom_data_loaders()
         new_code += self._create_custom_function()

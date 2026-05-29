@@ -18,74 +18,14 @@ Run with the qugar-0.10.0 env python, e.g.:
 from __future__ import annotations
 
 import ctypes
-import subprocess
 import sys
 from pathlib import Path
 
 import basix
 import numpy as np
 
-HERE = Path(__file__).resolve().parent
-PREFIX = Path(sys.prefix)
-SRC = HERE / "qugar_basix_shim.cpp"
-LIB = HERE / "libqugar_basix_shim.dylib"
-
-
-def build() -> None:
-    """Compile the shim against the env's basix (cache: skip if up to date)."""
-    if LIB.exists() and LIB.stat().st_mtime >= SRC.stat().st_mtime:
-        print(f"[build] up to date: {LIB.name}")
-        return
-    bindir = PREFIX / "bin"
-    candidates = [bindir / "clang++", *sorted(bindir.glob("clang++-*"))]
-    cxx = next((c for c in candidates if c.exists()), None)
-    if cxx is None:
-        raise FileNotFoundError(f"no clang++ driver found in {bindir}")
-    cmd = [
-        str(cxx),
-        "-std=c++20",
-        "-O2",
-        "-fPIC",
-        "-shared",
-        f"-I{PREFIX / 'include'}",
-        f"-L{PREFIX / 'lib'}",
-        "-lbasix",
-        f"-Wl,-rpath,{PREFIX / 'lib'}",
-        "-o",
-        str(LIB),
-        str(SRC),
-    ]
-    print("[build]", " ".join(cmd))
-    subprocess.run(cmd, check=True)
-    print(f"[build] OK: {LIB.name}")
-
-
-def load() -> ctypes.CDLL:
-    lib = ctypes.CDLL(str(LIB))
-    for t in ("f64", "f32"):
-        reg = getattr(lib, f"qugar_register_element_{t}")
-        reg.argtypes = [ctypes.c_int] * 6
-        reg.restype = ctypes.c_int
-        shp = getattr(lib, f"qugar_tabulate_shape_{t}")
-        shp.argtypes = [ctypes.c_int, ctypes.c_int, ctypes.c_int,
-                        ctypes.POINTER(ctypes.c_long)]
-        shp.restype = ctypes.c_int
-        size = getattr(lib, f"qugar_registry_size_{t}")
-        size.restype = ctypes.c_int
-    lib.qugar_tabulate_f64.argtypes = [
-        ctypes.c_int, ctypes.c_int, ctypes.POINTER(ctypes.c_double),
-        ctypes.c_int, ctypes.c_int, ctypes.POINTER(ctypes.c_double),
-        ctypes.c_long,
-    ]
-    lib.qugar_tabulate_f64.restype = ctypes.c_int
-    lib.qugar_tabulate_f32.argtypes = [
-        ctypes.c_int, ctypes.c_int, ctypes.POINTER(ctypes.c_float),
-        ctypes.c_int, ctypes.c_int, ctypes.POINTER(ctypes.c_float),
-        ctypes.c_long,
-    ]
-    lib.qugar_tabulate_f32.restype = ctypes.c_int
-    lib.qugar_shim_reset.restype = None
-    return lib
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from shim import build, load  # noqa: E402
 
 
 CELL_GDIM = {

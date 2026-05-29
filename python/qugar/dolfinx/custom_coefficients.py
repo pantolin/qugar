@@ -25,7 +25,6 @@ from dolfinx.fem.forms import Form
 
 from qugar.dolfinx.custom_quad_utils import map_facets_points, permute_facet_points
 from qugar.dolfinx.fe_table import FETable
-from qugar.dolfinx.fe_table_eval import evaluate_FE_tables
 from qugar.dolfinx.integral_data import IntegralData
 from qugar.dolfinx.quadrature_data import QuadratureData
 from qugar.mesh.mesh_facets import MeshFacets
@@ -107,12 +106,6 @@ class _CustomCoeffsPackerIntegral:
             integral) to a custom quadrature (for cells, facets, or
             unfitted boundaries) for all the custom entities in the
             domain.
-        _custom_quads_facets
-            (Optional[dict[IntegralData, CustomQuadFacet]]):
-            Dictionary mapping each integral data (integrand in the
-            integral) to a custom facet quadrature for all the custom
-            entities in the domain. This attribute is only initialized
-            in the case of facet integrals.
         _n_vals_per_entity (npt.NDArray[np.int32]): Number of values to
             be computed / stored per entity, including the non-custom
             ones. The length of the array is the same as the number of
@@ -310,6 +303,14 @@ class _CustomCoeffsPackerIntegral:
     def _compute_n_vals_per_custom_entity(self) -> npt.NDArray[np.int32]:
         """Computes the number of values to be stored per custom entity.
 
+        For each quadrature attached to an entity we now pack only the
+        per-point geometry — the FE table values are computed on the fly
+        inside the kernel via the basix tabulation shim. Layout per entity
+        per quadrature:
+
+            [ n_pts (1 int) | points (gdim * n_pts) | weights (n_pts)
+              | normals (gdim * n_pts) if unfitted_boundary ]
+
         Warning:
             This method is yet not implemented for complex types.
 
@@ -325,32 +326,23 @@ class _CustomCoeffsPackerIntegral:
 
         interior_facet = self._is_interior_facet()
 
-        for quad_data, FE_tables in self._itg_data.quad_data_FE_tables.items():
+        for quad_data, _FE_tables in self._itg_data.quad_data_FE_tables.items():
             custom_quad = self._custom_quads[quad_data]
             if interior_facet:
                 custom_quad = custom_quad[0]
 
-            n_vals_per_pt = sum(
-                [table.funcs for table in FE_tables if not table.is_constant_for_pts()]
-            )
-
-            if interior_facet:
-                n_vals_per_pt *= 2
-
-            n_vals_per_pt += 1  # One value per weight.
-
+            gdim = custom_quad.points.shape[1]
+            # gdim point coordinates + 1 weight per point.
+            n_vals_per_pt = gdim + 1
             if quad_data.unfitted_boundary:
-                # Adding values for unfitted boundary normals
-                n_vals_per_pt += custom_quad.points.shape[1]
+                n_vals_per_pt += gdim
 
             n_pts_per_entity = custom_quad.n_pts_per_entity
             assert n_pts_per_entity.size == n_custom_entities
 
             n_vals_per_custom_entity += n_pts_per_entity * n_vals_per_pt
-            # 1 extra values is added for storing the quadrature's
-            # number of points. This number is a 32bit int, therefore,
-            # it can be casted from any coefficient type (all of them
-            # should be >= 32bits).
+            # +1 for the n_pts header (cast from int32; all real coeffs
+            # dtypes are at least 32 bits).
             n_vals_per_custom_entity += 1
 
         if np.issubdtype(self._coeffs_dtype, np.complexfloating):
@@ -719,174 +711,49 @@ class _CustomCoeffsPackerIntegral:
 
     def _create_quadratures(self) -> None:
         """Creates the custom quadratures for the integrands in the
-        integral and stores them in `self._custom_quads` and
-        `self._custom_quads_facets` (if mixed dimension integral).
+        integral and stores them in ``self._custom_quads``.
         """
 
         self._custom_quads = {}
-        self._custom_quads_facets = {}
 
         for quad_data in self._itg_data.quad_data_FE_tables.keys():
             if self._is_facet():
-                quad_facet, quad = self._create_quadrature_facet(quad_data)
-                if self._is_mixed_dim():
-                    self._custom_quads_facets[quad_data] = quad_facet
+                _quad_facet, quad = self._create_quadrature_facet(quad_data)
             else:
                 quad = self._create_quadrature_cell(quad_data)
 
             self._custom_quads[quad_data] = quad
 
-    def _compute_new_vals_tables(
-        self, quad_data: QuadratureData, FE_tables: list[FETable]
-    ) -> list[npt.NDArray[np.float32 | np.float64]]:
-        """Computes the new values for the given FE tables.
-
-        Args:
-            quad_data (QuadratureData): Quadrature data of the integrand
-                for which the values are computed.
-            FE_tables (list[FETable]): List of FE tables which new
-                values are computed.
-
-        Returns:
-            list[npt.NDArray[np.float32 | np.float64]]: Computed values.
-        """
-
-        if self._is_interior_facet():
-            return self._compute_new_vals_tables_interior_facet(quad_data, FE_tables)
-        elif self._is_mixed_dim():
-            return self._compute_new_vals_tables_mixed_dim(quad_data, FE_tables)
-        else:
-            return self._compute_new_vals_tables_generic(quad_data, FE_tables)
-
-    def _compute_new_vals_tables_mixed_dim(
-        self, quad_data: QuadratureData, FE_tables: list[FETable]
-    ) -> list[npt.NDArray[np.float32 | np.float64]]:
-        """Computes the new values for the given FE tables for the case
-        of integrals with mixed dimensions.
-
-        Args:
-            quad_data (QuadratureData): Quadrature data of the integrand
-                for which the values are computed.
-            FE_tables (list[FETable]): List of FE tables which new
-                values are computed.
-
-        Returns:
-            list[npt.NDArray[np.float32 | np.float64]]: Computed values.
-        """
-
-        assert self._is_mixed_dim()
-
-        custom_quad = self._custom_quads[quad_data]
-        custom_quad_facet = self._custom_quads_facets[quad_data]
-
-        tdim = custom_quad.points.shape[-1]
-        FE_tables_cell = []
-        FE_tables_facet = []
-        for table in FE_tables:
-            if tdim == table.element_dim:
-                FE_tables_cell.append(table)
-            else:
-                FE_tables_facet.append(table)
-
-        values = evaluate_FE_tables(FE_tables_cell, custom_quad.points)
-        values.update(evaluate_FE_tables(FE_tables_facet, custom_quad_facet.points))
-
-        vals_for_quad = []
-        for table in FE_tables:
-            if table in values:
-                vals = values[table]
-                assert len(vals.shape) == 2
-                vals_for_quad.append(vals.ravel())
-
-        return vals_for_quad
-
-    def _compute_new_vals_tables_generic(
-        self, quad_data: QuadratureData, FE_tables: list[FETable]
-    ) -> list[npt.NDArray[np.float32 | np.float64]]:
-        """Computes the new values for the given FE tables for the case
-        in which the integral is not performed on interior facet and
-        has no mixed dimensions.
-
-        Args:
-            quad_data (QuadratureData): Quadrature data of the integrand
-                for which the values are computed.
-            FE_tables (list[FETable]): List of FE tables which new
-                values are computed.
-
-        Returns:
-            list[npt.NDArray[np.float32 | np.float64]]: Computed values.
-        """
-
-        assert not self._is_interior_facet() and not self._is_mixed_dim()
-
-        custom_quad = self._custom_quads[quad_data]
-        values = evaluate_FE_tables(FE_tables, custom_quad.points)
-        vals_for_quad = []
-        for vals in values.values():
-            assert len(vals.shape) == 2
-            vals_for_quad.append(vals.ravel())
-        return vals_for_quad
-
-    def _compute_new_vals_tables_interior_facet(
-        self, quad_data: QuadratureData, FE_tables: list[FETable]
-    ) -> list[npt.NDArray[np.float32 | np.float64]]:
-        """Computes the new values for the given FE tables for the case
-        of interior facet integrals.
-
-        Args:
-            quad_data (QuadratureData): Quadrature data of the integrand
-                for which the values are computed.
-            FE_tables (list[FETable]): List of FE tables which new
-                values are computed.
-
-        Returns:
-            list[npt.NDArray[np.float32 | np.float64]]: Computed values.
-        """
-
-        assert self._is_interior_facet()
-
-        custom_quad = self._custom_quads[quad_data]
-        assert len(custom_quad) == 2
-        values_0 = evaluate_FE_tables(FE_tables, custom_quad[0].points)
-        values_1 = evaluate_FE_tables(FE_tables, custom_quad[1].points)
-
-        vals_for_quad = []
-        for table, vals_0 in values_0.items():
-            vals_for_quad.append(vals_0.ravel())
-            if table.permutations > 1:
-                vals_for_quad.append(values_1[table].ravel())
-
-        return vals_for_quad
-
     def _compute_new_vals(
         self,
     ) -> list[list[npt.NDArray[np.int32] | npt.NDArray[np.float32] | npt.NDArray[np.float64]]]:
-        """Computes the extra coefficients associated to the custom
-        integrals. Namely, number of points per entity, weights, normals
-        (if needed), and finite element basis functions evaluations.
+        """Computes the per-entity coefficients packed into ``w_custom``
+        for the custom integral.
+
+        Under the on-the-fly tabulation design we only pack per-cell
+        *geometry* — the FE table values are computed inside the kernel
+        by ``qugar_tabulate_<t>``. The order here MUST match the one read
+        by ``load_points_..._Q...`` emitted by ``codegeneration.py``:
+
+            [ n_pts | points (gdim * n_pts) | weights (n_pts)
+              | normals (gdim * n_pts) if unfitted_boundary ]
 
         Returns:
-            list[list[npt.NDArray[np.int32] | npt.NDArray[np.float32] | npt.NDArray[np.float64]]]:
-            Computed quantities. Every entry of the list corresponds to
-            all the quantities for a particular integrand (quadrature).
-            Each sublist corresponds to a particular quantity (e.g.,
-            the weights or the basis functions of a certain finite
-            element) for all the custom entities.
+            list[list[npt.NDArray[...]]]: One sublist per quadrature; each
+            holds flat per-cell-concatenated arrays for ``_copy_vals``.
         """
 
         vals_all_quads = []
-        for quad_data, FE_tables in self._itg_data.quad_data_FE_tables.items():
+        for quad_data, _FE_tables in self._itg_data.quad_data_FE_tables.items():
             custom_quad = self._custom_quads[quad_data]
             if self._is_interior_facet():
                 custom_quad = custom_quad[0]
 
-            vals_for_quad = [custom_quad.n_pts_per_entity]
+            vals_for_quad: list = [custom_quad.n_pts_per_entity]
+            vals_for_quad.append(np.ascontiguousarray(custom_quad.points).ravel())
             vals_for_quad.append(custom_quad.weights)
-
             if quad_data.unfitted_boundary:
                 vals_for_quad.append(custom_quad.normals.ravel())
-
-            vals_for_quad += self._compute_new_vals_tables(quad_data, FE_tables)
 
             vals_all_quads.append(vals_for_quad)
 

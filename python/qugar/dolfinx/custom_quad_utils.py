@@ -120,8 +120,7 @@ def _create_permutation_operators(
         list[npt.NDArray[np.float64]]: Generated permutations. The
         ordering in which these operators are stored matches the
         ordering of the permuted basis function values in ``FETable``
-        and used in the functions in ``qugar.dolfinx.fe_table_eval`` and
-        ``ffcx.ir.elementtables.get_ffcx_table_values``.
+        and ``ffcx.ir.elementtables.get_ffcx_table_values``.
     """
 
     cell_name = cell_type.cellname()
@@ -167,7 +166,6 @@ def _permute_points(
         permutations (npt.NDArray[np.int32]): Indices of the permuations
             to apply. There are as many permutations as points. The
             values of this permutations matches the one used in
-            ``qugar.dolfinx.fe_table_eval`` and
             ``ffcx.ir.elementtables.get_ffcx_table_values``.
 
         facet_cell (ufl.AbstractCell): Cell type of the facet in which

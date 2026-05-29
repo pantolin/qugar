@@ -17,6 +17,7 @@
 #include <array>
 #include <cstddef>
 #include <exception>
+#include <map>
 #include <span>
 #include <utility>
 #include <vector>
@@ -34,10 +35,26 @@ std::vector<FiniteElement<T>>& registry()
   return r;
 }
 
+// Dedup index: (family,cell,degree,lvariant,dvariant,discontinuous) -> handle.
+// The generated kernel calls register on every cell; dedup guarantees the
+// element is created exactly ONCE and later calls are a cheap map lookup.
+using ElementKey = std::array<int, 6>;
+
+template <typename T>
+std::map<ElementKey, int>& index()
+{
+  static std::map<ElementKey, int> idx;
+  return idx;
+}
+
 template <typename T>
 int register_impl(int family, int cell, int degree, int lvariant, int dvariant,
                   int discontinuous)
 {
+  const ElementKey key{family, cell, degree, lvariant, dvariant, discontinuous};
+  if (auto it = index<T>().find(key); it != index<T>().end())
+    return it->second; // already created -> return cached handle
+
   try
   {
     FiniteElement<T> el = create_element<T>(
@@ -46,7 +63,9 @@ int register_impl(int family, int cell, int degree, int lvariant, int dvariant,
         static_cast<element::dpc_variant>(dvariant),
         static_cast<bool>(discontinuous));
     registry<T>().push_back(std::move(el));
-    return static_cast<int>(registry<T>().size()) - 1;
+    const int handle = static_cast<int>(registry<T>().size()) - 1;
+    index<T>()[key] = handle;
+    return handle;
   }
   catch (const std::exception&)
   {
@@ -156,5 +175,7 @@ extern "C"
   {
     registry<double>().clear();
     registry<float>().clear();
+    index<double>().clear();
+    index<float>().clear();
   }
 }
