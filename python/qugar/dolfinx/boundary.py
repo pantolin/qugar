@@ -49,7 +49,7 @@ class UnfittedReferenceNormal(GeometricCellQuantity):
         table-less one, so we keep the cellwise-constant classification;
         the per-point variation is reintroduced downstream when qugar
         relocates the pre-loop block into the quadrature loop (see
-        ``codegeneration._IntegralModifier._modify_normal_constants``).
+        :meth:`qugar.dolfinx._kernel_body.KernelBody.inline_pre_loop_into_loops`).
     """
 
     __slots__ = ()
@@ -154,6 +154,13 @@ class dsu(ufl.Measure):
         assert domain is not None
 
         metadata = {} if metadata is None else metadata.copy()
+        # When called from reconstruct, ``degree`` is None but the old
+        # metadata carries ``quadrature_degree``. Recover it so that
+        # ``_create_custom_metadata`` produces degree-specific placeholder
+        # points instead of the degree=None fall-back (which would make
+        # all restricted measures hash to the same quadrature name).
+        if degree is None:
+            degree = metadata.get("quadrature_degree")
         if degree is not None:
             metadata["quadrature_degree"] = degree
 

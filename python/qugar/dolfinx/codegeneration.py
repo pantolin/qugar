@@ -87,14 +87,10 @@ class _IntegralModifier:
         _data (IntegralData): Data structure containing information
             associated to the quadrature, as integral type, subdomain
             ids, quadratures, and FE tables.
-        _func_signt (str): Block of C code containing the signature of
-            original tabulate tensor function
-        _func_impl (str): Block of C code containing the implementation
-            of original tabulate tensor function
-        _before_func (str): Block of C code before the original tabulate
-            tensor function.
-        _after_func (str): Block of C code after the original tabulate
-            tensor function.
+        _body (KernelBody): Structured representation of the parsed
+            kernel (signature, per-quadrature loops, pre/post bands).
+        _integral_name (str): FFCx-generated hash part of the integral
+            function name.
         _coeffs_dtype (type[np.float32 | np.float64 | np.complex64 |
             np.complex128]): Type of the function's coefficients and
             constants.
@@ -663,13 +659,13 @@ class _IntegralModifier:
         tables are replaced by values dynamically loaded from the
         coefficients array ``w_custom``.
 
-        The accesses to FE tables are transformed from accesses to a 4D
-        (static) array, 1D array accesses.
-        The upper bounds of the quadrature points loops are modified to
-        accomodate the number of quadrature points for every
-        particular cell. And, in the case of unfitted custom boundaries,
-        the used (fake) constants are replaced by their corresponding
-        boundary normals.
+        The accesses to FE tables are transformed from 4D static-array
+        accesses to 1D dynamic-buffer accesses. The upper bounds of the
+        quadrature loops are rewritten to use the runtime point count.
+        For unfitted boundaries the boundary normal is emitted by FFCx
+        (via the :mod:`qugar.dolfinx._ffcx_patches` backend handler); the
+        pre-loop band is inlined into every loop so ``iq`` is in scope at
+        every ``normals_<quad>`` access site.
 
         Returns:
             str: New generated code.

@@ -61,7 +61,8 @@ def _unfitted_normal_access(self, mt, tabledata, quadrature_rule):
     # ``quadrature_rule=None``. Recover the rule recorded by the patched
     # ``generate_piecewise_partition`` (see :func:`_patch_ffcx_backend`).
     rule = quadrature_rule if quadrature_rule is not None else self._qugar_current_rule
-    assert rule is not None, "unfitted normal lowered outside a quadrature context"
+    if rule is None:
+        raise RuntimeError("unfitted normal lowered outside a quadrature context")
 
     # ``QuadratureRule.id()`` needs the hash to have been computed.
     hash(rule)

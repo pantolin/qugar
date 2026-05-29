@@ -167,6 +167,26 @@ def test_placeholder_points_stable_for_equal_degree():
     assert _placeholder_points(dsu(domain=mesh)) == _placeholder_points(dsu(domain=mesh))
 
 
+def test_reconstruct_preserves_degree_placeholder_points():
+    """``dsu(degree=N)(subdomain_id)`` must keep the degree-N placeholder
+    points, not fall back to the degree=None ones.
+
+    Without this, ``dsu(degree=2)(1)`` and ``dsu(degree=5)(2)`` would both
+    get degree=None placeholder points (same hash), triggering the
+    collision guard in ``extract_quadrature_data`` with a misleading
+    error even though the user explicitly specified distinct degrees.
+    """
+    mesh = _mesh()
+
+    for degree in (2, 5):
+        direct = _placeholder_points(dsu(domain=mesh, degree=degree))
+        restricted = _placeholder_points(dsu(domain=mesh, degree=degree)(3))
+        assert direct == restricted, (
+            f"dsu(degree={degree})(subdomain_id) must preserve degree-specific "
+            "placeholder points"
+        )
+
+
 def test_subdomain_data_is_carried_through():
     """``ds(id)`` with ``subdomain_data`` set on the original measure
     keeps the data — this is the natural call pattern from issue #3."""
