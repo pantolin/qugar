@@ -17,42 +17,48 @@ if not has_FEniCSx:
 
 from typing import Optional
 
-import dolfinx.fem
 import dolfinx.mesh
 import numpy as np
 import numpy.typing as npt
 import ufl
-from ufl.geometry import Jacobian
+from ufl.core.ufl_type import ufl_type
+from ufl.geometry import GeometricCellQuantity, Jacobian
 from ufl.measure import integral_type_to_measure_name
 from ufl.operators import inv, transpose
 from ufl.protocols import id_or_none
 
 
-class ParamNormal(dolfinx.fem.Constant):
-    """Constant type for defining the normal of a custom unfitted
-    boundary in the parametric domain of the cell.
+@ufl_type()
+class UnfittedReferenceNormal(GeometricCellQuantity):
+    """UFL geometric terminal: the reference-domain normal of an unfitted
+    boundary, evaluated per quadrature point at runtime.
 
-    It is a constant vector set to zero, with the same number of
-    coordinates as the normal, whose only purpose is to represent the
-    normal. Its value will be determined at runtime at
-    every quadrature point of the boundary.
+    This is the primitive runtime input behind :func:`dsu_normal`: the
+    physical normal is obtained by mapping it through the cell Jacobian
+    (Nanson's formula). It replaces the former ``ParamNormal`` zero-valued
+    ``Constant`` placeholder. Modelling the normal as a proper geometric
+    quantity lets FFCx lower it *structurally* — see
+    :mod:`qugar.dolfinx._ffcx_patches`, which registers a backend handler
+    emitting ``normals_<quad>[tdim * iq + i]`` — instead of rewriting the
+    generated C text.
+
+    Note:
+        The terminal is (deliberately) cellwise-constant, like every UFL
+        ``GeometricQuantity`` by default. FFCx assumes a genuinely
+        per-point quantity is backed by a basis table and rejects a
+        table-less one, so we keep the cellwise-constant classification;
+        the per-point variation is reintroduced downstream when qugar
+        relocates the pre-loop block into the quadrature loop (see
+        ``codegeneration._IntegralModifier._modify_normal_constants``).
     """
 
-    def __init__(self, domain: ufl.AbstractDomain) -> None:
-        """Initializes the normals.
+    __slots__ = ()
+    name = "unfitted_reference_normal"
 
-        Args:
-            domain (ufl.AbstractDomain): An AbstractDomain object (most
-                often a Mesh) to which the normal is associated to.
-        """
-
-        assert isinstance(domain, dolfinx.mesh.Mesh)
-
-        dtype = domain.geometry.x.dtype
-        param_dim = domain.topology.dim
-
-        zeros = np.zeros(param_dim, dtype=dtype)
-        super().__init__(domain, zeros)
+    @property
+    def ufl_shape(self):
+        """Vector shape, one component per topological dimension."""
+        return (self._domain.topological_dimension(),)
 
 
 def _compute_vector_norm(vec):
@@ -67,10 +73,13 @@ def _compute_vector_norm(vec):
     return ufl.sqrt(ufl.inner(vec, vec))
 
 
-def mapped_normal(domain: ufl.AbstractDomain | dolfinx.mesh.Mesh, normalize: bool = True):
-    """
-    Returns a normal vector of a custom unfitted boundary mapped with
-    the domain's geometry. I.e., the normal in the physical space.
+def dsu_normal(domain: ufl.AbstractDomain | dolfinx.mesh.Mesh, normalize: bool = True):
+    """Physical (mapped) outward normal of an unfitted boundary, for use
+    inside a :class:`dsu` integrand.
+
+    The reference-domain normal (:class:`UnfittedReferenceNormal`) is
+    mapped to physical space through the cell Jacobian, following Nanson's
+    formula.
 
     Args:
         domain (ufl.AbstractDomain | dolfinx.mesh.Mesh): An AbstractDomain object (most
@@ -84,7 +93,7 @@ def mapped_normal(domain: ufl.AbstractDomain | dolfinx.mesh.Mesh, normalize: boo
         Mapped normal.
     """
 
-    N = ParamNormal(domain)
+    N = UnfittedReferenceNormal(domain)
 
     DF = Jacobian(domain)
 
@@ -160,10 +169,10 @@ class dsu(ufl.Measure):
 
         # The dolfinx mesh is needed (rather than ufl_domain(), which is
         # a plain ufl.Mesh) for ``reconstruct`` to rebuild this subclass
-        # and re-run ParamNormal/mapped_normal on subdomain_id changes.
+        # and re-run UnfittedReferenceNormal/dsu_normal on subdomain_id changes.
         self._dolfinx_domain = domain
 
-        n = mapped_normal(domain, normalize=False)
+        n = dsu_normal(domain, normalize=False)
         # This is the missing term in Nanson's formula (the Jacobian
         # determinant should by already included in dx).
         self._measure_complement = _compute_vector_norm(n)
@@ -271,7 +280,7 @@ class dsu(ufl.Measure):
         # Reuse the existing Nanson term when the domain is unchanged so
         # that ``f * ds(id)`` and a freshly-constructed equivalent form
         # share form signatures (otherwise each call would mint a new
-        # ParamNormal Constant and bust the FFCx JIT cache).
+        # normal terminal and bust the FFCx JIT cache).
         if new_domain is self._dolfinx_domain:
             new._measure_complement = self._measure_complement
         return new

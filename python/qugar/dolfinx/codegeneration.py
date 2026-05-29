@@ -24,7 +24,6 @@ from ffcx.analysis import UFLData
 from ffcx.codegeneration.codegeneration import CodeBlocks
 from ffcx.ir.representation import DataIR, IntegralIR
 
-from qugar.dolfinx.boundary import ParamNormal
 from qugar.dolfinx.fe_table import FETable
 from qugar.dolfinx.integral_data import IntegralData, extract_integral_data
 from qugar.dolfinx.parsing_utils import dtype_to_C_str, get_pairing_brackets, parse_dtype_C
@@ -389,53 +388,6 @@ class _IntegralModifier:
 
         return new_code
 
-    def _get_constant_normal_offsets(self) -> tuple[np.int64, ...]:
-        """Finds the indices of the (fake) constants associated to
-        unfitted boundary normals.
-
-        Returns:
-            tuple[np.int64, ...]: Offsets of the constants associated
-            to unfitted boundary normals.
-        """
-
-        constant_offsets = self._ir.expression.original_constant_offsets
-
-        offsets = tuple(
-            np.int64(offset)
-            for constant, offset in constant_offsets.items()
-            if isinstance(constant, ParamNormal)
-        )
-        return offsets
-
-    def _substitute_normals(self, code_block: str, quad_name: str) -> str:
-        """This function replaces the used (fake) constants by their
-        corresponding boundary normals varying at every quadrature
-        point.
-
-        Args:
-            code_block (_type_): C code block in which normals are
-                replaced.
-            quad_name (_type_): Name of quadrature associated to the
-                `code_block`.
-
-        Returns:
-            str: Newly generated C code.
-        """
-
-        for ct_offset in self._get_constant_normal_offsets():
-            for i in range(self._data.tdim):
-                constant_pattern = rf"([\*|\+|\-\/\%|\s|\(])c\[{ct_offset + i}\]"
-
-                new_norm_ind = f"{self._data.tdim} * iq"
-                if i > 0:
-                    new_norm_ind += f" + {i}"
-                normal_str = f"normals_{quad_name}[{new_norm_ind}]"
-
-                while match := re.search(constant_pattern, code_block):
-                    code_block = code_block.replace(match.group(0), f"{match.group(1)}{normal_str}")
-
-        return code_block
-
     def _has_unfitted_boundary(self) -> bool:
         """Checks if the integral has unfitted boundaries.
 
@@ -449,9 +401,16 @@ class _IntegralModifier:
         )
 
     def _modify_normal_constants(self, code: str) -> str:
-        """In the case of unfitted custom boundaries, this function
-        replaces the used (fake) constants by their corresponding
-        boundary normals varying at every quadrature point.
+        """In the case of unfitted custom boundaries, moves the pre-loop
+        (cell-constant) definitions into the quadrature loops.
+
+        The boundary normal is lowered by FFCx to ``normals_<quad>[tdim *
+        iq + i]`` accesses (see :mod:`qugar.dolfinx._ffcx_patches`). Since
+        the normal terminal is classified cellwise-constant, FFCx hoists
+        the mapped-normal computation (and those ``iq`` accesses) into the
+        pre-loop block, where ``iq`` is undefined. Moving that block into
+        each quadrature loop both makes the ``iq`` accesses valid and lets
+        the normal vary from point to point.
 
         Args:
             code (str): Original C code to modify.
@@ -461,7 +420,7 @@ class _IntegralModifier:
         """
 
         if not self._has_unfitted_boundary():
-            return code  # No normals to subsitute.
+            return code  # Nothing to relocate.
 
         loop_pattern = r"for\s*\(\s*int\s+iq\s*=\s*0\s*;\s*iq\s*<\s*(\w+)\s*;\s*\+\+iq\s*\)"
 
@@ -470,22 +429,11 @@ class _IntegralModifier:
         assert match is not None
         first_loop = match.start()
 
-        # Note that in cases as for linear triangles, quantities as
-        # the jacobians are constant at all the quadrature points and
-        # therefore FFCx defines them out of the quadrature loops.
-        # However, in the case of unfitted boundaries, these quantities
-        # get multiplied by boundary normals that vary from point
-        # to point and become non constant.
-        # Thus, we take those constant definitions and move them to the
-        # quadrature loops, to introduce the normals variation later on.
-        # Unfortunately, including these constant variables in the loops
-        # may cause the compiler complaining about unused variables in
-        # the case there is more than one quadrature loop (integrand).
-        # This is due to the fact that some of the variables are shared
-        # by several loops but not all of them. We don't know which
-        # ones, so we copy everything at the risk of some variables
-        # being unused.
-
+        # Unfortunately, including these definitions in the loops may
+        # cause the compiler to complain about unused variables when there
+        # is more than one quadrature loop (integrand): some variables are
+        # shared by several loops but not all of them, and we don't know
+        # which, so we copy everything at the risk of some being unused.
         assert code[:2] == "{\n"
         cnt_vars_block = code[2:first_loop]
         code = code[:2] + code[first_loop:]
@@ -493,19 +441,12 @@ class _IntegralModifier:
         ind = 0
         new_code = ""
         for match in re.finditer(loop_pattern, code):
-            quad_name = match.group(1).split("Q")[1]
-            all_quad_datas = list(self._data.quad_data_FE_tables.keys())
-            quad_data = next(filter(lambda qd: qd.name == quad_name, all_quad_datas))
-
             ids = get_pairing_brackets(code[match.start() :])
             i0 = ids[0] + match.start()
             i1 = ids[1] + match.start()
 
             assert code[i0 : i0 + 2] == "{\n"
             block = "{\n" + cnt_vars_block + code[i0 + 2 : i1]
-
-            if quad_data.unfitted_boundary:
-                block = self._substitute_normals(block, quad_name)
 
             new_code += code[ind:i0] + block
             ind = i1
@@ -713,34 +654,33 @@ class _IntegralModifier:
 
         assert self._has_unfitted_boundary()
 
+        all_quad_datas = list(self._data.quad_data_FE_tables.keys())
+
+        # The unfitted-boundary normal is lowered by FFCx to custom-only
+        # ``normals_<quad>`` accesses (see _ffcx_patches), which the
+        # original kernel does not load. In this kernel the unfitted
+        # loops are deactivated anyway (``break`` below), so the normal
+        # has no meaning: replace its accesses with 0.0 so the (now dead)
+        # code still compiles.
+        impl = self._func_impl
+        for quad_data in all_quad_datas:
+            if quad_data.unfitted_boundary:
+                impl = re.sub(rf"normals_{quad_data.name}\[[^\]]*\]", "0.0", impl)
+
         loop_pattern = r"for\s*\(\s*int\s+iq\s*=\s*0\s*;\s*iq\s*<\s*(\d+)\s*;\s*\+\+iq\s*\)"
 
         # Finding the start of the first quadrature loop.
-        match = re.search(loop_pattern, self._func_impl)
+        match = re.search(loop_pattern, impl)
         assert match is not None
         first_loop = match.start()
 
-        # Note that in cases as for linear triangles, quantities as
-        # the jacobians are constant at all the quadrature points and
-        # therefore FFCx defines them out of the quadrature loops.
-        # However, in the case of unfitted boundaries, these quantities
-        # get multiplied by boundary normals that vary from point
-        # to point and become non constant.
-        # Thus, we take those constant definitions and move them to the
-        # quadrature loops, to introduce the normals variation later on.
-        # Unfortunately, including these constant variables in the loops
-        # may cause the compiler complaining about unused variables in
-        # the case there is more than one quadrature loop (integrand).
-        # This is due to the fact that some of the variables are shared
-        # by several loops but not all of them. We don't know which
-        # ones, so we copy everything at the risk of some variables
-        # being unused.
-
-        assert self._func_impl[:2] == "{\n"
-        cnt_vars_block = self._func_impl[2:first_loop]
-        code = self._func_impl[:2] + self._func_impl[first_loop:]
-
-        all_quad_datas = list(self._data.quad_data_FE_tables.keys())
+        # The pre-loop block holds the cell-constant definitions FFCx
+        # hoisted out of the loops (and which reference ``iq``); relocate
+        # them into each loop so ``iq`` is in scope, as in
+        # _modify_normal_constants.
+        assert impl[:2] == "{\n"
+        cnt_vars_block = impl[2:first_loop]
+        code = impl[:2] + impl[first_loop:]
 
         ind = 0
         new_code = ""
@@ -755,8 +695,8 @@ class _IntegralModifier:
             block = "{\n"
 
             if quad_data.unfitted_boundary:
-                # This prevents the loop from being executed.
-                # The compiler will optimize out the full loop.
+                # This prevents the loop from being executed; the compiler
+                # optimizes out the never-executed body.
                 block += "break;\n"
 
             block += cnt_vars_block + code[i0 + 2 : i1]
