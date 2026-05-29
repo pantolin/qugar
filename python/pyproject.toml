@@ -49,7 +49,9 @@ all = [
 
 [tool.scikit-build]
 wheel.packages = ["qugar"]
-sdist.exclude = ["*.cpp"]
+# NOTE: do NOT add a broad ``sdist.exclude = ["*.cpp"]`` here — scikit-build-core
+# also applies sdist.exclude as src_exclude when copying package contents into
+# the wheel, which would silently drop qugar/dolfinx/_shim/qugar_basix_shim.cpp.
 cmake.build-type = "Release"
 wheel.license-files = ["../LICENSE"]
 
