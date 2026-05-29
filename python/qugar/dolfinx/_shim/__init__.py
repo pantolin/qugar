@@ -22,6 +22,7 @@ from __future__ import annotations
 
 import contextlib
 import os
+import shutil
 import subprocess
 import sys
 import sysconfig
@@ -59,17 +60,25 @@ def _find_cxx() -> Path:
         p = Path(cxx_env)
         if p.exists():
             return p
+        resolved = shutil.which(cxx_env)
+        if resolved:
+            return Path(resolved)
+    # Prefer a compiler shipped in the active environment (conda's clang++/g++
+    # land here), then fall back to the system PATH -- on Linux conda the
+    # FEniCSx env carries no compiler and the system g++/cc is what ffcx's own
+    # JIT uses, so we must mirror that here.
     bindir = Path(sys.prefix) / "bin"
-    for candidate in [
-        bindir / "clang++",
-        *sorted(bindir.glob("clang++-*")),
-        bindir / "g++",
-        bindir / "c++",
-    ]:
+    names = ["clang++", *sorted(p.name for p in bindir.glob("clang++-*")), "g++", "c++"]
+    for name in names:
+        candidate = bindir / name
         if candidate.exists():
             return candidate
+    for name in names:
+        resolved = shutil.which(name)
+        if resolved:
+            return Path(resolved)
     raise FileNotFoundError(
-        f"no C++ compiler found in {bindir}; set $CXX to override"
+        f"no C++ compiler found in {bindir} or on PATH; set $CXX to override"
     )
 
 
