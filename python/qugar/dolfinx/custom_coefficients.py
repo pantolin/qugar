@@ -325,6 +325,7 @@ class _CustomCoeffsPackerIntegral:
         n_vals_per_custom_entity = np.zeros(n_custom_entities, dtype=np.int32)
 
         interior_facet = self._is_interior_facet()
+        mixed_dim = self._is_mixed_dim()
 
         for quad_data, _FE_tables in self._itg_data.quad_data_FE_tables.items():
             custom_quad = self._custom_quads[quad_data]
@@ -334,6 +335,12 @@ class _CustomCoeffsPackerIntegral:
             gdim = custom_quad.points.shape[1]
             # gdim point coordinates + 1 weight per point.
             n_vals_per_pt = gdim + 1
+            if interior_facet:
+                # Side-1 cell-mapped coords (same dim as side 0).
+                n_vals_per_pt += gdim
+            if mixed_dim:
+                # Facet-reference coords for facet-dim elements.
+                n_vals_per_pt += self._custom_quads_facets[quad_data].points.shape[1]
             if quad_data.unfitted_boundary:
                 n_vals_per_pt += gdim
 
@@ -711,14 +718,20 @@ class _CustomCoeffsPackerIntegral:
 
     def _create_quadratures(self) -> None:
         """Creates the custom quadratures for the integrands in the
-        integral and stores them in ``self._custom_quads``.
+        integral and stores them in ``self._custom_quads`` (and, for
+        mixed-dimension integrals where a facet-dim element is also
+        tabulated, the facet-reference quadrature in
+        ``self._custom_quads_facets``).
         """
 
         self._custom_quads = {}
+        self._custom_quads_facets = {}
 
         for quad_data in self._itg_data.quad_data_FE_tables.keys():
             if self._is_facet():
-                _quad_facet, quad = self._create_quadrature_facet(quad_data)
+                quad_facet, quad = self._create_quadrature_facet(quad_data)
+                if self._is_mixed_dim():
+                    self._custom_quads_facets[quad_data] = quad_facet
             else:
                 quad = self._create_quadrature_cell(quad_data)
 
@@ -744,13 +757,25 @@ class _CustomCoeffsPackerIntegral:
         """
 
         vals_all_quads = []
+        mixed_dim = self._is_mixed_dim()
+        interior_facet = self._is_interior_facet()
         for quad_data, _FE_tables in self._itg_data.quad_data_FE_tables.items():
-            custom_quad = self._custom_quads[quad_data]
-            if self._is_interior_facet():
-                custom_quad = custom_quad[0]
+            if interior_facet:
+                custom_quad = self._custom_quads[quad_data][0]
+                custom_quad_side1 = self._custom_quads[quad_data][1]
+            else:
+                custom_quad = self._custom_quads[quad_data]
+                custom_quad_side1 = None
 
             vals_for_quad: list = [custom_quad.n_pts_per_entity]
             vals_for_quad.append(np.ascontiguousarray(custom_quad.points).ravel())
+            if interior_facet:
+                vals_for_quad.append(
+                    np.ascontiguousarray(custom_quad_side1.points).ravel())
+            if mixed_dim:
+                vals_for_quad.append(
+                    np.ascontiguousarray(
+                        self._custom_quads_facets[quad_data].points).ravel())
             vals_for_quad.append(custom_quad.weights)
             if quad_data.unfitted_boundary:
                 vals_for_quad.append(custom_quad.normals.ravel())

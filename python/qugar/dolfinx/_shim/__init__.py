@@ -70,7 +70,11 @@ def ensure_built() -> tuple[Path, str]:
         cache = _cache_dir()
         cache.mkdir(parents=True, exist_ok=True)
         lib = cache / _LIB_FILENAME
-        if lib.exists() and lib.stat().st_mtime >= SHIM_SRC.stat().st_mtime:
+        # Treat a change to either the shim source OR this builder (which
+        # controls the compile flags) as cache-invalidating.
+        builder_mtime = Path(__file__).stat().st_mtime
+        src_mtime = max(SHIM_SRC.stat().st_mtime, builder_mtime)
+        if lib.exists() and lib.stat().st_mtime >= src_mtime:
             return cache, LIB_NAME
         prefix = Path(sys.prefix)
         cmd = [

@@ -19,6 +19,7 @@ import math
 import re
 
 import basix
+import basix.ufl
 import ffcx.codegeneration.codegeneration
 import numpy as np
 import numpy.typing as npt
@@ -564,6 +565,26 @@ class _IntegralModifier:
         )
 
     @staticmethod
+    def _resolve_mixed_component(element, flat_component: int):
+        """For a ``basix.ufl._MixedElement``, drill into the sub-element
+        that owns ``flat_component`` and return
+        ``(sub_element, component_within_sub)``. Non-mixed elements pass
+        through unchanged. Recursive for nested mixed elements.
+        """
+        if not isinstance(element, basix.ufl._MixedElement):
+            return element, flat_component
+        acc = 0
+        for sub in element.sub_elements:
+            if flat_component < acc + sub.reference_value_size:
+                return _IntegralModifier._resolve_mixed_component(
+                    sub, flat_component - acc)
+            acc += sub.reference_value_size
+        raise ValueError(
+            f"flat_component {flat_component} out of range for mixed element "
+            f"with reference_value_size {element.reference_value_size}"
+        )
+
+    @staticmethod
     def _table_codegen_info(table: FETable) -> dict:
         """Computes the constants needed to repack a basix tabulation
         block into a single FFCx FE table.
@@ -572,8 +593,13 @@ class _IntegralModifier:
         and the indices used by the repack: ``didx`` (basix derivative
         index), ``vaxis`` (value-axis index), ``ndofs`` and ``vs`` (basix
         block dims), and ``gdim`` (points dimension).
+
+        For mixed elements (``basix.ufl._MixedElement``), drills into the
+        sub-element that owns ``table.component`` so the basix block is
+        tabulated for the right sub-element.
         """
-        el = table.element
+        el, local_c = _IntegralModifier._resolve_mixed_component(
+            table.element, table.component)
         block_size = getattr(el, "block_size", 1)
         scalar = el.sub_elements[0] if block_size > 1 else el
         be = scalar.basix_element
@@ -595,7 +621,7 @@ class _IntegralModifier:
             "vs": vs,
             "ndofs": table.funcs,
             "didx": basix.index(*derivs),
-            "vaxis": 0 if block_size > 1 else table.component,
+            "vaxis": 0 if block_size > 1 else local_c,
             "maxnd": sum(derivs),
         }
 
@@ -617,6 +643,9 @@ class _IntegralModifier:
         dtype_str = dtype_to_C_str(self._data.dtype)
         name = self._data.name
         gdim = self._data.tdim
+        mixed_dim = self._data.is_mixed_dim
+        interior_facet = self._data.integral_type == "interior_facet"
+        fdim = gdim - 1  # facet-reference coordinate dimension
 
         code = ""
 
@@ -625,6 +654,8 @@ class _IntegralModifier:
 
             func_name = f"load_points_{name}_Q{quad_name}"
             points_name = f"points_{quad_name}"
+            points_side1_name = f"points_side1_{quad_name}"
+            points_facet_name = f"points_facet_{quad_name}"
             weights_name = f"weights_{quad_name}"
             normals_name = f"normals_{quad_name}"
             n_pts_name = f"n_pts_Q{quad_name}"
@@ -634,6 +665,10 @@ class _IntegralModifier:
             indent = " " * len(f"int {func_name}(")
             code += f"\nint {func_name}(const {dtype_str}* restrict *w_custom"
             code += f",\n{indent}const {dtype_str}* restrict *{points_name}"
+            if interior_facet:
+                code += f",\n{indent}const {dtype_str}* restrict *{points_side1_name}"
+            if mixed_dim:
+                code += f",\n{indent}const {dtype_str}* restrict *{points_facet_name}"
             code += f",\n{indent}const {dtype_str}* restrict *{weights_name}"
             if has_normals:
                 code += f",\n{indent}const {dtype_str}* restrict *{normals_name}"
@@ -642,6 +677,12 @@ class _IntegralModifier:
             code += f"const int {n_pts_name} = (int) **w_custom;\n*w_custom += 1;\n\n"
             code += f"*{points_name} = *w_custom;\n"
             code += f"*w_custom += {gdim} * {n_pts_name};\n\n"
+            if interior_facet:
+                code += f"*{points_side1_name} = *w_custom;\n"
+                code += f"*w_custom += {gdim} * {n_pts_name};\n\n"
+            if mixed_dim:
+                code += f"*{points_facet_name} = *w_custom;\n"
+                code += f"*w_custom += {fdim} * {n_pts_name};\n\n"
             code += f"*{weights_name} = *w_custom;\n"
             code += f"*w_custom += {n_pts_name};\n\n"
             if has_normals:
@@ -668,6 +709,8 @@ class _IntegralModifier:
         suffix = self._shim_suffix()
 
         itg_name = self._data.name
+        tdim = self._data.tdim
+        mixed_dim = self._data.is_mixed_dim
 
         is_interior_facet = self._data.integral_type == "interior_facet"
 
@@ -679,6 +722,8 @@ class _IntegralModifier:
 
             func_name = f"load_points_{itg_name}_Q{quad_name}"
             points_name = f"points_{quad_name}"
+            points_side1_name = f"points_side1_{quad_name}"
+            points_facet_name = f"points_facet_{quad_name}"
             weights_name = f"weights_{quad_name}"
             normals_name = f"normals_{quad_name}"
             n_pts_name = f"n_pts_Q{quad_name}"
@@ -688,8 +733,12 @@ class _IntegralModifier:
                 if table.is_constant_for_pts():
                     call_code += table.code + "\n"
 
-            # Per-cell points/weights (+normals) pointer declarations.
+            # Per-cell points/weights (+side-1, +facet points, +normals) decls.
             call_code += f"const {dtype_str}* restrict {points_name};\n"
+            if is_interior_facet:
+                call_code += f"const {dtype_str}* restrict {points_side1_name};\n"
+            if mixed_dim:
+                call_code += f"const {dtype_str}* restrict {points_facet_name};\n"
             call_code += f"const {dtype_str}* restrict {weights_name};\n"
             if has_normals:
                 call_code += f"const {dtype_str}* restrict {normals_name};\n"
@@ -697,20 +746,24 @@ class _IntegralModifier:
             # Loader execution (returns the runtime number of points).
             aux = f"const int {n_pts_name} = {func_name}("
             indent = " " * len(aux)
-            call_code += f"{aux}&w_custom,\n{indent}&{points_name},\n{indent}&{weights_name}"
+            call_code += f"{aux}&w_custom,\n{indent}&{points_name}"
+            if is_interior_facet:
+                call_code += f",\n{indent}&{points_side1_name}"
+            if mixed_dim:
+                call_code += f",\n{indent}&{points_facet_name}"
+            call_code += f",\n{indent}&{weights_name}"
             if has_normals:
                 call_code += f",\n{indent}&{normals_name}"
             call_code += ");\n\n"
 
             # On-the-fly tabulation + repack, grouped per element so each
             # element is tabulated once (one basix block feeds all of its
-            # component/derivative tables).
+            # component/derivative tables). For interior-facet integrals
+            # with perm>1 tables, two basix blocks are produced (one per
+            # side) and perm>1 tables get an FE..[2] array of per-side
+            # buffers; perm<=1 tables stay single-buffer (their values
+            # agree on both sides).
             varying = [t for t in FE_tables if not t.is_constant_for_pts()]
-            if is_interior_facet and any(t.permutations > 1 for t in varying):
-                raise NotImplementedError(
-                    "On-the-fly tabulation for interior-facet integrals "
-                    "(two-sided permuted tables) is not implemented yet."
-                )
 
             groups: dict[tuple, list[tuple[FETable, dict]]] = {}
             for table in varying:
@@ -725,35 +778,71 @@ class _IntegralModifier:
                 nderiv = math.comb(maxnd + gdim, gdim)
 
                 handle = f"h_{quad_name}_{gi}"
-                blk = f"block_{quad_name}_{gi}"
+                blk0 = f"block_{quad_name}_{gi}"
+                blk1 = f"block_side1_{quad_name}_{gi}"
                 blk_size = f"{nderiv} * {n_pts_name} * {ndofs} * {vs}"
                 stride = f"{ndofs} * {vs}"
+
+                # In mixed-dim integrals, facet-dim elements (gdim < tdim)
+                # must be tabulated at facet-reference points; cell-dim
+                # elements at the cell-mapped points.
+                pts_var = (points_facet_name
+                           if (mixed_dim and gdim != tdim)
+                           else points_name)
+                any_perm = is_interior_facet and any(
+                    t.permutations > 1 for t, _ in items)
 
                 call_code += (
                     f"const int {handle} = qugar_register_element_{suffix}"
                     f"({fam}, {cell}, {deg}, {lv}, {dv}, {disc});\n"
                 )
-                call_code += f"{dtype_str} {blk}[{blk_size}];\n"
+                call_code += f"{dtype_str} {blk0}[{blk_size}];\n"
                 call_code += (
-                    f"qugar_tabulate_{suffix}({handle}, {maxnd}, {points_name}, "
-                    f"{n_pts_name}, {gdim}, {blk}, (long)({blk_size}));\n\n"
+                    f"qugar_tabulate_{suffix}({handle}, {maxnd}, {pts_var}, "
+                    f"{n_pts_name}, {gdim}, {blk0}, (long)({blk_size}));\n"
                 )
+                if any_perm:
+                    call_code += f"{dtype_str} {blk1}[{blk_size}];\n"
+                    call_code += (
+                        f"qugar_tabulate_{suffix}({handle}, {maxnd}, "
+                        f"{points_side1_name}, {n_pts_name}, {gdim}, "
+                        f"{blk1}, (long)({blk_size}));\n"
+                    )
+                call_code += "\n"
 
                 for table, info in items:
                     funcs = table.funcs
                     didx, vaxis = info["didx"], info["vaxis"]
-                    buf = f"{table.name}_buf"
-                    call_code += f"{dtype_str} {buf}[{n_pts_name} * {funcs}];\n"
-                    call_code += f"for (int iq = 0; iq < {n_pts_name}; ++iq)\n"
-                    call_code += f"  for (int kd = 0; kd < {funcs}; ++kd)\n"
-                    call_code += (
-                        f"    {buf}[iq * {funcs} + kd] = {blk}"
-                        f"[{didx} * {n_pts_name} * {stride} + iq * {stride} "
-                        f"+ kd * {vs} + {vaxis}];\n"
-                    )
-                    call_code += (
-                        f"const {dtype_str}* restrict {table.name} = {buf};\n\n"
-                    )
+                    two_sided = is_interior_facet and table.permutations > 1
+
+                    def _repack(buf_name: str, src: str) -> str:
+                        r = f"{dtype_str} {buf_name}[{n_pts_name} * {funcs}];\n"
+                        r += f"for (int iq = 0; iq < {n_pts_name}; ++iq)\n"
+                        r += f"  for (int kd = 0; kd < {funcs}; ++kd)\n"
+                        r += (
+                            f"    {buf_name}[iq * {funcs} + kd] = {src}"
+                            f"[{didx} * {n_pts_name} * {stride} + iq * {stride}"
+                            f" + kd * {vs} + {vaxis}];\n"
+                        )
+                        return r
+
+                    if two_sided:
+                        buf0 = f"{table.name}_buf_0"
+                        buf1 = f"{table.name}_buf_1"
+                        call_code += _repack(buf0, blk0)
+                        call_code += _repack(buf1, blk1)
+                        call_code += (
+                            f"const {dtype_str}* restrict {table.name}[2];\n"
+                        )
+                        call_code += f"{table.name}[0] = {buf0};\n"
+                        call_code += f"{table.name}[1] = {buf1};\n\n"
+                    else:
+                        buf = f"{table.name}_buf"
+                        call_code += _repack(buf, blk0)
+                        call_code += (
+                            f"const {dtype_str}* restrict {table.name} = "
+                            f"{buf};\n\n"
+                        )
 
         return call_code
 
