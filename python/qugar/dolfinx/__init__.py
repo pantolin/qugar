@@ -24,10 +24,10 @@ from qugar.dolfinx._dolfinx_patches import apply_patches as _apply_dolfinx_patch
 
 _apply_dolfinx_patches()
 
-from qugar.dolfinx.boundary import ds_bdry_unf, mapped_normal
+from qugar.dolfinx.boundary import dsu, mapped_normal
 from qugar.dolfinx.forms import CustomForm, form_custom
 
-__all__ = ["CustomForm", "ds_bdry_unf", "form_custom", "mapped_normal"]
+__all__ = ["CustomForm", "dsu", "form_custom", "mapped_normal"]
 
 
 from qugar.utils import has_PETSc

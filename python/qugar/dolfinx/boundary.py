@@ -100,24 +100,21 @@ def mapped_normal(domain: ufl.AbstractDomain | dolfinx.mesh.Mesh, normalize: boo
         return n
 
 
-class ds_bdry_unf(ufl.Measure):
-    """This is a new ufl Measure class for an unfitted custom boundary.
+class dsu(ufl.Measure):
+    """UFL measure for integration over an unfitted custom boundary
+    (``dsu`` = "ds, unfitted").
 
-    It has the same functionalities as ufl.dx with the only difference
-    that when multiplied by an integrand, it introduces the necessary
-    correction for accounting for the boundary orientation by using
-    its normal.
+    It behaves like ``ufl.dx`` except that, when multiplied by an
+    integrand, it introduces the Nanson correction that accounts for the
+    boundary orientation through its normal.
 
-    In order to differentiate the generated measure from others,
-    sets the option `unfitted_custom_boundary` equal to ``True`` in
-    the quadrature's metadata, and uses a custom quadrature with two
-    (fake) points.
+    The measure is recognised downstream solely by the
+    ``custom_unfitted_boundary`` flag it sets in the quadrature metadata
+    (see :func:`qugar.dolfinx.quadrature_data.extract_quadrature_data`).
+    It also routes through FFCx's custom-quadrature path, which requires
+    placeholder points/weights to be present even though the real ones
+    are supplied per cell at runtime; see :meth:`_placeholder_quadrature`.
     """
-
-    # Static definition of (fake) custom quadrature points and weights.
-    _weights = [-1.0, -1.0]
-    _points_2D = [[0.1, 0.1], [0.2, 0.2]]
-    _points_3D = [[0.1, 0.1, 0.1], [0.2, 0.2, 0.2]]
 
     def __init__(
         self,
@@ -151,7 +148,7 @@ class ds_bdry_unf(ufl.Measure):
         if degree is not None:
             metadata["quadrature_degree"] = degree
 
-        metadata.update(self._create_custom_metadata(domain))
+        metadata.update(self._create_custom_metadata(domain, degree))
 
         super().__init__(
             integral_type="cell",
@@ -172,17 +169,58 @@ class ds_bdry_unf(ufl.Measure):
         self._measure_complement = _compute_vector_norm(n)
 
         self._integral_type_mod = "unfitted_custom_boundary"
-        self._measure_name = "ds_bdry_unf"
+        self._measure_name = "dsu"
 
-    def _create_custom_metadata(self, domain: ufl.AbstractDomain) -> dict:
-        """Creates the custom measure metadata. It has an associated
-        fake quadrature with only two points in the reference domain,
-        and includes the flag ``custom_unfitted_boundary`` set to
-        ``True``.
+    @staticmethod
+    def _placeholder_quadrature(
+        tdim: int, degree: Optional[int]
+    ) -> tuple[list[list[float]], list[float]]:
+        """Builds the placeholder quadrature (points and weights) for the
+        custom-quadrature metadata.
+
+        These values carry no quadrature meaning: the real points and
+        weights are supplied per cell at runtime. The negative weights
+        are a sentinel that no genuine rule produces.
+
+        FFCx derives a quadrature's identifier from ``sha1(points)`` only
+        (see ``ffcx.ir.representationutils.QuadratureRule.id``). The
+        points must therefore differ per ``(tdim, degree)``: otherwise
+        two unfitted-boundary integrals of different degree would hash to
+        the same name and clobber each other in
+        :func:`qugar.dolfinx.quadrature_data.extract_quadrature_data`. We
+        offset the points by the degree to keep them unique. When
+        ``degree`` is ``None`` the effective degree is only known later
+        (FFCx fills it in), so we fall back to a fixed offset and rely on
+        ``extract_quadrature_data`` to raise on any residual collision.
+
+        Args:
+            tdim (int): Topological dimension of the cell.
+            degree (int | None): Quadrature degree, if specified.
+
+        Returns:
+            tuple[list[list[float]], list[float]]: Placeholder points
+            (two per rule) and their weights.
+        """
+
+        step = 0.1 * (1 if degree is None else degree + 1)
+        points = [[step] * tdim, [2.0 * step] * tdim]
+        weights = [-1.0, -1.0]
+        return points, weights
+
+    def _create_custom_metadata(self, domain: ufl.AbstractDomain, degree: Optional[int]) -> dict:
+        """Creates the custom measure metadata.
+
+        The only semantically meaningful entry is the
+        ``custom_unfitted_boundary`` flag, which is the single source of
+        truth used downstream to recognise this measure. The
+        ``quadrature_rule="custom"`` entry and the placeholder
+        points/weights are FFCx ceremony (see
+        :meth:`_placeholder_quadrature`).
 
         Args:
             domain (ufl.AbstractDomain): An AbstractDomain object (most
                 often a Mesh).
+            degree (int | None): Quadrature degree, if specified.
 
         Returns:
             dict: Generated metadata.
@@ -190,16 +228,14 @@ class ds_bdry_unf(ufl.Measure):
 
         assert isinstance(domain, dolfinx.mesh.Mesh)
 
-        tdim = domain.topology.dim
-        points = self._points_2D if tdim == 2 else self._points_3D
+        points, weights = self._placeholder_quadrature(domain.topology.dim, degree)
 
-        metadata = {}
-        metadata["quadrature_points"] = points
-        metadata["quadrature_weights"] = self._weights
-        metadata["quadrature_rule"] = "custom"
-        metadata["custom_unfitted_boundary"] = True
-
-        return metadata
+        return {
+            "quadrature_points": points,
+            "quadrature_weights": weights,
+            "quadrature_rule": "custom",
+            "custom_unfitted_boundary": True,
+        }
 
     def __rmul__(self, integrand):
         """Multiply a scalar expression with measure to construct a form
@@ -278,10 +314,10 @@ class ds_bdry_unf(ufl.Measure):
         return hash(hashdata)
 
     def __eq__(self, other) -> bool:
-        """Checks if two `ds_bdry_unf` measures are equal.
+        """Checks if two `dsu` measures are equal.
 
         Returns:
             bool: ``True`` if both measures are equal, ``False``
             otherwise.
         """
-        return isinstance(other, ds_bdry_unf) and super().__eq__(other)
+        return isinstance(other, dsu) and super().__eq__(other)

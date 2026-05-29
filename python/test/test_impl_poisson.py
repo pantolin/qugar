@@ -14,7 +14,7 @@ the four qugar-specific code paths most relevant to real workflows:
 * ``qugar.dolfinx.LinearProblem`` (solver + apply_lifting + set_bc)
 * ``qugar.mesh.create_unfitted_impl_Cartesian_mesh`` (real cut domain
   rather than the mock unfitted mesh)
-* ``qugar.dolfinx.ds_bdry_unf`` (integration on the unfitted
+* ``qugar.dolfinx.dsu`` (integration on the unfitted
   boundary)
 * ``qugar.dolfinx.mapped_normal`` (the physical normal at the
   unfitted boundary)
@@ -56,7 +56,7 @@ import ufl
 from utils import dtypes  # type: ignore
 
 import qugar.impl
-from qugar.dolfinx import LinearProblem, ds_bdry_unf, mapped_normal
+from qugar.dolfinx import LinearProblem, dsu, mapped_normal
 from qugar.mesh import create_unfitted_impl_Cartesian_mesh
 
 _PETSC_DTYPES = [d for d in dtypes if np.dtype(d) == np.dtype(ScalarType)]
@@ -110,7 +110,7 @@ def test_poisson_neumann_plus_strong_dirichlet(dtype):
     n_unf = mapped_normal(unf_mesh)
     n_quad = degree + 2
     qd = 2 * n_quad + 1
-    ds_unf = ds_bdry_unf(domain=unf_mesh, degree=qd)
+    ds_unf = dsu(domain=unf_mesh, degree=qd)
     a = ufl.dot(ufl.grad(u), ufl.grad(v)) * ufl.dx(degree=qd)
     L = (
         f * v * ufl.dx(degree=qd)
