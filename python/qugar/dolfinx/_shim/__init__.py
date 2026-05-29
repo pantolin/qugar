@@ -20,6 +20,7 @@ link the resulting shared library.
 
 from __future__ import annotations
 
+import contextlib
 import os
 import subprocess
 import sys
@@ -59,23 +60,59 @@ def _find_cxx() -> Path:
     raise FileNotFoundError(f"no clang++ driver found in {bindir}")
 
 
+@contextlib.contextmanager
+def _file_lock(path: Path):
+    """POSIX advisory exclusive file lock; no-op on platforms without fcntl.
+
+    Serializes builds across processes (e.g. MPI ranks racing on the same
+    cache directory) so only one build runs at a time. Idle waiters block
+    until the holder releases.
+    """
+    try:
+        import fcntl
+    except ImportError:  # Windows -- skip; conda FEniCSx is POSIX in practice.
+        yield
+        return
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with open(path, "w") as fh:
+        try:
+            fcntl.flock(fh.fileno(), fcntl.LOCK_EX)
+            yield
+        finally:
+            fcntl.flock(fh.fileno(), fcntl.LOCK_UN)
+
+
 def ensure_built() -> tuple[Path, str]:
     """Build the shim if missing or out of date.
+
+    MPI/multi-process safe: cross-process serialized via a POSIX file
+    lock on the cache directory (waiters block until the writer
+    releases), in-process serialized via a threading lock. Double-
+    checked locking inside the critical section avoids a redundant
+    rebuild when another rank/process built it while we were waiting.
 
     Returns:
         (library_dir, library_name) suitable for passing to cffi's
         ``library_dirs`` and ``libraries``.
     """
-    with _LOCK:
-        cache = _cache_dir()
-        cache.mkdir(parents=True, exist_ok=True)
-        lib = cache / _LIB_FILENAME
-        # Treat a change to either the shim source OR this builder (which
-        # controls the compile flags) as cache-invalidating.
-        builder_mtime = Path(__file__).stat().st_mtime
-        src_mtime = max(SHIM_SRC.stat().st_mtime, builder_mtime)
+    cache = _cache_dir()
+    cache.mkdir(parents=True, exist_ok=True)
+    lib = cache / _LIB_FILENAME
+    # Treat a change to either the shim source OR this builder (which
+    # controls the compile flags) as cache-invalidating.
+    builder_mtime = Path(__file__).stat().st_mtime
+    src_mtime = max(SHIM_SRC.stat().st_mtime, builder_mtime)
+
+    # Fast path: cache hit without taking any lock.
+    if lib.exists() and lib.stat().st_mtime >= src_mtime:
+        return cache, LIB_NAME
+
+    with _LOCK, _file_lock(cache / ".build.lock"):
+        # Double-check under the lock — another rank/process/thread may
+        # have built it while we were waiting.
         if lib.exists() and lib.stat().st_mtime >= src_mtime:
             return cache, LIB_NAME
+
         prefix = Path(sys.prefix)
         cmd = [
             str(_find_cxx()),
@@ -98,8 +135,6 @@ def ensure_built() -> tuple[Path, str]:
             target = (os.environ.get("MACOSX_DEPLOYMENT_TARGET")
                       or sysconfig.get_config_var("MACOSX_DEPLOYMENT_TARGET"))
             if target:
-                # Insert before "-o" so the output path stays the argument
-                # immediately after it.
                 cmd.insert(cmd.index("-o"), f"-mmacosx-version-min={target}")
         subprocess.run(cmd, check=True)
         return cache, LIB_NAME

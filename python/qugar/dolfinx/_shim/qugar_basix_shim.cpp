@@ -128,6 +128,26 @@ int tabulate_impl(int handle, int nd, const T* x, int npts, int gdim, T* basis,
     return -2;
   }
 }
+// Thread-local scratch buffer used by the generated kernel for basix
+// blocks and per-table repack buffers. Lives for the thread's lifetime
+// and grows on demand, so the kernel doesn't have to put large VLAs on
+// the stack -- which on macOS overflows the (smaller) worker-thread
+// stack for higher-degree 3D forms.
+template <typename T>
+T* get_scratch_impl(long n)
+{
+  thread_local std::vector<T> s;
+  try
+  {
+    if (s.size() < static_cast<std::size_t>(n))
+      s.resize(static_cast<std::size_t>(n));
+    return s.data();
+  }
+  catch (...)
+  {
+    return nullptr;
+  }
+}
 } // namespace
 
 extern "C"
@@ -167,6 +187,10 @@ extern "C"
     return tabulate_impl<float>(handle, nd, x, npts, gdim, basis,
                                 basis_capacity);
   }
+
+  // Thread-local scratch buffer accessors used by the generated kernel.
+  double* qugar_get_scratch_f64(long n) { return get_scratch_impl<double>(n); }
+  float* qugar_get_scratch_f32(long n) { return get_scratch_impl<float>(n); }
 
   // Introspection / teardown.
   int qugar_registry_size_f64() { return (int)registry<double>().size(); }

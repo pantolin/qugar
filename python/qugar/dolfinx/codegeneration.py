@@ -561,7 +561,8 @@ class _IntegralModifier:
             f"extern int qugar_register_element_{suffix}"
             "(int, int, int, int, int, int);\n"
             f"extern int qugar_tabulate_{suffix}"
-            f"(int, int, const {dtype_str}*, int, int, {dtype_str}*, long);\n\n"
+            f"(int, int, const {dtype_str}*, int, int, {dtype_str}*, long);\n"
+            f"extern {dtype_str}* qugar_get_scratch_{suffix}(long);\n\n"
         )
 
     @staticmethod
@@ -763,6 +764,12 @@ class _IntegralModifier:
             # side) and perm>1 tables get an FE..[2] array of per-side
             # buffers; perm<=1 tables stay single-buffer (their values
             # agree on both sides).
+            #
+            # All buffers (basix blocks + per-table repack buffers when
+            # vs > 1) live in a SINGLE thread-local scratch obtained from
+            # the shim. Using the stack via VLAs overflows the thread's
+            # stack for higher-degree 3D forms (e.g. P3 hex), so we offset
+            # into the scratch instead.
             varying = [t for t in FE_tables if not t.is_constant_for_pts()]
 
             groups: dict[tuple, list[tuple[FETable, dict]]] = {}
@@ -770,43 +777,85 @@ class _IntegralModifier:
                 info = self._table_codegen_info(table)
                 groups.setdefault(info["params"], []).append((table, info))
 
+            # First pass: gather per-group metadata and the list of scratch
+            # size terms.
+            group_meta = []
+            scratch_terms: list[str] = []
             for gi, (params, items) in enumerate(groups.items()):
-                fam, cell, deg, lv, dv, disc = params
                 info0 = items[0][1]
                 gdim, ndofs, vs = info0["gdim"], info0["ndofs"], info0["vs"]
                 maxnd = max(info["maxnd"] for _t, info in items)
                 nderiv = math.comb(maxnd + gdim, gdim)
+                any_perm = is_interior_facet and any(
+                    t.permutations > 1 for t, _ in items)
+                blk_size_expr = (
+                    f"{nderiv} * {n_pts_name} * {ndofs} * {vs}"
+                )
+                group_meta.append(
+                    (gi, params, items, gdim, ndofs, vs, maxnd, nderiv,
+                     any_perm, blk_size_expr)
+                )
+                scratch_terms.append(blk_size_expr)
+                if any_perm:
+                    scratch_terms.append(blk_size_expr)
+                for table, info in items:
+                    if info["vs"] > 1:
+                        scratch_terms.append(f"{n_pts_name} * {table.funcs}")
+                        if is_interior_facet and table.permutations > 1:
+                            scratch_terms.append(
+                                f"{n_pts_name} * {table.funcs}"
+                            )
 
+            scratch_var = f"scratch_{quad_name}"
+            if scratch_terms:
+                total = " + ".join(scratch_terms)
+                call_code += (
+                    f"{dtype_str}* {scratch_var} = "
+                    f"qugar_get_scratch_{suffix}((long)({total}));\n\n"
+                )
+
+            # Running offset (sum of size expressions already consumed).
+            offsets: list[str] = []
+
+            def _cur_offset() -> str:
+                return " + ".join(offsets) if offsets else "0"
+
+            for gd in group_meta:
+                (gi, params, items, gdim, ndofs, vs, maxnd, nderiv,
+                 any_perm, blk_size_expr) = gd
+                fam, cell, deg, lv, dv, disc = params
                 handle = f"h_{quad_name}_{gi}"
                 blk0 = f"block_{quad_name}_{gi}"
                 blk1 = f"block_side1_{quad_name}_{gi}"
-                blk_size = f"{nderiv} * {n_pts_name} * {ndofs} * {vs}"
                 stride = f"{ndofs} * {vs}"
 
-                # In mixed-dim integrals, facet-dim elements (gdim < tdim)
-                # must be tabulated at facet-reference points; cell-dim
-                # elements at the cell-mapped points.
                 pts_var = (points_facet_name
                            if (mixed_dim and gdim != tdim)
                            else points_name)
-                any_perm = is_interior_facet and any(
-                    t.permutations > 1 for t, _ in items)
 
                 call_code += (
                     f"const int {handle} = qugar_register_element_{suffix}"
                     f"({fam}, {cell}, {deg}, {lv}, {dv}, {disc});\n"
                 )
-                call_code += f"{dtype_str} {blk0}[{blk_size}];\n"
+                call_code += (
+                    f"{dtype_str}* {blk0} = {scratch_var} + ({_cur_offset()});\n"
+                )
+                offsets.append(blk_size_expr)
                 call_code += (
                     f"qugar_tabulate_{suffix}({handle}, {maxnd}, {pts_var}, "
-                    f"{n_pts_name}, {gdim}, {blk0}, (long)({blk_size}));\n"
+                    f"{n_pts_name}, {gdim}, {blk0}, "
+                    f"(long)({blk_size_expr}));\n"
                 )
                 if any_perm:
-                    call_code += f"{dtype_str} {blk1}[{blk_size}];\n"
+                    call_code += (
+                        f"{dtype_str}* {blk1} = {scratch_var} + "
+                        f"({_cur_offset()});\n"
+                    )
+                    offsets.append(blk_size_expr)
                     call_code += (
                         f"qugar_tabulate_{suffix}({handle}, {maxnd}, "
                         f"{points_side1_name}, {n_pts_name}, {gdim}, "
-                        f"{blk1}, (long)({blk_size}));\n"
+                        f"{blk1}, (long)({blk_size_expr}));\n"
                     )
                 call_code += "\n"
 
@@ -815,30 +864,73 @@ class _IntegralModifier:
                     didx, vaxis = info["didx"], info["vaxis"]
                     two_sided = is_interior_facet and table.permutations > 1
 
-                    def _repack(buf_name: str, src: str) -> str:
-                        r = f"{dtype_str} {buf_name}[{n_pts_name} * {funcs}];\n"
-                        r += f"for (int iq = 0; iq < {n_pts_name}; ++iq)\n"
+                    if vs == 1:
+                        # The basix block's layout already matches the
+                        # kernel's `FE..[iq * funcs + dof]` access at
+                        # offset `didx * n_pts * funcs`. Point FE..
+                        # directly into the block -- no copy.
+                        off_in_blk = f"{didx} * {n_pts_name} * {funcs}"
+                        if two_sided:
+                            call_code += (
+                                f"const {dtype_str}* restrict "
+                                f"{table.name}[2];\n"
+                            )
+                            call_code += (
+                                f"{table.name}[0] = {blk0} + {off_in_blk};\n"
+                            )
+                            call_code += (
+                                f"{table.name}[1] = {blk1} + {off_in_blk};\n\n"
+                            )
+                        else:
+                            call_code += (
+                                f"const {dtype_str}* restrict {table.name} = "
+                                f"{blk0} + {off_in_blk};\n\n"
+                            )
+                        continue
+
+                    # vs > 1: strides differ -> a copy into a separate
+                    # buffer is unavoidable. The buffer also lives in the
+                    # shim scratch.
+                    def _repack_into(buf_name: str, src: str) -> str:
+                        r = f"for (int iq = 0; iq < {n_pts_name}; ++iq)\n"
                         r += f"  for (int kd = 0; kd < {funcs}; ++kd)\n"
                         r += (
                             f"    {buf_name}[iq * {funcs} + kd] = {src}"
-                            f"[{didx} * {n_pts_name} * {stride} + iq * {stride}"
-                            f" + kd * {vs} + {vaxis}];\n"
+                            f"[{didx} * {n_pts_name} * {stride} + "
+                            f"iq * {stride} + kd * {vs} + {vaxis}];\n"
                         )
                         return r
 
+                    buf_size_expr = f"{n_pts_name} * {funcs}"
                     if two_sided:
                         buf0 = f"{table.name}_buf_0"
                         buf1 = f"{table.name}_buf_1"
-                        call_code += _repack(buf0, blk0)
-                        call_code += _repack(buf1, blk1)
                         call_code += (
-                            f"const {dtype_str}* restrict {table.name}[2];\n"
+                            f"{dtype_str}* {buf0} = {scratch_var} + "
+                            f"({_cur_offset()});\n"
+                        )
+                        offsets.append(buf_size_expr)
+                        call_code += (
+                            f"{dtype_str}* {buf1} = {scratch_var} + "
+                            f"({_cur_offset()});\n"
+                        )
+                        offsets.append(buf_size_expr)
+                        call_code += _repack_into(buf0, blk0)
+                        call_code += _repack_into(buf1, blk1)
+                        call_code += (
+                            f"const {dtype_str}* restrict "
+                            f"{table.name}[2];\n"
                         )
                         call_code += f"{table.name}[0] = {buf0};\n"
                         call_code += f"{table.name}[1] = {buf1};\n\n"
                     else:
                         buf = f"{table.name}_buf"
-                        call_code += _repack(buf, blk0)
+                        call_code += (
+                            f"{dtype_str}* {buf} = {scratch_var} + "
+                            f"({_cur_offset()});\n"
+                        )
+                        offsets.append(buf_size_expr)
+                        call_code += _repack_into(buf, blk0)
                         call_code += (
                             f"const {dtype_str}* restrict {table.name} = "
                             f"{buf};\n\n"
@@ -958,24 +1050,14 @@ class _IntegralModifier:
             str: New generated code.
         """
 
-        # Creating new function signature.
+        # The inner kernel keeps the STANDARD tabulate_tensor signature -- no
+        # extra ``w_custom`` argument. Per-cell points/weights/(normals) are
+        # delivered via ``void* custom_data`` (the wrapper sets it). When
+        # upstream dolfinx exposes custom_data directly, the wrapper goes
+        # away and this kernel is already ABI-ready.
         name = self._integral_name
         new_signt = self._func_signt.replace(name, f"{name}_custom")
-
-        coeff_dtype_str = dtype_to_C_str(self._coeffs_dtype)
         dtype_str = dtype_to_C_str(self._data.dtype)
-
-        # Adding w_custom to the list of arguments in the signature.
-        match = re.search(
-            rf"(\s*)const\s+{coeff_dtype_str}\*\s+restrict\s+w\s*,\s*\n",
-            self._func_signt,
-        )  # Search w array in function's signature.
-        assert match is not None
-
-        line = match.group(0)[:-1]
-        indent = match.group(1)
-        new_line = f"{indent}const {dtype_str}* restrict w_custom,"
-        new_signt = new_signt.replace(line, line + new_line)
 
         # Create new function implementation.
         new_impl = self._erase_static_declarations(self._func_impl)
@@ -983,7 +1065,13 @@ class _IntegralModifier:
         new_impl = self._modify_points_loops(new_impl)
         new_impl = self._modify_normal_constants(new_impl)
 
-        custom_data_calls = self._create_custom_data_callers()
+        # Recover w_custom from custom_data (interim, while dolfinx still
+        # hardcodes nullptr for custom_data and we smuggle through `w`).
+        recover = (
+            f"const {dtype_str}* restrict w_custom = "
+            f"(const {dtype_str}*)custom_data;\n"
+        )
+        custom_data_calls = recover + self._create_custom_data_callers()
         assert new_impl[:2] == "{\n"
         new_impl = new_impl[:2] + custom_data_calls + new_impl[2:]
 
@@ -1014,18 +1102,25 @@ class _IntegralModifier:
         code_impl += "if (is_custom)\n"
         code_impl += "{\n"
 
-        code_impl += f"  const {dtype_str}* restrict w_custom = "
-        offset_str = "w + w_custom_offset"
-        if self._data.dtype == self._coeffs_dtype:
-            code_impl += offset_str
-        else:
-            code_impl += f"(const {dtype_str} *) ({offset_str})"
-        code_impl += ";\n"
+        # ``w_custom_offset`` is in real-dtype units (the same unit the
+        # packer uses to lay out smuggled data). For complex coefficient
+        # forms ``w`` is complex; cast it to the real ``T*`` first, then
+        # advance -- this way the same offset semantics work for both
+        # real and complex coeffs.
+        code_impl += (
+            f"  const {dtype_str}* restrict w_custom = "
+            f"(const {dtype_str} *)w + w_custom_offset;\n"
+        )
 
         name = self._integral_name
+        # Pass the smuggled w_custom region as void* custom_data to the
+        # inner kernel -- the inner kernel reads only from custom_data, so
+        # when upstream dolfinx exposes custom_data natively this wrapper
+        # is deletable and the inner kernel stays unchanged.
         code_impl += (
-            f"  tabulate_tensor_integral_{name}_custom(A, w, w_custom, c, "
-            "coordinate_dofs, entity_local_index, quadrature_permutation, custom_data);\n"
+            f"  tabulate_tensor_integral_{name}_custom(A, w, c, "
+            "coordinate_dofs, entity_local_index, quadrature_permutation, "
+            "(void*)w_custom);\n"
         )
         code_impl += "}\nelse if (is_full)\n{\n"
         code_impl += (

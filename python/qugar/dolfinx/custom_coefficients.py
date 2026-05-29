@@ -270,55 +270,69 @@ class _CustomCoeffsPackerIntegral:
         n_extra_cols = np.ceil(self._offsets_dtype.itemsize / self._coeffs_dtype.itemsize)
         return int(n_extra_cols)
 
+    def _real_per_complex_ratio(self) -> int:
+        """How many ``_dtype`` (real) slots fit in one ``_coeffs_dtype``
+        cell. 1 for real coeffs; 2 for complex64 / complex128.
+        """
+        return self._coeffs_dtype.itemsize // self._dtype.itemsize
+
     def _allocate_new_coeffs(
         self,
     ) -> None:
         """Allocates the `numpy` array for storing the custom
         coefficients and stores it in `self._new_coeffs`.
 
-        The size of the (original) non-custom array is enlarged for
-        storing the original coefficients and the new ones. In
-        particular, one or more columns are added to the original
-        coefficients array for storing the custom coefficients offsets
-        for every entity. In addition, as many rows as needed are
-        added to store all the new coefficients to the custom cells.
+        The new array is allocated in ``_coeffs_dtype``; for complex
+        coeffs the smuggled data section is later written through a real
+        view (``new_coeffs.view(_dtype)``), so each complex cell holds two
+        real slots. The row count is computed against the real-unit
+        capacity per row accordingly.
 
-        This method also initializes the member `self._n_vals_per_entity`.
+        This method also initializes the member `self._n_vals_per_entity`
+        (in real units).
         """
 
         self._n_vals_per_entity = self._compute_n_vals_per_custom_entity()
 
-        n_cols = self._old_coeffs.shape[1]
-        n_cols += self._get_n_extra_cols()
+        n_cols_complex = self._old_coeffs.shape[1] + self._get_n_extra_cols()
+        # Real slots per row of ``new_coeffs``.
+        real_per_cell = self._real_per_complex_ratio()
+        n_cols_real = n_cols_complex * real_per_cell
 
         n_tot_vals = np.sum(self._n_vals_per_entity, dtype=self._offsets_dtype)
 
         n_rows = self._offsets_dtype.type(self._domain.shape[0])
         if self._is_interior_facet():
             n_rows *= 2
-        n_extra_rows = self._offsets_dtype.type(np.ceil(n_tot_vals / n_cols))
+        n_extra_rows = self._offsets_dtype.type(
+            np.ceil(n_tot_vals / n_cols_real)
+        )
 
-        self._new_coeffs = np.zeros((n_rows + n_extra_rows, n_cols), dtype=self._coeffs_dtype)
+        self._new_coeffs = np.zeros(
+            (n_rows + n_extra_rows, n_cols_complex), dtype=self._coeffs_dtype
+        )
 
     def _compute_n_vals_per_custom_entity(self) -> npt.NDArray[np.int32]:
-        """Computes the number of values to be stored per custom entity.
+        """Computes the number of values to be stored per custom entity,
+        in real-units (``_dtype``).
 
         For each quadrature attached to an entity we now pack only the
         per-point geometry — the FE table values are computed on the fly
         inside the kernel via the basix tabulation shim. Layout per entity
         per quadrature:
 
-            [ n_pts (1 int) | points (gdim * n_pts) | weights (n_pts)
-              | normals (gdim * n_pts) if unfitted_boundary ]
-
-        Warning:
-            This method is yet not implemented for complex types.
+            [ n_pts (1 real slot) | points (gdim * n_pts)
+              | points_s1 (gdim * n_pts, interior-facet only)
+              | points_facet ((gdim-1) * n_pts, mixed-dim only)
+              | weights (n_pts)
+              | normals (gdim * n_pts, unfitted-boundary only) ]
 
         Returns:
-            npt.NDArray[np.int32]: Number of values per custom entity.
-            The length of the array is the same as the number of custom
-            entities, i.e., the same length along the first axis of
-            `self._custom_entity_ids`.
+            npt.NDArray[np.int32]: Number of *real* slots required per
+            custom entity. For complex coefficient forms the smuggled
+            data is written through a real view of ``new_coeffs``, so
+            this count is the one that drives both allocation and the
+            offset arithmetic.
         """
 
         n_custom_entities = self._custom_entity_ids.size
@@ -352,26 +366,21 @@ class _CustomCoeffsPackerIntegral:
             # dtypes are at least 32 bits).
             n_vals_per_custom_entity += 1
 
-        if np.issubdtype(self._coeffs_dtype, np.complexfloating):
-            assert False, "Not implemented yet for complex values."
-
         return n_vals_per_custom_entity
 
     def _compute_offsets(self) -> None:
         """Computes the custom coefficients offset and copies them into
         the extra (right-most) columns of `self._new_coeffs`.
 
-        The offsets specify for every entity in the domain (cells,
-        exterior facets, or first facet in the case of interior facets)
-        in which position of the (flatten) array the extra coefficients
-        needed for the custom integral start. It is a relative position
-        referred to the first entry of the current row (entity). If the
-        offset is 0, then the entity does not require a custom integral
-        and no extra coefficients are provided.
+        Offsets are stored in *real units*: the kernel reads them as
+        ``ptrdiff_t`` and adds them to ``(const T*)w`` (cast first, then
+        add), so the same byte arithmetic works for both real-coefficient
+        and complex-coefficient forms (complex viewed as 2 real slots per
+        cell).
 
-        In addition to copy the relative offsets to `self._new_coeffs`,
+        In addition to copying the relative offsets to ``new_coeffs``,
         the absolute (non-relative) offsets are stored in
-        `self._offsets`.
+        ``self._offsets``.
         """
 
         interior_facet = self._is_interior_facet()
@@ -379,10 +388,15 @@ class _CustomCoeffsPackerIntegral:
         n_tot_entities = self._domain.shape[0]
         n_entities = 2 * n_tot_entities if interior_facet else n_tot_entities
 
-        n_cols = self._new_coeffs.shape[1]
-        first_extra_pos = self._offsets_dtype.type(n_entities * n_cols)
+        # Convert column count from coeffs-dtype cells to real-dtype slots.
+        n_cols_complex = self._new_coeffs.shape[1]
+        ratio = self._real_per_complex_ratio()
+        n_cols_real = n_cols_complex * ratio
+        first_extra_pos = self._offsets_dtype.type(n_entities * n_cols_real)
 
-        first_col_pos = np.arange(n_entities, dtype=self._offsets_dtype) * n_cols
+        first_col_pos = (
+            np.arange(n_entities, dtype=self._offsets_dtype) * n_cols_real
+        )
         if interior_facet:
             first_col_pos = first_col_pos[::2]
 
@@ -408,59 +422,56 @@ class _CustomCoeffsPackerIntegral:
         # And finally for the empty entities we set the offset to 0.
         all_rel_offsets[self._get_empty_entities_ids()] = 0
 
-        # Copying np.intp offsets to the coefficients array.
-        # No cast performed, just a view.
-
+        # Copy intp offsets into the trailing coeff cells via a byte view.
+        # For coeffs whose cell is smaller-or-equal to intp (float32, float64,
+        # complex64) one intp spans n_extra_cols cells and the direct
+        # `int -> coeffs_dtype` view works. For coeffs whose cell is larger
+        # than intp (complex128 = 16 B vs intp 8 B) we need to pad each intp
+        # with zeros to fill one cell before viewing.
         n_extra_cols = self._get_n_extra_cols()
-        all_rel_offsets_view = all_rel_offsets.view(self._coeffs_dtype).reshape([-1, n_extra_cols])
+        if self._coeffs_dtype.itemsize <= self._offsets_dtype.itemsize:
+            all_rel_offsets_view = all_rel_offsets.view(
+                self._coeffs_dtype
+            ).reshape([-1, n_extra_cols])
+        else:
+            # complex128: pad each intp to coeffs_itemsize bytes (intp in the
+            # first int slot of the cell, zeros after).
+            intps_per_cell = (
+                self._coeffs_dtype.itemsize // self._offsets_dtype.itemsize
+            )
+            padded = np.zeros(
+                all_rel_offsets.size * intps_per_cell,
+                dtype=self._offsets_dtype,
+            )
+            padded[::intps_per_cell] = all_rel_offsets
+            all_rel_offsets_view = padded.view(self._coeffs_dtype).reshape(
+                [-1, n_extra_cols]
+            )
         self._new_coeffs[:n_entities, -n_extra_cols:] = all_rel_offsets_view
 
-    def _copy_vals_complex(
-        self,
-        vals_quads: list[
-            list[npt.NDArray[np.int32] | npt.NDArray[np.float32] | npt.NDArray[np.float64]]
-        ],
-    ) -> None:
-        """Copies the generated extra custom coefficients to their
-        position in the array `self._new_coeffs`.
-
-        Note:
-            This is the version for complex coefficients array.
-
-        Warning:
-            This method is yet not implemented for complex types.
-
-        Args:
-            vals_quads (list[list[FloatingArray]]): New custom
-            coefficients to be copied. Check the documentation of
-            `self._compute_new_vals` for a more detailed description.
-        """
-
-        assert self._dtype != self._coeffs_dtype
-        raise ValueError("Not implemented for complex values.")
-
-    def _copy_vals_real(
+    def _copy_vals(
         self,
         vals_all_quads: list[
             list[npt.NDArray[np.int32] | npt.NDArray[np.float32] | npt.NDArray[np.float64]]
         ],
     ) -> None:
-        """Copies the generated extra custom coefficients to their
-        position in the array `self._new_coeffs`.
+        """Copies the per-cell smuggled values (n_pts header + points +
+        weights + normals + side-1 / facet points where applicable) into
+        ``self._new_coeffs`` at the absolute positions stored in
+        ``self._offsets``.
 
-        Note:
-            This is the version for real coefficients array.
-
-        Args:
-            vals_quads (list[list[FloatingArray]]): New custom
-            coefficients to be copied. Check the documentation of
-            `self._compute_new_vals` for a more detailed description.
+        For complex coefficient arrays the underlying memory is viewed as
+        the real type ``self._dtype`` (each ``complex128`` cell holds 2
+        ``float64`` slots, each ``complex64`` cell holds 2 ``float32``
+        slots). Offsets are computed in *real units* throughout
+        (``_compute_offsets``), so the same memcpy logic works for both
+        real and complex coefficient forms.
         """
 
-        assert self._dtype == self._coeffs_dtype
-
-        new_coeffs = self._new_coeffs.ravel()
-
+        # View the raw memory of new_coeffs as the real per-point dtype.
+        # For real coeffs this is identity; for complex coeffs this gives
+        # 2x the number of cells with the real layout the kernel reads.
+        new_coeffs_real = self._new_coeffs.view(self._dtype).ravel()
         odtype = self._offsets_dtype
 
         offsets = np.copy(self._offsets)
@@ -474,7 +485,7 @@ class _CustomCoeffsPackerIntegral:
 
             n_pts_per_cell = vals_for_quad.pop(0).astype(odtype)
 
-            new_coeffs[offsets] = n_pts_per_cell
+            new_coeffs_real[offsets] = n_pts_per_cell
             offsets += 1
 
             n_vals_per_pt = np.array([vals.size for vals in vals_for_quad], dtype=odtype)
@@ -496,31 +507,11 @@ class _CustomCoeffsPackerIntegral:
                     v_off0 = vals_offsets[i]
                     v_off1 = v_off0 + n_vals
 
-                    new_coeffs[c_off0:c_off1] = vals[v_off0:v_off1]
+                    new_coeffs_real[c_off0:c_off1] = vals[v_off0:v_off1]
 
                     c_off0 = c_off1
                     vals_offsets[i] = v_off1
                 offsets[cell_id] = c_off0
-
-    def _copy_vals(
-        self,
-        vals_all_quads: list[
-            list[npt.NDArray[np.int32] | npt.NDArray[np.float32] | npt.NDArray[np.float64]]
-        ],
-    ) -> None:
-        """Copies the generated extra custom coefficients to their
-        position in the array `self._new_coeffs`.
-
-        Args:
-            vals_quads (list[list[FloatingArray]]): New custom
-            coefficients to be copied. Check the documentation of
-            `self._compute_new_vals` for a more detailed description.
-        """
-
-        if np.issubdtype(self._coeffs_dtype, np.complexfloating):
-            self._copy_vals_complex(vals_all_quads)
-        else:
-            self._copy_vals_real(vals_all_quads)
 
     def _create_quadrature_cell(
         self, quad_data: QuadratureData

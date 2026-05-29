@@ -73,9 +73,6 @@ class FETable:
             Size of the table along the third axis.
         _funcs (int): Number of basis functions in the table.
             Size of the table along the fourth axis.
-        _values (npt.NDArray[np.float32 | np.float64]): Array of basis
-            functions values. It is a 4-dimensional (permutations,
-            entities, points, funcs) with type `self._dtype`.
         _element (Element): Basix element used for creating the table.
     """
 
@@ -140,8 +137,6 @@ class FETable:
 
         self._quad_data = all_quads_data[self._quad_name]
 
-        self._values = self._extract_values()
-
     def _parse_code(self, code: str):
         """Parses the first occurrence of a FE table in the given
         C `code`.
@@ -191,24 +186,6 @@ class FETable:
 
         name = "FE" + match.group(1)
         return name
-
-    def _extract_values(self) -> npt.NDArray[np.float32 | np.float64]:
-        """Extracts the table values from `self._code`.
-
-        Returns:
-            npt.NDArray[np.float32 | np.float64]: Extracted FE table
-            values stored in a 4-dimensional array.
-        """
-
-        match = re.search(FETable.pattern, self._code)
-        assert match
-
-        values_str = match.group(10).replace(r"{", "").replace("}", "").replace(",", " ")
-
-        shape = (self._permutations, self._entities, self._points, self._funcs)
-        vals = [self.dtype(i) for i in values_str.split()]  # type: ignore
-        values = np.array(vals, dtype=self.dtype).reshape(shape)
-        return values
 
     @property
     def dtype(self) -> type[np.float32 | np.float64]:
@@ -328,11 +305,6 @@ class FETable:
     def funcs(self) -> int:
         """Returns the number of functions in the table."""
         return self._funcs
-
-    @property
-    def values(self) -> npt.NDArray:
-        """Returns the table values."""
-        return self._values
 
     def _parse_FE_extra_options(self, opts_str: str):
         """Extracts part of the information encoded in the name of a FE
