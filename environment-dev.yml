@@ -12,6 +12,12 @@ dependencies:
   - liblapacke
   - openblas
 
+  # C++ compiler from conda-forge: the on-the-fly shim links libbasix and must
+  # be built with a toolchain whose C++ ABI matches the conda-forge basix
+  # (notably the std::floating_point-constrained create_element mangling). The
+  # system compiler is not guaranteed to match. Activation also exports $CXX.
+  - cxx-compiler
+
   - scikit-build-core
   - cmake
   - ninja

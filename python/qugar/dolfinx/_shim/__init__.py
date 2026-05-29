@@ -63,17 +63,26 @@ def _find_cxx() -> Path:
         resolved = shutil.which(cxx_env)
         if resolved:
             return Path(resolved)
-    # Prefer a compiler shipped in the active environment (conda's clang++/g++
-    # land here), then fall back to the system PATH -- on Linux conda the
-    # FEniCSx env carries no compiler and the system g++/cc is what ffcx's own
-    # JIT uses, so we must mirror that here.
+    # Prefer a compiler shipped in the active environment: it must match the
+    # C++ ABI of the conda-forge libbasix the shim links (notably basix's
+    # std::floating_point-constrained create_element mangling), which a system
+    # compiler is not guaranteed to do. conda's compilers land in the env bin
+    # either plain (clang++/g++) or toolchain-prefixed (x86_64-conda-linux-gnu-c++,
+    # arm64-apple-darwin*-clang++). Only fall back to the system PATH if the env
+    # ships none -- that risks an ABI mismatch, hence it is the last resort.
     bindir = Path(sys.prefix) / "bin"
-    names = ["clang++", *sorted(p.name for p in bindir.glob("clang++-*")), "g++", "c++"]
+    prefixed = sorted(
+        p.name
+        for pat in ("*-c++", "*-g++", "*-clang++")
+        for p in bindir.glob(pat)
+    )
+    names = ["clang++", *sorted(p.name for p in bindir.glob("clang++-*")),
+             "g++", "c++", *prefixed]
     for name in names:
         candidate = bindir / name
         if candidate.exists():
             return candidate
-    for name in names:
+    for name in ["clang++", "g++", "c++"]:
         resolved = shutil.which(name)
         if resolved:
             return Path(resolved)
