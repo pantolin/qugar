@@ -41,6 +41,20 @@ runs:
         auto-activate-base: false
         # use-only-tar-bz2: true # This is needed for caching to work properly, but clashes with fenicsx packages
 
+    # The on-the-fly basix shim is JIT-compiled and linked against the
+    # conda-forge libbasix; it must be built with a C++ toolchain whose ABI
+    # matches (notably basix's std::floating_point-constrained create_element
+    # mangling). macOS conda envs already ship a matching clang++, but the
+    # Linux FEniCSx env carries no C++ compiler, so the shim would otherwise
+    # fall back to the system g++ and hit 'undefined symbol: create_element'.
+    # Install it on Linux only -- adding it on macOS would switch the wheel's
+    # nanobind link to conda clang and clash with the Apple-clang-built libqugar.a.
+    - name: Install conda C++ compiler (Linux only)
+      if: runner.os == 'Linux'
+      shell: bash -el {0}
+      run: |
+        conda install -y cxx-compiler
+
     - name: Install Build Requrements
       shell: bash -el {0}
       run: |

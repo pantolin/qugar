@@ -29,10 +29,11 @@ import io
 import logging
 import os
 import sys
+import sysconfig
 import tempfile
 import time
 import typing
-from contextlib import redirect_stdout
+from contextlib import contextmanager, redirect_stdout
 from pathlib import Path
 from typing import Optional
 
@@ -58,8 +59,34 @@ from ffcx.codegeneration.jit import (
     root_logger,
 )
 
+from qugar.dolfinx._shim import ensure_built as _ensure_shim_built
 from qugar.dolfinx.compiler import compile_ufl_objects
 from qugar.dolfinx.integral_data import IntegralData
+
+
+@contextmanager
+def _deduped_ldshared():
+    """Temporarily override ``LDSHARED`` with a deduplicated token stream.
+
+    Conda-forge Python ships a ``sysconfig.LDSHARED`` that contains
+    ``-Wl,-rpath,$PREFIX/lib`` and ``-L$PREFIX/lib`` *twice*, which makes
+    every cffi kernel link emit ``ld: warning: duplicate -rpath ... ignored``.
+    distutils honors the ``LDSHARED`` env var as a full override of
+    ``sysconfig.LDSHARED``, so we feed it the same flags with duplicates
+    removed (order preserved) just for the duration of the cffi compile.
+    """
+    saved = os.environ.get("LDSHARED")
+    raw = sysconfig.get_config_var("LDSHARED") or ""
+    if raw:
+        deduped = " ".join(dict.fromkeys(raw.split()))
+        os.environ["LDSHARED"] = deduped
+    try:
+        yield
+    finally:
+        if saved is None:
+            os.environ.pop("LDSHARED", None)
+        else:
+            os.environ["LDSHARED"] = saved
 
 
 def _compile_objects(
@@ -87,6 +114,11 @@ def _compile_objects(
     """
 
     libraries = _libraries + cffi_libraries if cffi_libraries is not None else _libraries
+
+    # The on-the-fly custom kernel calls into a tiny C++ shim that wraps basix.
+    # Build it once (cached) and link the kernel against it.
+    _shim_dir, _shim_name = _ensure_shim_built()
+    libraries = libraries + [_shim_name]
 
     # JIT uses module_name as prefix, which is needed to make names of
     # all struct/function
@@ -120,6 +152,8 @@ def _compile_objects(
         include_dirs=[ffcx.codegeneration.get_include_path()],
         extra_compile_args=cffi_final_compile_args,
         libraries=libraries,
+        library_dirs=[str(_shim_dir)],
+        extra_link_args=[f"-Wl,-rpath,{_shim_dir}"],
     )
 
     ffibuilder.cdef(decl)
@@ -140,7 +174,7 @@ def _compile_objects(
     # since CFFI logs into root logger
     old_handlers = root_logger.handlers.copy()
     root_logger.handlers = [logging.StreamHandler(f)]
-    with redirect_stdout(f):
+    with redirect_stdout(f), _deduped_ldshared():
         ffibuilder.compile(tmpdir=cache_dir, verbose=True, debug=cffi_debug)
     s = f.getvalue()
     if cffi_verbose:

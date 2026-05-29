@@ -24,8 +24,7 @@ form / quadrature pipeline must also handle:
   applied by the ffcx kernel; same constraint on qugar.
 * Mixed elements built via ``basix.ufl.mixed_element`` -- multiple
   sub-elements sharing a single function space. qugar drills into the
-  correct sub-element per flat component (see
-  ``fe_table_eval._resolve_mixed_component``) instead of calling
+  correct sub-element per flat component instead of calling
   ``tabulate`` on the mixed element directly.
 """
 
