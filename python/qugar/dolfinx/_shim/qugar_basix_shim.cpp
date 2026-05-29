@@ -1,9 +1,10 @@
-// Isolated M0 prototype: a tiny, generic C++ shim that lets a JIT-compiled C
-// kernel tabulate basix finite elements on the fly.
+// A tiny, generic C++ shim that lets a JIT-compiled C kernel tabulate basix
+// finite elements on the fly.  It is compiled once, cached on disk, and linked
+// into every qugar custom kernel.
 //
-// Goals being proven here (in isolation, NOT wired into QUGaR yet):
+// Design invariants:
 //   1. basix (C++) is callable from a plain C ABI (extern "C").
-//   2. The element is created ONCE and cached; tabulate never constructs it.
+//   2. Each element is created ONCE and cached; tabulate never re-constructs it.
 //   3. Scalar-type awareness: basix elements are templated on the *real* type
 //      (float/double). Tabulation is always real-valued; the kernel's assembly
 //      type (which may be complex) is a separate concern handled on the C side.

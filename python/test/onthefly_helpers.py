@@ -18,26 +18,19 @@ kernel.
 from __future__ import annotations
 
 import ctypes
-import sys
 from pathlib import Path
 
 import numpy as np
 
-from qugar.dolfinx._shim import ensure_built
+from qugar.dolfinx._shim import _LIB_FILENAME, ensure_built
 
 _CT = {np.float64: ctypes.c_double, np.float32: ctypes.c_float}
 _SUFFIX = {np.float64: "f64", np.float32: "f32"}
 
 
 def _libfile() -> Path:
-    cache, name = ensure_built()
-    if sys.platform == "darwin":
-        suffix = "dylib"
-    elif sys.platform == "win32":
-        suffix = "dll"
-    else:
-        suffix = "so"
-    return cache / f"lib{name}.{suffix}"
+    cache, _ = ensure_built()
+    return cache / _LIB_FILENAME
 
 
 def load_shim() -> ctypes.CDLL:

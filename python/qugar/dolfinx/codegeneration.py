@@ -200,8 +200,9 @@ class _IntegralModifier:
 
         # Checking the indices of `entity_local_index` /
         # `quadrature_permutation` being accessed. Scan the pre-loop
-        # band + every loop body (these are the only places FFCx emits
-        # these accesses).
+        # band of the first loop + every loop body. FFCx emits these
+        # accesses only in those two places; inter-loop pre_text
+        # (loops[1+].pre_text) is always blank whitespace in practice.
         body_text = (
             (self._body.loops[0].pre_text if self._body.loops else "")
             + "".join(L.body for L in self._body.loops)
@@ -548,15 +549,16 @@ class _IntegralModifier:
                 call_code += (
                     f"const int {handle} = qugar_register_element_{suffix}"
                     f"({fam}, {cell}, {deg}, {lv}, {dv}, {disc});\n"
+                    f"if ({handle} < 0) return;\n"
                 )
                 call_code += (
                     f"{dtype_str}* {blk0} = {scratch_var} + ({_cur_offset()});\n"
                 )
                 offsets.append(blk_size_expr)
                 call_code += (
-                    f"qugar_tabulate_{suffix}({handle}, {maxnd}, {pts_var}, "
+                    f"if (qugar_tabulate_{suffix}({handle}, {maxnd}, {pts_var}, "
                     f"{n_pts_name}, {gdim}, {blk0}, "
-                    f"(long)({blk_size_expr}));\n"
+                    f"(long)({blk_size_expr})) != 0) return;\n"
                 )
                 if any_perm:
                     call_code += (
@@ -565,9 +567,9 @@ class _IntegralModifier:
                     )
                     offsets.append(blk_size_expr)
                     call_code += (
-                        f"qugar_tabulate_{suffix}({handle}, {maxnd}, "
+                        f"if (qugar_tabulate_{suffix}({handle}, {maxnd}, "
                         f"{points_side1_name}, {n_pts_name}, {gdim}, "
-                        f"{blk1}, (long)({blk_size_expr}));\n"
+                        f"{blk1}, (long)({blk_size_expr})) != 0) return;\n"
                     )
                 call_code += "\n"
 
@@ -603,13 +605,19 @@ class _IntegralModifier:
                     # vs > 1: strides differ -> a copy into a separate
                     # buffer is unavoidable. The buffer also lives in the
                     # shim scratch.
-                    def _repack_into(buf_name: str, src: str) -> str:
-                        r = f"for (int iq = 0; iq < {n_pts_name}; ++iq)\n"
-                        r += f"  for (int kd = 0; kd < {funcs}; ++kd)\n"
+                    # Default-argument capture freezes the current loop
+                    # variable values, avoiding Python's late-binding closure.
+                    def _repack_into(
+                        buf_name: str, src: str,
+                        _n=n_pts_name, _f=funcs, _d=didx, _st=stride,
+                        _v=vs, _va=vaxis,
+                    ) -> str:
+                        r = f"for (int iq = 0; iq < {_n}; ++iq)\n"
+                        r += f"  for (int kd = 0; kd < {_f}; ++kd)\n"
                         r += (
-                            f"    {buf_name}[iq * {funcs} + kd] = {src}"
-                            f"[{didx} * {n_pts_name} * {stride} + "
-                            f"iq * {stride} + kd * {vs} + {vaxis}];\n"
+                            f"    {buf_name}[iq * {_f} + kd] = {src}"
+                            f"[{_d} * {_n} * {_st} + "
+                            f"iq * {_st} + kd * {_v} + {_va}];\n"
                         )
                         return r
 

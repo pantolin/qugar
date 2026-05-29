@@ -53,11 +53,24 @@ def _cache_dir() -> Path:
 
 
 def _find_cxx() -> Path:
+    # Honour an explicit user/CI override first.
+    cxx_env = os.environ.get("CXX")
+    if cxx_env:
+        p = Path(cxx_env)
+        if p.exists():
+            return p
     bindir = Path(sys.prefix) / "bin"
-    for candidate in [bindir / "clang++", *sorted(bindir.glob("clang++-*"))]:
+    for candidate in [
+        bindir / "clang++",
+        *sorted(bindir.glob("clang++-*")),
+        bindir / "g++",
+        bindir / "c++",
+    ]:
         if candidate.exists():
             return candidate
-    raise FileNotFoundError(f"no clang++ driver found in {bindir}")
+    raise FileNotFoundError(
+        f"no C++ compiler found in {bindir}; set $CXX to override"
+    )
 
 
 @contextlib.contextmanager
