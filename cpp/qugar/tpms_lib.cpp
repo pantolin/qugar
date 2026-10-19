@@ -123,7 +123,7 @@ template<int dim> template<typename T> auto Schoen<dim>::hessian_(const Point<3,
              * (-sin(pi_2mnq_point(1)) * cos(pi_2mnq_point(2)) - sin(pi_2mnq_point(0)) * cos(pi_2mnq_point(1)));
 
   if constexpr (dim == 3) {
-    hess(2) = pi_2mnq(0) * pi_2mnq(2) * (-cos(pi_2mnq_point(2)) * sin(pi_2mnq_point(2)));
+    hess(2) = pi_2mnq(0) * pi_2mnq(2) * (-sin(pi_2mnq_point(0)) * cos(pi_2mnq_point(2)));
     hess(4) = pi_2mnq(1) * pi_2mnq(2) * (-cos(pi_2mnq_point(1)) * sin(pi_2mnq_point(2)));
     // NOLINTNEXTLINE (cppcoreguidelines-avoid-magic-numbers)
     hess(5) = pi_2mnq(2) * pi_2mnq(2)
@@ -159,7 +159,7 @@ template<int dim> template<typename T> auto SchoenIWP<dim>::grad_(const Point<3,
   grad_val(0) =
     (sin(pi_4_m_point(0)) - sin(pi_2_m_point(0)) * (cos(pi_2_m_point(1)) + cos(pi_2_m_point(2)))) * pi_4_m(0);
   grad_val(1) =
-    (sin(pi_4_m_point(1)) - sin(pi_2_m_point(1)) * (cos(pi_2_m_point(0)) + cos(pi_2_m_point(2)))) * pi_4_m(0);
+    (sin(pi_4_m_point(1)) - sin(pi_2_m_point(1)) * (cos(pi_2_m_point(0)) + cos(pi_2_m_point(2)))) * pi_4_m(1);
   if constexpr (dim == 3) {
     grad_val(2) =
       (sin(pi_4_m_point(2)) - sin(pi_2_m_point(2)) * (cos(pi_2_m_point(0)) + cos(pi_2_m_point(1)))) * pi_4_m(2);
